@@ -70,6 +70,8 @@ markdown-renderer = { group = "com.mikepenz", name = "multiplatform-markdown-ren
 
 # Coroutines test
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
+mockk = { group = "io.mockk", name = "mockk", version = "1.13.13" }
+androidx-core-testing = { group = "androidx.arch.core", name = "core-testing", version = "2.2.0" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
