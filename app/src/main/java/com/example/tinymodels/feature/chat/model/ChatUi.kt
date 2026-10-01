@@ -52,6 +52,9 @@ data class ChatUiState(
     val messages: List<UiChatMessage> = emptyList(),
     val model: ModelChipState = ModelChipState.NotSelected,
     val generation: GenerationState = GenerationState.IDLE,
+    /** ID of the assistant message currently being streamed, if any.
+     *  Used by [observeMessages] to merge the optimistic placeholder with Room data. */
+    val streamingMessageId: String? = null,
     val contextUsage: ContextUsage = ContextUsage(),
     val hasDownloadedModels: Boolean = true,
     val error: ChatError? = null

@@ -14,6 +14,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
@@ -78,7 +79,7 @@ fun MessageBubble(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 } else {
-                    Markdown(content = message.text, modifier = Modifier.fillMaxWidth())
+                    SafeMarkdown(content = message.text)
                     if (message.isStreaming) {
                         Text(
                             text = "\u258D",
@@ -90,4 +91,32 @@ fun MessageBubble(
             }
         }
     }
+}
+
+/**
+ * Renders markdown safely. During streaming the text may contain unclosed code
+ * fences or half-finished lists that can confuse the parser; fall back to plain
+ * [Text] in that case so the partial reply is always visible.
+ */
+@Composable
+private fun SafeMarkdown(content: String, modifier: Modifier = Modifier) {
+    val canRender = remember(content) { canRenderMarkdown(content) }
+    if (canRender) {
+        Markdown(content = content, modifier = modifier)
+    } else {
+        Text(
+            text = content,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = modifier
+        )
+    }
+}
+
+/** Quick heuristic: only fully-render once the text looks structurally complete. */
+private fun canRenderMarkdown(text: String): Boolean {
+    if (text.isBlank()) return true
+    // Unbalanced code fences -> render as plain text to avoid broken blocks.
+    val fenceCount = text.split("```").size - 1
+    return fenceCount % 2 == 0
 }

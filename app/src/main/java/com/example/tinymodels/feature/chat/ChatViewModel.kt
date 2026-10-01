@@ -247,12 +247,21 @@ class ChatViewModel @Inject constructor(
     private fun observeMessages(chatId: String) {
         viewModelScope.launch {
             chatRepository.observeMessages(chatId).collect { messages ->
-                // Skip clobbering the in-flight streaming message if one is active.
-                if (_uiState.value.generation == GenerationState.GENERATING) return@collect
                 _uiState.update { state ->
-                    if (state.activeChatId == chatId) {
-                        state.copy(messages = messages.map { it.toUi() })
-                    } else state
+                    if (state.activeChatId != chatId) return@update state
+                    val roomUi = messages.map { it.toUi() }
+                    // Merge: use Room data, but preserve the in-flight streaming
+                    // assistant message (with its live partial text) when active.
+                    val streamingId = state.streamingMessageId
+                    val streamingMsg = state.messages.firstOrNull { it.id == streamingId }
+                    if (streamingId != null && streamingMsg != null) {
+                        // Drop any stale Room version of the streaming placeholder
+                        // (it won't exist until persisted) and append the live one.
+                        val without = roomUi.filterNot { it.id == streamingId }
+                        state.copy(messages = without + streamingMsg)
+                    } else {
+                        state.copy(messages = roomUi)
+                    }
                 }
             }
         }
@@ -296,6 +305,7 @@ class ChatViewModel @Inject constructor(
             _uiState.update { s ->
                 s.copy(
                     generation = GenerationState.GENERATING,
+                    streamingMessageId = assistantId,
                     messages = s.messages + userMessage.toUi() + UiChatMessage(
                         id = assistantId, isUser = false, text = "", isStreaming = true,
                         timestamp = System.currentTimeMillis()
@@ -329,6 +339,7 @@ class ChatViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             generation = GenerationState.IDLE,
+                            streamingMessageId = null,
                             error = ChatError(throwable.message ?: "Generation failed")
                         )
                     }
@@ -349,6 +360,7 @@ class ChatViewModel @Inject constructor(
                 _uiState.update { s ->
                     s.copy(
                         generation = GenerationState.IDLE,
+                        streamingMessageId = null,
                         messages = s.messages.map { m ->
                             if (m.id == assistantId) m.copy(isStreaming = false) else m
                         }
@@ -365,7 +377,7 @@ class ChatViewModel @Inject constructor(
         // Mark the in-flight assistant message as stopped (keep partial text).
         _uiState.update { s ->
             val updated = s.messages.map { m -> if (m.isStreaming) m.copy(isStreaming = false) else m }
-            s.copy(generation = GenerationState.IDLE, messages = updated)
+            s.copy(generation = GenerationState.IDLE, streamingMessageId = null, messages = updated)
         }
         // Persist whatever partial assistant text remains for this chat.
         viewModelScope.launch {
