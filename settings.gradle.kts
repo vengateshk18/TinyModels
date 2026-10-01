@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "TityModels"
+rootProject.name = "TinyModels"
 include(":app")
  

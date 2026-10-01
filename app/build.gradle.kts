@@ -6,13 +6,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.titymodels"
+    namespace = "com.example.tinymodels"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.titymodels"
+        applicationId = "com.example.tinymodels"
         minSdk = 26
         targetSdk = 37
         versionCode = 1
