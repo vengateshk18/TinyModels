@@ -51,6 +51,7 @@ class ModelDownloadWorker @AssistedInject constructor(
         createChannel()
         setForeground(createForegroundInfo(0L, total))
 
+        val startTimeMs = System.currentTimeMillis()
         return try {
             files.forEach { fileName ->
                 coroutineContext.ensureActive()
@@ -60,11 +61,14 @@ class ModelDownloadWorker @AssistedInject constructor(
                 downloadFile(url, target) { fileDownloaded, _ ->
                     downloaded = previousDownloaded + fileDownloaded
                     val progress = if (total > 0) downloaded.toFloat() / total else 0f
+                    val elapsedSec = (System.currentTimeMillis() - startTimeMs) / 1000.0
+                    val speed = if (elapsedSec > 0.5) (downloaded / elapsedSec).toLong() else 0L
                     setProgress(
                         workDataOf(
                             KEY_DOWNLOADED_BYTES to downloaded,
                             KEY_TOTAL_BYTES to total,
-                            KEY_PROGRESS to progress
+                            KEY_PROGRESS to progress,
+                            KEY_BYTES_PER_SEC to speed
                         )
                     )
                     notificationManager.notify(NOTIFICATION_ID, createNotification(downloaded, total))
@@ -158,6 +162,7 @@ class ModelDownloadWorker @AssistedInject constructor(
         const val KEY_TOTAL_BYTES = "total_bytes"
         const val KEY_DOWNLOADED_BYTES = "downloaded_bytes"
         const val KEY_PROGRESS = "progress"
+        const val KEY_BYTES_PER_SEC = "bytes_per_sec"
         const val CHANNEL_ID = "model_downloads"
         const val NOTIFICATION_ID = 1001
     }

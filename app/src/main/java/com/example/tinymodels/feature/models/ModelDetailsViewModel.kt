@@ -4,16 +4,17 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tinymodels.core.common.AppResult
+import com.example.tinymodels.core.common.StorageUtils
 import com.example.tinymodels.domain.model.ModelDetails
 import com.example.tinymodels.domain.repository.ModelRepository
 import com.example.tinymodels.domain.usecase.model.DownloadModelUseCase
 import com.example.tinymodels.domain.usecase.model.DownloadState
+import com.example.tinymodels.domain.usecase.model.DownloadStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,7 +23,8 @@ import javax.inject.Inject
 class ModelDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val modelRepository: ModelRepository,
-    private val downloadModel: DownloadModelUseCase
+    private val downloadModel: DownloadModelUseCase,
+    private val storageUtils: StorageUtils
 ) : ViewModel() {
 
     private val modelId: String = checkNotNull(savedStateHandle["modelId"])
@@ -32,9 +34,12 @@ class ModelDetailsViewModel @Inject constructor(
         val model: ModelDetails? = null,
         val error: String? = null,
         val isDownloaded: Boolean = false,
-        val download: DownloadState = DownloadState(),
-        val downloadSizeBytes: Long = 0L
-    )
+        val download: DownloadState = DownloadState()
+    ) {
+        /** Best-known total size: model repo size, else what the worker reports. */
+        val totalSizeBytes: Long
+            get() = model?.usedStorage?.takeIf { it > 0 } ?: download.totalBytes
+    }
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
@@ -44,6 +49,7 @@ class ModelDetailsViewModel @Inject constructor(
     init {
         load()
         observeDownloaded()
+        resumeActiveDownload()
     }
 
     fun load() {
@@ -66,19 +72,50 @@ class ModelDetailsViewModel @Inject constructor(
         }
     }
 
-    fun onDownloadClick() {
-        val model = _uiState.value.model ?: return
-        if (_uiState.value.download.isDownloading) {
-            downloadModel.cancel(model.id)
-            _uiState.update { it.copy(download = DownloadState()) }
-            return
-        }
+    /** If a download for this model is already running (e.g. screen re-entry), bind to it. */
+    private fun resumeActiveDownload() {
+        val existing = downloadModel.observeExisting(modelId) ?: return
         downloadJob?.cancel()
         downloadJob = viewModelScope.launch {
-            val size = runCatching { downloadModel.calculateSize(model) }.getOrDefault(0L)
-            _uiState.update { it.copy(downloadSizeBytes = size) }
-            downloadModel.execute(model, size).collect { downloadState ->
-                _uiState.update { it.copy(download = downloadState) }
+            existing.collect { state -> _uiState.update { it.copy(download = state) } }
+        }
+    }
+
+    fun onDownloadClick() {
+        val model = _uiState.value.model ?: return
+        val current = _uiState.value.download
+
+        // Toggle: tapping while active cancels.
+        if (current.isDownloading) {
+            downloadModel.cancel(model.id)
+            _uiState.update { it.copy(download = DownloadState(status = DownloadStatus.IDLE)) }
+            return
+        }
+
+        // Use the repo size (usedStorage) as the known total; fall back to a HEAD-based estimate
+        // only when the API didn't provide one. Never block the button on network.
+        val total = model.usedStorage?.takeIf { it > 0 } ?: 0L
+
+        // Storage pre-check (only when we know the size).
+        if (total > 0 && !storageUtils.hasSpaceFor(total)) {
+            _uiState.update {
+                it.copy(
+                    download = DownloadState(
+                        status = DownloadStatus.FAILED,
+                        error = "Not enough free storage for this model."
+                    )
+                )
+            }
+            return
+        }
+
+        // Immediately reflect that we're starting so the UI never looks dead.
+        _uiState.update { it.copy(download = DownloadState(status = DownloadStatus.CHECKING_SIZE, totalBytes = total)) }
+
+        downloadJob?.cancel()
+        downloadJob = viewModelScope.launch {
+            downloadModel.execute(model, total).collect { state ->
+                _uiState.update { it.copy(download = state) }
             }
         }
     }

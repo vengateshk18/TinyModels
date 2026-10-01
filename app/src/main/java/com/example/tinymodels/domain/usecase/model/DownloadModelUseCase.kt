@@ -20,14 +20,30 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/** Lifecycle status of a model download. */
+enum class DownloadStatus {
+    IDLE,
+    /** Resolving total size / enqueueing work. */
+    CHECKING_SIZE,
+    DOWNLOADING,
+    COMPLETED,
+    FAILED
+}
+
 /** State of an in-flight model download, surfaced to the UI. */
 data class DownloadState(
-    val isDownloading: Boolean = false,
+    val status: DownloadStatus = DownloadStatus.IDLE,
     val progress: Float = 0f,
     val downloadedBytes: Long = 0L,
     val totalBytes: Long = 0L,
+    /** Smoothed throughput for the UI, bytes/sec. 0 when unknown. */
+    val bytesPerSecond: Long = 0L,
     val error: String? = null
-)
+) {
+    /** Back-compat convenience for existing call sites. */
+    val isDownloading: Boolean
+        get() = status == DownloadStatus.DOWNLOADING || status == DownloadStatus.CHECKING_SIZE
+}
 
 /**
  * Enqueues + observes model downloads via WorkManager, with a unique-work name per
@@ -87,15 +103,22 @@ class DownloadModelUseCase @Inject constructor(
             val progress = info.progress.getFloat(ModelDownloadWorker.KEY_PROGRESS, 0f)
             val downloaded = info.progress.getLong(ModelDownloadWorker.KEY_DOWNLOADED_BYTES, 0L)
             val total = info.progress.getLong(ModelDownloadWorker.KEY_TOTAL_BYTES, 0L)
+            val speed = info.progress.getLong(ModelDownloadWorker.KEY_BYTES_PER_SEC, 0L)
             when (info.state) {
-                WorkInfo.State.SUCCEEDED -> DownloadState(isDownloading = false, progress = 1f)
-                WorkInfo.State.FAILED -> DownloadState(isDownloading = false, error = "Download failed")
-                WorkInfo.State.CANCELLED -> DownloadState(isDownloading = false)
+                WorkInfo.State.SUCCEEDED -> DownloadState(
+                    status = DownloadStatus.COMPLETED, progress = 1f,
+                    downloadedBytes = downloaded, totalBytes = total
+                )
+                WorkInfo.State.FAILED -> DownloadState(
+                    status = DownloadStatus.FAILED, error = "Download failed. Check your connection and retry."
+                )
+                WorkInfo.State.CANCELLED -> DownloadState(status = DownloadStatus.IDLE)
                 else -> DownloadState(
-                    isDownloading = true,
+                    status = DownloadStatus.DOWNLOADING,
                     progress = progress,
                     downloadedBytes = downloaded,
-                    totalBytes = total
+                    totalBytes = total,
+                    bytesPerSecond = speed
                 )
             }
         }
