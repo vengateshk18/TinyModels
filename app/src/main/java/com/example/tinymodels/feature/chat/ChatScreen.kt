@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,6 +52,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ChatScreen(
     onNavigateToModels: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     viewModel: ChatViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -60,7 +62,8 @@ fun ChatScreen(
         uiState = uiState,
         downloadedModels = downloadedModels,
         onEvent = viewModel::onEvent,
-        onNavigateToModels = onNavigateToModels
+        onNavigateToModels = onNavigateToModels,
+        onNavigateToSettings = onNavigateToSettings
     )
 }
 
@@ -70,7 +73,8 @@ private fun ChatScreenContent(
     uiState: ChatUiState,
     downloadedModels: List<com.example.tinymodels.domain.model.DownloadedModel>,
     onEvent: (ChatEvent) -> Unit,
-    onNavigateToModels: () -> Unit
+    onNavigateToModels: () -> Unit,
+    onNavigateToSettings: () -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -116,6 +120,11 @@ private fun ChatScreenContent(
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Filled.Menu, contentDescription = "Open chats")
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = onNavigateToSettings) {
+                            Icon(Icons.Filled.Settings, contentDescription = "Settings")
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(

@@ -1,24 +1,19 @@
 package com.example.tinymodels.feature.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.tinymodels.feature.chat.ChatScreen
+import com.example.tinymodels.feature.models.screens.DownloadedModelsScreen
 import com.example.tinymodels.feature.models.screens.ModelDetailsScreen
 import com.example.tinymodels.feature.models.screens.ModelListScreen
+import com.example.tinymodels.feature.settings.SettingsScreen
 
 /**
- * Single-activity navigation graph. Chat is the start destination; models,
- * downloaded-models and settings destinations are filled in by their own slices.
+ * Single-activity navigation graph. Chat is the start destination.
  */
 @Composable
 fun TinyNavHost(navController: NavHostController) {
@@ -28,7 +23,8 @@ fun TinyNavHost(navController: NavHostController) {
     ) {
         composable(Routes.CHAT) {
             ChatScreen(
-                onNavigateToModels = { navController.navigate(Routes.MODELS) }
+                onNavigateToModels = { navController.navigate(Routes.MODELS) },
+                onNavigateToSettings = { navController.navigate(Routes.SETTINGS) }
             )
         }
 
@@ -46,19 +42,16 @@ fun TinyNavHost(navController: NavHostController) {
             ModelDetailsScreen(onBack = { navController.popBackStack() })
         }
 
-        // Filled by slice 7.
         composable(Routes.DOWNLOADED_MODELS) {
-            com.example.tinymodels.feature.models.screens.DownloadedModelsScreen(
-                onBack = { navController.popBackStack() }
+            DownloadedModelsScreen(onBack = { navController.popBackStack() })
+        }
+
+        composable(Routes.SETTINGS) {
+            SettingsScreen(
+                onBack = { navController.popBackStack() },
+                onManageModels = { navController.navigate(Routes.MODELS) },
+                onDownloadedModels = { navController.navigate(Routes.DOWNLOADED_MODELS) }
             )
         }
-        composable(Routes.SETTINGS) { PlaceholderScreen("Settings (slice 7)") }
-    }
-}
-
-@Composable
-private fun PlaceholderScreen(label: String) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(label, style = MaterialTheme.typography.titleMedium)
     }
 }
