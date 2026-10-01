@@ -4,7 +4,7 @@ import com.example.tinymodels.models.data.ModelsRepository
 import com.example.tinymodels.models.data.ModelDetailsRemoteRepository
 import com.example.tinymodels.models.data.ModelDetailsRepository
 import com.example.tinymodels.models.local.LocalModelsRepository
-import com.example.tinymodels.models.local.TinyModelsDatabase
+import com.example.tinymodels.core.database.TinyModelsDatabase
 import com.example.tinymodels.models.local.ModelDownloadRepository
 import com.example.tinymodels.models.domain.GetModelDetails
 import com.example.tinymodels.models.domain.ObserveDownloadedModels

@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.tinymodels.models.domain.ObserveDownloadedModels
-import com.example.tinymodels.models.local.DownloadedModelEntity
+import com.example.tinymodels.core.database.entities.DownloadedModelEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

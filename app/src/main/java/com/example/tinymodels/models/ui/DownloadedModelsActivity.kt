@@ -42,7 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.tinymodels.models.local.DownloadedModelEntity
+import com.example.tinymodels.core.database.entities.DownloadedModelEntity
 import com.example.tinymodels.ui.theme.TinyModelsTheme
 import com.example.tinymodels.utils.Injection
 import com.example.tinymodels.utils.listLocalModelFiles

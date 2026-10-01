@@ -1,5 +1,7 @@
 package com.example.tinymodels.models.local
 
+import com.example.tinymodels.core.database.DownloadedModelDao
+import com.example.tinymodels.core.database.entities.DownloadedModelEntity
 import com.example.tinymodels.models.data.ModelDetails
 import com.example.tinymodels.utils.OkHttpUtil
 import com.example.tinymodels.utils.TinyModelsApiConstants

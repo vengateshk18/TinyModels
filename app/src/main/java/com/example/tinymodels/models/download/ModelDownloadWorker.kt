@@ -11,8 +11,8 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import com.example.tinymodels.R
 import com.example.tinymodels.models.data.ModelDetails
-import com.example.tinymodels.models.local.DownloadedModelEntity
-import com.example.tinymodels.models.local.TinyModelsDatabase
+import com.example.tinymodels.core.database.entities.DownloadedModelEntity
+import com.example.tinymodels.core.database.TinyModelsDatabase
 import com.example.tinymodels.utils.OkHttpUtil
 import com.example.tinymodels.utils.TinyModelsApiConstants
 import com.example.tinymodels.utils.UrlGeneratorUtil

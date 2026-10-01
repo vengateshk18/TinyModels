@@ -1,4 +1,4 @@
-package com.example.tinymodels.models.local
+package com.example.tinymodels.core.database.entities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -10,7 +10,7 @@ data class DownloadedModelEntity(
     val libraryName: String?,
     val pipelineTag: String?,
     val localPath: String,
-    val files: String,
+    val files: String, // newline-separated file names
     val sizeBytes: Long,
     val downloadedAt: Long
 )

@@ -1,5 +1,7 @@
 package com.example.tinymodels.models.local
 
+import com.example.tinymodels.core.database.DownloadedModelDao
+import com.example.tinymodels.core.database.entities.DownloadedModelEntity
 import java.io.File
 import kotlinx.coroutines.flow.Flow
 

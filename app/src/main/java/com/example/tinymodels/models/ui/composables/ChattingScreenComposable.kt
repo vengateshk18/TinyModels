@@ -52,7 +52,7 @@ import com.example.tinymodels.chat.ChatMessage
 import com.example.tinymodels.chat.ChatRole
 import com.example.tinymodels.chat.ChatViewModel
 import com.example.tinymodels.chat.ChatViewModelFactory
-import com.example.tinymodels.models.local.DownloadedModelEntity
+import com.example.tinymodels.core.database.entities.DownloadedModelEntity
 import com.example.tinymodels.models.ui.DownloadedModelsActivity
 import com.example.tinymodels.utils.Injection
 
