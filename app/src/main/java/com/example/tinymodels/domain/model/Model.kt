@@ -24,11 +24,25 @@ data class ModelDetails(
     val likes: Int?,
     val lastModified: String?,
     val createdAt: String?,
-    val siblings: List<String>
+    val siblings: List<String>,
+    /** Total repo size in bytes (HF `usedStorage`) — shown as the download size. */
+    val usedStorage: Long?,
+    val sha: String?,
+    /** HF gating ("auto"/"manual"/false). Non-null & not "false" means access is gated. */
+    val gated: String?,
+    val disabled: Boolean,
+    /** Sample prompts from the model card (HF `widgetData[].text`). */
+    val widgetPrompts: List<String>,
+    /** Upstream base model (from cardData.base_model). */
+    val baseModel: String?
 ) {
     /** Files that can be run by the LiteRT-LM runtime. */
     val liteRtFiles: List<String>
         get() = siblings.filter { it.endsWith(".litertlm", ignoreCase = true) }
+
+    /** True when access requires accepting a license / login on HuggingFace. */
+    val isGated: Boolean
+        get() = gated != null && gated != "false" && gated.isNotBlank()
 }
 
 /** A model that has been downloaded onto the device. */

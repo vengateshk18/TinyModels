@@ -31,6 +31,7 @@ object ModelDtoParser {
 
     fun parseDetails(json: String): ModelDetails {
         val obj = JSONObject(json)
+        val cardData = obj.optJSONObject("cardData")
         return ModelDetails(
             id = obj.optString("modelId", obj.optString("id")),
             author = obj.optStringOrNull("author"),
@@ -41,7 +42,13 @@ object ModelDtoParser {
             likes = obj.optIntOrNull("likes"),
             lastModified = obj.optStringOrNull("lastModified"),
             createdAt = obj.optStringOrNull("createdAt"),
-            siblings = obj.optObjectStringList("siblings", "rfilename")
+            siblings = obj.optObjectStringList("siblings", "rfilename"),
+            usedStorage = obj.optLongOrNull("usedStorage"),
+            sha = obj.optStringOrNull("sha"),
+            gated = obj.opt("gated")?.toString()?.takeIf { it.isNotBlank() && it != "null" },
+            disabled = obj.optBoolean("disabled", false),
+            widgetPrompts = obj.optObjectStringList("widgetData", "text"),
+            baseModel = cardData?.optStringOrNull("base_model")
         )
     }
 
