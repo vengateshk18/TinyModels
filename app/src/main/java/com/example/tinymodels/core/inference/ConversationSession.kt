@@ -45,17 +45,23 @@ class ConversationSession(
 
     /**
      * Send [text] and stream the assistant's reply as CUMULATIVE text.
-     * The caller should replace its current buffer with each emission.
+     *
+     * LiteRT-LM's `sendMessageAsync` emits **delta chunks** (only the new tokens),
+     * NOT cumulative text. This method accumulates them internally and emits the
+     * full cumulative text on each emission so the caller can simply replace its
+     * display buffer.
      */
     fun send(text: String): Flow<String> {
         estimatedTokensInContext += estimateTokens(text)
         lastStreamedLength = 0
+        val accumulated = StringBuilder()
         return conversation.sendMessageAsync(text).map { message ->
-            val cumulative = message.contents.contents
+            val delta = message.contents.contents
                 .filterIsInstance<Content.Text>()
                 .joinToString(separator = "") { it.text }
-            // Count only the newly generated characters against the budget.
-            val newChars = (cumulative.length - lastStreamedLength).coerceAtLeast(0)
+            accumulated.append(delta)
+            val cumulative = accumulated.toString()
+            val newChars = delta.length
             lastStreamedLength = cumulative.length
             estimatedTokensInContext += newChars / CHARS_PER_TOKEN
             cumulative

@@ -350,7 +350,8 @@ class ChatViewModel @Inject constructor(
                     }
                 }
                 .collect { cumulative ->
-                    // CRITICAL FIX: LiteRT-LM emits CUMULATIVE text -> REPLACE, don't append.
+                    // ConversationSession.send() accumulates delta chunks internally
+                    // and emits cumulative text. Replace the buffer + UI with each emission.
                     buffer.setLength(0)
                     buffer.append(cumulative)
                     _uiState.update { s ->
