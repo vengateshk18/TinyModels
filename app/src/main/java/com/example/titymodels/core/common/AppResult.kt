@@ -15,17 +15,17 @@ sealed interface AppResult<out T> {
 
     fun errorOrNull(): AppError? = (this as? Error)?.error
 
-    inline fun <R> map(transform: (T) -> R): AppResult<R> = when (this) {
+    fun <R> map(transform: (T) -> R): AppResult<R> = when (this) {
         is Success -> Success(transform(data))
         is Error -> this
     }
 
-    inline fun onSuccess(block: (T) -> Unit): AppResult<T> {
+    fun onSuccess(block: (T) -> Unit): AppResult<T> {
         if (this is Success) block(data)
         return this
     }
 
-    inline fun onError(block: (AppError) -> Unit): AppResult<T> {
+    fun onError(block: (AppError) -> Unit): AppResult<T> {
         if (this is Error) block(error)
         return this
     }
