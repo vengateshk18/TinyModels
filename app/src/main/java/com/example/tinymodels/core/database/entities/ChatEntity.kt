@@ -25,5 +25,7 @@ data class MessageEntity(
     val content: String,
     val tokenCount: Int,
     val createdAt: Long,
-    val isComplete: Boolean = true
+    val isComplete: Boolean = true,
+    /** Wall-clock time when generation finished (assistant messages only). */
+    val completedAt: Long? = null
 )

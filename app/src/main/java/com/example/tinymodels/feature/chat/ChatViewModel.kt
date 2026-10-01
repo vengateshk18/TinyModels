@@ -356,13 +356,14 @@ class ChatViewModel @Inject constructor(
                 }
             // Completed normally (catch already handled the failure path).
             if (_uiState.value.generation == GenerationState.GENERATING) {
-                persistAssistant(chatId, assistantId, buffer.toString(), isComplete = true)
+                val finishedAt = System.currentTimeMillis()
+                persistAssistant(chatId, assistantId, buffer.toString(), isComplete = true, completedAt = finishedAt)
                 _uiState.update { s ->
                     s.copy(
                         generation = GenerationState.IDLE,
                         streamingMessageId = null,
                         messages = s.messages.map { m ->
-                            if (m.id == assistantId) m.copy(isStreaming = false) else m
+                            if (m.id == assistantId) m.copy(isStreaming = false, completedAt = finishedAt) else m
                         }
                     )
                 }
@@ -389,7 +390,13 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    private suspend fun persistAssistant(chatId: String, id: String, text: String, isComplete: Boolean) {
+    private suspend fun persistAssistant(
+        chatId: String,
+        id: String,
+        text: String,
+        isComplete: Boolean,
+        completedAt: Long? = if (isComplete) System.currentTimeMillis() else null
+    ) {
         if (text.isBlank()) return
         chatRepository.saveMessage(
             ChatMessage(
@@ -399,7 +406,8 @@ class ChatViewModel @Inject constructor(
                 content = text,
                 tokenCount = ConversationSession.estimateTokens(text),
                 createdAt = System.currentTimeMillis(),
-                isComplete = isComplete
+                isComplete = isComplete,
+                completedAt = completedAt
             )
         )
     }
@@ -424,7 +432,8 @@ class ChatViewModel @Inject constructor(
         isUser = role == ChatMessage.Role.USER,
         text = content,
         isStreaming = !isComplete,
-        timestamp = createdAt
+        timestamp = createdAt,
+        completedAt = completedAt
     )
 
     private fun friendlyError(error: InferenceError): String = when (error) {

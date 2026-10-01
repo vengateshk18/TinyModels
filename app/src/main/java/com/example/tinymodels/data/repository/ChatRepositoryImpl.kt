@@ -88,7 +88,7 @@ class ChatRepositoryImpl @Inject constructor(
         isArchived = isArchived
     )
 
-    private fun MessageEntity.toDomain() = ChatMessage(
+        private fun MessageEntity.toDomain() = ChatMessage(
         id = messageId,
         chatId = chatId,
         role = runCatching { ChatMessage.Role.valueOf(role) }
@@ -96,7 +96,8 @@ class ChatRepositoryImpl @Inject constructor(
         content = content,
         tokenCount = tokenCount,
         createdAt = createdAt,
-        isComplete = isComplete
+        isComplete = isComplete,
+        completedAt = completedAt
     )
 
     private fun ChatMessage.toEntity() = MessageEntity(
@@ -106,6 +107,7 @@ class ChatRepositoryImpl @Inject constructor(
         content = content,
         tokenCount = tokenCount,
         createdAt = createdAt,
-        isComplete = isComplete
+        isComplete = isComplete,
+        completedAt = completedAt
     )
 }

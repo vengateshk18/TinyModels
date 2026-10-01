@@ -9,7 +9,9 @@ data class UiChatMessage(
     val isUser: Boolean,
     val text: String,
     val isStreaming: Boolean = false,
-    val timestamp: Long = 0L
+    val timestamp: Long = 0L,
+    /** Wall-clock time when the assistant finished replying (null for user msgs / in-flight). */
+    val completedAt: Long? = null
 )
 
 /** State of the model chip shown in the top bar. */
