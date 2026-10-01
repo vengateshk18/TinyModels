@@ -334,6 +334,9 @@ class ChatViewModel @Inject constructor(
             val buffer = StringBuilder()
             activeSession.send(prompt)
                 .catch { throwable ->
+                    // Re-throw cancellation so the cancel handler (cancelGeneration)
+                    // owns the cleanup path instead of surfacing a spurious error.
+                    if (throwable is kotlinx.coroutines.CancellationException) throw throwable
                     // Persist partial, then surface the error.
                     persistAssistant(chatId, assistantId, buffer.toString(), isComplete = false)
                     _uiState.update {
