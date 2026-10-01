@@ -1,0 +1,428 @@
+package com.example.tinymodels.feature.chat
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.tinymodels.core.common.InferenceError
+import com.example.tinymodels.core.inference.ChatTurn
+import com.example.tinymodels.core.inference.ConversationSession
+import com.example.tinymodels.core.inference.InferenceException
+import com.example.tinymodels.core.inference.ModelManager
+import com.example.tinymodels.domain.model.ChatMessage
+import com.example.tinymodels.domain.model.DownloadedModel
+import com.example.tinymodels.domain.repository.ChatRepository
+import com.example.tinymodels.domain.repository.ModelRepository
+import com.example.tinymodels.domain.repository.SettingsRepository
+import com.example.tinymodels.feature.chat.model.ChatError
+import com.example.tinymodels.feature.chat.model.ChatEvent
+import com.example.tinymodels.feature.chat.model.ChatListItem
+import com.example.tinymodels.feature.chat.model.ChatUiState
+import com.example.tinymodels.feature.chat.model.GenerationState
+import com.example.tinymodels.feature.chat.model.ModelChipState
+import com.example.tinymodels.feature.chat.model.UiChatMessage
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import java.io.File
+import java.util.UUID
+import javax.inject.Inject
+
+/**
+ * MVI ViewModel for the chat feature. Exposes a single immutable [ChatUiState].
+ *
+ * Memory behavior is delegated to the process-wide [ModelManager]; this ViewModel
+ * only orchestrates loading + per-chat [ConversationSession]s. The engine survives
+ * configuration changes because it is NOT owned here.
+ */
+@HiltViewModel
+class ChatViewModel @Inject constructor(
+    private val modelManager: ModelManager,
+    private val chatRepository: ChatRepository,
+    private val modelRepository: ModelRepository,
+    private val settingsRepository: SettingsRepository
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(ChatUiState())
+    val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
+
+    private var session: ConversationSession? = null
+    private var generationJob: Job? = null
+    private var activeModel: DownloadedModel? = null
+
+    init {
+        observeChats()
+        observeDownloadedModels()
+        observeEngineState()
+    }
+
+    fun onEvent(event: ChatEvent) {
+        when (event) {
+            is ChatEvent.SelectModel -> selectModel(event.modelId)
+            is ChatEvent.SendMessage -> sendMessage(event.text)
+            ChatEvent.CancelGeneration -> cancelGeneration()
+            ChatEvent.NewChat -> newChat()
+            is ChatEvent.OpenChat -> openChat(event.chatId)
+            is ChatEvent.DeleteChat -> deleteChat(event.chatId)
+            ChatEvent.DismissError -> _uiState.update { it.copy(error = null) }
+        }
+    }
+
+    // ---- Observation ----
+
+    private fun observeChats() {
+        viewModelScope.launch {
+            chatRepository.observeChatSummaries().collect { summaries ->
+                _uiState.update { state ->
+                    state.copy(chats = summaries.map {
+                        ChatListItem(it.id, it.title, it.lastMessagePreview, it.updatedAt)
+                    })
+                }
+            }
+        }
+    }
+
+    private fun observeDownloadedModels() {
+        viewModelScope.launch {
+            modelRepository.observeDownloadedModels().collect { models ->
+                val hadNone = _uiState.value.hasDownloadedModels.not()
+                _uiState.update { it.copy(hasDownloadedModels = models.isNotEmpty()) }
+                // Auto-select the first model when none is active yet.
+                if (activeModel == null && models.isNotEmpty() && hadNone.not()) {
+                    // Only auto-select if user hasn't picked and no engine loaded.
+                    if (modelManager.loadedModelId == null) {
+                        selectModel(models.first().modelId)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun observeEngineState() {
+        viewModelScope.launch {
+            modelManager.engineState.collect { engineState ->
+                val chip = when (engineState) {
+                    is ModelManager.EngineState.Idle -> ModelChipState.NotSelected
+                    is ModelManager.EngineState.Loading -> ModelChipState.Loading
+                    is ModelManager.EngineState.Ready -> ModelChipState.Ready(
+                        modelId = engineState.model.modelId,
+                        backendLabel = engineState.model.backendUsed.name
+                    )
+                    is ModelManager.EngineState.Error ->
+                        ModelChipState.Error(friendlyError(engineState.error))
+                }
+                _uiState.update { it.copy(model = chip) }
+            }
+        }
+    }
+
+    // ---- Model selection / loading ----
+
+    private fun selectModel(modelId: String) {
+        if (modelManager.loadedModelId == modelId && session != null) return
+        viewModelScope.launch {
+            val downloaded = modelRepository.getDownloadedModel(modelId)
+            if (downloaded == null) {
+                _uiState.update { it.copy(error = ChatError("Model $modelId is not downloaded")) }
+                return@launch
+            }
+            val modelFile = resolveModelFile(downloaded)
+            if (modelFile == null) {
+                _uiState.update {
+                    it.copy(error = ChatError("Model file missing on device", "Re-download"))
+                }
+                return@launch
+            }
+            val settings = settingsRepository.settings.first()
+            val result = modelManager.loadModel(
+                modelId = modelId,
+                modelFile = modelFile,
+                backend = settings.backend,
+                maxNumTokens = settings.maxContextTokens
+            )
+            when (result) {
+                is com.example.tinymodels.core.common.AppResult.Success -> {
+                    activeModel = downloaded
+                    // (Re)build a conversation bound to the active chat, if any.
+                    _uiState.value.activeChatId?.let { rebuildSession(it) }
+                }
+                is com.example.tinymodels.core.common.AppResult.Error -> {
+                    _uiState.update {
+                        it.copy(error = ChatError(result.error.message ?: "Failed to load model"))
+                    }
+                }
+            }
+        }
+    }
+
+    private fun resolveModelFile(model: DownloadedModel): File? {
+        val directory = File(model.localPath)
+        val fileName = model.files.firstOrNull()?.substringAfterLast("/") ?: return null
+        val file = File(directory, fileName)
+        return if (file.exists()) file else null
+    }
+
+    // ---- Chat lifecycle ----
+
+    private fun newChat() {
+        val modelId = activeModel?.modelId ?: modelManager.loadedModelId
+        if (modelId == null) {
+            _uiState.update { it.copy(error = ChatError("Load a model before starting a chat")) }
+            return
+        }
+        viewModelScope.launch {
+            val chat = chatRepository.createChat(modelId, title = "New chat")
+            openChatInternal(chat.id)
+        }
+    }
+
+    private fun openChat(chatId: String) {
+        viewModelScope.launch { openChatInternal(chatId) }
+    }
+
+    private suspend fun openChatInternal(chatId: String) {
+        val chat = chatRepository.getChat(chatId) ?: return
+        // Ensure the chat's model is the one loaded; if not, load it.
+        if (modelManager.loadedModelId != chat.modelId) {
+            selectModel(chat.modelId)
+            // selectModel triggers rebuildSession via activeChatId once ready; set id now.
+            _uiState.update { it.copy(activeChatId = chatId) }
+        }
+        _uiState.update { it.copy(activeChatId = chatId) }
+        rebuildSession(chatId)
+        observeMessages(chatId)
+    }
+
+    private fun deleteChat(chatId: String) {
+        viewModelScope.launch {
+            chatRepository.deleteChat(chatId)
+            if (_uiState.value.activeChatId == chatId) {
+                session?.close()
+                session = null
+                _uiState.update { it.copy(activeChatId = null, messages = emptyList()) }
+            }
+        }
+    }
+
+    /** Build a fresh [ConversationSession] restoring prior turns for [chatId]. */
+    private suspend fun rebuildSession(chatId: String) {
+        session?.close()
+        session = null
+        val history = chatRepository.getMessages(chatId)
+            .filter { it.isComplete }
+            .map {
+                ChatTurn(
+                    role = if (it.role == ChatMessage.Role.USER) ChatTurn.Role.USER else ChatTurn.Role.ASSISTANT,
+                    text = it.content
+                )
+            }
+        val settings = settingsRepository.settings.first()
+        try {
+            modelManager.withEngine { engine, config ->
+                session = ConversationSession.create(
+                    engine = engine,
+                    systemInstruction = settings.systemInstruction,
+                    history = history,
+                    sampler = settings.sampler,
+                    maxContextTokens = config.maxNumTokens
+                )
+            }
+            updateContextUsage()
+        } catch (e: InferenceException) {
+            // Engine not loaded yet; session will be built when the model finishes loading.
+        }
+    }
+
+    private fun observeMessages(chatId: String) {
+        viewModelScope.launch {
+            chatRepository.observeMessages(chatId).collect { messages ->
+                // Skip clobbering the in-flight streaming message if one is active.
+                if (_uiState.value.generation == GenerationState.GENERATING) return@collect
+                _uiState.update { state ->
+                    if (state.activeChatId == chatId) {
+                        state.copy(messages = messages.map { it.toUi() })
+                    } else state
+                }
+            }
+        }
+    }
+
+    // ---- Sending / generation ----
+
+    private fun sendMessage(rawText: String) {
+        val text = rawText.trim()
+        if (text.isEmpty()) return
+        val state = _uiState.value
+        if (state.generation == GenerationState.GENERATING) return
+        if (state.model !is ModelChipState.Ready) {
+            _uiState.update { it.copy(error = ChatError("Model is still loading")) }
+            return
+        }
+        var chatId = state.activeChatId
+        viewModelScope.launch {
+            if (chatId == null) {
+                val modelId = activeModel?.modelId ?: modelManager.loadedModelId ?: return@launch
+                chatId = chatRepository.createChat(modelId, title = text.take(40)).id
+                _uiState.update { it.copy(activeChatId = chatId) }
+                rebuildSession(chatId!!)
+            }
+            val activeChatId = chatId!!
+
+            // Persist the user message.
+            val userMessage = ChatMessage(
+                id = UUID.randomUUID().toString(),
+                chatId = activeChatId,
+                role = ChatMessage.Role.USER,
+                content = text,
+                tokenCount = ConversationSession.estimateTokens(text),
+                createdAt = System.currentTimeMillis(),
+                isComplete = true
+            )
+            chatRepository.saveMessage(userMessage)
+
+            // Optimistic UI: append user bubble + a streaming assistant placeholder.
+            val assistantId = UUID.randomUUID().toString()
+            _uiState.update { s ->
+                s.copy(
+                    generation = GenerationState.GENERATING,
+                    messages = s.messages + userMessage.toUi() + UiChatMessage(
+                        id = assistantId, isUser = false, text = "", isStreaming = true,
+                        timestamp = System.currentTimeMillis()
+                    )
+                )
+            }
+
+            // Title the chat from the first message.
+            if (chatRepository.messageCount(activeChatId) <= 1) {
+                chatRepository.renameChat(activeChatId, text.take(40))
+            }
+
+            runGeneration(activeChatId, assistantId, text)
+        }
+    }
+
+    private fun runGeneration(chatId: String, assistantId: String, prompt: String) {
+        val activeSession = session
+        if (activeSession == null) {
+            _uiState.update {
+                it.copy(generation = GenerationState.IDLE, error = ChatError("No active conversation"))
+            }
+            return
+        }
+        generationJob = viewModelScope.launch {
+            val buffer = StringBuilder()
+            activeSession.send(prompt)
+                .catch { throwable ->
+                    // Persist partial, then surface the error.
+                    persistAssistant(chatId, assistantId, buffer.toString(), isComplete = false)
+                    _uiState.update {
+                        it.copy(
+                            generation = GenerationState.IDLE,
+                            error = ChatError(throwable.message ?: "Generation failed")
+                        )
+                    }
+                }
+                .collect { cumulative ->
+                    // CRITICAL FIX: LiteRT-LM emits CUMULATIVE text -> REPLACE, don't append.
+                    buffer.setLength(0)
+                    buffer.append(cumulative)
+                    _uiState.update { s ->
+                        s.copy(messages = s.messages.map { m ->
+                            if (m.id == assistantId) m.copy(text = cumulative, isStreaming = true) else m
+                        })
+                    }
+                }
+            // Completed normally (catch already handled the failure path).
+            if (_uiState.value.generation == GenerationState.GENERATING) {
+                persistAssistant(chatId, assistantId, buffer.toString(), isComplete = true)
+                _uiState.update { s ->
+                    s.copy(
+                        generation = GenerationState.IDLE,
+                        messages = s.messages.map { m ->
+                            if (m.id == assistantId) m.copy(isStreaming = false) else m
+                        }
+                    )
+                }
+            }
+            updateContextUsage()
+        }
+    }
+
+    private fun cancelGeneration() {
+        generationJob?.cancel()
+        generationJob = null
+        // Mark the in-flight assistant message as stopped (keep partial text).
+        _uiState.update { s ->
+            val updated = s.messages.map { m -> if (m.isStreaming) m.copy(isStreaming = false) else m }
+            s.copy(generation = GenerationState.IDLE, messages = updated)
+        }
+        // Persist whatever partial assistant text remains for this chat.
+        viewModelScope.launch {
+            val chatId = _uiState.value.activeChatId ?: return@launch
+            val streaming = _uiState.value.messages.lastOrNull { !it.isUser } ?: return@launch
+            if (streaming.text.isNotBlank()) {
+                persistAssistant(chatId, streaming.id, streaming.text, isComplete = false)
+            }
+        }
+    }
+
+    private suspend fun persistAssistant(chatId: String, id: String, text: String, isComplete: Boolean) {
+        if (text.isBlank()) return
+        chatRepository.saveMessage(
+            ChatMessage(
+                id = id,
+                chatId = chatId,
+                role = ChatMessage.Role.ASSISTANT,
+                content = text,
+                tokenCount = ConversationSession.estimateTokens(text),
+                createdAt = System.currentTimeMillis(),
+                isComplete = isComplete
+            )
+        )
+    }
+
+    private fun updateContextUsage() {
+        val activeSession = session ?: return
+        _uiState.update {
+            it.copy(
+                contextUsage = com.example.tinymodels.feature.chat.model.ContextUsage(
+                    usedTokens = activeSession.estimatedTokensInContext,
+                    maxTokens = it.contextUsage.maxTokens,
+                    nearFull = activeSession.isContextNearFull
+                )
+            )
+        }
+    }
+
+    // ---- Mapping / helpers ----
+
+    private fun ChatMessage.toUi() = UiChatMessage(
+        id = id,
+        isUser = role == ChatMessage.Role.USER,
+        text = content,
+        isStreaming = !isComplete,
+        timestamp = createdAt
+    )
+
+    private fun friendlyError(error: InferenceError): String = when (error) {
+        is InferenceError.OutOfMemory -> "Not enough free memory. Close other apps and retry."
+        is InferenceError.ModelFileMissing -> "Model file missing. Re-download the model."
+        is InferenceError.BackendUnavailable -> "No supported backend on this device."
+        is InferenceError.LoadFailed -> error.message ?: "Failed to load model"
+        is InferenceError.GenerationFailed -> error.message ?: "Generation failed"
+        InferenceError.NoModelLoaded -> "No model loaded"
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        generationJob?.cancel()
+        session?.close()
+        session = null
+        // NOTE: the engine is intentionally NOT unloaded here — it is owned by
+        // ModelManager and survives across navigation / configuration changes.
+    }
+}

@@ -1,0 +1,72 @@
+package com.example.tinymodels.feature.chat.model
+
+import androidx.compose.runtime.Immutable
+
+/** A message rendered in the chat list. */
+@Immutable
+data class UiChatMessage(
+    val id: String,
+    val isUser: Boolean,
+    val text: String,
+    val isStreaming: Boolean = false,
+    val timestamp: Long = 0L
+)
+
+/** State of the model chip shown in the top bar. */
+sealed interface ModelChipState {
+    data object NotSelected : ModelChipState
+    data object Loading : ModelChipState
+    data class Ready(val modelId: String, val backendLabel: String) : ModelChipState
+    data class Error(val message: String) : ModelChipState
+}
+
+/** Generation lifecycle for the input bar (send vs stop). */
+enum class GenerationState { IDLE, GENERATING }
+
+/** Context-window usage shown to the user. */
+@Immutable
+data class ContextUsage(
+    val usedTokens: Int = 0,
+    val maxTokens: Int = 2048,
+    val nearFull: Boolean = false
+)
+
+/** A row in the chat-history drawer. */
+@Immutable
+data class ChatListItem(
+    val id: String,
+    val title: String,
+    val preview: String?,
+    val updatedAt: Long
+)
+
+/** Transient, user-facing error surfaced via snackbar/banner. */
+@Immutable
+data class ChatError(val message: String, val actionLabel: String? = null)
+
+/** The single, immutable UI state for the chat screen (MVI). */
+@Immutable
+data class ChatUiState(
+    val chats: List<ChatListItem> = emptyList(),
+    val activeChatId: String? = null,
+    val messages: List<UiChatMessage> = emptyList(),
+    val model: ModelChipState = ModelChipState.NotSelected,
+    val generation: GenerationState = GenerationState.IDLE,
+    val contextUsage: ContextUsage = ContextUsage(),
+    val hasDownloadedModels: Boolean = true,
+    val error: ChatError? = null
+) {
+    val canSend: Boolean
+        get() = model is ModelChipState.Ready && generation == GenerationState.IDLE
+}
+
+/** One-way events from the UI into the ViewModel (MVI intents). */
+sealed interface ChatEvent {
+    data class SelectModel(val modelId: String) : ChatEvent
+    data class SendMessage(val text: String) : ChatEvent
+    data object CancelGeneration : ChatEvent
+    data object NewChat : ChatEvent
+    data class OpenChat(val chatId: String) : ChatEvent
+    data class DeleteChat(val chatId: String) : ChatEvent
+    data object DismissError : ChatEvent
+}
