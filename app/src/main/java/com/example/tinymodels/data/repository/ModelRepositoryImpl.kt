@@ -5,6 +5,8 @@ import com.example.tinymodels.core.common.AppResult
 import com.example.tinymodels.core.common.DispatcherProvider
 import com.example.tinymodels.core.database.DownloadedModelDao
 import com.example.tinymodels.core.database.entities.DownloadedModelEntity
+import com.example.tinymodels.core.network.HuggingFaceApi
+import com.example.tinymodels.core.network.dto.ModelDtoParser
 import com.example.tinymodels.domain.model.DownloadedModel
 import com.example.tinymodels.domain.model.ModelDetails
 import com.example.tinymodels.domain.model.ModelSummary
@@ -16,16 +18,35 @@ import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Local-downloads side of [ModelRepository]. The remote-catalog side is provided
- * by the models feature (Slice 5) which owns the network layer; here we expose the
- * Room-backed downloaded models needed by the chat feature.
- */
+/** Room + HuggingFace-backed implementation of [ModelRepository]. */
 @Singleton
 class ModelRepositoryImpl @Inject constructor(
     private val downloadedModelDao: DownloadedModelDao,
+    private val api: HuggingFaceApi,
     private val dispatchers: DispatcherProvider
 ) : ModelRepository {
+
+    // ---- Remote catalog ----
+
+    override suspend fun listModels(): AppResult<List<ModelSummary>> =
+        withContext(dispatchers.io) {
+            AppResult.runCatching(
+                errorMapper = { AppError.Network(it.message) }
+            ) {
+                ModelDtoParser.parseModelList(api.listModels())
+            }
+        }
+
+    override suspend fun getModelDetails(modelId: String): AppResult<ModelDetails> =
+        withContext(dispatchers.io) {
+            AppResult.runCatching(
+                errorMapper = { AppError.Network(it.message) }
+            ) {
+                ModelDtoParser.parseDetails(api.getModelDetails(modelId))
+            }
+        }
+
+    // ---- Local downloads ----
 
     override fun observeDownloadedModels(): Flow<List<DownloadedModel>> =
         downloadedModelDao.observeAll().map { entities -> entities.map { it.toDomain() } }
@@ -38,13 +59,6 @@ class ModelRepositoryImpl @Inject constructor(
             downloadedModelDao.getById(modelId)?.let { File(it.localPath).deleteRecursively() }
             downloadedModelDao.delete(modelId)
         }
-
-    // Remote catalog implemented in Slice 5 (models feature owns the network layer).
-    override suspend fun listModels(): AppResult<List<ModelSummary>> =
-        AppResult.Error(AppError.Unknown("Remote catalog not wired yet"))
-
-    override suspend fun getModelDetails(modelId: String): AppResult<ModelDetails> =
-        AppResult.Error(AppError.Unknown("Remote catalog not wired yet"))
 
     private fun DownloadedModelEntity.toDomain() = DownloadedModel(
         modelId = modelId,

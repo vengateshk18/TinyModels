@@ -1,26 +1,31 @@
-# TityModels Revamp — Implementation Progress
+# TinyModels Revamp — Implementation Progress
 
 Tracking thin-vertical-slice implementation. Each slice is end-to-end (DI → domain → data → UI),
 built and verified, then committed.
 
 | Slice | Scope | Status | Commit |
 |-------|-------|--------|--------|
-| — | Baseline (pre-revamp legacy app) | ✅ | `chore: baseline` |
-| 0 | Foundation: deps, Hilt, DI modules, App class, core/common, sealed Result | 🔄 In progress | — |
-| 1 | Memory & engine core: `ModelManager` (RAM guard, GPU→CPU, token cap, trim) | ⬜ | — |
-| 2 | Chat persistence: Room v2 (Chat+Message), `ChatRepository` | ⬜ | — |
-| 3 | Chat feature MVI: `ChatViewModel` (single UiState), `ConversationSession`, streaming fix | ⬜ | — |
-| 4 | Chat UI: ChatScreen, bubbles, input (send/stop), model picker, history drawer | ⬜ | — |
-| 5 | Models feature: browse/details/download + ViewModels + Hilt worker | ⬜ | — |
-| 6 | Downloaded-models management + delete (unload-if-active) | ⬜ | — |
-| 7 | Settings feature: DataStore theme/backend/sampler/context + theme wiring | ⬜ | — |
-| 8 | NavHost wiring, remove legacy code, final build & verify | ⬜ | — |
+| — | Baseline (pre-revamp legacy app) | done | chore: baseline |
+| — | Rename TityModels -> TinyModels (package/appId/theme/db) | done | refactor: rename |
+| 0+1 | Foundation (Hilt/nav/DataStore/markdown) + Memory & engine core (ModelManager, ConversationSession) | done | feat(core): slice 0+1 |
+| 2 | Chat persistence: Room v2 (Chat+Message), ChatRepository | done | feat(data): slice 2 |
+| 3 | Chat feature MVI: ChatViewModel (single UiState), streaming fix | done | feat(chat): slice 3 |
+| 4 | Chat UI: ChatScreen, components, theme, single-activity NavHost + MainActivity | done | feat(chat-ui): slice 4 |
+| 5 | Models feature: browse/details/download + ViewModels + Hilt worker (wire remote catalog into ModelRepository) | pending | — |
+| 6 | Downloaded-models management + delete (unload-if-active); remove legacy models/local + worker | pending | — |
+| 7 | Settings feature screen (theme/backend/sampler/context UI) | pending | — |
+| 8 | Final cleanup: delete legacy models/, chat/, utils/ (Injection, OkHttpUtil->Hilt), verify | pending | — |
 
-Legend: ⬜ pending · 🔄 in progress · ✅ done
+## Milestone
+- App assembles end-to-end (assembleDebug -> app-debug.apk) with the new chat feature live
+  through the single-activity NavHost. Models/settings/downloaded destinations are placeholders
+  until slices 5-7.
 
 ## Notes / decisions
 - Single-Activity + Navigation-Compose (chat = start destination).
-- `ModelManager` is a Hilt `@Singleton` that owns the LiteRT-LM `Engine` independent of ViewModels.
-- LiteRT-LM `sendMessageAsync` emits **cumulative** text → UI **replaces**, never appends (fixes duplication bug).
-- Backend selection: AUTO = GPU → CPU fallback. `maxNumTokens` caps KV cache.
-- Theme colors must come from `MaterialTheme.colorScheme` (no hardcoded `Color.Black/Blue`).
+- ModelManager is a Hilt @Singleton that owns the LiteRT-LM Engine independent of ViewModels.
+- LiteRT-LM sendMessageAsync emits CUMULATIVE text -> UI REPLACES, never appends (fixes duplication bug).
+- Backend selection: AUTO = GPU -> CPU fallback. EngineConfig.maxNumTokens caps KV cache.
+- ConversationConfig.initialMessages restores prior turns on reopen (sliding-window trimmed).
+- Theme colors must come from MaterialTheme.colorScheme (no hardcoded Color.Black/Blue).
+- AGP 9: built-in Kotlin (no kotlin-android plugin); hiltViewModel now in androidx.hilt.lifecycle.viewmodel.compose.

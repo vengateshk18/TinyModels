@@ -1,5 +1,7 @@
 package com.example.tinymodels.feature.navigation
 
+import android.net.Uri
+
 /** Navigation routes for the single-activity app. */
 object Routes {
     const val CHAT = "chat"
@@ -8,5 +10,6 @@ object Routes {
     const val DOWNLOADED_MODELS = "downloaded_models"
     const val SETTINGS = "settings"
 
-    fun modelDetails(modelId: String) = "model_details/$modelId"
+    /** modelIds contain '/', so they must be URL-encoded for the path segment. */
+    fun modelDetails(modelId: String) = "model_details/${Uri.encode(modelId)}"
 }

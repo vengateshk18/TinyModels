@@ -8,9 +8,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.example.tinymodels.feature.chat.ChatScreen
+import com.example.tinymodels.feature.models.screens.ModelDetailsScreen
+import com.example.tinymodels.feature.models.screens.ModelListScreen
 
 /**
  * Single-activity navigation graph. Chat is the start destination; models,
@@ -28,8 +32,21 @@ fun TinyNavHost(navController: NavHostController) {
             )
         }
 
-        // Placeholder destinations — replaced by feature slices 5/6/7.
-        composable(Routes.MODELS) { PlaceholderScreen("Models (slice 5)") }
+        composable(Routes.MODELS) {
+            ModelListScreen(
+                onBack = { navController.popBackStack() },
+                onModelClick = { modelId -> navController.navigate(Routes.modelDetails(modelId)) }
+            )
+        }
+
+        composable(
+            route = Routes.MODEL_DETAILS,
+            arguments = listOf(navArgument("modelId") { type = NavType.StringType })
+        ) {
+            ModelDetailsScreen(onBack = { navController.popBackStack() })
+        }
+
+        // Filled by slices 6/7.
         composable(Routes.DOWNLOADED_MODELS) { PlaceholderScreen("Downloaded models (slice 6)") }
         composable(Routes.SETTINGS) { PlaceholderScreen("Settings (slice 7)") }
     }
