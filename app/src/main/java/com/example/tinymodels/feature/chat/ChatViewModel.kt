@@ -72,6 +72,8 @@ class ChatViewModel @Inject constructor(
             is ChatEvent.SelectModel -> selectModel(event.modelId)
             is ChatEvent.SendMessage -> sendMessage(event.text)
             ChatEvent.CancelGeneration -> cancelGeneration()
+            ChatEvent.Regenerate -> regenerate()
+            is ChatEvent.EditMessage -> editMessage(event.messageId, event.newText)
             ChatEvent.NewChat -> newChat()
             is ChatEvent.OpenChat -> openChat(event.chatId)
             is ChatEvent.DeleteChat -> deleteChat(event.chatId)
@@ -390,6 +392,111 @@ class ChatViewModel @Inject constructor(
             if (streaming.text.isNotBlank()) {
                 persistAssistant(chatId, streaming.id, streaming.text, isComplete = false)
             }
+        }
+    }
+
+    /**
+     * Regenerate the last assistant reply: delete the last assistant message,
+     * find the preceding user prompt, rebuild the session without that turn,
+     * and re-run generation. If the session can't trim history (LiteRT-LM has
+     * no "undo" API), we simply re-send the last user prompt as a fresh turn.
+     */
+    private fun regenerate() {
+        val state = _uiState.value
+        if (state.generation == GenerationState.GENERATING) return
+        val chatId = state.activeChatId ?: return
+        val messages = state.messages
+        if (messages.isEmpty()) return
+
+        // Find the last assistant message and its preceding user prompt.
+        val lastAssistant = messages.lastOrNull { !it.isUser } ?: return
+        val lastUser = messages.lastOrNull { it.isUser } ?: return
+        val activeSession = session
+        if (state.model !is ModelChipState.Ready || activeSession == null) {
+            _uiState.update { it.copy(error = ChatError("Model is not ready")) }
+            return
+        }
+
+        viewModelScope.launch {
+            // Delete the old assistant message from Room.
+            chatRepository.deleteMessage(lastAssistant.id)
+            // Remove it from the UI immediately.
+            _uiState.update { s ->
+                s.copy(messages = s.messages.filterNot { it.id == lastAssistant.id })
+            }
+
+            // Create a new streaming placeholder.
+            val newAssistantId = java.util.UUID.randomUUID().toString()
+            _uiState.update { s ->
+                s.copy(
+                    generation = GenerationState.GENERATING,
+                    streamingMessageId = newAssistantId,
+                    messages = s.messages + UiChatMessage(
+                        id = newAssistantId, isUser = false, text = "", isStreaming = true,
+                        timestamp = System.currentTimeMillis()
+                    )
+                )
+            }
+
+            runGeneration(chatId, newAssistantId, lastUser.text)
+        }
+    }
+
+    /**
+     * Edit a previously-sent user message: update its content in Room,
+     * delete all messages after it, rebuild the session, and re-generate.
+     */
+    private fun editMessage(messageId: String, newText: String) {
+        val text = newText.trim()
+        if (text.isEmpty()) return
+        val state = _uiState.value
+        if (state.generation == GenerationState.GENERATING) return
+        val chatId = state.activeChatId ?: return
+        val activeSession = session
+        if (state.model !is ModelChipState.Ready || activeSession == null) {
+            _uiState.update { it.copy(error = ChatError("Model is not ready")) }
+            return
+        }
+
+        viewModelScope.launch {
+            val allMessages = chatRepository.getMessages(chatId)
+            val targetIndex = allMessages.indexOfFirst { it.id == messageId }
+            if (targetIndex < 0) return@launch
+
+            // Update the user message content.
+            val updated = allMessages[targetIndex].copy(content = text)
+            chatRepository.saveMessage(updated)
+
+            // Delete all messages after the edited one (assistant replies etc).
+            allMessages.drop(targetIndex + 1).forEach { msg ->
+                chatRepository.deleteMessage(msg.id)
+            }
+
+            // Update UI: keep messages up to and including the edited one.
+            _uiState.update { s ->
+                val kept = s.messages.takeWhile { m ->
+                    val idx = allMessages.indexOfFirst { it.id == m.id }
+                    idx <= targetIndex
+                }.map { m -> if (m.id == messageId) m.copy(text = text) else m }
+                s.copy(messages = kept)
+            }
+
+            // Rebuild the session so the edited prompt is the latest turn.
+            rebuildSession(chatId)
+
+            // Start a fresh generation.
+            val newAssistantId = java.util.UUID.randomUUID().toString()
+            _uiState.update { s ->
+                s.copy(
+                    generation = GenerationState.GENERATING,
+                    streamingMessageId = newAssistantId,
+                    messages = s.messages + UiChatMessage(
+                        id = newAssistantId, isUser = false, text = "", isStreaming = true,
+                        timestamp = System.currentTimeMillis()
+                    )
+                )
+            }
+            runGeneration(chatId, newAssistantId, text)
         }
     }
 

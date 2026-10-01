@@ -23,6 +23,9 @@ interface ChatRepository {
     /** Insert or update a message; bumps the chat's updatedAt. */
     suspend fun saveMessage(message: ChatMessage)
 
+    /** Delete a single message by id (used by regenerate / edit). */
+    suspend fun deleteMessage(messageId: String)
+
     suspend fun deleteChat(chatId: String)
 
     suspend fun messageCount(chatId: String): Int

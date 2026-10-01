@@ -5,12 +5,20 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,7 +44,8 @@ import java.util.concurrent.TimeUnit
 @Composable
 fun MessageBubble(
     message: UiChatMessage,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onRegenerate: (() -> Unit)? = null
 ) {
     val clipboard = LocalClipboardManager.current
     val isUser = message.isUser
@@ -100,34 +109,62 @@ fun MessageBubble(
                 }
             }
         }
-        // Timestamp row below the bubble.
-        MessageTimestamps(message)
+        // Timestamp + action row below the bubble.
+        MessageFooter(message, onRegenerate)
     }
 }
 
 /**
- * Compact, muted timestamp row below a bubble.
+ * Compact footer below a bubble: timestamp text + optional regenerate button
+ * (shown only for complete assistant messages).
  * - User message: "HH:mm"
- * - Assistant (complete): "HH:mm • {duration}"
+ * - Assistant (complete): "HH:mm • {duration}" + [regenerate icon]
  * - Assistant (streaming): hidden until done.
  */
 @Composable
-private fun MessageTimestamps(message: UiChatMessage) {
+private fun MessageFooter(
+    message: UiChatMessage,
+    onRegenerate: (() -> Unit)?
+) {
     if (message.timestamp <= 0L) return
+    val showRegen = !message.isUser && !message.isStreaming && onRegenerate != null
     val label = remember(message.id, message.completedAt, message.isStreaming) {
         buildTimestampLabel(message)
     }
-    if (label.isBlank()) return
-    Text(
-        text = label,
-        style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    if (label.isBlank() && !showRegen) return
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = if (message.isUser) Arrangement.End else Arrangement.Start,
         modifier = Modifier.padding(
             start = if (message.isUser) 0.dp else 4.dp,
             end = if (message.isUser) 4.dp else 0.dp,
             top = 2.dp
         )
-    )
+    ) {
+        if (label.isNotBlank()) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        if (showRegen) {
+            if (label.isNotBlank()) {
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+            IconButton(
+                onClick = onRegenerate!!,
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                                        imageVector = Icons.Filled.Refresh,
+                    contentDescription = "Regenerate",
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
 }
 
 /** Pure helper — formats sent/completed timestamps into a compact line. */

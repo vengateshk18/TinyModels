@@ -68,6 +68,11 @@ class ChatRepositoryImpl @Inject constructor(
             chatDao.touchChat(message.chatId, System.currentTimeMillis())
         }
 
+    override suspend fun deleteMessage(messageId: String) =
+        withContext(dispatchers.io) {
+            chatDao.deleteMessage(messageId)
+        }
+
     override suspend fun deleteChat(chatId: String) =
         withContext(dispatchers.io) {
             chatDao.deleteMessagesForChat(chatId)

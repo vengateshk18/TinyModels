@@ -159,7 +159,7 @@ private fun ChatScreenContent(
                                 title = "Say hello",
                                 body = "Your conversation stays on this device."
                             )
-                        else -> MessageList(uiState)
+                                                else -> MessageList(uiState, onEvent)
                     }
                 }
 
@@ -187,7 +187,7 @@ private fun ChatScreenContent(
 }
 
 @Composable
-private fun MessageList(uiState: ChatUiState) {
+private fun MessageList(uiState: ChatUiState, onEvent: (ChatEvent) -> Unit) {
     val listState = rememberLazyListState()
     // Auto-scroll to the latest message when the list grows or the last item updates.
     LaunchedEffect(uiState.messages.size, uiState.messages.lastOrNull()?.text?.length) {
@@ -202,8 +202,13 @@ private fun MessageList(uiState: ChatUiState) {
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 80.dp),
         verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp)
     ) {
-        items(uiState.messages, key = { it.id }) { message ->
-            MessageBubble(message)
+                items(uiState.messages, key = { it.id }) { message ->
+            MessageBubble(
+                message = message,
+                onRegenerate = if (!message.isUser && !message.isStreaming) {
+                    { onEvent(ChatEvent.Regenerate) }
+                } else null
+            )
         }
     }
 }

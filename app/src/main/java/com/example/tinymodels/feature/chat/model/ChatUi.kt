@@ -70,6 +70,8 @@ sealed interface ChatEvent {
     data class SelectModel(val modelId: String) : ChatEvent
     data class SendMessage(val text: String) : ChatEvent
     data object CancelGeneration : ChatEvent
+    data object Regenerate : ChatEvent
+    data class EditMessage(val messageId: String, val newText: String) : ChatEvent
     data object NewChat : ChatEvent
     data class OpenChat(val chatId: String) : ChatEvent
     data class DeleteChat(val chatId: String) : ChatEvent
