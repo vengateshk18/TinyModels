@@ -45,7 +45,8 @@ import java.util.concurrent.TimeUnit
 fun MessageBubble(
     message: UiChatMessage,
     modifier: Modifier = Modifier,
-    onRegenerate: (() -> Unit)? = null
+    onRegenerate: (() -> Unit)? = null,
+    onEdit: ((String) -> Unit)? = null
 ) {
     val clipboard = LocalClipboardManager.current
     val isUser = message.isUser
@@ -61,8 +62,12 @@ fun MessageBubble(
             Card(
                 modifier = Modifier
                     .widthIn(max = 300.dp)
-                    .combinedClickable(
-                        onClick = { },
+                                        .combinedClickable(
+                        onClick = {
+                            if (isUser && onEdit != null && !message.isStreaming) {
+                                onEdit(message.text)
+                            }
+                        },
                         onLongClick = {
                             if (message.text.isNotBlank()) {
                                 clipboard.setText(AnnotatedString(message.text))

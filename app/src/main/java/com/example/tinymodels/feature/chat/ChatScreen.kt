@@ -39,6 +39,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.tinymodels.feature.chat.components.ChatHistoryDrawer
 import com.example.tinymodels.feature.chat.components.ChatInputBar
+import com.example.tinymodels.feature.chat.components.EditMessageDialog
 import com.example.tinymodels.feature.chat.components.MessageBubble
 import com.example.tinymodels.feature.chat.components.ModelChip
 import com.example.tinymodels.feature.chat.components.ModelPickerSheet
@@ -76,10 +77,11 @@ private fun ChatScreenContent(
     onNavigateToModels: () -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+        val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     var showModelPicker by remember { mutableStateOf(false) }
+    var editingMessage by remember { mutableStateOf<Pair<String, String>?>(null) }
 
     // Surface transient errors as snackbars.
     LaunchedEffect(uiState.error) {
@@ -159,7 +161,11 @@ private fun ChatScreenContent(
                                 title = "Say hello",
                                 body = "Your conversation stays on this device."
                             )
-                                                else -> MessageList(uiState, onEvent)
+                                                else -> MessageList(
+                            uiState,
+                            onEvent,
+                            onEditMessage = { id, text -> editingMessage = id to text }
+                        )
                     }
                 }
 
@@ -184,10 +190,25 @@ private fun ChatScreenContent(
             onDismiss = { showModelPicker = false }
         )
     }
+
+    editingMessage?.let { (messageId, originalText) ->
+        EditMessageDialog(
+            originalText = originalText,
+            onConfirm = { newText ->
+                onEvent(ChatEvent.EditMessage(messageId, newText))
+                editingMessage = null
+            },
+            onDismiss = { editingMessage = null }
+        )
+    }
 }
 
 @Composable
-private fun MessageList(uiState: ChatUiState, onEvent: (ChatEvent) -> Unit) {
+private fun MessageList(
+    uiState: ChatUiState,
+    onEvent: (ChatEvent) -> Unit,
+    onEditMessage: (String, String) -> Unit
+) {
     val listState = rememberLazyListState()
     // Auto-scroll to the latest message when the list grows or the last item updates.
     LaunchedEffect(uiState.messages.size, uiState.messages.lastOrNull()?.text?.length) {
@@ -207,6 +228,9 @@ private fun MessageList(uiState: ChatUiState, onEvent: (ChatEvent) -> Unit) {
                 message = message,
                 onRegenerate = if (!message.isUser && !message.isStreaming) {
                     { onEvent(ChatEvent.Regenerate) }
+                } else null,
+                onEdit = if (message.isUser && !message.isStreaming) {
+                    { text -> onEditMessage(message.id, text) }
                 } else null
             )
         }
