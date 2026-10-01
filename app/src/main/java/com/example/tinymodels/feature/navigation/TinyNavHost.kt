@@ -46,8 +46,12 @@ fun TinyNavHost(navController: NavHostController) {
             ModelDetailsScreen(onBack = { navController.popBackStack() })
         }
 
-        // Filled by slices 6/7.
-        composable(Routes.DOWNLOADED_MODELS) { PlaceholderScreen("Downloaded models (slice 6)") }
+        // Filled by slice 7.
+        composable(Routes.DOWNLOADED_MODELS) {
+            com.example.tinymodels.feature.models.screens.DownloadedModelsScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
         composable(Routes.SETTINGS) { PlaceholderScreen("Settings (slice 7)") }
     }
 }
