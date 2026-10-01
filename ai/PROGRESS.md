@@ -11,10 +11,10 @@ built and verified, then committed.
 | 2 | Chat persistence: Room v2 (Chat+Message), ChatRepository | done | feat(data): slice 2 |
 | 3 | Chat feature MVI: ChatViewModel (single UiState), streaming fix | done | feat(chat): slice 3 |
 | 4 | Chat UI: ChatScreen, components, theme, single-activity NavHost + MainActivity | done | feat(chat-ui): slice 4 |
-| 5 | Models feature: browse/details/download + ViewModels + Hilt worker (wire remote catalog into ModelRepository) | pending | — |
-| 6 | Downloaded-models management + delete (unload-if-active); remove legacy models/local + worker | pending | — |
-| 7 | Settings feature screen (theme/backend/sampler/context UI) | pending | — |
-| 8 | Final cleanup: delete legacy models/, chat/, utils/ (Injection, OkHttpUtil->Hilt), verify | pending | — |
+| 5 | Models feature: browse/details/download + ViewModels + Hilt worker (wire remote catalog into ModelRepository) | done | feat(models): slice 5 |
+| 6 | Downloaded-models management + delete (unload-if-active); remove legacy models/local + worker | done | feat(downloads): slice 6 |
+| 7 | Settings feature screen (theme/backend/sampler/context UI) | done | feat(settings): slice 7 |
+| 8 | Final cleanup: delete legacy models/, chat/, utils/ (Injection, OkHttpUtil->Hilt), verify | done | chore: slice 8 |
 
 ## Milestone
 - App assembles end-to-end (assembleDebug -> app-debug.apk) with the new chat feature live
