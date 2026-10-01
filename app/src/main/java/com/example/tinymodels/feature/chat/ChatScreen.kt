@@ -198,7 +198,8 @@ private fun MessageList(uiState: ChatUiState) {
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        // Extra bottom spacing so the last bubble isn't hidden behind the input bar.
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 80.dp),
         verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp)
     ) {
         items(uiState.messages, key = { it.id }) { message ->
