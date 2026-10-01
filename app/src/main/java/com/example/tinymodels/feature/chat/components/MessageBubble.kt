@@ -62,7 +62,7 @@ fun MessageBubble(
             Card(
                 modifier = Modifier
                     .widthIn(max = 300.dp)
-                                        .combinedClickable(
+                    .combinedClickable(
                         onClick = {
                             if (isUser && onEdit != null && !message.isStreaming) {
                                 onEdit(message.text)
@@ -102,12 +102,26 @@ fun MessageBubble(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     } else {
-                        SafeMarkdown(content = message.text)
                         if (message.isStreaming) {
+                            // While streaming, use plain Text to avoid the Markdown
+                            // renderer's layout glitches (text overlapping itself)
+                            // caused by rapid re-parsing on every token emission.
+                            Text(
+                                text = message.text,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.fillMaxWidth()
+                            )
                             Text(
                                 text = "\u258D",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.primary
+                            )
+                        } else {
+                            // Once complete, render full Markdown for formatting.
+                            SafeMarkdown(
+                                content = message.text,
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
                     }
