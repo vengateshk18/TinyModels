@@ -95,9 +95,24 @@ Working tree is clean; no legacy references remain.
 
 ---
 
-## 7. Honest limitations / next steps
+## 7. Model details revamp (slices D1–D4)
 
-- **Test coverage is thin** — infra exists (JUnit + kotlinx-coroutines-test); more unit
-  tests for ViewModels/use cases are the natural next step.
+The model details screen was rebuilt to fully explain a model and make downloads
+reliable and informative, driven by the rich HuggingFace details payload
+(downloads, likes, `usedStorage`, `siblings`, `widgetData`, `cardData`, `gated`…).
+
+| # | Change | What it added |
+|---|--------|---------------|
+| D1 | **Rich details fields** | `ModelDetails` carries `usedStorage`/`sha`/`gated`/`disabled`/`widgetPrompts`/`baseModel`/`createdAt`; parser maps them; shared `Formatters` for bytes/dates/numbers |
+| D2 | **Reliable downloads** | Instant-start UI (`CHECKING_SIZE`→`DOWNLOADING`→`COMPLETED`/`FAILED`), resumable on re-entry (`observeExisting`), storage pre-check, `usedStorage` as the known total |
+| D3 | **Details + download UX** | Stateless `ModelDetailsContent`: header chips, stats card (downloads/likes/SIZE/files), try-it prompts, about, tags FlowRow, files list; sticky `DownloadBar` with Download·size, progress bar, bytes X/Y + %, speed/s, Cancel, Downloaded ✓, error+retry |
+| D4 | **ViewModel tests** | `ModelDetailsViewModelTest` (5 tests): load success, load error, download streams, storage rejection, toggle-cancel — uses mockk + `InstantTaskExecutorRule` |
+
+---
+
+## 8. Honest limitations / next steps
+
 - **Not yet run on a physical device** — inference and download paths are built and
   compile-clean but should be validated on real hardware (RAM behavior especially).
+- **Download worker** itself is not unit-tested (needs WorkManager); the use-case/VM
+  seams around it are covered by D4.
