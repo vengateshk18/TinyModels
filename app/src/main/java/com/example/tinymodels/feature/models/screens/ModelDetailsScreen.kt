@@ -8,9 +8,12 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -66,7 +69,8 @@ fun ModelDetailsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Scaffold(
+        Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
                 title = { Text("Model details", maxLines = 1, overflow = TextOverflow.Ellipsis) },
@@ -312,12 +316,13 @@ private fun DownloadBar(
     totalSizeBytes: Long,
     onAction: () -> Unit
 ) {
-    Surface(
+        Surface(
         tonalElevation = 3.dp,
         color = MaterialTheme.colorScheme.surfaceContainer,
-        shadowElevation = 8.dp
+        shadowElevation = 8.dp,
+        modifier = Modifier.imePadding()
     ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+        Column(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp)) {
             when (download.status) {
                 DownloadStatus.DOWNLOADING, DownloadStatus.CHECKING_SIZE -> {
                     DownloadInProgress(download, totalSizeBytes, onAction)
