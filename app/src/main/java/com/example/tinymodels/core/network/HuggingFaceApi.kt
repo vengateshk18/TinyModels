@@ -18,10 +18,28 @@ class HuggingFaceApi @Inject constructor(
         private const val HUB_BASE = "https://huggingface.co"
     }
 
-    /** GET the LiteRT-community model list, sorted by downloads. */
-    fun listModels(): String {
-        val url = "$API_BASE?author=litert-community&limit=100&direction=-1&sort=downloads&full=true"
-        return get(url)
+    /** GET the model list. Overload supporting arbitrary search + pipeline filtering. */
+    fun listModels(
+        search: String? = null,
+        pipelineTag: String? = null,
+        author: String? = null,
+        limit: Int = 100
+    ): String {
+        val params = mutableListOf(
+            "limit=$limit",
+            "direction=-1",
+            "sort=downloads",
+            "full=true"
+        )
+        when {
+            !search.isNullOrBlank() -> params.add("search=${java.net.URLEncoder.encode(search, "UTF-8")}")
+            author != null -> params.add("author=${java.net.URLEncoder.encode(author, "UTF-8")}")
+            else -> params.add("author=litert-community")
+        }
+        pipelineTag?.takeIf { it.isNotBlank() }?.let {
+            params.add("filter=${java.net.URLEncoder.encode(it, "UTF-8")}")
+        }
+        return get("$API_BASE?${params.joinToString("&")}")
     }
 
     /** GET full details for a single model. */
