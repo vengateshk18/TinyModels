@@ -29,6 +29,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.tinymodels.feature.chat.ChatRoomScreen
 import com.example.tinymodels.feature.chat.ChatTabScreen
 import com.example.tinymodels.feature.models.screens.DownloadedModelsScreen
 import com.example.tinymodels.feature.models.screens.ModelDetailsScreen
@@ -123,6 +124,13 @@ fun TinyModelsApp(navController: NavHostController = rememberNavController()) {
 
             composable(Routes.DOWNLOADED_MODELS) {
                 DownloadedModelsScreen(onBack = { navController.popBackStack() })
+            }
+
+            composable(
+                route = Routes.CHAT_ROOM,
+                arguments = listOf(navArgument("chatId") { type = NavType.StringType })
+            ) {
+                ChatRoomScreen(onBack = { navController.popBackStack() })
             }
         }
     }

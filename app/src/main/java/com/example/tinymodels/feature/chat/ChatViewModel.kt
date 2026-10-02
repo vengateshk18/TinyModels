@@ -43,6 +43,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class ChatViewModel @Inject constructor(
+    private val savedStateHandle: androidx.lifecycle.SavedStateHandle,
     private val modelManager: ModelManager,
     private val chatRepository: ChatRepository,
     private val modelRepository: ModelRepository,
@@ -61,10 +62,14 @@ class ChatViewModel @Inject constructor(
     private var generationJob: Job? = null
     private var activeModel: DownloadedModel? = null
 
+    /** The chatId for this screen, passed via nav arguments (SavedStateHandle). */
+    val chatId: String? get() = savedStateHandle["chatId"]
+
     init {
-        observeChats()
         observeDownloadedModels()
         observeEngineState()
+        // Auto-open the chat identified by the nav arg.
+        chatId?.let { viewModelScope.launch { openChatInternal(it) } }
     }
 
     fun onEvent(event: ChatEvent) {
