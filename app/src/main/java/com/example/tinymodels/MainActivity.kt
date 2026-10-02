@@ -42,16 +42,17 @@ class MainActivity : ComponentActivity() {
                 .collectAsStateWithLifecycle(initialValue = AppSettings())
 
             // Re-apply edge-to-edge with a theme-aware SystemBarStyle whenever
-            // the effective dark-theme value changes, so the system navigation
-            // bar scrim follows the app theme instead of staying transparent.
-            LaunchedEffect(settings.themeMode) {
-                val dark = when (settings.themeMode) {
-                    ThemeMode.SYSTEM -> (resources.configuration.uiMode and
-                        android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
-                        android.content.res.Configuration.UI_MODE_NIGHT_YES
-                    ThemeMode.DARK -> true
-                    ThemeMode.LIGHT -> false
-                }
+            // the theme changes, so the system navigation bar scrim follows
+            // the app theme instead of staying transparent.
+            val darkTheme = when (settings.themeMode) {
+                ThemeMode.SYSTEM -> (resources.configuration.uiMode and
+                    android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+                    android.content.res.Configuration.UI_MODE_NIGHT_YES
+                ThemeMode.DARK -> true
+                ThemeMode.LIGHT -> false
+            }
+
+            LaunchedEffect(darkTheme) {
                 enableEdgeToEdge(
                     statusBarStyle = SystemBarStyle.auto(
                         lightScrim = android.graphics.Color.TRANSPARENT,
