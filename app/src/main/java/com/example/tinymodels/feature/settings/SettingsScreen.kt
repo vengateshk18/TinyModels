@@ -19,6 +19,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
@@ -29,8 +30,12 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.Modifier
@@ -107,12 +112,21 @@ private fun AppearanceSection(settings: AppSettings, viewModel: SettingsViewMode
         onCheckedChange = { viewModel.setDynamicColor(it) }
     )
     Spacer(modifier = Modifier.height(12.dp))
-    Text("Font", style = MaterialTheme.typography.bodyMedium)
-    Spacer(modifier = Modifier.height(8.dp))
-    FontPicker(
+    var showFontSheet by remember { mutableStateOf(false) }
+    FontRow(
         selected = settings.fontChoice,
-        onSelect = { viewModel.setFontChoice(it) }
+        onClick = { showFontSheet = true }
     )
+    if (showFontSheet) {
+        FontBottomSheet(
+            selected = settings.fontChoice,
+            onSelect = {
+                viewModel.setFontChoice(it)
+                showFontSheet = false
+            },
+            onDismiss = { showFontSheet = false }
+        )
+    }
 }
 
 // ---- Reusable rows ----
@@ -180,37 +194,80 @@ private fun NavigationRow(label: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun FontPicker(
+private fun FontRow(
     selected: FontChoice,
-    onSelect: (FontChoice) -> Unit
+    onClick: () -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        FontChoice.entries.forEach { choice ->
-            val isSelected = choice == selected
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onSelect(choice) }
-                    .padding(vertical = 10.dp, horizontal = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                RadioButton(
-                    selected = isSelected,
-                    onClick = { onSelect(choice) }
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = choice.displayName,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontFamily = if (choice == FontChoice.SYSTEM) FontFamily.Default
-                        else fontFamilyFor(choice),
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = if (choice == FontChoice.SYSTEM) "Default" else "Google Font",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text("Font", style = MaterialTheme.typography.bodyMedium)
+            Text(
+                selected.displayName,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontFamily = if (selected == FontChoice.SYSTEM) FontFamily.Default
+                    else fontFamilyFor(selected)
+            )
+        }
+        Icon(
+            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = "Change font",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FontBottomSheet(
+    selected: FontChoice,
+    onSelect: (FontChoice) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 32.dp)) {
+            Text(
+                "Choose font",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+            FontChoice.entries.forEach { choice ->
+                val isSelected = choice == selected
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelect(choice) }
+                        .padding(vertical = 12.dp, horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = isSelected,
+                        onClick = { onSelect(choice) }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = choice.displayName,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontFamily = if (choice == FontChoice.SYSTEM) FontFamily.Default
+                            else fontFamilyFor(choice),
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = if (choice == FontChoice.SYSTEM) "Default" else "Google Font",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
