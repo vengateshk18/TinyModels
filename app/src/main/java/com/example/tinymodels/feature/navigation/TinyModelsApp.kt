@@ -4,12 +4,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Chat
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Chat
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -20,14 +20,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.tinymodels.feature.chat.ChatScreen
+import androidx.navigation.navArgument
+import com.example.tinymodels.feature.chat.ChatTabScreen
 import com.example.tinymodels.feature.models.screens.DownloadedModelsScreen
 import com.example.tinymodels.feature.models.screens.ModelDetailsScreen
 import com.example.tinymodels.feature.models.screens.ModelListScreen
@@ -43,7 +45,6 @@ fun TinyModelsApp(navController: NavHostController = rememberNavController()) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
-    // Hide the bottom bar on pushed (full-screen) routes.
     val showBottomBar = currentRoute in setOf(
         Routes.HOME, Routes.CHAT, Routes.MODELS, Routes.SETTINGS
     )
@@ -90,9 +91,9 @@ fun TinyModelsApp(navController: NavHostController = rememberNavController()) {
             }
 
             composable(Routes.CHAT) {
-                ChatScreen(
-                    onNavigateToModels = { navController.navigate(Routes.MODELS) },
-                    onNavigateToSettings = { navController.navigate(Routes.SETTINGS) }
+                ChatTabScreen(
+                    onOpenChat = { chatId -> navController.navigate(Routes.chatRoom(chatId)) },
+                    onNavigateToModels = { navController.navigate(Routes.MODELS) }
                 )
             }
 
@@ -115,7 +116,7 @@ fun TinyModelsApp(navController: NavHostController = rememberNavController()) {
 
             composable(
                 route = Routes.MODEL_DETAILS,
-                arguments = listOf(androidx.navigation.navArgument("modelId") { type = androidx.navigation.NavType.StringType })
+                arguments = listOf(navArgument("modelId") { type = NavType.StringType })
             ) {
                 ModelDetailsScreen(onBack = { navController.popBackStack() })
             }
@@ -127,12 +128,11 @@ fun TinyModelsApp(navController: NavHostController = rememberNavController()) {
     }
 }
 
-/** Bottom-nav item definition. */
 private data class BottomNavItem(
     val route: String,
     val label: String,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector,
-    val selectedIcon: androidx.compose.ui.graphics.vector.ImageVector
+    val icon: ImageVector,
+    val selectedIcon: ImageVector
 )
 
 private val bottomNavItems = listOf(
@@ -142,7 +142,6 @@ private val bottomNavItems = listOf(
     BottomNavItem(Routes.SETTINGS, "Settings", Icons.Outlined.Settings, Icons.Filled.Settings)
 )
 
-/** Placeholder for the Home tab (replaced in N8). */
 @Composable
 private fun HomePlaceholder() {
     androidx.compose.foundation.layout.Box(
