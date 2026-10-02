@@ -75,6 +75,9 @@ dependencies {
     // Markdown rendering for chat bubbles
     implementation(libs.markdown.renderer)
 
+    // Google Fonts (downloadable fonts for custom typography)
+    implementation(libs.androidx.compose.ui.text.google.fonts)
+
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.json)
