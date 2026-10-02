@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.tinymodels.feature.chat.components.ChatInputBar
 import com.example.tinymodels.feature.chat.components.EditMessageDialog
+import com.example.tinymodels.feature.chat.components.InferenceSettingsSheet
 import com.example.tinymodels.feature.chat.components.MessageBubble
 import com.example.tinymodels.feature.chat.model.ChatEvent
 import com.example.tinymodels.feature.chat.model.ChatUiState
@@ -59,6 +61,7 @@ fun ChatRoomScreen(
     val downloadedModels by viewModel.downloadedModels.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var editingMessage by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var showInferenceSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
@@ -132,6 +135,18 @@ fun ChatRoomScreen(
                 editingMessage = null
             },
             onDismiss = { editingMessage = null }
+        )
+    }
+
+
+    if (showInferenceSheet) {
+        InferenceSettingsSheet(
+            current = uiState.inferenceSettings,
+            onSave = {
+                viewModel.onEvent(ChatEvent.UpdateInferenceSettings(it))
+                showInferenceSheet = false
+            },
+            onDismiss = { showInferenceSheet = false }
         )
     }
 }

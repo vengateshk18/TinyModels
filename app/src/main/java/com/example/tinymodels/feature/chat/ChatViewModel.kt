@@ -82,6 +82,7 @@ class ChatViewModel @Inject constructor(
             is ChatEvent.OpenChat -> openChat(event.chatId)
             is ChatEvent.DeleteChat -> deleteChat(event.chatId)
             ChatEvent.DismissError -> _uiState.update { it.copy(error = null) }
+            is ChatEvent.UpdateInferenceSettings -> updateInferenceSettings(event.settings)
         }
     }
 
@@ -207,7 +208,7 @@ class ChatViewModel @Inject constructor(
             // selectModel triggers rebuildSession via activeChatId once ready; set id now.
             _uiState.update { it.copy(activeChatId = chatId) }
         }
-        _uiState.update { it.copy(activeChatId = chatId) }
+        _uiState.update { it.copy(activeChatId = chatId, inferenceSettings = chat.inferenceSettings) }
         rebuildSession(chatId)
         observeMessages(chatId)
     }
@@ -565,6 +566,15 @@ class ChatViewModel @Inject constructor(
         is InferenceError.LoadFailed -> error.message ?: "Failed to load model"
         is InferenceError.GenerationFailed -> error.message ?: "Generation failed"
         InferenceError.NoModelLoaded -> "No model loaded"
+    }
+
+    private fun updateInferenceSettings(settings: InferenceSettings) {
+        val chatId = _uiState.value.activeChatId ?: return
+        viewModelScope.launch {
+            chatRepository.updateInferenceSettings(chatId, settings)
+            // Rebuild the session with the new sampler + context window.
+            rebuildSession(chatId)
+        }
     }
 
     override fun onCleared() {

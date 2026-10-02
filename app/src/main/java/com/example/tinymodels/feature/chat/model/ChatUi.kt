@@ -1,6 +1,7 @@
 package com.example.tinymodels.feature.chat.model
 
 import androidx.compose.runtime.Immutable
+import com.example.tinymodels.domain.model.InferenceSettings
 
 /** A message rendered in the chat list. */
 @Immutable
@@ -59,6 +60,7 @@ data class ChatUiState(
     val streamingMessageId: String? = null,
     val contextUsage: ContextUsage = ContextUsage(),
     val hasDownloadedModels: Boolean = true,
+    val inferenceSettings: InferenceSettings = InferenceSettings(),
     val error: ChatError? = null
 ) {
     val canSend: Boolean
@@ -76,4 +78,5 @@ sealed interface ChatEvent {
     data class OpenChat(val chatId: String) : ChatEvent
     data class DeleteChat(val chatId: String) : ChatEvent
     data object DismissError : ChatEvent
+    data class UpdateInferenceSettings(val settings: InferenceSettings) : ChatEvent
 }
