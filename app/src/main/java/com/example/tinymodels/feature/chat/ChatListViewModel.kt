@@ -3,6 +3,7 @@ package com.example.tinymodels.feature.chat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tinymodels.domain.model.ChatSummary
+import com.example.tinymodels.domain.model.BackendPreference
 import com.example.tinymodels.domain.repository.ChatRepository
 import com.example.tinymodels.domain.repository.ModelRepository
 import com.example.tinymodels.domain.repository.SettingsRepository
@@ -10,6 +11,7 @@ import com.example.tinymodels.feature.chat.model.ChatListItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -43,13 +45,21 @@ class ChatListViewModel @Inject constructor(
      */
     fun createNewChat(onCreated: (String) -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
-            val models = downloadedModels.value
+            // Fetch directly from the repository (not the lazy StateFlow) so
+            // we always get fresh data even if no Composable subscribes to
+            // downloadedModels.
+            val models = modelRepository.observeDownloadedModels().first()
             if (models.isEmpty()) {
                 onError("Download a model first")
                 return@launch
             }
             val modelId = models.first().modelId
-            val chat = chatRepository.createChat(modelId, title = "New chat")
+            val defaultBackend = settingsRepository.settings.first().defaultBackend
+            val chat = chatRepository.createChat(
+                modelId = modelId,
+                title = "New chat",
+                defaultBackend = defaultBackend
+            )
             onCreated(chat.id)
         }
     }

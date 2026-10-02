@@ -31,7 +31,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,6 +57,14 @@ fun ChatTabScreen(
 ) {
     val chats by viewModel.chats.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    var showSnackbar by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(showSnackbar) {
+        showSnackbar?.let {
+            snackbarHostState.showSnackbar(it)
+            showSnackbar = null
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -69,7 +79,7 @@ fun ChatTabScreen(
             FloatingActionButton(onClick = {
                 viewModel.createNewChat(
                     onCreated = { chatId -> onOpenChat(chatId) },
-                    onError = { msg -> /* show snackbar */ }
+                    onError = { msg -> showSnackbar = msg }
                 )
             }) {
                 Icon(Icons.Filled.Add, contentDescription = "New chat")
