@@ -36,6 +36,7 @@ import com.example.tinymodels.feature.models.screens.DownloadedModelsScreen
 import com.example.tinymodels.feature.models.screens.ModelDetailsScreen
 import com.example.tinymodels.feature.models.screens.ModelListScreen
 import com.example.tinymodels.feature.models.screens.ModelsTabScreen
+import com.example.tinymodels.feature.home.DeviceInfoScreen
 import com.example.tinymodels.feature.home.HomeScreen
 import com.example.tinymodels.feature.settings.SettingsScreen
 
@@ -112,7 +113,8 @@ fun TinyModelsApp(navController: NavHostController = rememberNavController()) {
                 SettingsScreen(
                     onBack = { navController.popBackStack() },
                     onManageModels = { navController.navigate(Routes.MODELS) },
-                    onDownloadedModels = { navController.navigate(Routes.DOWNLOADED_MODELS) }
+                    onDownloadedModels = { navController.navigate(Routes.DOWNLOADED_MODELS) },
+                    onDeviceInfo = { navController.navigate(Routes.DEVICE_INFO) }
                 )
             }
 
@@ -134,6 +136,16 @@ fun TinyModelsApp(navController: NavHostController = rememberNavController()) {
                 arguments = listOf(navArgument("chatId") { type = NavType.StringType })
             ) {
                 ChatRoomScreen(onBack = { navController.popBackStack() })
+            }
+
+            composable(Routes.DEVICE_INFO) {
+                DeviceInfoScreen(
+                    onBack = { navController.popBackStack() },
+                    onBrowseModels = {
+                        navController.popBackStack()
+                        navController.navigate(Routes.MODELS)
+                    }
+                )
             }
         }
     }

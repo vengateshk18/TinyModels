@@ -14,6 +14,7 @@ object Routes {
     const val MODEL_DETAILS = "model_details/{modelId}"
     const val CHAT_ROOM = "chat_room/{chatId}"
     const val DOWNLOADED_MODELS = "downloaded_models"
+    const val DEVICE_INFO = "device_info"
 
     /** modelIds contain '/', so they must be URL-encoded for the path segment. */
     fun modelDetails(modelId: String) = "model_details/${Uri.encode(modelId)}"

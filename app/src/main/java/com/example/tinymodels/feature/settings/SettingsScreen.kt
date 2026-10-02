@@ -55,6 +55,7 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onManageModels: () -> Unit,
     onDownloadedModels: () -> Unit,
+    onDeviceInfo: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -84,6 +85,8 @@ fun SettingsScreen(
             AppearanceSection(settings, viewModel)
             SectionDivider()
             InferenceSection(settings, viewModel)
+            SectionDivider()
+            AboutSection(onDeviceInfo = onDeviceInfo)
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
@@ -158,6 +161,16 @@ private fun InferenceSection(settings: AppSettings, viewModel: SettingsViewModel
     }
 }
 
+@Composable
+private fun AboutSection(onDeviceInfo: () -> Unit) {
+    SectionHeader("About")
+    NavigationRow(
+        label = "Device information",
+        subtitle = "See your device's AI capability",
+        onClick = onDeviceInfo
+    )
+}
+
 // ---- Reusable rows ----
 
 @Composable
@@ -208,7 +221,7 @@ private fun SliderRow(
 }
 
 @Composable
-private fun NavigationRow(label: String, onClick: () -> Unit) {
+private fun NavigationRow(label: String, subtitle: String? = null, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -216,7 +229,13 @@ private fun NavigationRow(label: String, onClick: () -> Unit) {
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(label, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(label, style = MaterialTheme.typography.bodyMedium)
+            subtitle?.let {
+                Text(it, style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
         Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
