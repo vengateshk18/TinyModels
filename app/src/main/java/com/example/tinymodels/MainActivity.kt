@@ -10,11 +10,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.compose.rememberNavController
 import com.example.tinymodels.core.ui.theme.TinyModelsTheme
 import com.example.tinymodels.domain.model.AppSettings
 import com.example.tinymodels.domain.repository.SettingsRepository
-import com.example.tinymodels.feature.navigation.TinyNavHost
+import com.example.tinymodels.feature.navigation.TinyModelsApp
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -45,8 +44,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val navController = rememberNavController()
-                    TinyNavHost(navController)
+                    TinyModelsApp()
                 }
             }
         }
