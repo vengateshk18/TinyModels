@@ -3,6 +3,8 @@ package com.example.tinymodels.feature.models.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,15 +13,27 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -32,11 +46,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.tinymodels.core.ui.Formatters
 import com.example.tinymodels.domain.model.DownloadedModel
+import com.example.tinymodels.domain.model.ModelFilter
 import com.example.tinymodels.domain.model.ModelSummary
 import com.example.tinymodels.feature.models.DownloadedModelsViewModel
 import com.example.tinymodels.feature.models.ModelListViewModel
@@ -86,36 +104,13 @@ fun ModelsTabScreen(
             }
 
             when (selectedTab) {
-                0 -> {
-                    when {
-                        uiState.isLoading ->
-                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator()
-                            }
-                        uiState.error != null ->
-                            Column(
-                                modifier = Modifier.fillMaxSize().padding(24.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Text(
-                                    uiState.error!!,
-                                    color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                TextButton(onClick = { listViewModel.refresh() }) { Text("Retry") }
-                            }
-                        else ->
-                            LazyColumn(
-                                contentPadding = PaddingValues(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                items(uiState.models, key = { it.modelId }) { model ->
-                                    ModelListItem(model = model, onClick = { onModelClick(model.modelId) })
-                                }
-                            }
-                    }
-                }
+                0 -> BrowseContent(
+                    uiState = uiState,
+                    onSearch = listViewModel::search,
+                    onFilterChange = listViewModel::setFilter,
+                    onRetry = listViewModel::refresh,
+                    onModelClick = onModelClick
+                )
                 1 -> {
                     if (downloadedModels.isEmpty()) {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -201,4 +196,197 @@ private fun DownloadedModelItem(model: DownloadedModel, onClick: () -> Unit) {
 private fun humanReadableSize(bytes: Long): String {
     val mb = bytes / (1024.0 * 1024.0)
     return if (mb >= 1024) "%.2f GB".format(mb / 1024) else "%.1f MB".format(mb)
+}
+
+// ---- Browse content with search + filter chips ----
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun BrowseContent(
+    uiState: ModelListViewModel.UiState,
+    onSearch: (String) -> Unit,
+    onFilterChange: (ModelFilter) -> Unit,
+    onRetry: () -> Unit,
+    onModelClick: (String) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        OutlinedTextField(
+            value = uiState.searchQuery,
+            onValueChange = onSearch,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            placeholder = { Text("Search models\u2026") },
+            singleLine = true,
+            leadingIcon = {
+                Icon(
+                    Icons.Filled.Search,
+                    contentDescription = "Search",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(imeAction = ImeAction.Search),
+            shape = MaterialTheme.shapes.large
+        )
+        FlowRow(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            ModelFilter.entries.forEach { filter ->
+                FilterChip(
+                    selected = uiState.selectedFilter == filter,
+                    onClick = { onFilterChange(filter) },
+                    label = { Text(filter.label) }
+                )
+            }
+        }
+        when {
+            uiState.isLoading ->
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            uiState.error != null ->
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        uiState.error!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    TextButton(onClick = onRetry) { Text("Retry") }
+                }
+            uiState.models.isEmpty() ->
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("No models found", style = MaterialTheme.typography.titleMedium)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            "Try a different search or filter.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            else ->
+                LazyColumn(
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(uiState.models, key = { it.modelId }) { model ->
+                        ModelCard(model = model, onClick = { onModelClick(model.modelId) })
+                    }
+                }
+        }
+    }
+}
+
+@Composable
+private fun ModelCard(model: ModelSummary, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = model.modelId,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                model.pipelineTag?.takeIf { it.isNotBlank() }?.let { tag ->
+                    PipelineChip(tag)
+                }
+            }
+            if (model.author.isNotBlank()) {
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Filled.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        model.author,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                StatBadge(Icons.Filled.TrendingUp, Formatters.formatCount(model.downloads ?: 0))
+                StatBadge(Icons.Filled.Favorite, Formatters.formatCount((model.likes ?: 0).toLong()))
+                if (model.runtimeFileCount > 0) {
+                    StatBadge(
+                        Icons.Filled.Download,
+                        "${model.runtimeFileCount} file${if (model.runtimeFileCount > 1) "s" else ""}"
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                model.libraryName?.takeIf { it.isNotBlank() }?.let { lib ->
+                    SmallChip(lib)
+                }
+                model.lastModified?.takeIf { it.isNotBlank() }?.let { date ->
+                    Text(
+                        Formatters.formatDate(date),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatBadge(icon: ImageVector, text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(text, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun PipelineChip(label: String) {
+    Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = MaterialTheme.shapes.small) {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
+}
+
+@Composable
+private fun SmallChip(label: String) {
+    Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = MaterialTheme.shapes.small) {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
 }
