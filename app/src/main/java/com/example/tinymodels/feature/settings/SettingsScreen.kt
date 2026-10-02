@@ -77,10 +77,6 @@ fun SettingsScreen(
                 .padding(horizontal = 20.dp, vertical = 12.dp)
         ) {
             AppearanceSection(settings, viewModel)
-            SectionDivider()
-            InferenceSection(settings, viewModel)
-            SectionDivider()
-            ManagementSection(onManageModels, onDownloadedModels)
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
@@ -117,67 +113,6 @@ private fun AppearanceSection(settings: AppSettings, viewModel: SettingsViewMode
         selected = settings.fontChoice,
         onSelect = { viewModel.setFontChoice(it) }
     )
-}
-
-@Composable
-private fun InferenceSection(settings: AppSettings, viewModel: SettingsViewModel) {
-    SectionHeader("Inference")
-
-    Text("Backend", style = MaterialTheme.typography.bodyMedium)
-    Spacer(modifier = Modifier.height(8.dp))
-    val backends = listOf(BackendPreference.AUTO, BackendPreference.GPU, BackendPreference.CPU)
-    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-        backends.forEachIndexed { index, backend ->
-            SegmentedButton(
-                selected = settings.backend == backend,
-                onClick = { viewModel.setBackend(backend) },
-                shape = SegmentedButtonDefaults.itemShape(index = index, count = backends.size)
-            ) { Text(backend.name) }
-        }
-    }
-
-    SliderRow(
-        label = "Temperature",
-        valueText = "%.2f".format(settings.sampler.temperature),
-        value = settings.sampler.temperature.toFloat(),
-        valueRange = 0f..1.5f,
-        onValueChange = { viewModel.setTemperature(it.toDouble()) }
-    )
-    SliderRow(
-        label = "Top K",
-        valueText = "${settings.sampler.topK}",
-        value = settings.sampler.topK.toFloat(),
-        valueRange = 1f..100f,
-        onValueChange = { viewModel.setTopK(it.roundToInt()) }
-    )
-    SliderRow(
-        label = "Top P",
-        valueText = "%.2f".format(settings.sampler.topP),
-        value = settings.sampler.topP.toFloat(),
-        valueRange = 0f..1f,
-        onValueChange = { viewModel.setTopP(it.toDouble()) }
-    )
-
-    Spacer(modifier = Modifier.height(8.dp))
-    Text("Context window (max tokens)", style = MaterialTheme.typography.bodyMedium)
-    Spacer(modifier = Modifier.height(8.dp))
-    val tokenOptions = listOf(1024, 2048, 4096, 8192)
-    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-        tokenOptions.forEachIndexed { index, tokens ->
-            SegmentedButton(
-                selected = settings.maxContextTokens == tokens,
-                onClick = { viewModel.setMaxContextTokens(tokens) },
-                shape = SegmentedButtonDefaults.itemShape(index = index, count = tokenOptions.size)
-            ) { Text("${tokens / 1024}K") }
-        }
-    }
-}
-
-@Composable
-private fun ManagementSection(onManageModels: () -> Unit, onDownloadedModels: () -> Unit) {
-    SectionHeader("Models")
-    NavigationRow(label = "Browse models", onClick = onManageModels)
-    NavigationRow(label = "Downloaded models", onClick = onDownloadedModels)
 }
 
 // ---- Reusable rows ----

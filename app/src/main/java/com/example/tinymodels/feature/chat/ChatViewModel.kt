@@ -12,7 +12,6 @@ import com.example.tinymodels.domain.model.InferenceSettings
 import com.example.tinymodels.domain.model.DownloadedModel
 import com.example.tinymodels.domain.repository.ChatRepository
 import com.example.tinymodels.domain.repository.ModelRepository
-import com.example.tinymodels.domain.repository.SettingsRepository
 import com.example.tinymodels.feature.chat.model.ChatError
 import com.example.tinymodels.feature.chat.model.ChatEvent
 import com.example.tinymodels.feature.chat.model.ChatListItem
@@ -47,8 +46,7 @@ class ChatViewModel @Inject constructor(
     private val savedStateHandle: androidx.lifecycle.SavedStateHandle,
     private val modelManager: ModelManager,
     private val chatRepository: ChatRepository,
-    private val modelRepository: ModelRepository,
-    private val settingsRepository: SettingsRepository
+    private val modelRepository: ModelRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChatUiState())
@@ -152,12 +150,14 @@ class ChatViewModel @Inject constructor(
                 }
                 return@launch
             }
-            val settings = settingsRepository.settings.first()
+            val chatId = _uiState.value.activeChatId
+            val chat = chatId?.let { chatRepository.getChat(it) }
+            val inference = chat?.inferenceSettings ?: InferenceSettings()
             val result = modelManager.loadModel(
                 modelId = modelId,
                 modelFile = modelFile,
-                backend = settings.backend,
-                maxNumTokens = settings.maxContextTokens
+                backend = inference.backend,
+                maxNumTokens = inference.maxContextTokens
             )
             when (result) {
                 is com.example.tinymodels.core.common.AppResult.Success -> {

@@ -18,15 +18,13 @@ enum class FontChoice(val displayName: String, val googleFontName: String?) {
 }
 
 /**
- * User-tunable app + inference settings. Persisted via DataStore.
+ * User-tunable app-level settings. Persisted via DataStore.
+ * Inference settings (temperature, topK, topP, maxContextTokens,
+ * systemInstruction) are now per-session (stored in Room on each Chat).
  */
 data class AppSettings(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val useDynamicColor: Boolean = true,
     val fontChoice: FontChoice = FontChoice.SYSTEM,
-    val backend: BackendPreference = BackendPreference.AUTO,
-    val sampler: SamplerSettings = SamplerSettings(),
-    val maxContextTokens: Int = 2048,
-    val systemInstruction: String = "You are a helpful assistant.",
-    val autoUnloadMinutes: Int = 0 // 0 = never auto-unload
+    val defaultBackend: BackendPreference = BackendPreference.AUTO
 )
