@@ -1,7 +1,9 @@
 package com.example.tinymodels.core.ui.theme
 
+import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -89,6 +91,21 @@ private val darkScheme = darkColorScheme(
 )
 
 /**
+ * Resolves the same [ColorScheme] [TinyModelsTheme] installs, so other call
+ * sites (e.g. [MainActivity][com.example.tinymodels.MainActivity] syncing the
+ * system navigation bar) can read tokens like `surfaceContainer` without
+ * duplicating the dynamic-color / light-dark selection logic.
+ */
+fun resolveColorScheme(context: Context, darkTheme: Boolean, dynamicColor: Boolean): ColorScheme =
+    when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        darkTheme -> darkScheme
+        else -> lightScheme
+    }
+
+/**
  * App-wide theme. Honors the user's [ThemeMode] + dynamic-color preference.
  * When dynamic color is disabled (or unavailable < API 31), falls back to the
  * custom Material Theme Builder palette (light/dark).
@@ -107,14 +124,7 @@ fun TinyModelsTheme(
         ThemeMode.DARK -> true
     }
 
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> darkScheme
-        else -> lightScheme
-    }
+    val colorScheme = resolveColorScheme(LocalContext.current, darkTheme, dynamicColor)
 
     MaterialTheme(
         colorScheme = colorScheme,

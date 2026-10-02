@@ -11,8 +11,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.tinymodels.core.ui.theme.TinyModelsTheme
+import com.example.tinymodels.core.ui.theme.resolveColorScheme
 import com.example.tinymodels.domain.model.AppSettings
 import com.example.tinymodels.domain.model.ThemeMode
 import com.example.tinymodels.domain.repository.SettingsRepository
@@ -25,7 +27,9 @@ import javax.inject.Inject
  * theme + dynamic-color preference from [SettingsRepository].
  *
  * [enableEdgeToEdge] is re-invoked whenever the theme changes so the system
- * status / navigation bars adopt the correct light/dark scrim.
+ * navigation bar is painted the same solid color as the bottom
+ * [androidx.compose.material3.NavigationBar] (`surfaceContainer`), and the
+ * status bar stays transparent.
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -41,9 +45,9 @@ class MainActivity : ComponentActivity() {
             val settings by settingsRepository.settings
                 .collectAsStateWithLifecycle(initialValue = AppSettings())
 
-            // Re-apply edge-to-edge with a theme-aware SystemBarStyle whenever
-            // the theme changes, so the system navigation bar scrim follows
-            // the app theme instead of staying transparent.
+            // Re-apply edge-to-edge whenever the theme changes, so the system
+            // navigation bar follows the app theme instead of staying
+            // transparent/light.
             val darkTheme = when (settings.themeMode) {
                 ThemeMode.SYSTEM -> (resources.configuration.uiMode and
                     android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
@@ -52,16 +56,27 @@ class MainActivity : ComponentActivity() {
                 ThemeMode.LIGHT -> false
             }
 
-            LaunchedEffect(darkTheme) {
+            // Mirror the bottom NavigationBar's container color
+            // (surfaceContainer) so the system navigation bar reads as a
+            // continuation of it instead of a mismatched scrim.
+            val navBarColor = resolveColorScheme(
+                context = this@MainActivity,
+                darkTheme = darkTheme,
+                dynamicColor = settings.useDynamicColor
+            ).surfaceContainer.toArgb()
+
+            LaunchedEffect(darkTheme, navBarColor) {
                 enableEdgeToEdge(
                     statusBarStyle = SystemBarStyle.auto(
                         lightScrim = android.graphics.Color.TRANSPARENT,
-                        darkScrim = android.graphics.Color.TRANSPARENT
+                        darkScrim = android.graphics.Color.TRANSPARENT,
+                        detectDarkMode = { darkTheme }
                     ),
-                    navigationBarStyle = SystemBarStyle.auto(
-                        lightScrim = 0x66FFFFFF,
-                        darkScrim = 0x66000000
-                    )
+                    navigationBarStyle = if (darkTheme) {
+                        SystemBarStyle.dark(navBarColor)
+                    } else {
+                        SystemBarStyle.light(navBarColor, navBarColor)
+                    }
                 )
             }
 
