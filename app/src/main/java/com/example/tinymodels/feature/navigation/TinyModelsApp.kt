@@ -35,6 +35,7 @@ import com.example.tinymodels.feature.models.screens.DownloadedModelsScreen
 import com.example.tinymodels.feature.models.screens.ModelDetailsScreen
 import com.example.tinymodels.feature.models.screens.ModelListScreen
 import com.example.tinymodels.feature.models.screens.ModelsTabScreen
+import com.example.tinymodels.feature.home.HomeScreen
 import com.example.tinymodels.feature.settings.SettingsScreen
 
 /**
@@ -89,7 +90,7 @@ fun TinyModelsApp(navController: NavHostController = rememberNavController()) {
             // --- Tab destinations ---
 
             composable(Routes.HOME) {
-                HomePlaceholder()
+                HomeScreen(onBrowseModels = { navController.navigate(Routes.MODELS) })
             }
 
             composable(Routes.CHAT) {
@@ -149,18 +150,3 @@ private val bottomNavItems = listOf(
     BottomNavItem(Routes.MODELS, "Models", Icons.Outlined.Download, Icons.Filled.Download),
     BottomNavItem(Routes.SETTINGS, "Settings", Icons.Outlined.Settings, Icons.Filled.Settings)
 )
-
-@Composable
-private fun HomePlaceholder() {
-    androidx.compose.foundation.layout.Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = androidx.compose.ui.Alignment.Center
-    ) {
-        Text(
-            text = "Home — Device Info\n(coming in N8)",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-        )
-    }
-}
