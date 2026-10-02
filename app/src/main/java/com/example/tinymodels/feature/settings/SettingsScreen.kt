@@ -127,6 +127,14 @@ private fun AppearanceSection(settings: AppSettings, viewModel: SettingsViewMode
             onDismiss = { showFontSheet = false }
         )
     }
+    Spacer(modifier = Modifier.height(4.dp))
+    SliderRow(
+        label = "Font size",
+        valueText = "%.2f×".format(settings.fontScale),
+        value = settings.fontScale,
+        valueRange = 0.85f..1.30f,
+        onValueChange = { viewModel.setFontScale(it) }
+    )
 }
 
 // ---- Reusable rows ----
