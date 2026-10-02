@@ -83,7 +83,7 @@ fun ModelDetailsScreen(
         bottomBar = {
             // Sticky download action bar, visible only when we have a model to act on.
             uiState.model?.let { model ->
-                if (model.liteRtFiles.isNotEmpty()) {
+                if (model.runtimeFiles.ifEmpty { model.liteRtFiles }.isNotEmpty()) {
                     DownloadBar(
                         model = model,
                         isDownloaded = uiState.isDownloaded,
@@ -122,7 +122,7 @@ private fun ModelDetailsContent(model: ModelDetails) {
         if (model.widgetPrompts.isNotEmpty()) item { TryItCard(model.widgetPrompts) }
         item { AboutCard(model) }
         if (model.tags.isNotEmpty()) item { TagsCard(model.tags) }
-        if (model.liteRtFiles.isNotEmpty()) item { FilesCard(model.liteRtFiles) }
+        if (model.runtimeFiles.ifEmpty { model.liteRtFiles }.isNotEmpty()) item { FilesCard(model.runtimeFiles.ifEmpty { model.liteRtFiles }) }
         // Bottom spacer so content clears the sticky bar.
         item { Spacer(modifier = Modifier.height(4.dp)) }
     }
@@ -186,7 +186,7 @@ private fun StatsCard(model: ModelDetails) {
             StatItem(Icons.Filled.TrendingUp, "Downloads", Formatters.formatCount(model.downloads ?: 0))
             StatItem(Icons.Filled.Favorite, "Likes", Formatters.formatCount((model.likes ?: 0).toLong()))
             StatItem(Icons.Filled.SdStorage, "Size", Formatters.formatBytes(model.usedStorage ?: 0))
-            StatItem(Icons.Filled.Download, "Files", "${model.liteRtFiles.size}")
+            StatItem(Icons.Filled.Download, "Files", "${model.runtimeFiles.ifEmpty { model.liteRtFiles }.size}")
         }
     }
 }

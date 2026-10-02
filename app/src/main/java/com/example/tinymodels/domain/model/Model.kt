@@ -54,6 +54,14 @@ data class ModelDetails(
     val liteRtFiles: List<String>
         get() = siblings.filter { it.endsWith(".litertlm", ignoreCase = true) }
 
+    /** All runnable runtime files (.litertlm + .task + .tflite). */
+    val runtimeFiles: List<String>
+        get() = siblings.filter {
+            it.endsWith(".litertlm", ignoreCase = true) ||
+            it.endsWith(".task", ignoreCase = true) ||
+            it.endsWith(".tflite", ignoreCase = true)
+        }
+
     /** True when access requires accepting a license / login on HuggingFace. */
     val isGated: Boolean
         get() = gated != null && gated != "false" && gated.isNotBlank()

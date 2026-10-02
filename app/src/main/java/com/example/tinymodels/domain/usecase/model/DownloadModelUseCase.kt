@@ -60,7 +60,8 @@ class DownloadModelUseCase @Inject constructor(
 
     /** Compute total download size on demand (user-initiated, avoids extra calls on view). */
     suspend fun calculateSize(model: ModelDetails): Long = withContext(Dispatchers.IO) {
-        model.liteRtFiles.sumOf { fileName ->
+        val files = model.runtimeFiles.ifEmpty { model.liteRtFiles }
+        files.sumOf { fileName ->
             api.contentLength(api.fileUrl(model.id, fileName))
         }
     }
@@ -74,7 +75,7 @@ class DownloadModelUseCase @Inject constructor(
             .setInputData(
                 Data.Builder()
                     .putString(ModelDownloadWorker.KEY_MODEL_ID, model.id)
-                    .putStringArray(ModelDownloadWorker.KEY_FILES, model.liteRtFiles.toTypedArray())
+                    .putStringArray(ModelDownloadWorker.KEY_FILES, model.runtimeFiles.ifEmpty { model.liteRtFiles }.toTypedArray())
                     .putString(ModelDownloadWorker.KEY_AUTHOR, model.author)
                     .putString(ModelDownloadWorker.KEY_LIBRARY, model.libraryName)
                     .putString(ModelDownloadWorker.KEY_PIPELINE, model.pipelineTag)
