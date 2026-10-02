@@ -7,6 +7,8 @@ import com.example.tinymodels.core.database.entities.MessageEntity
 import com.example.tinymodels.domain.model.Chat
 import com.example.tinymodels.domain.model.ChatMessage
 import com.example.tinymodels.domain.model.ChatSummary
+import com.example.tinymodels.domain.model.InferenceSettings
+import com.example.tinymodels.domain.model.BackendPreference
 import com.example.tinymodels.domain.repository.ChatRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -62,6 +64,19 @@ class ChatRepositoryImpl @Inject constructor(
             chatDao.updateChatTitle(chatId, title, System.currentTimeMillis())
         }
 
+    override suspend fun updateInferenceSettings(chatId: String, settings: InferenceSettings) =
+        withContext(dispatchers.io) {
+            val existing = chatDao.getChat(chatId) ?: return@withContext
+            chatDao.upsertChat(existing.copy(
+                backend = settings.backend.name,
+                temperature = settings.temperature,
+                topK = settings.topK,
+                topP = settings.topP,
+                maxContextTokens = settings.maxContextTokens,
+                systemInstruction = settings.systemInstruction
+            ))
+        }
+
     override suspend fun saveMessage(message: ChatMessage) =
         withContext(dispatchers.io) {
             chatDao.upsertMessage(message.toEntity())
@@ -90,7 +105,15 @@ class ChatRepositoryImpl @Inject constructor(
         modelId = modelId,
         createdAt = createdAt,
         updatedAt = updatedAt,
-        isArchived = isArchived
+        isArchived = isArchived,
+        inferenceSettings = InferenceSettings(
+            backend = runCatching { BackendPreference.valueOf(backend) }.getOrDefault(BackendPreference.AUTO),
+            temperature = temperature,
+            topK = topK,
+            topP = topP,
+            maxContextTokens = maxContextTokens,
+            systemInstruction = systemInstruction
+        )
     )
 
         private fun MessageEntity.toDomain() = ChatMessage(

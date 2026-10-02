@@ -8,6 +8,7 @@ import com.example.tinymodels.core.inference.ConversationSession
 import com.example.tinymodels.core.inference.InferenceException
 import com.example.tinymodels.core.inference.ModelManager
 import com.example.tinymodels.domain.model.ChatMessage
+import com.example.tinymodels.domain.model.InferenceSettings
 import com.example.tinymodels.domain.model.DownloadedModel
 import com.example.tinymodels.domain.repository.ChatRepository
 import com.example.tinymodels.domain.repository.ModelRepository
@@ -234,15 +235,20 @@ class ChatViewModel @Inject constructor(
                     text = it.content
                 )
             }
-        val settings = settingsRepository.settings.first()
+        val chat = chatRepository.getChat(chatId)
+        val inference = chat?.inferenceSettings ?: InferenceSettings()
         try {
             modelManager.withEngine { engine, config ->
                 session = ConversationSession.create(
                     engine = engine,
-                    systemInstruction = settings.systemInstruction,
+                    systemInstruction = inference.systemInstruction,
                     history = history,
-                    sampler = settings.sampler,
-                    maxContextTokens = config.maxNumTokens
+                    sampler = com.example.tinymodels.domain.model.SamplerSettings(
+                        temperature = inference.temperature,
+                        topK = inference.topK,
+                        topP = inference.topP
+                    ),
+                    maxContextTokens = inference.maxContextTokens
                 )
             }
             updateContextUsage()

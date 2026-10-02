@@ -3,6 +3,7 @@ package com.example.tinymodels.domain.repository
 import com.example.tinymodels.domain.model.Chat
 import com.example.tinymodels.domain.model.ChatMessage
 import com.example.tinymodels.domain.model.ChatSummary
+import com.example.tinymodels.domain.model.InferenceSettings
 import kotlinx.coroutines.flow.Flow
 
 interface ChatRepository {
@@ -19,6 +20,9 @@ interface ChatRepository {
     suspend fun createChat(modelId: String, title: String): Chat
 
     suspend fun renameChat(chatId: String, title: String)
+
+    /** Update the per-session inference settings for a chat. */
+    suspend fun updateInferenceSettings(chatId: String, settings: InferenceSettings)
 
     /** Insert or update a message; bumps the chat's updatedAt. */
     suspend fun saveMessage(message: ChatMessage)

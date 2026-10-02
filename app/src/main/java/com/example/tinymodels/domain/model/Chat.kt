@@ -7,7 +7,8 @@ data class Chat(
     val modelId: String,
     val createdAt: Long,
     val updatedAt: Long,
-    val isArchived: Boolean = false
+    val isArchived: Boolean = false,
+    val inferenceSettings: InferenceSettings = InferenceSettings()
 )
 
 /** A single message within a chat. */

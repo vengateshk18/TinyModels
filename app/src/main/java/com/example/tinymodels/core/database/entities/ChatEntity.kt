@@ -11,7 +11,14 @@ data class ChatEntity(
     val modelId: String,
     val createdAt: Long,
     val updatedAt: Long,
-    val isArchived: Boolean = false
+    val isArchived: Boolean = false,
+    // Per-session inference settings:
+    val backend: String = "AUTO",
+    val temperature: Double = 0.7,
+    val topK: Int = 40,
+    val topP: Double = 0.95,
+    val maxContextTokens: Int = 2048,
+    val systemInstruction: String = "You are a helpful assistant."
 )
 
 @Entity(
