@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.TrendingUp
@@ -111,26 +112,13 @@ fun ModelsTabScreen(
                     onRetry = listViewModel::refresh,
                     onModelClick = onModelClick
                 )
-                1 -> {
-                    if (downloadedModels.isEmpty()) {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(
-                                "No models downloaded yet.\nBrowse the catalog to download one.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    } else {
-                        LazyColumn(
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            items(downloadedModels, key = { it.modelId }) { model ->
-                                DownloadedModelItem(model = model, onClick = { onModelClick(model.modelId) })
-                            }
-                        }
-                    }
-                }
+                1 -> DownloadedContent(
+                    models = downloadedModels,
+                    totalSizeBytes = downloadedViewModel.totalSizeBytes.value,
+                    activeModelId = downloadedViewModel.activeModelId,
+                    onDelete = downloadedViewModel::delete,
+                    onModelClick = onModelClick
+                )
             }
         }
     }
@@ -388,5 +376,166 @@ private fun SmallChip(label: String) {
             color = MaterialTheme.colorScheme.onSecondaryContainer,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
         )
+    }
+}
+
+// ---- Downloaded content with summary + rich cards ----
+
+@Composable
+private fun DownloadedContent(
+    models: List<DownloadedModel>,
+    totalSizeBytes: Long,
+    activeModelId: String?,
+    onDelete: (DownloadedModel) -> Unit,
+    onModelClick: (String) -> Unit
+) {
+    var pendingDelete by remember { androidx.compose.runtime.mutableStateOf<DownloadedModel?>(null) }
+
+    if (models.isEmpty()) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("No models downloaded", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    "Browse the catalog to download one.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    } else {
+        LazyColumn(
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                "${models.size} model${if (models.size > 1) "s" else ""}",
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Text(
+                                Formatters.formatBytes(totalSizeBytes),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                        Icon(
+                            Icons.Filled.Download,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+            }
+            items(models, key = { it.modelId }) { model ->
+                DownloadedModelCard(
+                    model = model,
+                    isActive = activeModelId == model.modelId,
+                    onClick = { onModelClick(model.modelId) },
+                    onDelete = { pendingDelete = model }
+                )
+            }
+        }
+    }
+
+    pendingDelete?.let { model ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { pendingDelete = null },
+            title = { Text("Delete model?") },
+            text = { Text("This will remove \"${model.modelId}\" from your device. This cannot be undone.") },
+            confirmButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = {
+                        onDelete(model)
+                        pendingDelete = null
+                    }
+                ) { Text("Delete", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { pendingDelete = null }) { Text("Cancel") }
+            }
+        )
+    }
+}
+
+@Composable
+private fun DownloadedModelCard(
+    model: DownloadedModel,
+    isActive: Boolean,
+    onClick: () -> Unit,
+    onDelete: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = model.modelId,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                if (isActive) {
+                    Surface(color = MaterialTheme.colorScheme.tertiaryContainer, shape = MaterialTheme.shapes.small) {
+                        Text(
+                            "Loaded",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                androidx.compose.material3.IconButton(onClick = onDelete) {
+                    Icon(
+                        androidx.compose.material.icons.Icons.Filled.Delete,
+                        contentDescription = "Delete",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+            if (!model.author.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.Person, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(model.author, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                StatBadge(Icons.Filled.Download, Formatters.formatBytes(model.sizeBytes))
+                StatBadge(Icons.Filled.TrendingUp, "${model.files.size} file${if (model.files.size > 1) "s" else ""}")
+            }
+            model.pipelineTag?.takeIf { it.isNotBlank() }?.let { tag ->
+                Spacer(modifier = Modifier.height(6.dp))
+                PipelineChip(tag)
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                "Downloaded ${Formatters.formatEpoch(model.downloadedAt)}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
