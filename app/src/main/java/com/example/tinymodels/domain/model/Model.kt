@@ -10,8 +10,22 @@ data class ModelSummary(
     val tags: List<String>,
     val libraryName: String?,
     val pipelineTag: String?,
-    val lastModified: String?
-)
+    val lastModified: String?,
+    val siblings: List<String> = emptyList()
+) {
+    /** True if any sibling file is a runnable runtime format. */
+    val hasRuntimeFiles: Boolean
+        get() = siblings.any { it.isRuntimeFile() }
+
+    /** Count of runnable files in siblings. */
+    val runtimeFileCount: Int
+        get() = siblings.count { it.isRuntimeFile() }
+
+    private fun String.isRuntimeFile() =
+        endsWith(".litertlm", ignoreCase = true) ||
+        endsWith(".task", ignoreCase = true) ||
+        endsWith(".tflite", ignoreCase = true)
+}
 
 /** Full details for a single model, including downloadable files. */
 data class ModelDetails(

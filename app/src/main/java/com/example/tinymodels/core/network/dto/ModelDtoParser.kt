@@ -26,7 +26,8 @@ object ModelDtoParser {
         tags = json.optStringList("tags"),
         libraryName = json.optStringOrNull("library_name"),
         pipelineTag = json.optStringOrNull("pipeline_tag"),
-        lastModified = json.optStringOrNull("lastModified")
+        lastModified = json.optStringOrNull("lastModified"),
+        siblings = json.optObjectStringList("siblings", "rfilename")
     )
 
     fun parseDetails(json: String): ModelDetails {
