@@ -135,11 +135,6 @@ private fun ModelPickerRow(
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = formatBytes(model.sizeBytes),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                     model.pipelineTag?.let {
                         Text(
                             text = it,
@@ -158,16 +153,4 @@ private fun ModelPickerRow(
             }
         }
     }
-}
-
-private fun formatBytes(bytes: Long): String {
-    if (bytes <= 0) return "—"
-    val units = listOf("B", "KB", "MB", "GB")
-    var value = bytes.toDouble()
-    var index = 0
-    while (value >= 1024 && index < units.lastIndex) {
-        value /= 1024
-        index++
-    }
-    return "%.1f %s".format(value, units[index])
 }

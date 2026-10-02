@@ -13,8 +13,11 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.example.tinymodels.R
 import com.example.tinymodels.core.database.DownloadedModelDao
+import com.example.tinymodels.core.database.ModelFileDao
 import com.example.tinymodels.core.database.entities.DownloadedModelEntity
+import com.example.tinymodels.core.database.entities.ModelFileEntity
 import com.example.tinymodels.core.network.HuggingFaceApi
+import com.example.tinymodels.domain.model.FileDownloadStatus
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +37,7 @@ class ModelDownloadWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val downloadedModelDao: DownloadedModelDao,
+    private val modelFileDao: ModelFileDao,
     private val api: HuggingFaceApi,
     private val client: OkHttpClient
 ) : CoroutineWorker(appContext, workerParams) {
@@ -75,23 +79,44 @@ class ModelDownloadWorker @AssistedInject constructor(
                 }
             }
 
-            downloadedModelDao.insert(
+            downloadedModelDao.insertIfAbsent(
                 DownloadedModelEntity(
                     modelId = modelId,
                     author = inputData.getString(KEY_AUTHOR),
                     libraryName = inputData.getString(KEY_LIBRARY),
                     pipelineTag = inputData.getString(KEY_PIPELINE),
                     localPath = modelDirectory.absolutePath,
-                    files = files.joinToString("\n"),
-                    sizeBytes = modelDirectory.walkTopDown().filter { it.isFile }.sumOf { it.length() },
                     downloadedAt = System.currentTimeMillis()
                 )
             )
+            files.forEach { fileName ->
+                val target = File(modelDirectory, fileName.substringAfterLast("/"))
+                modelFileDao.insert(
+                    ModelFileEntity(
+                        modelId = modelId,
+                        fileName = fileName,
+                        status = FileDownloadStatus.DOWNLOADED.name,
+                        sizeBytes = target.length(),
+                        localPath = modelDirectory.absolutePath,
+                        error = null
+                    )
+                )
+            }
             Result.success()
         } catch (cancellation: kotlinx.coroutines.CancellationException) {
+            files.forEach { fileName ->
+                modelFileDao.updateStatus(
+                    modelId, fileName, FileDownloadStatus.FAILED.name, null, null, "Cancelled"
+                )
+            }
             modelDirectory.deleteRecursively()
             throw cancellation
         } catch (exception: Exception) {
+            files.forEach { fileName ->
+                modelFileDao.updateStatus(
+                    modelId, fileName, FileDownloadStatus.FAILED.name, null, null, exception.message
+                )
+            }
             modelDirectory.deleteRecursively()
             Result.retry()
         }

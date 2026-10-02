@@ -58,6 +58,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.tinymodels.core.ui.Formatters
 import com.example.tinymodels.domain.model.DownloadedModel
+import com.example.tinymodels.domain.model.DownloadedModelFile
 import com.example.tinymodels.domain.model.ModelFilter
 import com.example.tinymodels.domain.model.ModelSummary
 import com.example.tinymodels.feature.models.DownloadedModelsViewModel
@@ -77,6 +78,7 @@ fun ModelsTabScreen(
     var selectedTab by remember { mutableIntStateOf(0) }
     val uiState by listViewModel.uiState.collectAsStateWithLifecycle()
     val downloadedModels by downloadedViewModel.models.collectAsStateWithLifecycle()
+    val downloadedFiles by downloadedViewModel.downloadedFiles.collectAsStateWithLifecycle()
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -117,6 +119,7 @@ fun ModelsTabScreen(
                 )
                 1 -> DownloadedContent(
                     models = downloadedModels,
+                    downloadedFiles = downloadedFiles,
                     totalSizeBytes = downloadedViewModel.totalSizeBytes.value,
                     activeModelId = downloadedViewModel.activeModelId,
                     onDelete = downloadedViewModel::delete,
@@ -326,6 +329,7 @@ private fun SmallChip(label: String) {
 @Composable
 private fun DownloadedContent(
     models: List<DownloadedModel>,
+    downloadedFiles: List<DownloadedModelFile>,
     totalSizeBytes: Long,
     activeModelId: String?,
     onDelete: (DownloadedModel) -> Unit,
@@ -381,8 +385,11 @@ private fun DownloadedContent(
                 }
             }
             items(models, key = { it.modelId }) { model ->
+                val files = downloadedFiles.filter { it.modelId == model.modelId }
                 DownloadedModelCard(
                     model = model,
+                    fileCount = files.size,
+                    sizeBytes = files.sumOf { it.sizeBytes },
                     isActive = activeModelId == model.modelId,
                     onClick = { onModelClick(model.modelId) },
                     onDelete = { pendingDelete = model }
@@ -414,6 +421,8 @@ private fun DownloadedContent(
 @Composable
 private fun DownloadedModelCard(
     model: DownloadedModel,
+    fileCount: Int,
+    sizeBytes: Long,
     isActive: Boolean,
     onClick: () -> Unit,
     onDelete: () -> Unit
@@ -465,8 +474,8 @@ private fun DownloadedModelCard(
             }
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                StatBadge(Icons.Filled.Download, Formatters.formatBytes(model.sizeBytes))
-                StatBadge(Icons.Filled.TrendingUp, "${model.files.size} file${if (model.files.size > 1) "s" else ""}")
+                StatBadge(Icons.Filled.Download, Formatters.formatBytes(sizeBytes))
+                StatBadge(Icons.Filled.TrendingUp, "$fileCount file${if (fileCount > 1) "s" else ""}")
             }
             model.pipelineTag?.takeIf { it.isNotBlank() }?.let { tag ->
                 Spacer(modifier = Modifier.height(6.dp))

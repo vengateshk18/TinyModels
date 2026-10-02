@@ -12,12 +12,17 @@ object Routes {
 
     // Pushed (full-screen) routes
     const val MODEL_DETAILS = "model_details/{modelId}"
+    const val DOWNLOADED_FILE_DETAIL = "downloaded_file_detail/{modelId}/{fileName}"
     const val CHAT_ROOM = "chat_room/{chatId}"
     const val DOWNLOADED_MODELS = "downloaded_models"
     const val DEVICE_INFO = "device_info"
 
     /** modelIds contain '/', so they must be URL-encoded for the path segment. */
     fun modelDetails(modelId: String) = "model_details/${Uri.encode(modelId)}"
+
+    /** Downloaded file detail route. */
+    fun downloadedFileDetail(modelId: String, fileName: String) =
+        "downloaded_file_detail/${Uri.encode(modelId)}/${Uri.encode(fileName)}"
 
     /** chatRoom route for a specific chat session. */
     fun chatRoom(chatId: String) = "chat_room/${Uri.encode(chatId)}"

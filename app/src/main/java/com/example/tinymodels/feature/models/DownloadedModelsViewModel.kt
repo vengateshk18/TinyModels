@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tinymodels.core.inference.ModelManager
 import com.example.tinymodels.domain.model.DownloadedModel
+import com.example.tinymodels.domain.model.DownloadedModelFile
 import com.example.tinymodels.domain.repository.ModelRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,8 +21,14 @@ class DownloadedModelsViewModel @Inject constructor(
     private val modelManager: ModelManager
 ) : ViewModel() {
 
+    /** Parent metadata (one row per model) for the downloaded list. */
     val models: StateFlow<List<DownloadedModel>> =
         modelRepository.observeDownloadedModels()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** All DOWNLOADED files (children), grouped by model in the UI. */
+    val downloadedFiles: StateFlow<List<DownloadedModelFile>> =
+        modelRepository.observeDownloadedFiles()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /** Id of the model currently loaded in memory, if any. */
@@ -32,7 +39,7 @@ class DownloadedModelsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            models.collect { list -> _totalSizeBytes.value = list.sumOf { it.sizeBytes } }
+            downloadedFiles.collect { files -> _totalSizeBytes.value = files.sumOf { it.sizeBytes } }
         }
     }
 

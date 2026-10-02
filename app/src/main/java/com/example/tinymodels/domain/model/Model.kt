@@ -67,16 +67,32 @@ data class ModelDetails(
         get() = gated != null && gated != "false" && gated.isNotBlank()
 }
 
-/** A model that has been downloaded onto the device. */
+/** A model that has been downloaded onto the device (lightweight parent metadata). */
 data class DownloadedModel(
     val modelId: String,
     val author: String?,
     val libraryName: String?,
     val pipelineTag: String?,
     val localPath: String,
-    val files: List<String>,
-    val sizeBytes: Long,
     val downloadedAt: Long
+)
+
+/** Per-file download lifecycle status. */
+enum class FileDownloadStatus {
+    NOT_DOWNLOADED,
+    DOWNLOADING,
+    DOWNLOADED,
+    FAILED
+}
+
+/** A single downloadable file tracked under its parent [DownloadedModel]. */
+data class DownloadedModelFile(
+    val modelId: String,
+    val fileName: String,
+    val status: FileDownloadStatus,
+    val sizeBytes: Long,
+    val localPath: String?,
+    val error: String?
 )
 
 /** Metadata about the currently loaded model + how it was loaded. */

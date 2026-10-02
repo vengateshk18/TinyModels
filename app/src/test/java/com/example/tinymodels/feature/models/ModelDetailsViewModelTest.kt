@@ -6,6 +6,8 @@ import com.example.tinymodels.core.common.AppError
 import com.example.tinymodels.core.common.AppResult
 import com.example.tinymodels.core.common.StorageUtils
 import com.example.tinymodels.domain.model.DownloadedModel
+import com.example.tinymodels.domain.model.DownloadedModelFile
+import com.example.tinymodels.domain.model.FileDownloadStatus
 import com.example.tinymodels.domain.model.ModelDetails
 import com.example.tinymodels.domain.model.ModelSummary
 import com.example.tinymodels.domain.repository.ModelRepository
@@ -16,6 +18,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -169,6 +172,7 @@ private class FakeModelRepository : ModelRepository {
         disabled = false, widgetPrompts = emptyList(), baseModel = null
     ))
     private val downloaded = MutableStateFlow<List<DownloadedModel>>(emptyList())
+    private val modelFiles = MutableStateFlow<List<DownloadedModelFile>>(emptyList())
 
     fun reset(details: ModelDetails) {
         detailsResult = AppResult.Success(details)
@@ -182,4 +186,19 @@ private class FakeModelRepository : ModelRepository {
     override fun observeDownloadedModels() = downloaded
     override suspend fun getDownloadedModel(modelId: String): DownloadedModel? = null
     override suspend fun deleteDownloadedModel(modelId: String) {}
+
+    override fun observeModelFiles(modelId: String): Flow<List<DownloadedModelFile>> = modelFiles
+    override fun observeDownloadedFiles(): Flow<List<DownloadedModelFile>> = modelFiles
+    override suspend fun getModelFile(modelId: String, fileName: String): DownloadedModelFile? = null
+    override suspend fun getDownloadedFileForModel(modelId: String): DownloadedModelFile? = null
+    override suspend fun preRegisterModel(model: ModelDetails) {}
+    override suspend fun updateFileStatus(
+        modelId: String,
+        fileName: String,
+        status: FileDownloadStatus,
+        sizeBytes: Long?,
+        localPath: String?,
+        error: String?
+    ) {}
+    override suspend fun deleteModelFile(modelId: String, fileName: String) {}
 }

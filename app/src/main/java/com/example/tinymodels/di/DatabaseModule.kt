@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Room
 import com.example.tinymodels.core.database.ChatDao
 import com.example.tinymodels.core.database.DownloadedModelDao
+import com.example.tinymodels.core.database.Migrations
+import com.example.tinymodels.core.database.ModelFileDao
 import com.example.tinymodels.core.database.TinyModelsDatabase
 import dagger.Module
 import dagger.Provides
@@ -27,11 +29,15 @@ object DatabaseModule {
             // The app is pre-release; recreate on migration rather than ship
             // migration SQL for the v1 -> v2 chat-persistence addition.
             .fallbackToDestructiveMigration(dropAllTables = true)
+            .addMigrations(Migrations.MIGRATION_4_5)
             .build()
 
     @Provides
     fun provideDownloadedModelDao(db: TinyModelsDatabase): DownloadedModelDao =
         db.downloadedModelDao()
+
+    @Provides
+    fun provideModelFileDao(db: TinyModelsDatabase): ModelFileDao = db.modelFileDao()
 
     @Provides
     fun provideChatDao(db: TinyModelsDatabase): ChatDao = db.chatDao()

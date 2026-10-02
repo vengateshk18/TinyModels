@@ -1,13 +1,19 @@
 package com.example.tinymodels.data.repository
 
+import android.content.Context
 import com.example.tinymodels.core.common.AppError
 import com.example.tinymodels.core.common.AppResult
 import com.example.tinymodels.core.common.DispatcherProvider
 import com.example.tinymodels.core.database.DownloadedModelDao
+import com.example.tinymodels.core.database.ModelFileDao
 import com.example.tinymodels.core.database.entities.DownloadedModelEntity
+import com.example.tinymodels.core.database.entities.ModelFileEntity
 import com.example.tinymodels.core.network.HuggingFaceApi
 import com.example.tinymodels.core.network.dto.ModelDtoParser
+import dagger.hilt.android.qualifiers.ApplicationContext
 import com.example.tinymodels.domain.model.DownloadedModel
+import com.example.tinymodels.domain.model.DownloadedModelFile
+import com.example.tinymodels.domain.model.FileDownloadStatus
 import com.example.tinymodels.domain.model.ModelDetails
 import com.example.tinymodels.domain.model.ModelSummary
 import com.example.tinymodels.domain.repository.ModelRepository
@@ -21,7 +27,9 @@ import javax.inject.Singleton
 /** Room + HuggingFace-backed implementation of [ModelRepository]. */
 @Singleton
 class ModelRepositoryImpl @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val downloadedModelDao: DownloadedModelDao,
+    private val modelFileDao: ModelFileDao,
     private val api: HuggingFaceApi,
     private val dispatchers: DispatcherProvider
 ) : ModelRepository {
@@ -62,8 +70,72 @@ class ModelRepositoryImpl @Inject constructor(
     override suspend fun deleteDownloadedModel(modelId: String) =
         withContext(dispatchers.io) {
             downloadedModelDao.getById(modelId)?.let { File(it.localPath).deleteRecursively() }
+            modelFileDao.deleteAllForModel(modelId)
             downloadedModelDao.delete(modelId)
         }
+
+    // ---- Local downloads (per-file children) ----
+
+    override fun observeModelFiles(modelId: String): Flow<List<DownloadedModelFile>> =
+        modelFileDao.observeByModelId(modelId).map { entities -> entities.map { it.toDomain() } }
+
+    override fun observeDownloadedFiles(): Flow<List<DownloadedModelFile>> =
+        modelFileDao.observeDownloaded().map { entities -> entities.map { it.toDomain() } }
+
+    override suspend fun getModelFile(modelId: String, fileName: String): DownloadedModelFile? =
+        withContext(dispatchers.io) { modelFileDao.getByModelIdAndFile(modelId, fileName)?.toDomain() }
+
+    override suspend fun getDownloadedFileForModel(modelId: String): DownloadedModelFile? =
+        withContext(dispatchers.io) {
+            modelFileDao.getFirstDownloadedForModel(modelId)?.toDomain()
+        }
+
+    override suspend fun preRegisterModel(model: ModelDetails) =
+        withContext(dispatchers.io) {
+            val directory = File(context.filesDir, "models/${model.id.replace("/", "_")}")
+            val now = System.currentTimeMillis()
+            downloadedModelDao.insertIfAbsent(
+                DownloadedModelEntity(
+                    modelId = model.id,
+                    author = model.author,
+                    libraryName = model.libraryName,
+                    pipelineTag = model.pipelineTag,
+                    localPath = directory.absolutePath,
+                    downloadedAt = now
+                )
+            )
+            model.runtimeFiles.ifEmpty { model.liteRtFiles }.forEach { fileName ->
+                val existing = modelFileDao.getByModelIdAndFile(model.id, fileName)
+                if (existing == null) {
+                    modelFileDao.insert(
+                        ModelFileEntity(
+                            modelId = model.id,
+                            fileName = fileName,
+                            status = FileDownloadStatus.NOT_DOWNLOADED.name,
+                            sizeBytes = 0L,
+                            localPath = null,
+                            error = null
+                        )
+                    )
+                }
+            }
+        }
+
+    override suspend fun updateFileStatus(
+        modelId: String,
+        fileName: String,
+        status: FileDownloadStatus,
+        sizeBytes: Long?,
+        localPath: String?,
+        error: String?
+    ) = withContext(dispatchers.io) {
+        modelFileDao.updateStatus(modelId, fileName, status.name, sizeBytes, localPath, error)
+    }
+
+    override suspend fun deleteModelFile(modelId: String, fileName: String) =
+        withContext(dispatchers.io) { modelFileDao.delete(modelId, fileName) }
+
+    // ---- Mapping ----
 
     private fun DownloadedModelEntity.toDomain() = DownloadedModel(
         modelId = modelId,
@@ -71,8 +143,16 @@ class ModelRepositoryImpl @Inject constructor(
         libraryName = libraryName,
         pipelineTag = pipelineTag,
         localPath = localPath,
-        files = files.lineSequence().filter { it.isNotBlank() }.toList(),
-        sizeBytes = sizeBytes,
         downloadedAt = downloadedAt
+    )
+
+    private fun ModelFileEntity.toDomain() = DownloadedModelFile(
+        modelId = modelId,
+        fileName = fileName,
+        status = runCatching { FileDownloadStatus.valueOf(status) }
+            .getOrDefault(FileDownloadStatus.NOT_DOWNLOADED),
+        sizeBytes = sizeBytes,
+        localPath = localPath,
+        error = error
     )
 }

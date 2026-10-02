@@ -177,11 +177,11 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    private fun resolveModelFile(model: DownloadedModel): File? {
+    private suspend fun resolveModelFile(model: DownloadedModel): File? {
         val directory = File(model.localPath)
-        val fileName = model.files.firstOrNull()?.substringAfterLast("/") ?: return null
-        val file = File(directory, fileName)
-        return if (file.exists()) file else null
+        val file = modelRepository.getDownloadedFileForModel(model.modelId) ?: return null
+        val resolved = File(directory, file.fileName.substringAfterLast("/"))
+        return if (resolved.exists()) resolved else null
     }
 
     // ---- Chat lifecycle ----

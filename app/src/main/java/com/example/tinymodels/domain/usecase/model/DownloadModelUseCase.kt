@@ -58,6 +58,57 @@ class DownloadModelUseCase @Inject constructor(
 
     private fun uniqueName(modelId: String) = "model_download_$modelId"
 
+    /** Unique work name for a single-file download (fileName sanitized for uniqueness). */
+    private fun fileUniqueName(modelId: String, fileName: String) =
+        "model_download_${modelId}_${fileName.replace(Regex("[^A-Za-z0-9._-]"), "_")}"
+
+    /** Size of a single model file via one HEAD request. */
+    suspend fun calculateFileSize(model: ModelDetails, fileName: String): Long =
+        withContext(Dispatchers.IO) {
+            api.contentLength(api.fileUrl(model.id, fileName))
+        }
+
+    /** Enqueue a single-file download (or observe the active one) and stream progress. */
+    fun executeFile(model: ModelDetails, fileName: String, fileSize: Long): Flow<DownloadState> {
+        val request = OneTimeWorkRequestBuilder<ModelDownloadWorker>()
+            .setConstraints(
+                Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+            )
+            .setInputData(
+                Data.Builder()
+                    .putString(ModelDownloadWorker.KEY_MODEL_ID, model.id)
+                    .putStringArray(ModelDownloadWorker.KEY_FILES, arrayOf(fileName))
+                    .putString(ModelDownloadWorker.KEY_AUTHOR, model.author)
+                    .putString(ModelDownloadWorker.KEY_LIBRARY, model.libraryName)
+                    .putString(ModelDownloadWorker.KEY_PIPELINE, model.pipelineTag)
+                    .putLong(ModelDownloadWorker.KEY_TOTAL_BYTES, fileSize)
+                    .build()
+            )
+            .addTag(ModelDownloadWorker.TAG)
+            .build()
+
+        workManager.enqueueUniqueWork(
+            fileUniqueName(model.id, fileName),
+            ExistingWorkPolicy.KEEP,
+            request
+        )
+        return observe(request.id)
+    }
+
+    /** Observe an already-running per-file download, if any. */
+    fun observeExistingFile(modelId: String, fileName: String): Flow<DownloadState>? {
+        val infos = workManager.getWorkInfosForUniqueWork(fileUniqueName(modelId, fileName)).get()
+        val active = infos.firstOrNull {
+            it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED
+        } ?: return null
+        return observe(active.id)
+    }
+
+    /** Cancel an in-flight per-file download. */
+    fun cancelFile(modelId: String, fileName: String) {
+        workManager.cancelUniqueWork(fileUniqueName(modelId, fileName))
+    }
+
     /** Compute total download size on demand (user-initiated, avoids extra calls on view). */
     suspend fun calculateSize(model: ModelDetails): Long = withContext(Dispatchers.IO) {
         val files = model.runtimeFiles.ifEmpty { model.liteRtFiles }

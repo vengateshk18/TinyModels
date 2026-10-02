@@ -55,6 +55,7 @@ fun DownloadedModelsScreen(
     viewModel: DownloadedModelsViewModel = hiltViewModel()
 ) {
     val models by viewModel.models.collectAsStateWithLifecycle()
+    val downloadedFiles by viewModel.downloadedFiles.collectAsStateWithLifecycle()
     val totalSize by viewModel.totalSizeBytes.collectAsStateWithLifecycle()
     var pendingDelete by remember { mutableStateOf<DownloadedModel?>(null) }
 
@@ -100,8 +101,11 @@ fun DownloadedModelsScreen(
                     )
                 }
                 items(models, key = { it.modelId }) { model ->
+                    val files = downloadedFiles.filter { it.modelId == model.modelId }
                     DownloadedModelCard(
                         model = model,
+                        fileCount = files.size,
+                        sizeBytes = files.sumOf { it.sizeBytes },
                         isActive = model.modelId == viewModel.activeModelId,
                         onDelete = { pendingDelete = model }
                     )
@@ -111,12 +115,13 @@ fun DownloadedModelsScreen(
     }
 
     pendingDelete?.let { model ->
+        val files = downloadedFiles.filter { it.modelId == model.modelId }
         AlertDialog(
             onDismissRequest = { pendingDelete = null },
             title = { Text("Delete model?") },
             text = {
                 Text(
-                    "Remove ${model.modelId} (${formatBytes(model.sizeBytes)}) from this device?" +
+                    "Remove ${model.modelId} (${formatBytes(files.sumOf { it.sizeBytes })}) from this device?" +
                         if (model.modelId == viewModel.activeModelId)
                             " It is currently loaded and will be unloaded from memory." else ""
                 )
@@ -137,6 +142,8 @@ fun DownloadedModelsScreen(
 @Composable
 private fun DownloadedModelCard(
     model: DownloadedModel,
+    fileCount: Int,
+    sizeBytes: Long,
     isActive: Boolean,
     onDelete: () -> Unit
 ) {
@@ -166,7 +173,11 @@ private fun DownloadedModelCard(
             }
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(formatBytes(model.sizeBytes), style = MaterialTheme.typography.bodySmall,
+                Text(formatBytes(sizeBytes), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.width(12.dp))
+                Text("$fileCount file${if (fileCount > 1) "s" else ""}",
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(formatDate(model.downloadedAt), style = MaterialTheme.typography.bodySmall,

@@ -19,6 +19,11 @@ interface DownloadedModelDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(model: DownloadedModelEntity)
 
+    /** Insert only if a row for the modelId doesn't already exist. */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertIfAbsent(entity: DownloadedModelEntity)
+
     @Query("DELETE FROM downloaded_models WHERE modelId = :modelId")
     suspend fun delete(modelId: String)
 }
+

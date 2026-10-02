@@ -32,6 +32,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.tinymodels.feature.chat.ChatRoomScreen
 import com.example.tinymodels.feature.chat.ChatTabScreen
+import com.example.tinymodels.feature.models.screens.DownloadedFileDetailScreen
 import com.example.tinymodels.feature.models.screens.DownloadedModelsScreen
 import com.example.tinymodels.feature.models.screens.ModelDetailsScreen
 import com.example.tinymodels.feature.models.screens.ModelListScreen
@@ -123,8 +124,36 @@ fun TinyModelsApp(navController: NavHostController = rememberNavController()) {
             composable(
                 route = Routes.MODEL_DETAILS,
                 arguments = listOf(navArgument("modelId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val modelId = backStackEntry.arguments?.getString("modelId") ?: return@composable
+                ModelDetailsScreen(
+                    onBack = { navController.popBackStack() },
+                    onDownloadedFileClick = { fileName ->
+                        navController.navigate(Routes.downloadedFileDetail(modelId, fileName))
+                    }
+                )
+            }
+
+            composable(
+                route = Routes.DOWNLOADED_FILE_DETAIL,
+                arguments = listOf(
+                    navArgument("modelId") { type = NavType.StringType },
+                    navArgument("fileName") { type = NavType.StringType }
+                )
             ) {
-                ModelDetailsScreen(onBack = { navController.popBackStack() })
+                DownloadedFileDetailScreen(
+                    onBack = { navController.popBackStack() },
+                    onStartChat = {
+                        // Navigate to chat tab - a new session will be created there
+                        navController.navigate(Routes.CHAT) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
             }
 
             composable(Routes.DOWNLOADED_MODELS) {

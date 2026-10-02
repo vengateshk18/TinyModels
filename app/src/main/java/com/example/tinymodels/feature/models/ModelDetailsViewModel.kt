@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tinymodels.core.common.AppResult
 import com.example.tinymodels.core.common.StorageUtils
+import com.example.tinymodels.domain.model.DownloadedModelFile
+import com.example.tinymodels.domain.model.FileDownloadStatus
 import com.example.tinymodels.domain.model.ModelDetails
 import com.example.tinymodels.domain.repository.ModelRepository
 import com.example.tinymodels.domain.usecase.model.DownloadModelUseCase
@@ -34,11 +36,23 @@ class ModelDetailsViewModel @Inject constructor(
         val model: ModelDetails? = null,
         val error: String? = null,
         val isDownloaded: Boolean = false,
-        val download: DownloadState = DownloadState()
+        val download: DownloadState = DownloadState(),
+        // Per-file state
+        val modelFiles: List<DownloadedModelFile> = emptyList(),
+        val fileSizes: Map<String, Long> = emptyMap(),
+        val selectedFile: String? = null,
+        val fileDownload: DownloadState = DownloadState()
     ) {
         /** Best-known total size: model repo size, else what the worker reports. */
         val totalSizeBytes: Long
             get() = model?.usedStorage?.takeIf { it > 0 } ?: download.totalBytes
+        
+        /** Get status of a specific file. */
+        fun getFileStatus(fileName: String): FileDownloadStatus =
+            modelFiles.firstOrNull { it.fileName == fileName }?.status ?: FileDownloadStatus.NOT_DOWNLOADED
+        
+        /** Get size of a specific file (0 if not yet calculated). */
+        fun getFileSize(fileName: String): Long = fileSizes[fileName] ?: 0L
     }
 
     private val _uiState = MutableStateFlow(UiState())
@@ -49,6 +63,7 @@ class ModelDetailsViewModel @Inject constructor(
     init {
         load()
         observeDownloaded()
+        observeModelFiles()
         resumeActiveDownload()
     }
 
@@ -56,7 +71,13 @@ class ModelDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             when (val result = modelRepository.getModelDetails(modelId)) {
-                is AppResult.Success -> _uiState.update { it.copy(isLoading = false, model = result.data) }
+                is AppResult.Success -> {
+                    _uiState.update { it.copy(isLoading = false, model = result.data) }
+                    // Pre-register model files for per-file tracking
+                    modelRepository.preRegisterModel(result.data)
+                    // Calculate per-file sizes in parallel
+                    calculateFileSizes(result.data)
+                }
                 is AppResult.Error -> _uiState.update {
                     it.copy(isLoading = false, error = result.error.message ?: "Failed to load details")
                 }
@@ -72,6 +93,47 @@ class ModelDetailsViewModel @Inject constructor(
         }
     }
 
+    private fun observeModelFiles() {
+        viewModelScope.launch {
+            modelRepository.observeModelFiles(modelId).collect { files ->
+                _uiState.update { it.copy(modelFiles = files) }
+                // Resume any in-flight download
+                resumeFileDownload(files)
+            }
+        }
+    }
+
+    private fun calculateFileSizes(model: ModelDetails) {
+        viewModelScope.launch {
+            val files = model.runtimeFiles.ifEmpty { model.liteRtFiles }
+            val sizes = mutableMapOf<String, Long>()
+            files.forEach { fileName ->
+                try {
+                    val size = downloadModel.calculateFileSize(model, fileName)
+                    sizes[fileName] = size
+                    _uiState.update { it.copy(fileSizes = sizes.toMap()) }
+                } catch (_: Exception) {
+                    // Size calculation failed, keep as 0
+                }
+            }
+        }
+    }
+
+    private fun resumeFileDownload(files: List<DownloadedModelFile>) {
+        // Find any DOWNLOADING file and bind to its WorkManager job
+        val downloading = files.firstOrNull { it.status == FileDownloadStatus.DOWNLOADING }
+        if (downloading != null) {
+            val existing = downloadModel.observeExistingFile(modelId, downloading.fileName)
+            if (existing != null) {
+                downloadJob?.cancel()
+                downloadJob = viewModelScope.launch {
+                    existing.collect { state -> _uiState.update { it.copy(fileDownload = state) } }
+                }
+                _uiState.update { it.copy(selectedFile = downloading.fileName) }
+            }
+        }
+    }
+
     /** If a download for this model is already running (e.g. screen re-entry), bind to it. */
     private fun resumeActiveDownload() {
         val existing = downloadModel.observeExisting(modelId) ?: return
@@ -79,6 +141,89 @@ class ModelDetailsViewModel @Inject constructor(
         downloadJob = viewModelScope.launch {
             existing.collect { state -> _uiState.update { it.copy(download = state) } }
         }
+    }
+
+    fun onFileSelected(fileName: String) {
+        val status = _uiState.value.getFileStatus(fileName)
+        when (status) {
+            FileDownloadStatus.DOWNLOADED -> {
+                // User tapped a downloaded file - handled by UI navigation
+            }
+            FileDownloadStatus.DOWNLOADING -> {
+                // Bind to existing download
+                val existing = downloadModel.observeExistingFile(modelId, fileName)
+                if (existing != null) {
+                    downloadJob?.cancel()
+                    downloadJob = viewModelScope.launch {
+                        existing.collect { state -> _uiState.update { it.copy(fileDownload = state) } }
+                    }
+                }
+                _uiState.update { it.copy(selectedFile = fileName) }
+            }
+            FileDownloadStatus.NOT_DOWNLOADED, FileDownloadStatus.FAILED -> {
+                // Select this file for download
+                _uiState.update { it.copy(selectedFile = fileName, fileDownload = DownloadState()) }
+            }
+        }
+    }
+
+    fun onDownloadFileClick() {
+        val model = _uiState.value.model ?: return
+        val fileName = _uiState.value.selectedFile ?: return
+        val size = _uiState.value.getFileSize(fileName)
+
+        // Storage pre-check
+        if (size > 0 && !storageUtils.hasSpaceFor(size)) {
+            _uiState.update {
+                it.copy(
+                    fileDownload = DownloadState(
+                        status = DownloadStatus.FAILED,
+                        error = "Not enough free storage for this file."
+                    )
+                )
+            }
+            return
+        }
+
+        // Update DB status to DOWNLOADING
+        viewModelScope.launch {
+            modelRepository.updateFileStatus(modelId, fileName, FileDownloadStatus.DOWNLOADING)
+        }
+
+        // Start download
+        _uiState.update { it.copy(fileDownload = DownloadState(status = DownloadStatus.CHECKING_SIZE, totalBytes = size)) }
+        
+        downloadJob?.cancel()
+        downloadJob = viewModelScope.launch {
+            downloadModel.executeFile(model, fileName, size).collect { state ->
+                _uiState.update { it.copy(fileDownload = state) }
+                // On completion, update DB status
+                if (state.status == DownloadStatus.COMPLETED) {
+                    modelRepository.updateFileStatus(
+                        modelId, fileName, FileDownloadStatus.DOWNLOADED,
+                        sizeBytes = state.totalBytes
+                    )
+                } else if (state.status == DownloadStatus.FAILED) {
+                    modelRepository.updateFileStatus(
+                        modelId, fileName, FileDownloadStatus.FAILED,
+                        error = state.error
+                    )
+                }
+            }
+        }
+    }
+
+    fun onCancelFileDownload() {
+        val fileName = _uiState.value.selectedFile ?: return
+        downloadModel.cancelFile(modelId, fileName)
+        viewModelScope.launch {
+            modelRepository.updateFileStatus(modelId, fileName, FileDownloadStatus.NOT_DOWNLOADED)
+        }
+        _uiState.update { it.copy(fileDownload = DownloadState(status = DownloadStatus.IDLE), selectedFile = null) }
+    }
+
+    fun onDownloadedFileClick(fileName: String) {
+        // Navigation handled by screen
     }
 
     fun onDownloadClick() {

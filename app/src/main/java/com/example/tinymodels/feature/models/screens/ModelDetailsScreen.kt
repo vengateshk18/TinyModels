@@ -22,8 +22,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.RadioButtonChecked
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -56,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.tinymodels.core.ui.Formatters
+import com.example.tinymodels.domain.model.FileDownloadStatus
 import com.example.tinymodels.domain.model.ModelDetails
 import com.example.tinymodels.domain.usecase.model.DownloadState
 import com.example.tinymodels.domain.usecase.model.DownloadStatus
@@ -65,6 +69,7 @@ import com.example.tinymodels.feature.models.ModelDetailsViewModel
 @Composable
 fun ModelDetailsScreen(
     onBack: () -> Unit,
+    onDownloadedFileClick: (String) -> Unit = {},
     viewModel: ModelDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -85,15 +90,17 @@ fun ModelDetailsScreen(
             )
         },
         bottomBar = {
-            // Sticky download action bar, visible only when we have a model to act on.
+            // Per-file download bar - visible only when a NOT_DOWNLOADED file is selected
             uiState.model?.let { model ->
-                if (model.runtimeFiles.ifEmpty { model.liteRtFiles }.isNotEmpty()) {
-                    DownloadBar(
-                        model = model,
-                        isDownloaded = uiState.isDownloaded,
-                        download = uiState.download,
-                        totalSizeBytes = uiState.totalSizeBytes,
-                        onAction = viewModel::onDownloadClick
+                val selectedFile = uiState.selectedFile
+                val fileStatus = selectedFile?.let { uiState.getFileStatus(it) }
+                if (selectedFile != null && fileStatus == FileDownloadStatus.NOT_DOWNLOADED) {
+                    FileDownloadBar(
+                        fileName = selectedFile,
+                        fileSize = uiState.getFileSize(selectedFile),
+                        download = uiState.fileDownload,
+                        onDownload = viewModel::onDownloadFileClick,
+                        onCancel = viewModel::onCancelFileDownload
                     )
                 }
             }
@@ -108,25 +115,44 @@ fun ModelDetailsScreen(
                 uiState.error != null ->
                     ErrorState(message = uiState.error!!, onRetry = viewModel::load)
                 uiState.model != null ->
-                    ModelDetailsContent(model = uiState.model!!)
+                    ModelDetailsContent(
+                        model = uiState.model!!,
+                        uiState = uiState,
+                        onFileSelected = viewModel::onFileSelected,
+                        onDownloadedFileClick = onDownloadedFileClick
+                    )
             }
         }
     }
 }
 
 @Composable
-private fun ModelDetailsContent(model: ModelDetails) {
+private fun ModelDetailsContent(
+    model: ModelDetails,
+    uiState: ModelDetailsViewModel.UiState,
+    onFileSelected: (String) -> Unit,
+    onDownloadedFileClick: (String) -> Unit
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         item { HeaderCard(model) }
-        item { StatsCard(model) }
+        item { StatsCard(model, uiState.modelFiles) }
         if (model.widgetPrompts.isNotEmpty()) item { TryItCard(model.widgetPrompts) }
         item { AboutCard(model) }
         if (model.tags.isNotEmpty()) item { TagsCard(model.tags) }
-        if (model.runtimeFiles.ifEmpty { model.liteRtFiles }.isNotEmpty()) item { FilesCard(model.runtimeFiles.ifEmpty { model.liteRtFiles }) }
+        if (model.runtimeFiles.ifEmpty { model.liteRtFiles }.isNotEmpty()) {
+            item {
+                InteractiveFilesCard(
+                    files = model.runtimeFiles.ifEmpty { model.liteRtFiles },
+                    uiState = uiState,
+                    onFileSelected = onFileSelected,
+                    onDownloadedFileClick = onDownloadedFileClick
+                )
+            }
+        }
         // Bottom spacer so content clears the sticky bar.
         item { Spacer(modifier = Modifier.height(4.dp)) }
     }
@@ -182,15 +208,16 @@ private fun HeaderCard(model: ModelDetails) {
 }
 
 @Composable
-private fun StatsCard(model: ModelDetails) {
+private fun StatsCard(model: ModelDetails, modelFiles: List<com.example.tinymodels.domain.model.DownloadedModelFile>) {
+    val downloadedCount = modelFiles.count { it.status == FileDownloadStatus.DOWNLOADED }
     Card(modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Row(modifier = Modifier.fillMaxWidth().padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween) {
             StatItem(Icons.Filled.TrendingUp, "Downloads", Formatters.formatCount(model.downloads ?: 0))
             StatItem(Icons.Filled.Favorite, "Likes", Formatters.formatCount((model.likes ?: 0).toLong()))
-            StatItem(Icons.Filled.SdStorage, "Size", Formatters.formatBytes(model.usedStorage ?: 0))
-            StatItem(Icons.Filled.Download, "Files", "${model.runtimeFiles.ifEmpty { model.liteRtFiles }.size}")
+            StatItem(Icons.Filled.SdStorage, "Repo size", Formatters.formatBytes(model.usedStorage ?: 0))
+            StatItem(Icons.Filled.CheckCircle, "Downloaded", "$downloadedCount/${model.runtimeFiles.ifEmpty { model.liteRtFiles }.size}")
         }
     }
 }
@@ -267,25 +294,156 @@ private fun TagsCard(tags: List<String>) {
 }
 
 @Composable
-private fun FilesCard(files: List<String>) {
+private fun InteractiveFilesCard(
+    files: List<String>,
+    uiState: ModelDetailsViewModel.UiState,
+    onFileSelected: (String) -> Unit,
+    onDownloadedFileClick: (String) -> Unit
+) {
     Card(modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text("Files", style = MaterialTheme.typography.titleMedium)
-            Text("Downloaded together when you tap Download.",
+            Text("Tap a file to download it individually.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.height(10.dp))
             files.forEachIndexed { index, fileName ->
                 if (index > 0) HorizontalDivider()
-                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.CheckCircle, contentDescription = null,
-                        modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(fileName.substringAfterLast("/"), style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.weight(1f), overflow = TextOverflow.Ellipsis, maxLines = 1)
+                FileRow(
+                    fileName = fileName,
+                    status = uiState.getFileStatus(fileName),
+                    fileSize = uiState.getFileSize(fileName),
+                    isSelected = uiState.selectedFile == fileName,
+                    download = if (uiState.selectedFile == fileName) uiState.fileDownload else null,
+                    onSelect = { onFileSelected(fileName) },
+                    onDownloadedClick = { onDownloadedFileClick(fileName) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FileRow(
+    fileName: String,
+    status: FileDownloadStatus,
+    fileSize: Long,
+    isSelected: Boolean,
+    download: DownloadState?,
+    onSelect: () -> Unit,
+    onDownloadedClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = if (isSelected && status == FileDownloadStatus.NOT_DOWNLOADED) 
+            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
+        else MaterialTheme.colorScheme.surfaceContainer,
+        onClick = {
+            when (status) {
+                FileDownloadStatus.DOWNLOADED -> onDownloadedClick()
+                FileDownloadStatus.NOT_DOWNLOADED, FileDownloadStatus.FAILED -> onSelect()
+                FileDownloadStatus.DOWNLOADING -> onSelect()
+            }
+        }
+    ) {
+        Column(modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Status icon
+                when (status) {
+                    FileDownloadStatus.NOT_DOWNLOADED -> {
+                        Icon(
+                            if (isSelected) Icons.Filled.RadioButtonChecked else Icons.Filled.RadioButtonUnchecked,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    FileDownloadStatus.DOWNLOADING -> {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    }
+                    FileDownloadStatus.DOWNLOADED -> {
+                        Icon(
+                            Icons.Filled.CheckCircle,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    FileDownloadStatus.FAILED -> {
+                        Icon(
+                            Icons.Filled.ErrorOutline,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
+                Spacer(modifier = Modifier.width(12.dp))
+                
+                // File name and size
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        fileName.substringAfterLast("/"),
+                        style = MaterialTheme.typography.bodyMedium,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1
+                    )
+                    Text(
+                        if (fileSize > 0) Formatters.formatBytes(fileSize) else "—",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                
+                // Status badge
+                when (status) {
+                    FileDownloadStatus.DOWNLOADED -> {
+                        Surface(
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            shape = MaterialTheme.shapes.small
+                        ) {
+                            Text(
+                                "Downloaded",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+                    FileDownloadStatus.DOWNLOADING -> {
+                        download?.let {
+                            Text(
+                                "${(it.progress * 100).toInt()}%",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                    FileDownloadStatus.FAILED -> {
+                        Surface(
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            shape = MaterialTheme.shapes.small
+                        ) {
+                            Text(
+                                "Failed",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+                    else -> {}
+                }
+            }
+            
+            // Show inline progress for downloading
+            if (status == FileDownloadStatus.DOWNLOADING && download != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                LinearProgressIndicator(
+                    progress = { download.progress.coerceIn(0f, 1f) },
+                    modifier = Modifier.fillMaxWidth().height(4.dp)
+                )
             }
         }
     }
@@ -306,17 +464,17 @@ private fun Chip(label: String, leading: (@Composable () -> Unit)? = null) {
     }
 }
 
-// ---------- Sticky download action bar ----------
+// ---------- Sticky per-file download action bar ----------
 
 @Composable
-private fun DownloadBar(
-    model: ModelDetails,
-    isDownloaded: Boolean,
+private fun FileDownloadBar(
+    fileName: String,
+    fileSize: Long,
     download: DownloadState,
-    totalSizeBytes: Long,
-    onAction: () -> Unit
+    onDownload: () -> Unit,
+    onCancel: () -> Unit
 ) {
-        Surface(
+    Surface(
         tonalElevation = 3.dp,
         color = MaterialTheme.colorScheme.surfaceContainer,
         shadowElevation = 8.dp,
@@ -325,12 +483,123 @@ private fun DownloadBar(
         Column(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp)) {
             when (download.status) {
                 DownloadStatus.DOWNLOADING, DownloadStatus.CHECKING_SIZE -> {
-                    DownloadInProgress(download, totalSizeBytes, onAction)
+                    FileDownloadInProgress(fileName, fileSize, download, onCancel)
+                }
+                DownloadStatus.FAILED -> {
+                    FileDownloadIdle(fileName, fileSize, download, onDownload)
                 }
                 else -> {
-                    DownloadIdle(model, isDownloaded, download, totalSizeBytes, onAction)
+                    FileDownloadIdle(fileName, fileSize, download, onDownload)
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun FileDownloadIdle(
+    fileName: String,
+    fileSize: Long,
+    download: DownloadState,
+    onDownload: () -> Unit
+) {
+    Column {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    fileName.substringAfterLast("/"),
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (fileSize > 0) {
+                    Text(
+                        Formatters.formatBytes(fileSize),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(onClick = onDownload, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Filled.CloudDownload, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Download file")
+        }
+        
+        // Error display
+        download.error?.let {
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Filled.ErrorOutline, contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(it, color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun FileDownloadInProgress(
+    fileName: String,
+    fileSize: Long,
+    download: DownloadState,
+    onCancel: () -> Unit
+) {
+    val total = if (download.totalBytes > 0) download.totalBytes else fileSize
+    val isPreparing = download.status == DownloadStatus.CHECKING_SIZE
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                fileName.substringAfterLast("/"),
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                if (isPreparing) "Preparing download\u2026" else "Downloading\u2026",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            if (isPreparing) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth().height(6.dp))
+            } else {
+                LinearProgressIndicator(
+                    progress = { download.progress.coerceIn(0f, 1f) },
+                    modifier = Modifier.fillMaxWidth().height(6.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+            Row(modifier = Modifier.fillMaxWidth()) {
+                val pct = (download.progress * 100).toInt()
+                Text(
+                    if (total > 0)
+                        "${Formatters.formatBytes(download.downloadedBytes)} / ${Formatters.formatBytes(total)} \u00b7 $pct%"
+                    else "$pct%",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
+                )
+                if (download.bytesPerSecond > 0) {
+                    Text(
+                        "${Formatters.formatBytes(download.bytesPerSecond)}/s",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        OutlinedButton(onClick = onCancel) {
+            Icon(Icons.Filled.Cancel, contentDescription = null, modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.width(4.dp))
+            Text("Cancel")
         }
     }
 }
