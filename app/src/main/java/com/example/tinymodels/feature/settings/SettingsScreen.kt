@@ -82,6 +82,8 @@ fun SettingsScreen(
                 .padding(horizontal = 20.dp, vertical = 12.dp)
         ) {
             AppearanceSection(settings, viewModel)
+            SectionDivider()
+            InferenceSection(settings, viewModel)
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
@@ -135,6 +137,25 @@ private fun AppearanceSection(settings: AppSettings, viewModel: SettingsViewMode
         valueRange = 0.85f..1.30f,
         onValueChange = { viewModel.setFontScale(it) }
     )
+}
+
+@Composable
+private fun InferenceSection(settings: AppSettings, viewModel: SettingsViewModel) {
+    SectionHeader("Inference")
+    Text("Default backend", style = MaterialTheme.typography.bodyMedium)
+    Spacer(modifier = Modifier.height(8.dp))
+    val backends = listOf(BackendPreference.AUTO, BackendPreference.GPU, BackendPreference.CPU)
+    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+        backends.forEachIndexed { index, backend ->
+            SegmentedButton(
+                selected = settings.defaultBackend == backend,
+                onClick = { viewModel.setDefaultBackend(backend) },
+                shape = SegmentedButtonDefaults.itemShape(index = index, count = backends.size)
+            ) {
+                Text(backend.name.lowercase().replaceFirstChar { it.uppercase() })
+            }
+        }
+    }
 }
 
 // ---- Reusable rows ----
