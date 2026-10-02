@@ -25,5 +25,6 @@ class SettingsViewModel @Inject constructor(
     fun setThemeMode(mode: ThemeMode) = viewModelScope.launch { settingsRepository.setThemeMode(mode) }
     fun setDynamicColor(enabled: Boolean) = viewModelScope.launch { settingsRepository.setDynamicColor(enabled) }
     fun setFontChoice(choice: FontChoice) = viewModelScope.launch { settingsRepository.setFontChoice(choice) }
+    fun setFontScale(scale: Float) = viewModelScope.launch { settingsRepository.setFontScale(scale) }
     fun setDefaultBackend(backend: BackendPreference) = viewModelScope.launch { settingsRepository.setDefaultBackend(backend) }
 }

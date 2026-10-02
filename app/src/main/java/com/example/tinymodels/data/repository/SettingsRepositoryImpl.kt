@@ -3,6 +3,7 @@ package com.example.tinymodels.data.repository
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.tinymodels.domain.model.AppSettings
@@ -27,6 +28,7 @@ class SettingsRepositoryImpl @Inject constructor(
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
         val FONT_CHOICE = stringPreferencesKey("font_choice")
+        val FONT_SCALE = floatPreferencesKey("font_scale")
         val DEFAULT_BACKEND = stringPreferencesKey("default_backend")
     }
 
@@ -37,6 +39,7 @@ class SettingsRepositoryImpl @Inject constructor(
             useDynamicColor = prefs[Keys.DYNAMIC_COLOR] ?: true,
             fontChoice = prefs[Keys.FONT_CHOICE]?.let { runCatching { FontChoice.valueOf(it) }.getOrNull() }
                 ?: FontChoice.SYSTEM,
+            fontScale = prefs[Keys.FONT_SCALE] ?: 1.0f,
             defaultBackend = prefs[Keys.DEFAULT_BACKEND]?.let { runCatching { BackendPreference.valueOf(it) }.getOrNull() }
                 ?: BackendPreference.AUTO
         )
@@ -52,6 +55,10 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun setFontChoice(choice: FontChoice) {
         context.dataStore.edit { it[Keys.FONT_CHOICE] = choice.name }
+    }
+
+    override suspend fun setFontScale(scale: Float) {
+        context.dataStore.edit { it[Keys.FONT_SCALE] = scale }
     }
 
     override suspend fun setDefaultBackend(backend: BackendPreference) {

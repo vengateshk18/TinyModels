@@ -38,7 +38,8 @@ class MainActivity : ComponentActivity() {
             TinyModelsTheme(
                 themeMode = settings.themeMode,
                 dynamicColor = settings.useDynamicColor,
-                fontChoice = settings.fontChoice
+                fontChoice = settings.fontChoice,
+                fontScale = settings.fontScale
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),

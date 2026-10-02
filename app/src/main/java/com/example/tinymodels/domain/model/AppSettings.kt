@@ -26,5 +26,6 @@ data class AppSettings(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val useDynamicColor: Boolean = true,
     val fontChoice: FontChoice = FontChoice.SYSTEM,
+    val fontScale: Float = 1.0f,
     val defaultBackend: BackendPreference = BackendPreference.AUTO
 )

@@ -98,6 +98,7 @@ fun TinyModelsTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
     dynamicColor: Boolean = true,
     fontChoice: FontChoice = FontChoice.SYSTEM,
+    fontScale: Float = 1.0f,
     content: @Composable () -> Unit
 ) {
     val darkTheme = when (themeMode) {
@@ -117,7 +118,7 @@ fun TinyModelsTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = buildTypography(fontChoice),
+        typography = buildTypography(fontChoice, fontScale),
         content = content
     )
 }

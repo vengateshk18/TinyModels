@@ -12,5 +12,6 @@ interface SettingsRepository {
     suspend fun setThemeMode(mode: ThemeMode)
     suspend fun setDynamicColor(enabled: Boolean)
     suspend fun setFontChoice(choice: FontChoice)
+    suspend fun setFontScale(scale: Float)
     suspend fun setDefaultBackend(backend: BackendPreference)
 }
