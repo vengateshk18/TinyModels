@@ -34,6 +34,7 @@ object Migrations {
 
             // 2. Split each downloaded_models row's `files` column into
             //    model_files rows with status = DOWNLOADED.
+            // Note: We use char(10) for newline as direct escape doesn't work in multiline strings
             db.execSQL(
                 """
                 INSERT INTO model_files (modelId, fileName, status, sizeBytes, localPath, error)
@@ -43,14 +44,12 @@ object Migrations {
                         SELECT modelId,
                                json_each.value AS line
                         FROM downloaded_models,
-                             json_each('["' || REPLACE(files, ${'\n'}, '","') || '"]')
+                             json_each('["' || REPLACE(files, char(10), '","') || '"]')
                     )
                 ) f ON f.modelId = dm.modelId
                 WHERE f.name IS NOT NULL AND f.name != ''
                 """.trimIndent()
             )
-            // Fallback split using a simpler approach in case json_each fails
-            // (handles the common newline-separated case directly).
 
             // 3. Recreate downloaded_models without files + sizeBytes.
             db.execSQL(
