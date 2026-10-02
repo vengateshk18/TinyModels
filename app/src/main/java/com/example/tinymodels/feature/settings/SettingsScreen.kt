@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -22,6 +23,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -59,6 +62,16 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
+    val clearResult by viewModel.clearResult.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var showClearDialog by remember { mutableStateOf(false) }
+
+    androidx.compose.runtime.LaunchedEffect(clearResult) {
+        clearResult?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.consumeClearResult()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -73,7 +86,8 @@ fun SettingsScreen(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer
                 )
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -86,9 +100,31 @@ fun SettingsScreen(
             SectionDivider()
             InferenceSection(settings, viewModel)
             SectionDivider()
-            AboutSection(onDeviceInfo = onDeviceInfo)
+            AboutSection(
+                onDeviceInfo = onDeviceInfo,
+                onClearHistory = { showClearDialog = true }
+            )
             Spacer(modifier = Modifier.height(24.dp))
         }
+    }
+
+    if (showClearDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearDialog = false },
+            title = { Text("Clear chat history") },
+            text = { Text("Delete all chat conversations? This cannot be undone.") },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    viewModel.clearChatHistory()
+                    showClearDialog = false
+                }) { Text("Delete") }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { showClearDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
@@ -162,12 +198,17 @@ private fun InferenceSection(settings: AppSettings, viewModel: SettingsViewModel
 }
 
 @Composable
-private fun AboutSection(onDeviceInfo: () -> Unit) {
+private fun AboutSection(onDeviceInfo: () -> Unit, onClearHistory: () -> Unit) {
     SectionHeader("About")
     NavigationRow(
         label = "Device information",
         subtitle = "See your device's AI capability",
         onClick = onDeviceInfo
+    )
+    NavigationRow(
+        label = "Clear chat history",
+        subtitle = "Delete all conversations",
+        onClick = onClearHistory
     )
 }
 

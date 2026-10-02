@@ -95,6 +95,12 @@ class ChatRepositoryImpl @Inject constructor(
             chatDao.deleteChat(chatId)
         }
 
+    override suspend fun clearAllChats() =
+        withContext(dispatchers.io) {
+            chatDao.deleteAllMessages()
+            chatDao.deleteAllChats()
+        }
+
     override suspend fun messageCount(chatId: String): Int =
         withContext(dispatchers.io) { chatDao.messageCount(chatId) }
 

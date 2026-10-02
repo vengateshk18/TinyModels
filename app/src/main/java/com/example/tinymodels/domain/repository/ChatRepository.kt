@@ -33,5 +33,8 @@ interface ChatRepository {
 
     suspend fun deleteChat(chatId: String)
 
+    /** Delete ALL chats and their messages. Used by Settings → Clear chat history. */
+    suspend fun clearAllChats()
+
     suspend fun messageCount(chatId: String): Int
 }

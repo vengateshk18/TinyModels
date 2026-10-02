@@ -30,6 +30,12 @@ interface ChatDao {
     @Query("DELETE FROM chats WHERE chatId = :chatId")
     suspend fun deleteChat(chatId: String)
 
+    @Query("DELETE FROM messages")
+    suspend fun deleteAllMessages()
+
+    @Query("DELETE FROM chats")
+    suspend fun deleteAllChats()
+
     /**
      * Chats for the history list, each with a preview of its latest message.
      * Ordered by most recently active.
