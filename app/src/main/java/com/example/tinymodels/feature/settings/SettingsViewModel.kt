@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tinymodels.domain.model.AppSettings
 import com.example.tinymodels.domain.model.BackendPreference
+import com.example.tinymodels.domain.model.FontChoice
 import com.example.tinymodels.domain.model.SamplerSettings
 import com.example.tinymodels.domain.model.ThemeMode
 import com.example.tinymodels.domain.repository.SettingsRepository
@@ -24,6 +25,7 @@ class SettingsViewModel @Inject constructor(
 
     fun setThemeMode(mode: ThemeMode) = viewModelScope.launch { settingsRepository.setThemeMode(mode) }
     fun setDynamicColor(enabled: Boolean) = viewModelScope.launch { settingsRepository.setDynamicColor(enabled) }
+    fun setFontChoice(choice: FontChoice) = viewModelScope.launch { settingsRepository.setFontChoice(choice) }
     fun setBackend(backend: BackendPreference) = viewModelScope.launch { settingsRepository.setBackend(backend) }
     fun setTemperature(value: Double) = viewModelScope.launch {
         settingsRepository.setSampler(settings.value.sampler.copy(temperature = value))

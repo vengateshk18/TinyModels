@@ -1,52 +1,55 @@
 package com.example.tinymodels.core.ui.theme
 
 import androidx.compose.material3.Typography
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
-
-import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.text.googlefonts.Font
+import androidx.compose.ui.text.googlefonts.GoogleFont
 import com.example.tinymodels.R
+import com.example.tinymodels.domain.model.FontChoice
 
-val provider = GoogleFont.Provider(
+private val provider = GoogleFont.Provider(
     providerAuthority = "com.google.android.gms.fonts",
     providerPackage = "com.google.android.gms",
     certificates = R.array.com_google_android_gms_fonts_certs
 )
 
-val bodyFontFamily = FontFamily(
-    Font(
-        googleFont = GoogleFont("Abril Fatface"),
-        fontProvider = provider,
+/** Build a [FontFamily] for the given [FontChoice]. SYSTEM returns [FontFamily.Default]. */
+fun fontFamilyFor(choice: FontChoice): FontFamily {
+    val name = choice.googleFontName ?: return FontFamily.Default
+    return FontFamily(
+        Font(
+            googleFont = GoogleFont(name),
+            fontProvider = provider,
+        )
     )
-)
+}
 
-val displayFontFamily = FontFamily(
-    Font(
-        googleFont = GoogleFont("Abel"),
-        fontProvider = provider,
+/**
+ * Build a [Typography] using the font family for [choice]. Display styles get the
+ * chosen font; body/label styles also get it (most Material Theme Builder exports
+ * use a single family for everything).
+ */
+fun buildTypography(choice: FontChoice): Typography {
+    val family = fontFamilyFor(choice)
+    val baseline = Typography()
+    return Typography(
+        displayLarge = baseline.displayLarge.copy(fontFamily = family),
+        displayMedium = baseline.displayMedium.copy(fontFamily = family),
+        displaySmall = baseline.displaySmall.copy(fontFamily = family),
+        headlineLarge = baseline.headlineLarge.copy(fontFamily = family),
+        headlineMedium = baseline.headlineMedium.copy(fontFamily = family),
+        headlineSmall = baseline.headlineSmall.copy(fontFamily = family),
+        titleLarge = baseline.titleLarge.copy(fontFamily = family),
+        titleMedium = baseline.titleMedium.copy(fontFamily = family),
+        titleSmall = baseline.titleSmall.copy(fontFamily = family),
+        bodyLarge = baseline.bodyLarge.copy(fontFamily = family),
+        bodyMedium = baseline.bodyMedium.copy(fontFamily = family),
+        bodySmall = baseline.bodySmall.copy(fontFamily = family),
+        labelLarge = baseline.labelLarge.copy(fontFamily = family),
+        labelMedium = baseline.labelMedium.copy(fontFamily = family),
+        labelSmall = baseline.labelSmall.copy(fontFamily = family),
     )
-)
+}
 
-// Default Material 3 typography values
-val baseline = Typography()
-
-val AppTypography = Typography(
-    displayLarge = baseline.displayLarge.copy(fontFamily = displayFontFamily),
-    displayMedium = baseline.displayMedium.copy(fontFamily = displayFontFamily),
-    displaySmall = baseline.displaySmall.copy(fontFamily = displayFontFamily),
-    headlineLarge = baseline.headlineLarge.copy(fontFamily = displayFontFamily),
-    headlineMedium = baseline.headlineMedium.copy(fontFamily = displayFontFamily),
-    headlineSmall = baseline.headlineSmall.copy(fontFamily = displayFontFamily),
-    titleLarge = baseline.titleLarge.copy(fontFamily = displayFontFamily),
-    titleMedium = baseline.titleMedium.copy(fontFamily = displayFontFamily),
-    titleSmall = baseline.titleSmall.copy(fontFamily = displayFontFamily),
-    bodyLarge = baseline.bodyLarge.copy(fontFamily = bodyFontFamily),
-    bodyMedium = baseline.bodyMedium.copy(fontFamily = bodyFontFamily),
-    bodySmall = baseline.bodySmall.copy(fontFamily = bodyFontFamily),
-    labelLarge = baseline.labelLarge.copy(fontFamily = bodyFontFamily),
-    labelMedium = baseline.labelMedium.copy(fontFamily = bodyFontFamily),
-    labelSmall = baseline.labelSmall.copy(fontFamily = bodyFontFamily),
-)
+/** Default typography (System font) — used as a fallback before settings load. */
+val AppTypography = buildTypography(FontChoice.SYSTEM)

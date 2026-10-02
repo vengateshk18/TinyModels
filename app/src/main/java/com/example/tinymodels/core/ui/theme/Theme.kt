@@ -9,6 +9,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import com.example.tinymodels.domain.model.FontChoice
 import com.example.tinymodels.domain.model.ThemeMode
 
 private val lightScheme = lightColorScheme(
@@ -96,6 +97,7 @@ private val darkScheme = darkColorScheme(
 fun TinyModelsTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
     dynamicColor: Boolean = true,
+    fontChoice: FontChoice = FontChoice.SYSTEM,
     content: @Composable () -> Unit
 ) {
     val darkTheme = when (themeMode) {
@@ -115,7 +117,7 @@ fun TinyModelsTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = AppTypography,
+        typography = buildTypography(fontChoice),
         content = content
     )
 }

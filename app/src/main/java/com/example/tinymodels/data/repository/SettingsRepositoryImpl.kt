@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.tinymodels.domain.model.AppSettings
 import com.example.tinymodels.domain.model.BackendPreference
+import com.example.tinymodels.domain.model.FontChoice
 import com.example.tinymodels.domain.model.SamplerSettings
 import com.example.tinymodels.domain.model.ThemeMode
 import com.example.tinymodels.domain.repository.SettingsRepository
@@ -28,6 +29,7 @@ class SettingsRepositoryImpl @Inject constructor(
     private object Keys {
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
+        val FONT_CHOICE = stringPreferencesKey("font_choice")
         val BACKEND = stringPreferencesKey("backend")
         val TEMPERATURE = doublePreferencesKey("temperature")
         val TOP_K = intPreferencesKey("top_k")
@@ -42,6 +44,8 @@ class SettingsRepositoryImpl @Inject constructor(
             themeMode = prefs[Keys.THEME_MODE]?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() }
                 ?: ThemeMode.SYSTEM,
             useDynamicColor = prefs[Keys.DYNAMIC_COLOR] ?: true,
+            fontChoice = prefs[Keys.FONT_CHOICE]?.let { runCatching { FontChoice.valueOf(it) }.getOrNull() }
+                ?: FontChoice.SYSTEM,
             backend = prefs[Keys.BACKEND]?.let { runCatching { BackendPreference.valueOf(it) }.getOrNull() }
                 ?: BackendPreference.AUTO,
             sampler = SamplerSettings(
@@ -61,6 +65,10 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun setDynamicColor(enabled: Boolean) {
         context.dataStore.edit { it[Keys.DYNAMIC_COLOR] = enabled }
+    }
+
+    override suspend fun setFontChoice(choice: FontChoice) {
+        context.dataStore.edit { it[Keys.FONT_CHOICE] = choice.name }
     }
 
     override suspend fun setBackend(backend: BackendPreference) {
