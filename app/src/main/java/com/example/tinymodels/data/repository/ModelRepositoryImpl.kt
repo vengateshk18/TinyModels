@@ -29,11 +29,16 @@ class ModelRepositoryImpl @Inject constructor(
     // ---- Remote catalog ----
 
     override suspend fun listModels(): AppResult<List<ModelSummary>> =
+        listModels(null, null)
+
+    override suspend fun listModels(search: String?, pipelineTag: String?): AppResult<List<ModelSummary>> =
         withContext(dispatchers.io) {
             AppResult.runCatching(
                 errorMapper = { AppError.Network(it.message) }
             ) {
-                ModelDtoParser.parseModelList(api.listModels())
+                val models = ModelDtoParser.parseModelList(api.listModels(search, pipelineTag, null))
+                // Client-side filter: drop models whose siblings are known but contain no runtime files.
+                models.filter { it.siblings.isEmpty() || it.hasRuntimeFiles }
             }
         }
 

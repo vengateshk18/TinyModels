@@ -10,6 +10,7 @@ interface ModelRepository {
 
     // ---- Remote catalog ----
     suspend fun listModels(): AppResult<List<ModelSummary>>
+    suspend fun listModels(search: String?, pipelineTag: String?): AppResult<List<ModelSummary>>
     suspend fun getModelDetails(modelId: String): AppResult<ModelDetails>
 
     // ---- Local downloads ----
