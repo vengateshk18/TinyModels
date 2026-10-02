@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -83,53 +84,55 @@ fun ModelsTabScreen(
                 )
             }
 
-            when (selectedTab) {
-                0 -> {
-                    when {
-                        uiState.isLoading ->
+            Box(modifier = Modifier.fillMaxSize().navigationBarsPadding()) {
+                when (selectedTab) {
+                    0 -> {
+                        when {
+                            uiState.isLoading ->
+                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    CircularProgressIndicator()
+                                }
+                            uiState.error != null ->
+                                Column(
+                                    modifier = Modifier.fillMaxSize().padding(24.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        uiState.error!!,
+                                        color = MaterialTheme.colorScheme.error,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    TextButton(onClick = { listViewModel.refresh() }) { Text("Retry") }
+                                }
+                            else ->
+                                LazyColumn(
+                                    contentPadding = PaddingValues(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    items(uiState.models, key = { it.modelId }) { model ->
+                                        ModelListItem(model = model, onClick = { onModelClick(model.modelId) })
+                                    }
+                                }
+                        }
+                    }
+                    1 -> {
+                        if (downloadedModels.isEmpty()) {
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator()
-                            }
-                        uiState.error != null ->
-                            Column(
-                                modifier = Modifier.fillMaxSize().padding(24.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
                                 Text(
-                                    uiState.error!!,
-                                    color = MaterialTheme.colorScheme.error,
-                                    style = MaterialTheme.typography.bodyMedium
+                                    "No models downloaded yet.\nBrowse the catalog to download one.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                                TextButton(onClick = { listViewModel.refresh() }) { Text("Retry") }
                             }
-                        else ->
+                        } else {
                             LazyColumn(
                                 contentPadding = PaddingValues(16.dp),
                                 verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                items(uiState.models, key = { it.modelId }) { model ->
-                                    ModelListItem(model = model, onClick = { onModelClick(model.modelId) })
+                                items(downloadedModels, key = { it.modelId }) { model ->
+                                    DownloadedModelItem(model = model, onClick = { onModelClick(model.modelId) })
                                 }
-                            }
-                    }
-                }
-                1 -> {
-                    if (downloadedModels.isEmpty()) {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(
-                                "No models downloaded yet.\nBrowse the catalog to download one.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    } else {
-                        LazyColumn(
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            items(downloadedModels, key = { it.modelId }) { model ->
-                                DownloadedModelItem(model = model, onClick = { onModelClick(model.modelId) })
                             }
                         }
                     }
