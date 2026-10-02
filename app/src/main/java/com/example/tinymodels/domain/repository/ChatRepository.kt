@@ -1,5 +1,6 @@
 package com.example.tinymodels.domain.repository
 
+import com.example.tinymodels.domain.model.BackendPreference
 import com.example.tinymodels.domain.model.Chat
 import com.example.tinymodels.domain.model.ChatMessage
 import com.example.tinymodels.domain.model.ChatSummary
@@ -17,7 +18,7 @@ interface ChatRepository {
     suspend fun getChat(chatId: String): Chat?
 
     /** Creates a chat and returns its id. */
-    suspend fun createChat(modelId: String, title: String): Chat
+    suspend fun createChat(modelId: String, title: String, defaultBackend: BackendPreference = BackendPreference.AUTO): Chat
 
     suspend fun renameChat(chatId: String, title: String)
 

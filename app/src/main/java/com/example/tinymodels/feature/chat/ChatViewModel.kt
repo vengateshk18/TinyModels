@@ -12,6 +12,7 @@ import com.example.tinymodels.domain.model.InferenceSettings
 import com.example.tinymodels.domain.model.DownloadedModel
 import com.example.tinymodels.domain.repository.ChatRepository
 import com.example.tinymodels.domain.repository.ModelRepository
+import com.example.tinymodels.domain.repository.SettingsRepository
 import com.example.tinymodels.feature.chat.model.ChatError
 import com.example.tinymodels.feature.chat.model.ChatEvent
 import com.example.tinymodels.feature.chat.model.ChatListItem
@@ -46,7 +47,8 @@ class ChatViewModel @Inject constructor(
     private val savedStateHandle: androidx.lifecycle.SavedStateHandle,
     private val modelManager: ModelManager,
     private val chatRepository: ChatRepository,
-    private val modelRepository: ModelRepository
+    private val modelRepository: ModelRepository,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChatUiState())
@@ -191,7 +193,8 @@ class ChatViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            val chat = chatRepository.createChat(modelId, title = "New chat")
+            val defaultBackend = settingsRepository.settings.first().defaultBackend
+            val chat = chatRepository.createChat(modelId, title = "New chat", defaultBackend = defaultBackend)
             openChatInternal(chat.id)
         }
     }

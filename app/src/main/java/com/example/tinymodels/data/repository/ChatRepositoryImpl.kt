@@ -45,7 +45,7 @@ class ChatRepositoryImpl @Inject constructor(
     override suspend fun getChat(chatId: String): Chat? =
         withContext(dispatchers.io) { chatDao.getChat(chatId)?.toDomain() }
 
-    override suspend fun createChat(modelId: String, title: String): Chat =
+    override suspend fun createChat(modelId: String, title: String, defaultBackend: BackendPreference): Chat =
         withContext(dispatchers.io) {
             val now = System.currentTimeMillis()
             val entity = ChatEntity(
@@ -53,7 +53,8 @@ class ChatRepositoryImpl @Inject constructor(
                 title = title,
                 modelId = modelId,
                 createdAt = now,
-                updatedAt = now
+                updatedAt = now,
+                backend = defaultBackend.name
             )
             chatDao.upsertChat(entity)
             entity.toDomain()
