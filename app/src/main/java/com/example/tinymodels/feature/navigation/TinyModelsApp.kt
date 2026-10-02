@@ -34,6 +34,7 @@ import com.example.tinymodels.feature.chat.ChatTabScreen
 import com.example.tinymodels.feature.models.screens.DownloadedModelsScreen
 import com.example.tinymodels.feature.models.screens.ModelDetailsScreen
 import com.example.tinymodels.feature.models.screens.ModelListScreen
+import com.example.tinymodels.feature.models.screens.ModelsTabScreen
 import com.example.tinymodels.feature.settings.SettingsScreen
 
 /**
@@ -99,8 +100,7 @@ fun TinyModelsApp(navController: NavHostController = rememberNavController()) {
             }
 
             composable(Routes.MODELS) {
-                ModelListScreen(
-                    onBack = { navController.popBackStack() },
+                ModelsTabScreen(
                     onModelClick = { modelId -> navController.navigate(Routes.modelDetails(modelId)) }
                 )
             }

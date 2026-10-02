@@ -1,0 +1,202 @@
+package com.example.tinymodels.feature.models.screens
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.tinymodels.domain.model.DownloadedModel
+import com.example.tinymodels.domain.model.ModelSummary
+import com.example.tinymodels.feature.models.DownloadedModelsViewModel
+import com.example.tinymodels.feature.models.ModelListViewModel
+
+/**
+ * Models tab (bottom-nav). Two sub-tabs: Browse (Hugging Face catalog) and
+ * Downloaded (on-device models). No back button — it's a root tab.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ModelsTabScreen(
+    onModelClick: (String) -> Unit,
+    listViewModel: ModelListViewModel = hiltViewModel(),
+    downloadedViewModel: DownloadedModelsViewModel = hiltViewModel()
+) {
+    var selectedTab by remember { mutableIntStateOf(0) }
+    val uiState by listViewModel.uiState.collectAsStateWithLifecycle()
+    val downloadedModels by downloadedViewModel.models.collectAsStateWithLifecycle()
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Models") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                )
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            PrimaryTabRow(selectedTabIndex = selectedTab) {
+                Tab(
+                    selected = selectedTab == 0,
+                    onClick = { selectedTab = 0 },
+                    text = { Text("Browse") }
+                )
+                Tab(
+                    selected = selectedTab == 1,
+                    onClick = { selectedTab = 1 },
+                    text = { Text("Downloaded (${downloadedModels.size})") }
+                )
+            }
+
+            when (selectedTab) {
+                0 -> {
+                    when {
+                        uiState.isLoading ->
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
+                        uiState.error != null ->
+                            Column(
+                                modifier = Modifier.fillMaxSize().padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    uiState.error!!,
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                TextButton(onClick = { listViewModel.refresh() }) { Text("Retry") }
+                            }
+                        else ->
+                            LazyColumn(
+                                contentPadding = PaddingValues(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                items(uiState.models, key = { it.modelId }) { model ->
+                                    ModelListItem(model = model, onClick = { onModelClick(model.modelId) })
+                                }
+                            }
+                    }
+                }
+                1 -> {
+                    if (downloadedModels.isEmpty()) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                "No models downloaded yet.\nBrowse the catalog to download one.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    } else {
+                        LazyColumn(
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(downloadedModels, key = { it.modelId }) { model ->
+                                DownloadedModelItem(model = model, onClick = { onModelClick(model.modelId) })
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ModelListItem(model: ModelSummary, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = model.modelId,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (model.author.isNotBlank()) {
+                Text(
+                    text = "by ${model.author}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(modifier = Modifier.height(6.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text("⬇ ${model.downloads ?: 0}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("♥ ${model.likes ?: 0}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                model.pipelineTag?.let {
+                    Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DownloadedModelItem(model: DownloadedModel, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = model.modelId,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = humanReadableSize(model.sizeBytes),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+private fun humanReadableSize(bytes: Long): String {
+    val mb = bytes / (1024.0 * 1024.0)
+    return if (mb >= 1024) "%.2f GB".format(mb / 1024) else "%.1f MB".format(mb)
+}
