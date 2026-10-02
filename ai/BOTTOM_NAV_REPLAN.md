@@ -1,5 +1,7 @@
 # App Restructure Plan — Bottom Navigation + Per-Session Inference
 
+> ✅ **ALL 9 SLICES COMPLETE** (N1–N9). See git log for commit details.
+>
 > Goal: Restructure the app from a single chat-start-destination into a
 > **bottom-navigation** shell with 4 tabs (Home, Chat, Models, Settings), move
 > inference settings from global to **per-chat-session** (stored in Room),
