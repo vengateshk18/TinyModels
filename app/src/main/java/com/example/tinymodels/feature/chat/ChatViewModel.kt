@@ -68,6 +68,7 @@ class ChatViewModel @Inject constructor(
     val chatId: String? get() = savedStateHandle["chatId"]
 
     init {
+        observeChats()           // populate the history drawer
         observeDownloadedModels()
         observeEngineState()
         // Auto-open the chat identified by the nav arg.
@@ -108,15 +109,7 @@ class ChatViewModel @Inject constructor(
     private fun observeDownloadedModels() {
         viewModelScope.launch {
             modelRepository.observeDownloadedModels().collect { models ->
-                val hadNone = _uiState.value.hasDownloadedModels.not()
                 _uiState.update { it.copy(hasDownloadedModels = models.isNotEmpty()) }
-                // Auto-select the first model when none is active yet.
-                if (activeModel == null && models.isNotEmpty() && hadNone.not()) {
-                    // Only auto-select if user hasn't picked and no engine loaded.
-                    if (modelManager.loadedModelId == null) {
-                        selectModel(models.first().modelId)
-                    }
-                }
             }
         }
     }

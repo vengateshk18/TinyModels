@@ -200,12 +200,9 @@ private fun ChatScreenContent(
         )
     }
 
-    // Show loading dialog when model is loading
+    // Non-dismissible loading dialog — removed by ViewModel when engine is ready.
     uiState.modelLoadProgress?.let { progress ->
-        ModelLoadingDialog(
-            progress = progress,
-            onDismiss = null // Dismissible by progress completion
-        )
+        ModelLoadingDialog(progress = progress)
     }
 
     editingMessage?.let { (messageId, originalText) ->
