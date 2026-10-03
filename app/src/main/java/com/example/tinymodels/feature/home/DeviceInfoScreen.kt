@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.tinymodels.core.ui.Formatters
 
 /**
  * Full-screen device-information page, reachable from Settings → About.
@@ -108,13 +109,13 @@ fun DeviceInfoScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
             SectionTitle("Memory")
-            InfoRow("RAM", "${device.totalRamMb} MB")
-            InfoRow("Available", "${device.availableRamMb} MB")
-            InfoRow("Recommended for AI", "~${device.availableRamForAiMb} MB")
+            InfoRow("RAM", Formatters.formatMbAsGb(device.totalRamMb))
+            InfoRow("Available", Formatters.formatMbAsGb(device.availableRamMb))
+            InfoRow("Recommended for AI", "~${Formatters.formatMbAsGb(device.availableRamForAiMb)}")
 
             Spacer(modifier = Modifier.height(16.dp))
             SectionTitle("Storage")
-            InfoRow("Free storage", "${device.freeStorageMb} MB")
+            InfoRow("Free storage", Formatters.formatMbAsGb(device.freeStorageMb))
 
             Spacer(modifier = Modifier.height(16.dp))
             SectionTitle("Processor")

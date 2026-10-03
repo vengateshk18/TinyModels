@@ -20,4 +20,13 @@ interface SettingsRepository {
 
     /** Persists [modelId] as the last-used model. */
     suspend fun setLastUsedModelId(modelId: String)
+
+    /** The stored Hugging Face access token (trimmed), or null when unset. */
+    val huggingFaceToken: Flow<String?>
+
+    /** One-shot read of the stored Hugging Face token. */
+    suspend fun getHuggingFaceToken(): String?
+
+    /** Persists (or clears, when null/blank) the Hugging Face access token. */
+    suspend fun setHuggingFaceToken(token: String?)
 }

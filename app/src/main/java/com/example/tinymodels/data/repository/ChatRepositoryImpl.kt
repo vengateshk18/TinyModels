@@ -11,6 +11,7 @@ import com.example.tinymodels.domain.model.InferenceSettings
 import com.example.tinymodels.domain.model.BackendPreference
 import com.example.tinymodels.domain.repository.ChatRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -104,6 +105,29 @@ class ChatRepositoryImpl @Inject constructor(
 
     override suspend fun messageCount(chatId: String): Int =
         withContext(dispatchers.io) { chatDao.messageCount(chatId) }
+
+    // ---- Usage stats (Home dashboard) ----
+
+    override suspend fun totalChats(): Int =
+        withContext(dispatchers.io) { chatDao.totalChats() }
+
+    override suspend fun modelsTried(): Int =
+        withContext(dispatchers.io) { chatDao.modelsTried() }
+
+    override suspend fun totalTokensGenerated(): Long =
+        withContext(dispatchers.io) { chatDao.totalTokensGenerated() }
+
+    override suspend fun getLastSessionTokensPerSecond(): Float? =
+        withContext(dispatchers.io) {
+            // Most recently updated chat.
+            val latest = chatDao.observeChatSummaries().first().firstOrNull()
+                ?: return@withContext null
+            val stats = chatDao.sessionTokenStats(latest.id) ?: return@withContext null
+            val durationMs = (stats.finishedAt ?: return@withContext null) -
+                (stats.startedAt ?: return@withContext null)
+            if (stats.totalTokens <= 0 || durationMs <= 0) return@withContext null
+            stats.totalTokens.toFloat() / (durationMs / 1000f)
+        }
 
     // ---- Mapping ----
 

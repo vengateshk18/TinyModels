@@ -52,4 +52,20 @@ object Formatters {
     fun formatEpoch(millis: Long): String =
         if (millis <= 0) "Unknown"
         else SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date(millis))
+
+    /** Megabytes -> "7.4 GB". RAM/storage are always shown in GB on the UI. */
+    fun formatMbAsGb(mb: Long): String = "%.1f GB".format(Locale.US, mb / 1024.0)
+
+    /** Epoch millis -> "just now" / "5m ago" / "3h ago" / "2d ago" / "Aug 31, 2026". */
+    fun formatRelativeTime(millis: Long): String {
+        if (millis <= 0) return ""
+        val minutes = (System.currentTimeMillis() - millis) / 60_000
+        return when {
+            minutes < 1 -> "just now"
+            minutes < 60 -> "${minutes}m ago"
+            minutes < 24 * 60 -> "${minutes / 60}h ago"
+            minutes < 7 * 24 * 60 -> "${minutes / (24 * 60)}d ago"
+            else -> formatEpoch(millis)
+        }
+    }
 }

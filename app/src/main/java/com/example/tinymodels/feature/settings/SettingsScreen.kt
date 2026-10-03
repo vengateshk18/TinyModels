@@ -113,6 +113,8 @@ fun SettingsScreen(
             SectionDivider()
             InferenceSection(settings, viewModel)
             SectionDivider()
+            HuggingFaceSection(viewModel)
+            SectionDivider()
             AboutSection(
                 onDeviceInfo = onDeviceInfo,
                 onClearHistory = { showClearDialog = true }
@@ -210,6 +212,87 @@ private fun InferenceSection(settings: AppSettings, viewModel: SettingsViewModel
             }
         }
     }
+}
+
+@Composable
+private fun HuggingFaceSection(viewModel: SettingsViewModel) {
+    val token by viewModel.huggingFaceToken.collectAsStateWithLifecycle()
+    var showTokenDialog by remember { mutableStateOf(false) }
+
+    SectionHeader("Hugging Face")
+    NavigationRow(
+        label = "Access token",
+        subtitle = if (token.isNullOrBlank()) "Not set — optional; only gated models need one"
+        else "Set — ${token!!.take(6)}••••••••${token!!.takeLast(4)}",
+        onClick = { showTokenDialog = true }
+    )
+    Text(
+        "Gated models (e.g. Gemma) need a free access token to download. " +
+            "Create one at huggingface.co/settings/tokens, then accept the model's license on its page.",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+
+    if (showTokenDialog) {
+        TokenDialog(
+            current = token,
+            onSave = {
+                viewModel.setHuggingFaceToken(it)
+                showTokenDialog = false
+            },
+            onRemove = {
+                viewModel.setHuggingFaceToken(null)
+                showTokenDialog = false
+            },
+            onDismiss = { showTokenDialog = false }
+        )
+    }
+}
+
+@Composable
+private fun TokenDialog(
+    current: String?,
+    onSave: (String) -> Unit,
+    onRemove: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    var text by remember(current) { mutableStateOf(current ?: "") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Hugging Face access token") },
+        text = {
+            Column {
+                Text(
+                    "Paste a token with read access. Create one at huggingface.co/settings/tokens.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                androidx.compose.material3.OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    singleLine = true,
+                    placeholder = { Text("hf_xxxxxxxxxxxxxxxx") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            androidx.compose.material3.TextButton(
+                onClick = { onSave(text) },
+                enabled = text.isNotBlank()
+            ) { Text("Save") }
+        },
+        dismissButton = {
+            Row {
+                if (current != null) {
+                    androidx.compose.material3.TextButton(onClick = onRemove) { Text("Remove") }
+                }
+                androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Cancel") }
+            }
+        }
+    )
 }
 
 @Composable

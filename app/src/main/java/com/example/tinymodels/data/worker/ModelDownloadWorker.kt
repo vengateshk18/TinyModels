@@ -14,6 +14,7 @@ import com.example.tinymodels.core.database.ModelFileDao
 import com.example.tinymodels.core.database.entities.DownloadedModelEntity
 import com.example.tinymodels.core.database.entities.ModelFileEntity
 import com.example.tinymodels.core.network.HuggingFaceApi
+import com.example.tinymodels.core.network.HuggingFaceAuth
 import com.example.tinymodels.domain.model.FileDownloadStatus
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -42,6 +43,7 @@ class ModelDownloadWorker @AssistedInject constructor(
     private val downloadedModelDao: DownloadedModelDao,
     private val modelFileDao: ModelFileDao,
     private val api: HuggingFaceApi,
+    private val auth: HuggingFaceAuth,
     private val client: OkHttpClient
 ) : CoroutineWorker(appContext, workerParams) {
 
@@ -133,7 +135,15 @@ class ModelDownloadWorker @AssistedInject constructor(
             }
             modelDirectory.deleteRecursively()
             DownloadNotifier.notifyFailed(applicationContext, id, title, exception.message)
-            Result.retry()
+            val message = exception.message ?: "Download failed"
+            // 401/403 (gated repo, missing/invalid token or unaccepted license)
+            // will never succeed on retry — fail fast with the reason.
+            val authError = message.contains("HTTP 401") || message.contains("HTTP 403")
+            if (authError) {
+                Result.failure(workDataOf(KEY_ERROR to message))
+            } else {
+                Result.retry()
+            }
         }
     }
 
@@ -154,9 +164,17 @@ class ModelDownloadWorker @AssistedInject constructor(
         target: File,
         onProgress: suspend (downloaded: Long, total: Long) -> Unit
     ) = withContext(Dispatchers.IO) {
-        val request = Request.Builder().url(url).get().build()
+        val request = auth.authorize(Request.Builder().url(url).get()).build()
         client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) throw java.io.IOException("HTTP ${response.code}")
+            if (!response.isSuccessful) {
+                if (response.code == 401) {
+                    throw java.io.IOException(
+                        "HTTP 401 — this model is gated. Add your Hugging Face access token " +
+                            "in Settings, or accept the model's license on huggingface.co first."
+                    )
+                }
+                throw java.io.IOException("HTTP ${response.code}")
+            }
             val body = response.body ?: throw java.io.IOException("Empty body")
             var total = body.contentLength()
             response.header("x-linked-size")?.toLongOrNull()?.takeIf { it > 0 }?.let { total = it }
@@ -201,6 +219,7 @@ class ModelDownloadWorker @AssistedInject constructor(
         const val KEY_DOWNLOADED_BYTES = "downloaded_bytes"
         const val KEY_PROGRESS = "progress"
         const val KEY_BYTES_PER_SEC = "bytes_per_sec"
+        const val KEY_ERROR = "error"
 
         private const val DEFAULT_TITLE = "Downloading model"
         private const val NOTIFY_INTERVAL_MS = 400L

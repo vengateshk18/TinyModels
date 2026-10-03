@@ -37,4 +37,22 @@ interface ChatRepository {
     suspend fun clearAllChats()
 
     suspend fun messageCount(chatId: String): Int
+
+    // ---- Usage stats (Home dashboard) ----
+
+    /** Total number of chats ever created (excluding archived). */
+    suspend fun totalChats(): Int
+
+    /** Distinct models the user has actually chatted with. */
+    suspend fun modelsTried(): Int
+
+    /** Sum of tokenCount across all messages. */
+    suspend fun totalTokensGenerated(): Long
+
+    /**
+     * Average generation speed (tokens/sec) of the most recent chat, computed
+     * from its completed assistant messages. Null when not computable
+     * (no messages or zero duration).
+     */
+    suspend fun getLastSessionTokensPerSecond(): Float?
 }

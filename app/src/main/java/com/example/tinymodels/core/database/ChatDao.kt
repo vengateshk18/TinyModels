@@ -75,7 +75,42 @@ interface ChatDao {
 
     @Query("SELECT COUNT(*) FROM messages WHERE chatId = :chatId")
     suspend fun messageCount(chatId: String): Int
+
+    // ---- Usage stats (Home dashboard) ----
+
+    @Query("SELECT COUNT(*) FROM chats")
+    suspend fun totalChats(): Int
+
+    @Query("SELECT COUNT(DISTINCT modelId) FROM chats")
+    suspend fun modelsTried(): Int
+
+    @Query("SELECT COALESCE(SUM(tokenCount), 0) FROM messages")
+    suspend fun totalTokensGenerated(): Long
+
+    /**
+     * Token + timing totals for one chat's completed assistant messages —
+     * used to compute average generation speed (tokens/sec).
+     */
+    @Query(
+        """
+        SELECT COALESCE(SUM(tokenCount), 0) AS totalTokens,
+               MIN(createdAt) AS startedAt,
+               MAX(completedAt) AS finishedAt
+        FROM messages
+        WHERE chatId = :chatId
+          AND role = 'ASSISTANT'
+          AND completedAt IS NOT NULL
+        """
+    )
+    suspend fun sessionTokenStats(chatId: String): SessionTokenStatsRow?
 }
+
+/** Projection for [ChatDao.sessionTokenStats]. */
+data class SessionTokenStatsRow(
+    val totalTokens: Long,
+    val startedAt: Long?,
+    val finishedAt: Long?
+)
 
 /** Projection for [ChatDao.observeChatSummaries]. */
 data class ChatSummaryRow(

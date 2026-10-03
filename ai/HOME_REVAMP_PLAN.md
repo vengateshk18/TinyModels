@@ -62,9 +62,15 @@ page once; the app surfaces this clearly in the UI.
 
 | Tier | Model | Variant | Size | HF repo | File |
 |---|---|---|---|---|---|
-| Small | Gemma 3 270M IT | q8 | 304 MB | `litert-community/gemma-3-270m-it` | `gemma3-270m-it-q8.litertlm` |
-| Medium | Gemma 3 1B IT | int4 | 584 MB | `litert-community/Gemma3-1B-IT` | `gemma-3-1b-it-int4.litertlm` |
-| High | Gemma 4 E2B IT | web/gpu | 2.01 GB | `litert-community/gemma-4-E2B-it-litert-lm` | `gemma-4-E2B-it-web.litertlm` |
+| Small | Qwen3 0.6B | q8 | 585 MB | `gbpeck/Qwen3-0.6B-litertlm-jinja` | `Qwen3-0.6B.litertlm` |
+| Medium | DeepSeek R1 Distill 1.5B | q8 | 1.71 GB | `litert-community/DeepSeek-R1-Distill-Qwen-1.5B` | `DeepSeek-R1-Distill-Qwen-1.5B_multi-prefill-seq_q8_ekv4096.litertlm` |
+| High | Qwen3.5 2B | int8 | 1.77 GB | `paulsp94/Qwen3.5-2B-LiteRT-LM` | `qwen35_2b.litertlm` |
+
+> **Ungated catalog (2026-10-03):** every official Gemma checkpoint is gated by Google's
+> Gemma license (anonymous downloads → 401), so Gemma was dropped. All three picks above
+> are ungated `.litertlm` files verified to download anonymously (HTTP 302 → CDN, no token).
+> The Qwen2.5-0.5B alternative only ships `.task`/`.tflite` — no `.litertlm` — so it can't
+> be used by this runtime.
 
 **Selection rules (RAM-based, using `MemoryUtils`):**
 - `availableRamForAiMb >= 6000` (or total RAM ≥ 12 GB) → **High** (Gemma 4 E2B, 2.01 GB)

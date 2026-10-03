@@ -26,6 +26,10 @@ class SettingsViewModel @Inject constructor(
     val settings: StateFlow<AppSettings> = settingsRepository.settings
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppSettings())
 
+    /** Stored Hugging Face access token, or null when unset. */
+    val huggingFaceToken: StateFlow<String?> = settingsRepository.huggingFaceToken
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
     private val _clearResult = MutableStateFlow<String?>(null)
     val clearResult: StateFlow<String?> = _clearResult.asStateFlow()
 
@@ -34,6 +38,12 @@ class SettingsViewModel @Inject constructor(
     fun setFontChoice(choice: FontChoice) = viewModelScope.launch { settingsRepository.setFontChoice(choice) }
     fun setFontScale(scale: Float) = viewModelScope.launch { settingsRepository.setFontScale(scale) }
     fun setDefaultBackend(backend: BackendPreference) = viewModelScope.launch { settingsRepository.setDefaultBackend(backend) }
+
+    /** Saves (or removes, when null/blank) the Hugging Face access token. */
+    fun setHuggingFaceToken(token: String?) = viewModelScope.launch {
+        settingsRepository.setHuggingFaceToken(token)
+        _clearResult.value = if (token.isNullOrBlank()) "Access token removed" else "Access token saved"
+    }
 
     fun clearChatHistory() = viewModelScope.launch {
         chatRepository.clearAllChats()

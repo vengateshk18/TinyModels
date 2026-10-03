@@ -30,6 +30,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.tinymodels.feature.chat.ChatListViewModel
 import com.example.tinymodels.feature.chat.ChatRoomScreen
 import com.example.tinymodels.feature.chat.ChatTabScreen
 import com.example.tinymodels.feature.models.screens.DownloadedFileDetailScreen
@@ -94,7 +95,23 @@ fun TinyModelsApp(navController: NavHostController = rememberNavController()) {
             // --- Tab destinations ---
 
             composable(Routes.HOME) {
-                HomeScreen(onBrowseModels = { navController.navigate(Routes.MODELS) })
+                HomeScreen(
+                    onBrowseModels = { navController.navigate(Routes.MODELS) },
+                    onResumeChat = { chatId ->
+                        navController.navigate(Routes.chatRoom(chatId))
+                    },
+                    onNewChat = { modelId ->
+                        navController.navigate(
+                            if (modelId != null) {
+                                Routes.chatRoomWithPreference(modelId)
+                            } else {
+                                Routes.chatRoom(ChatListViewModel.NEW_CHAT_SENTINEL)
+                            }
+                        )
+                    },
+                    onManageModels = { navController.navigate(Routes.DOWNLOADED_MODELS) },
+                    onOpenSettings = { navController.navigate(Routes.SETTINGS) }
+                )
             }
 
             composable(Routes.CHAT) {

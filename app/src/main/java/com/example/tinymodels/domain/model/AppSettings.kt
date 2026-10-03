@@ -23,7 +23,7 @@ enum class FontChoice(val displayName: String, val googleFontName: String?) {
  * systemInstruction) are now per-session (stored in Room on each Chat).
  */
 data class AppSettings(
-    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val themeMode: ThemeMode = ThemeMode.DARK,
     val useDynamicColor: Boolean = true,
     val fontChoice: FontChoice = FontChoice.SYSTEM,
     val fontScale: Float = 1.0f,

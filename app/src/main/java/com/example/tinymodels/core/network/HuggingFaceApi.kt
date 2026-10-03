@@ -11,7 +11,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class HuggingFaceApi @Inject constructor(
-    private val client: OkHttpClient
+    private val client: OkHttpClient,
+    private val auth: HuggingFaceAuth
 ) {
     companion object {
         private const val API_BASE = "https://huggingface.co/api/models"
@@ -51,7 +52,7 @@ class HuggingFaceApi @Inject constructor(
 
     /** HEAD request to learn a file's size (handles HF redirect x-linked-size). */
     fun contentLength(url: String): Long {
-        val request = Request.Builder().url(url).head().build()
+        val request = auth.authorize(Request.Builder().url(url).head()).build()
         client.newCall(request).execute().use { response ->
             response.header("x-linked-size")?.toLongOrNull()?.takeIf { it > 0 }?.let { return it }
             if (!response.isSuccessful) {

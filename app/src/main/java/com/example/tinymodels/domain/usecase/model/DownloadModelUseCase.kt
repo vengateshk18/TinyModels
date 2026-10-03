@@ -164,7 +164,9 @@ class DownloadModelUseCase @Inject constructor(
                     downloadedBytes = downloaded, totalBytes = total
                 )
                 WorkInfo.State.FAILED -> DownloadState(
-                    status = DownloadStatus.FAILED, error = "Download failed. Check your connection and retry."
+                    status = DownloadStatus.FAILED,
+                    error = info.outputData.getString(ModelDownloadWorker.KEY_ERROR)
+                        ?: "Download failed. Check your connection and retry."
                 )
                 WorkInfo.State.CANCELLED -> DownloadState(status = DownloadStatus.IDLE)
                 else -> DownloadState(
