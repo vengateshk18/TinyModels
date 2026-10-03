@@ -84,6 +84,10 @@ class ModelDownloadWorker @AssistedInject constructor(
                 }
             }
 
+            // ── All files finished successfully ──────────────────────────────────────
+            // Only NOW insert the parent row into downloaded_models. This ensures
+            // the model never appears in the "Downloaded" section unless every file
+            // completed without cancellation or error.
             downloadedModelDao.insertIfAbsent(
                 DownloadedModelEntity(
                     modelId = modelId,
@@ -110,15 +114,18 @@ class ModelDownloadWorker @AssistedInject constructor(
             DownloadNotifier.notifyComplete(applicationContext, id, title)
             Result.success()
         } catch (cancellation: kotlinx.coroutines.CancellationException) {
+            // Cancelled mid-download — reset every file back to NOT_DOWNLOADED,
+            // delete partial files, and do NOT insert the parent downloaded_models row.
             files.forEach { fileName ->
                 modelFileDao.updateStatus(
-                    modelId, fileName, FileDownloadStatus.FAILED.name, null, null, "Cancelled"
+                    modelId, fileName, FileDownloadStatus.NOT_DOWNLOADED.name, null, null, null
                 )
             }
             modelDirectory.deleteRecursively()
             DownloadNotifier.cancelProgress(applicationContext, id)
             throw cancellation
         } catch (exception: Exception) {
+            // Unexpected error — mark files as FAILED, clean up, no parent row inserted.
             files.forEach { fileName ->
                 modelFileDao.updateStatus(
                     modelId, fileName, FileDownloadStatus.FAILED.name, null, null, exception.message

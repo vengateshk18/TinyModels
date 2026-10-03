@@ -92,18 +92,9 @@ class ModelRepositoryImpl @Inject constructor(
 
     override suspend fun preRegisterModel(model: ModelDetails) =
         withContext(dispatchers.io) {
-            val directory = File(context.filesDir, "models/${model.id.replace("/", "_")}")
-            val now = System.currentTimeMillis()
-            downloadedModelDao.insertIfAbsent(
-                DownloadedModelEntity(
-                    modelId = model.id,
-                    author = model.author,
-                    libraryName = model.libraryName,
-                    pipelineTag = model.pipelineTag,
-                    localPath = directory.absolutePath,
-                    downloadedAt = now
-                )
-            )
+            // Only pre-register file tracking rows — do NOT insert into downloaded_models yet.
+            // A DownloadedModelEntity is only inserted by the worker after a successful download.
+            // This prevents the model from appearing in the "downloaded" list prematurely.
             model.runtimeFiles.ifEmpty { model.liteRtFiles }.forEach { fileName ->
                 val existing = modelFileDao.getByModelIdAndFile(model.id, fileName)
                 if (existing == null) {

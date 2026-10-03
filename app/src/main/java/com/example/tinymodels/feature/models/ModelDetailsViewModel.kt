@@ -231,10 +231,26 @@ class ModelDetailsViewModel @Inject constructor(
     fun onCancelFileDownload() {
         val fileName = _uiState.value.selectedFile ?: return
         downloadModel.cancelFile(modelId, fileName)
+        downloadJob?.cancel()
+        downloadJob = null
         viewModelScope.launch {
+            // Reset this file back to NOT_DOWNLOADED
             modelRepository.updateFileStatus(modelId, fileName, FileDownloadStatus.NOT_DOWNLOADED)
+            // If no other files are fully downloaded, remove the parent model entry entirely
+            // so the model does not appear in the "Downloaded" section
+            val hasAnyDownloaded = _uiState.value.modelFiles.any {
+                it.fileName != fileName && it.status == FileDownloadStatus.DOWNLOADED
+            }
+            if (!hasAnyDownloaded) {
+                modelRepository.deleteDownloadedModel(modelId)
+            }
         }
-        _uiState.update { it.copy(fileDownload = DownloadState(status = DownloadStatus.IDLE), selectedFile = null) }
+        _uiState.update {
+            it.copy(
+                fileDownload = DownloadState(status = DownloadStatus.IDLE),
+                selectedFile = null
+            )
+        }
     }
 
     fun onDownloadedFileClick(fileName: String) {
