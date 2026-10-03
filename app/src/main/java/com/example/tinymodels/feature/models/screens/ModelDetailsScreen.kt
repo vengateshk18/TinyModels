@@ -90,17 +90,43 @@ fun ModelDetailsScreen(
             )
         },
         bottomBar = {
-            // Per-file download bar - visible only when a NOT_DOWNLOADED file is selected
-            uiState.model?.let { model ->
-                val selectedFile = uiState.selectedFile
-                val fileStatus = selectedFile?.let { uiState.getFileStatus(it) }
-                if (selectedFile != null && fileStatus == FileDownloadStatus.NOT_DOWNLOADED) {
-                    FileDownloadBar(
-                        fileName = selectedFile,
-                        fileSize = uiState.getFileSize(selectedFile),
-                        download = uiState.fileDownload,
-                        onDownload = viewModel::onDownloadFileClick,
-                        onCancel = viewModel::onCancelFileDownload
+            val model = uiState.model ?: return@Scaffold
+            
+            // Show bar for: (a) per-file download in progress, (b) selected NOT_DOWNLOADED file, (c) global download in progress
+            val shouldShowBar = when {
+                // Per-file download in progress
+                uiState.fileDownload.isDownloading -> true
+                
+                // File selected but not downloaded
+                uiState.selectedFile != null && 
+                    uiState.getFileStatus(uiState.selectedFile!!) == FileDownloadStatus.NOT_DOWNLOADED -> true
+                
+                // Global download in progress
+                uiState.download.isDownloading -> true
+                
+                else -> false
+            }
+            
+            if (shouldShowBar) {
+                uiState.selectedFile?.let { fileName ->
+                    if (uiState.getFileStatus(fileName) == FileDownloadStatus.NOT_DOWNLOADED ||
+                        uiState.fileDownload.isDownloading) {
+                        FileDownloadBar(
+                            fileName = fileName,
+                            fileSize = uiState.getFileSize(fileName),
+                            download = uiState.fileDownload,
+                            onDownload = viewModel::onDownloadFileClick,
+                            onCancel = viewModel::onCancelFileDownload
+                        )
+                    }
+                } ?: run {
+                    // Global download bar
+                    DownloadBar(
+                        model = model,
+                        isDownloaded = uiState.isDownloaded,
+                        download = uiState.download,
+                        totalSizeBytes = uiState.totalSizeBytes,
+                        onAction = viewModel::onDownloadClick
                     )
                 }
             }
@@ -605,93 +631,50 @@ private fun FileDownloadInProgress(
 }
 
 @Composable
-private fun DownloadIdle(
+private fun DownloadBar(
     model: ModelDetails,
     isDownloaded: Boolean,
     download: DownloadState,
     totalSizeBytes: Long,
     onAction: () -> Unit
 ) {
-    if (isDownloaded) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Filled.CheckCircle, contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Downloaded", color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-        }
-        return
-    }
-
-    val sizeLabel = if (totalSizeBytes > 0) Formatters.formatBytes(totalSizeBytes) else null
-    Button(onClick = onAction, modifier = Modifier.fillMaxWidth()) {
-        Icon(Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(18.dp))
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(if (sizeLabel != null) "Download \u00b7 $sizeLabel" else "Download")
-    }
-
-    // Error (e.g. failed / not enough storage) with a subtle retry hint.
-    download.error?.let {
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Filled.ErrorOutline, contentDescription = null,
-                tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(it, color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
-        }
-    }
-}
-
-@Composable
-private fun DownloadInProgress(
-    download: DownloadState,
-    totalSizeBytes: Long,
-    onAction: () -> Unit
-) {
-    val total = if (download.totalBytes > 0) download.totalBytes else totalSizeBytes
-    val isPreparing = download.status == DownloadStatus.CHECKING_SIZE
-
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                if (isPreparing) "Preparing download\u2026" else "Downloading\u2026",
-                style = MaterialTheme.typography.titleSmall
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            if (isPreparing) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth().height(6.dp))
+    Surface(
+        tonalElevation = 3.dp,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        shadowElevation = 8.dp,
+        modifier = Modifier.imePadding()
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp)) {
+            if (isDownloaded) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.CheckCircle, contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Downloaded", color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                }
             } else {
-                LinearProgressIndicator(
-                    progress = { download.progress.coerceIn(0f, 1f) },
-                    modifier = Modifier.fillMaxWidth().height(6.dp)
-                )
-            }
-            Spacer(modifier = Modifier.height(6.dp))
-            Row(modifier = Modifier.fillMaxWidth()) {
-                val pct = (download.progress * 100).toInt()
-                Text(
-                    if (total > 0)
-                        "${Formatters.formatBytes(download.downloadedBytes)} / ${Formatters.formatBytes(total)} \u00b7 $pct%"
-                    else "$pct%",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f)
-                )
-                if (download.bytesPerSecond > 0) {
-                    Text(
-                        "${Formatters.formatBytes(download.bytesPerSecond)}/s",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                val sizeLabel = if (totalSizeBytes > 0) Formatters.formatBytes(totalSizeBytes) else null
+                Button(onClick = onAction, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(if (sizeLabel != null) "Download \u00b7 $sizeLabel" else "Download")
+                }
+
+                // Error (e.g. failed / not enough storage) with a subtle retry hint.
+                download.error?.let {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Filled.ErrorOutline, contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(it, color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }
-        Spacer(modifier = Modifier.width(12.dp))
-        OutlinedButton(onClick = onAction) {
-            Icon(Icons.Filled.Cancel, contentDescription = null, modifier = Modifier.size(16.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("Cancel")
-        }
     }
 }
+
+

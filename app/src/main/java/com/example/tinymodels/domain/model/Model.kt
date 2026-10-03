@@ -54,13 +54,9 @@ data class ModelDetails(
     val liteRtFiles: List<String>
         get() = siblings.filter { it.endsWith(".litertlm", ignoreCase = true) }
 
-    /** All runnable runtime files (.litertlm + .task + .tflite). */
+    /** Only .litertlm files - the only format supported by LiteRT-LM runtime. */
     val runtimeFiles: List<String>
-        get() = siblings.filter {
-            it.endsWith(".litertlm", ignoreCase = true) ||
-            it.endsWith(".task", ignoreCase = true) ||
-            it.endsWith(".tflite", ignoreCase = true)
-        }
+        get() = siblings.filter { it.endsWith(".litertlm", ignoreCase = true) }
 
     /** True when access requires accepting a license / login on HuggingFace. */
     val isGated: Boolean

@@ -26,7 +26,9 @@ class ModelDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val modelRepository: ModelRepository,
     private val downloadModel: DownloadModelUseCase,
-    private val storageUtils: StorageUtils
+    private val storageUtils: StorageUtils,
+    private val downloadManager: DownloadManager,
+    private val snackbarManager: SnackbarManager
 ) : ViewModel() {
 
     private val modelId: String = checkNotNull(savedStateHandle["modelId"])
@@ -65,6 +67,20 @@ class ModelDetailsViewModel @Inject constructor(
         observeDownloaded()
         observeModelFiles()
         resumeActiveDownload()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        downloadJob?.cancel()
+        downloadJob = null
+        // Reset state to prevent stale UI
+        _uiState.update { 
+            it.copy(
+                download = DownloadState(),
+                fileDownload = DownloadState(),
+                selectedFile = null
+            ) 
+        }
     }
 
     fun load() {
@@ -145,6 +161,15 @@ class ModelDetailsViewModel @Inject constructor(
 
     fun onFileSelected(fileName: String) {
         val status = _uiState.value.getFileStatus(fileName)
+        
+        // Check if another download is active
+        if (downloadManager.hasActiveDownload()) {
+            viewModelScope.launch {
+                snackbarManager.showMessage("Only one download can run at a time. Please wait.")
+            }
+            return
+        }
+        
         when (status) {
             FileDownloadStatus.DOWNLOADED -> {
                 // User tapped a downloaded file - handled by UI navigation
@@ -172,8 +197,25 @@ class ModelDetailsViewModel @Inject constructor(
         val fileName = _uiState.value.selectedFile ?: return
         val size = _uiState.value.getFileSize(fileName)
 
+        // Single-download enforcement
+        if (!downloadManager.startDownload(model.id, fileName)) {
+            viewModelScope.launch {
+                snackbarManager.showMessage("Another download is in progress. Please wait.")
+            }
+            _uiState.update { 
+                it.copy(
+                    fileDownload = DownloadState(
+                        status = DownloadStatus.FAILED,
+                        error = "Another download is active"
+                    )
+                ) 
+            }
+            return
+        }
+
         // Storage pre-check
         if (size > 0 && !storageUtils.hasSpaceFor(size)) {
+            downloadManager.completeDownload(model.id)
             _uiState.update {
                 it.copy(
                     fileDownload = DownloadState(
@@ -199,11 +241,13 @@ class ModelDetailsViewModel @Inject constructor(
                 _uiState.update { it.copy(fileDownload = state) }
                 // On completion, update DB status
                 if (state.status == DownloadStatus.COMPLETED) {
+                    downloadManager.completeDownload(model.id)
                     modelRepository.updateFileStatus(
                         modelId, fileName, FileDownloadStatus.DOWNLOADED,
                         sizeBytes = state.totalBytes
                     )
                 } else if (state.status == DownloadStatus.FAILED) {
+                    downloadManager.cancelDownload(model.id)
                     modelRepository.updateFileStatus(
                         modelId, fileName, FileDownloadStatus.FAILED,
                         error = state.error
@@ -216,6 +260,7 @@ class ModelDetailsViewModel @Inject constructor(
     fun onCancelFileDownload() {
         val fileName = _uiState.value.selectedFile ?: return
         downloadModel.cancelFile(modelId, fileName)
+        downloadManager.cancelDownload(modelId)
         viewModelScope.launch {
             modelRepository.updateFileStatus(modelId, fileName, FileDownloadStatus.NOT_DOWNLOADED)
         }
@@ -230,10 +275,36 @@ class ModelDetailsViewModel @Inject constructor(
         val model = _uiState.value.model ?: return
         val current = _uiState.value.download
 
-        // Toggle: tapping while active cancels.
+        // Toggle: tapping while active cancels with proper cleanup
         if (current.isDownloading) {
             downloadModel.cancel(model.id)
-            _uiState.update { it.copy(download = DownloadState(status = DownloadStatus.IDLE)) }
+            downloadManager.cancelDownload(model.id)
+            viewModelScope.launch {
+                // Give WorkManager time to cancel
+                kotlinx.coroutines.delay(500)
+                _uiState.update { 
+                    it.copy(
+                        download = DownloadState(status = DownloadStatus.IDLE),
+                        error = "Download cancelled"
+                    ) 
+                }
+            }
+            return
+        }
+
+        // Single-download enforcement
+        if (!downloadManager.startDownload(model.id)) {
+            viewModelScope.launch {
+                snackbarManager.showMessage("Another download is in progress. Please wait.")
+            }
+            _uiState.update { 
+                it.copy(
+                    download = DownloadState(
+                        status = DownloadStatus.FAILED,
+                        error = "Another download is active"
+                    )
+                ) 
+            }
             return
         }
 
@@ -243,6 +314,7 @@ class ModelDetailsViewModel @Inject constructor(
 
         // Storage pre-check (only when we know the size).
         if (total > 0 && !storageUtils.hasSpaceFor(total)) {
+            downloadManager.completeDownload(model.id)
             _uiState.update {
                 it.copy(
                     download = DownloadState(
@@ -261,6 +333,12 @@ class ModelDetailsViewModel @Inject constructor(
         downloadJob = viewModelScope.launch {
             downloadModel.execute(model, total).collect { state ->
                 _uiState.update { it.copy(download = state) }
+                
+                if (state.status == DownloadStatus.COMPLETED) {
+                    downloadManager.completeDownload(model.id)
+                } else if (state.status == DownloadStatus.FAILED) {
+                    downloadManager.cancelDownload(model.id)
+                }
             }
         }
     }
