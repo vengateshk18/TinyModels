@@ -19,6 +19,7 @@ import com.example.tinymodels.feature.chat.model.ChatListItem
 import com.example.tinymodels.feature.chat.model.ChatUiState
 import com.example.tinymodels.feature.chat.model.GenerationState
 import com.example.tinymodels.feature.chat.model.ModelChipState
+import com.example.tinymodels.feature.chat.model.ModelLoadProgress
 import com.example.tinymodels.feature.chat.model.UiChatMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -156,21 +157,53 @@ class ChatViewModel @Inject constructor(
             val chatId = _uiState.value.activeChatId
             val chat = chatId?.let { chatRepository.getChat(it) }
             val inference = chat?.inferenceSettings ?: InferenceSettings()
+            
+            // Track loading progress
+            _uiState.update { 
+                it.copy(
+                    modelLoadProgress = ModelLoadProgress(
+                        modelId = modelId,
+                        progress = 0f,
+                        stage = ModelLoadProgress.LoadStage.INITIALIZING
+                    )
+                ) 
+            }
+            
             val result = modelManager.loadModel(
                 modelId = modelId,
                 modelFile = modelFile,
                 backend = inference.backend,
-                maxNumTokens = inference.maxContextTokens
+                maxNumTokens = inference.maxContextTokens,
+                onProgress = { progress, stage ->
+                    _uiState.update { currentState ->
+                        val uiStage = when (stage) {
+                            ModelManager.ModelLoadStage.INITIALIZING -> ModelLoadProgress.LoadStage.INITIALIZING
+                            ModelManager.ModelLoadStage.LOADING_WEIGHTS -> ModelLoadProgress.LoadStage.LOADING_WEIGHTS
+                            ModelManager.ModelLoadStage.READY -> ModelLoadProgress.LoadStage.READY
+                        }
+                        currentState.copy(
+                            modelLoadProgress = currentState.modelLoadProgress?.copy(
+                                progress = progress,
+                                stage = uiStage
+                            )
+                        )
+                    }
+                }
             )
             when (result) {
                 is com.example.tinymodels.core.common.AppResult.Success -> {
                     activeModel = downloaded
+                    // Clear progress on success
+                    _uiState.update { it.copy(modelLoadProgress = null) }
                     // (Re)build a conversation bound to the active chat, if any.
                     _uiState.value.activeChatId?.let { rebuildSession(it) }
                 }
                 is com.example.tinymodels.core.common.AppResult.Error -> {
                     _uiState.update {
-                        it.copy(error = ChatError(result.error.message ?: "Failed to load model"))
+                        it.copy(
+                            error = ChatError(result.error.message ?: "Failed to load model"),
+                            modelLoadProgress = null
+                        )
                     }
                 }
             }
@@ -585,7 +618,10 @@ class ChatViewModel @Inject constructor(
         generationJob?.cancel()
         session?.close()
         session = null
-        // NOTE: the engine is intentionally NOT unloaded here — it is owned by
-        // ModelManager and survives across navigation / configuration changes.
+        // Unload the model when exiting chat to free RAM
+        viewModelScope.launch {
+            modelManager.unloadModel()
+            _uiState.update { it.copy(modelLoadProgress = null) }
+        }
     }
 }

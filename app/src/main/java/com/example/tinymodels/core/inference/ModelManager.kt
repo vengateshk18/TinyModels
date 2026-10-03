@@ -61,6 +61,13 @@ class ModelManager @Inject constructor(
         data class Error(val modelId: String, val error: InferenceError) : EngineState
     }
 
+    /** Model loading progress stages. */
+    enum class ModelLoadStage {
+        INITIALIZING,
+        LOADING_WEIGHTS,
+        READY
+    }
+
     private val mutex = Mutex()
     private val scope = CoroutineScope(SupervisorJob() + dispatchers.io)
     private var engine: Engine? = null
@@ -83,7 +90,8 @@ class ModelManager @Inject constructor(
         modelFile: File,
         backend: BackendPreference,
         maxNumTokens: Int = DEFAULT_MAX_TOKENS,
-        cacheDir: File = context.cacheDir
+        cacheDir: File = context.cacheDir,
+        onProgress: ((Float, ModelLoadStage) -> Unit)? = null
     ): AppResult<LoadedModel> = mutex.withLock {
         if (!modelFile.exists()) {
             val error = InferenceError.ModelFileMissing("Missing: ${modelFile.absolutePath}")
@@ -103,6 +111,7 @@ class ModelManager @Inject constructor(
         }
 
         _engineState.value = EngineState.Loading(modelId)
+        onProgress?.invoke(0.1f, ModelLoadStage.INITIALIZING)
 
         val backendsToTry: List<Pair<BackendPreference, Backend>> = when (backend) {
             BackendPreference.CPU -> listOf(BackendPreference.CPU to Backend.CPU())
@@ -114,8 +123,10 @@ class ModelManager @Inject constructor(
 
         var lastFailure: InferenceError? = null
         for ((preference, backendImpl) in backendsToTry) {
+            onProgress?.invoke(0.3f, ModelLoadStage.INITIALIZING)
             when (val result = initializeEngine(modelFile, backendImpl, maxNumTokens, cacheDir)) {
                 is AppResult.Success -> {
+                    onProgress?.invoke(0.5f, ModelLoadStage.LOADING_WEIGHTS)
                     val newEngine = result.data
                     // Swap: close old engine only after the new one is ready.
                     val old = engine
@@ -130,6 +141,7 @@ class ModelManager @Inject constructor(
 
                     val loaded = LoadedModel(modelId, preference, maxNumTokens)
                     _engineState.value = EngineState.Ready(loaded)
+                    onProgress?.invoke(1.0f, ModelLoadStage.READY)
                     Log.i(TAG, "Loaded $modelId on $preference (maxTokens=$maxNumTokens)")
                     return AppResult.Success(loaded)
                 }
@@ -142,6 +154,7 @@ class ModelManager @Inject constructor(
 
         val finalError = lastFailure ?: InferenceError.BackendUnavailable()
         _engineState.value = EngineState.Error(modelId, finalError)
+        onProgress?.invoke(0f, ModelLoadStage.INITIALIZING)
         AppResult.Error(finalError.asAppError())
     }
 

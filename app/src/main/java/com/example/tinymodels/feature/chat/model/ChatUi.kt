@@ -47,6 +47,20 @@ data class ChatListItem(
 @Immutable
 data class ChatError(val message: String, val actionLabel: String? = null)
 
+/** Model loading progress for the chat screen. */
+@Immutable
+data class ModelLoadProgress(
+    val modelId: String,
+    val progress: Float = 0f,
+    val stage: LoadStage = LoadStage.INITIALIZING
+) {
+    enum class LoadStage {
+        INITIALIZING,
+        LOADING_WEIGHTS,
+        READY
+    }
+}
+
 /** The single, immutable UI state for the chat screen (MVI). */
 @Immutable
 data class ChatUiState(
@@ -61,7 +75,8 @@ data class ChatUiState(
     val contextUsage: ContextUsage = ContextUsage(),
     val hasDownloadedModels: Boolean = true,
     val inferenceSettings: InferenceSettings = InferenceSettings(),
-    val error: ChatError? = null
+    val error: ChatError? = null,
+    val modelLoadProgress: ModelLoadProgress? = null
 ) {
     val canSend: Boolean
         get() = model is ModelChipState.Ready && generation == GenerationState.IDLE

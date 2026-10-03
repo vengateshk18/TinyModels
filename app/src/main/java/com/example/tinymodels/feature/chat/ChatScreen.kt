@@ -42,6 +42,7 @@ import com.example.tinymodels.feature.chat.components.ChatInputBar
 import com.example.tinymodels.feature.chat.components.EditMessageDialog
 import com.example.tinymodels.feature.chat.components.MessageBubble
 import com.example.tinymodels.feature.chat.components.ModelChip
+import com.example.tinymodels.feature.chat.components.ModelLoadingDialog
 import com.example.tinymodels.feature.chat.components.ModelPickerSheet
 import com.example.tinymodels.feature.chat.model.ChatEvent
 import com.example.tinymodels.feature.chat.model.ChatUiState
@@ -188,6 +189,14 @@ private fun ChatScreenContent(
                 showModelPicker = false
             },
             onDismiss = { showModelPicker = false }
+        )
+    }
+
+    // Show loading dialog when model is loading
+    uiState.modelLoadProgress?.let { progress ->
+        ModelLoadingDialog(
+            progress = progress,
+            onDismiss = null // Dismissible by progress completion
         )
     }
 
