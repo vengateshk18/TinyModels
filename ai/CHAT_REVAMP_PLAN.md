@@ -15,7 +15,7 @@
 - **Root Cause:** No `LoadingDialog` or progress state in UI.
 - **Status:** `ModelLoadingDialog.kt` created, `modelLoadProgress` wired in `ChatViewModel` and shown in `ChatScreen`.
 
-### Issue 2: Unnecessary Session Creation
+### Issue 2: Unnecessary Session Creation — DONE ✅
 - **Symptom:** Every time a model is selected (even browsing), a new empty chat session
   is created in the database.
 - **Root Cause:** `sendMessage()` in `ChatViewModel` calls `chatRepository.createChat()`
@@ -24,7 +24,7 @@
 - **What should happen:** A session row must only exist in the DB once the user sends the
   **first real message**. Model selection and navigation must not write to the DB.
 
-### Issue 3: Model Not Unloaded on Exit
+### Issue 3: Model Not Unloaded on Exit — DONE ✅
 - **Symptom:** After leaving the chat screen the model stays resident in RAM.
 - **Root Cause:** `onCleared()` in `ChatViewModel` calls `modelManager.unloadModel()` inside
   a new `viewModelScope.launch` — but `viewModelScope` is cancelled the moment `onCleared()`
@@ -32,7 +32,7 @@
 - **What should happen:** `unloadModel()` must be called as a blocking/synchronous call or
   via a scope that outlives `onCleared()`.
 
-### Issue 4: No Inference Settings UI
+### Issue 4: No Inference Settings UI — DONE ✅
 - **Symptom:** No way to change temperature, max tokens, top-k, top-p, backend, or system
   instruction per session from within the chat screen.
 - **Root Cause:** `InferenceSettings` is stored per-chat in the DB but there is no dialog or
@@ -270,6 +270,6 @@ Slice 6  — Chat feature polish and regression checks
 
 ---
 
-**Plan version:** 2.0  
-**Last updated:** based on full codebase analysis  
-**Status:** Slice 1 complete. Ready to implement Slice 2.
+**Plan version:** 3.0  
+**Last updated:** after full implementation pass  
+**Status:** Slices 1–4 complete. Slice 5 (persistence verification) and Slice 6 (polish) remain.

@@ -79,6 +79,8 @@ fun ChatTabScreen(
         },
         floatingActionButton = {
             FloatingActionButton(onClick = {
+                // createNewChat now validates models are downloaded and returns the
+                // NEW_CHAT_SENTINEL id — no DB row is created here.
                 viewModel.createNewChat(
                     onCreated = { chatId -> onOpenChat(chatId) },
                     onError = { msg -> showSnackbar = msg }

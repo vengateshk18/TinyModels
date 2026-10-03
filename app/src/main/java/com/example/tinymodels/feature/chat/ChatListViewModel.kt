@@ -40,28 +40,32 @@ class ChatListViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /**
-     * Create a new chat session. Returns the chat id via [onCreated].
-     * Uses the first downloaded model as the default, or fails if none.
+     * Navigate to a new chat room without creating a DB row.
+     *
+     * The actual [chatRepository.createChat] call is deferred until the user
+     * sends their first message inside [ChatViewModel]. This prevents empty
+     * "ghost" sessions from appearing in the history list every time the user
+     * taps the FAB without typing anything.
+     *
+     * We still validate that at least one model is downloaded before navigating,
+     * so the room screen can immediately prompt the user to select a model.
      */
     fun createNewChat(onCreated: (String) -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
-            // Fetch directly from the repository (not the lazy StateFlow) so
-            // we always get fresh data even if no Composable subscribes to
-            // downloadedModels.
             val models = modelRepository.observeDownloadedModels().first()
             if (models.isEmpty()) {
-                onError("Download a model first")
+                onError("Download a model first to start chatting.")
                 return@launch
             }
-            val modelId = models.first().modelId
-            val defaultBackend = settingsRepository.settings.first().defaultBackend
-            val chat = chatRepository.createChat(
-                modelId = modelId,
-                title = "New chat",
-                defaultBackend = defaultBackend
-            )
-            onCreated(chat.id)
+            // Navigate with a sentinel id that tells ChatViewModel to start fresh
+            // without an existing DB row.
+            onCreated(NEW_CHAT_SENTINEL)
         }
+    }
+
+    companion object {
+        /** Sentinel used by navigation to indicate "open a blank new chat room". */
+        const val NEW_CHAT_SENTINEL = "new"
     }
 
     fun deleteChat(chatId: String) {

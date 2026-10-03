@@ -34,6 +34,8 @@ import com.example.tinymodels.feature.chat.components.ChatInputBar
 import com.example.tinymodels.feature.chat.components.EditMessageDialog
 import com.example.tinymodels.feature.chat.components.InferenceSettingsSheet
 import com.example.tinymodels.feature.chat.components.MessageBubble
+import com.example.tinymodels.feature.chat.components.ModelLoadingDialog
+import com.example.tinymodels.feature.chat.components.ModelPickerSheet
 import com.example.tinymodels.feature.chat.model.ChatEvent
 import com.example.tinymodels.feature.chat.model.ChatUiState
 import com.example.tinymodels.feature.chat.model.ModelChipState
@@ -61,7 +63,7 @@ fun ChatRoomScreen(
     val downloadedModels by viewModel.downloadedModels.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var editingMessage by remember { mutableStateOf<Pair<String, String>?>(null) }
-    var showInferenceSheet by remember { mutableStateOf(false) }
+    var showModelPicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
@@ -75,7 +77,9 @@ fun ChatRoomScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = uiState.chats.firstOrNull()?.title ?: "Chat",
+                        text = uiState.chats
+                            .firstOrNull { it.id == uiState.activeChatId }?.title
+                            ?: "New chat",
                         maxLines = 1,
                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                     )
@@ -83,6 +87,13 @@ fun ChatRoomScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    if (uiState.model is ModelChipState.Ready) {
+                        IconButton(onClick = { viewModel.onEvent(ChatEvent.OpenInferenceSettings) }) {
+                            Icon(Icons.Filled.Tune, contentDescription = "Session settings")
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -106,8 +117,10 @@ fun ChatRoomScreen(
                         )
                     uiState.model is ModelChipState.NotSelected ->
                         ChatRoomEmpty(
-                            title = "Loading model...",
-                            body = "Preparing the model for this chat."
+                            title = "Pick a model",
+                            body = "Choose a downloaded model to begin.",
+                            actionLabel = "Choose",
+                            onAction = { showModelPicker = true }
                         )
                     uiState.messages.isEmpty() ->
                         ChatRoomEmpty(
@@ -138,23 +151,49 @@ fun ChatRoomScreen(
         )
     }
 
+    // Model loading dialog — non-dismissible, removed by ViewModel on completion.
+    uiState.modelLoadProgress?.let { progress ->
+        ModelLoadingDialog(progress = progress)
+    }
 
-    if (showInferenceSheet) {
+    // Model picker sheet for selecting a different model mid-chat.
+    if (showModelPicker) {
+        ModelPickerSheet(
+            models = downloadedModels,
+            activeModelId = (uiState.model as? ModelChipState.Ready)?.modelId,
+            onSelect = {
+                viewModel.onEvent(ChatEvent.SelectModel(it))
+                showModelPicker = false
+            },
+            onDismiss = { showModelPicker = false }
+        )
+    }
+
+    // Inference settings sheet.
+    if (uiState.showInferenceSettings) {
         InferenceSettingsSheet(
             current = uiState.inferenceSettings,
             onSave = {
                 viewModel.onEvent(ChatEvent.UpdateInferenceSettings(it))
-                showInferenceSheet = false
+                viewModel.onEvent(ChatEvent.CloseInferenceSettings)
             },
-            onDismiss = { showInferenceSheet = false }
+            onDismiss = { viewModel.onEvent(ChatEvent.CloseInferenceSettings) }
         )
     }
 }
 
 @Composable
-private fun ChatRoomEmpty(title: String, body: String) {
+private fun ChatRoomEmpty(
+    title: String,
+    body: String,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null
+) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(32.dp)
+        ) {
             Text(title, style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -162,6 +201,12 @@ private fun ChatRoomEmpty(title: String, body: String) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            if (actionLabel != null && onAction != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                androidx.compose.material3.TextButton(onClick = onAction) {
+                    Text(actionLabel)
+                }
+            }
         }
     }
 }

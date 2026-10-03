@@ -71,8 +71,10 @@ class ChatViewModel @Inject constructor(
         observeChats()           // populate the history drawer
         observeDownloadedModels()
         observeEngineState()
-        // Auto-open the chat identified by the nav arg.
-        chatId?.let { viewModelScope.launch { openChatInternal(it) } }
+        // Open an existing chat from nav args — but ignore the "new" sentinel
+        // which means "start a fresh blank canvas without a DB row yet".
+        chatId?.takeIf { it != "new" }
+            ?.let { viewModelScope.launch { openChatInternal(it) } }
     }
 
     fun onEvent(event: ChatEvent) {
