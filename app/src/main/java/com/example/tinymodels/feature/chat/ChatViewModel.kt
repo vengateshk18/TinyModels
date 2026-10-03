@@ -86,6 +86,8 @@ class ChatViewModel @Inject constructor(
             is ChatEvent.DeleteChat -> deleteChat(event.chatId)
             ChatEvent.DismissError -> _uiState.update { it.copy(error = null) }
             is ChatEvent.UpdateInferenceSettings -> updateInferenceSettings(event.settings)
+            ChatEvent.OpenInferenceSettings -> _uiState.update { it.copy(showInferenceSettings = true) }
+            ChatEvent.CloseInferenceSettings -> _uiState.update { it.copy(showInferenceSettings = false) }
         }
     }
 
@@ -220,15 +222,19 @@ class ChatViewModel @Inject constructor(
     // ---- Chat lifecycle ----
 
     private fun newChat() {
-        val modelId = activeModel?.modelId ?: modelManager.loadedModelId
-        if (modelId == null) {
-            _uiState.update { it.copy(error = ChatError("Load a model before starting a chat")) }
-            return
-        }
-        viewModelScope.launch {
-            val defaultBackend = settingsRepository.settings.first().defaultBackend
-            val chat = chatRepository.createChat(modelId, title = "New chat", defaultBackend = defaultBackend)
-            openChatInternal(chat.id)
+        // Do NOT write to the DB here. Just reset the active chat state so the
+        // user sees a blank canvas. The actual DB row is created in sendMessage()
+        // when the user actually sends their first message.
+        session?.close()
+        session = null
+        _uiState.update {
+            it.copy(
+                activeChatId = null,
+                messages = emptyList(),
+                streamingMessageId = null,
+                generation = GenerationState.IDLE,
+                error = null
+            )
         }
     }
 
@@ -618,10 +624,8 @@ class ChatViewModel @Inject constructor(
         generationJob?.cancel()
         session?.close()
         session = null
-        // Unload the model when exiting chat to free RAM
-        viewModelScope.launch {
-            modelManager.unloadModel()
-            _uiState.update { it.copy(modelLoadProgress = null) }
-        }
+        // viewModelScope is cancelled before this block runs, so launch on the
+        // ModelManager's own application-level scope which outlives the ViewModel.
+        modelManager.unloadInBackground()
     }
 }

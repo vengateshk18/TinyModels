@@ -195,6 +195,15 @@ class ModelManager @Inject constructor(
     }
 
     /**
+     * Unload the model on the singleton [scope] that outlives any ViewModel.
+     * Use this from [ViewModel.onCleared] where [viewModelScope] is already
+     * cancelled and a regular `launch` would be a no-op.
+     */
+    fun unloadInBackground() {
+        scope.launch { unloadModel() }
+    }
+
+    /**
      * Execute [block] with the live engine, holding the mutex so the engine
      * cannot be unloaded mid-generation.
      */

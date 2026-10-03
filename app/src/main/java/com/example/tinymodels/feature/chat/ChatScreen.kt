@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,6 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.tinymodels.feature.chat.components.ChatHistoryDrawer
 import com.example.tinymodels.feature.chat.components.ChatInputBar
 import com.example.tinymodels.feature.chat.components.EditMessageDialog
+import com.example.tinymodels.feature.chat.components.InferenceSettingsSheet
 import com.example.tinymodels.feature.chat.components.MessageBubble
 import com.example.tinymodels.feature.chat.components.ModelChip
 import com.example.tinymodels.feature.chat.components.ModelLoadingDialog
@@ -126,6 +128,12 @@ private fun ChatScreenContent(
                         }
                     },
                     actions = {
+                        // Inference settings — only available when a model is ready.
+                        if (uiState.model is ModelChipState.Ready) {
+                            IconButton(onClick = { onEvent(ChatEvent.OpenInferenceSettings) }) {
+                                Icon(Icons.Filled.Tune, contentDescription = "Session settings")
+                            }
+                        }
                         IconButton(onClick = onNavigateToSettings) {
                             Icon(Icons.Filled.Settings, contentDescription = "Settings")
                         }
@@ -208,6 +216,18 @@ private fun ChatScreenContent(
                 editingMessage = null
             },
             onDismiss = { editingMessage = null }
+        )
+    }
+
+    // Inference settings sheet
+    if (uiState.showInferenceSettings) {
+        InferenceSettingsSheet(
+            current = uiState.inferenceSettings,
+            onSave = { settings ->
+                onEvent(ChatEvent.UpdateInferenceSettings(settings))
+                onEvent(ChatEvent.CloseInferenceSettings)
+            },
+            onDismiss = { onEvent(ChatEvent.CloseInferenceSettings) }
         )
     }
 }

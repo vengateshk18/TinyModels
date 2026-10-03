@@ -76,7 +76,9 @@ data class ChatUiState(
     val hasDownloadedModels: Boolean = true,
     val inferenceSettings: InferenceSettings = InferenceSettings(),
     val error: ChatError? = null,
-    val modelLoadProgress: ModelLoadProgress? = null
+    val modelLoadProgress: ModelLoadProgress? = null,
+    /** Whether the inference-settings bottom sheet is open. */
+    val showInferenceSettings: Boolean = false
 ) {
     val canSend: Boolean
         get() = model is ModelChipState.Ready && generation == GenerationState.IDLE
@@ -94,4 +96,6 @@ sealed interface ChatEvent {
     data class DeleteChat(val chatId: String) : ChatEvent
     data object DismissError : ChatEvent
     data class UpdateInferenceSettings(val settings: InferenceSettings) : ChatEvent
+    data object OpenInferenceSettings : ChatEvent
+    data object CloseInferenceSettings : ChatEvent
 }
