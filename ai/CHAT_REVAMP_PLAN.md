@@ -1,239 +1,288 @@
-# Chat Interface Revamp Plan
+# Chat Feature Revamp Plan
 
-> Goal: Fix the response-printing bug, add edge-to-edge insets, cancel / regenerate /
-> edit-prompt, per-message timestamps, and a polished custom input bar — delivered as
-> thin vertical slices, each committed separately.
-
----
-
-## 1. Problem analysis (current bugs)
-
-### 1.1 Response not printing properly
-- **Root cause**: `ChatViewModel.observeMessages()` has `if (generation == GENERATING) return@collect`.
-  This blocks the Room flow from updating the UI during generation. If the optimistic
-  user-message append is lost (e.g. config change, or the optimistic update is applied
-  *before* `observeMessages` emits), the user's own message may not appear.
-- **Race**: The streaming assistant placeholder is appended optimistically, but
-  `observeMessages` runs concurrently. When generation ends and the guard lifts, the
-  Room flow re-emits the full list — overwriting the streaming text with the persisted
-  version. If persistence hasn't flushed yet, the partial text vanishes.
-- **Markdown**: Partial markdown (unclosed code fences, half-finished lists) can render
-  as broken/unstyled text mid-stream.
-
-### 1.2 No edge-to-edge handling
-- `MainActivity.enableEdgeToEdge()` is called, but `ChatScreen` relies solely on
-  `Scaffold`'s `padding`. The `TopAppBar` doesn't extend behind the status bar
-  consistently, and the `ChatInputBar` applies `navigationBarsPadding()` + `imePadding()`
-  but the message `LazyColumn` doesn't add `statusBarsPadding` when scrolled under the
-  transparent top bar. Drawer content also lacks inset handling.
-
-### 1.3 Cancel is incomplete
-- `cancelGeneration()` cancels the coroutine `Job` but doesn't tell the LiteRT-LM
-  `Conversation` to stop generating. The engine continues in the background until the
-  next GC. Partial text is kept but the KV-cache state may be inconsistent.
-
-### 1.4 No regeneration
-- No `ChatEvent.Regenerate` exists. Re-running the last prompt requires deleting the
-  last assistant message and re-sending — not implemented.
-
-### 1.5 No editing
-- No `ChatEvent.EditMessage` exists. User prompts are immutable once sent.
-
-### 1.6 No timestamps
-- `UiChatMessage.timestamp` is populated but `MessageBubble` never renders it.
-  No "sent at" / "completed at" times below messages.
-
-### 1.7 Input bar is basic
-- Plain `OutlinedTextField` + send/stop `FilledIconButton`. No animated multi-line
-  growth, no edit-mode visual distinction, no clear button, no disabled-state styling.
+> **Goal:** Fix model loading progress, prevent unnecessary session creation, ensure proper model cleanup, and add inference session settings — delivered as **thin vertical slices**, each committed separately.  
+> **Format:** Code-free steps only. No code snippets. Each slice is independently implementable and commit-ready.
 
 ---
 
-## 2. Proposed changes (thin vertical slices)
+## Problem Summary
 
-### Slice C1 — Fix streaming + message list race
-**Goal**: Response prints correctly every time.
-- Remove the `if (generation == GENERATING) return@collect` blanket guard.
-- Instead, merge the streaming assistant placeholder with Room updates: always apply
-  Room messages for **non-streaming** items, but preserve the in-flight streaming
-  message (identified by `assistantId`) from the optimistic UI.
-- Add a `streamingMessageId: String?` to `ChatUiState`; the `observeMessages` collector
-  merges: `roomMessages + (streaming placeholder if active)`.
-- Guard the Markdown renderer against partial input: wrap in a try/catch and fall back
-  to plain `Text` if parsing fails.
-- **Commit**: `fix(chat): C1 — fix streaming response + message list race`
+### Issue 1: Model Loading Progress
+- **Symptom:** When entering a chat, the model loads silently with no feedback. User sees a blank screen or frozen UI.
+- **Root Cause:** `ChatViewModel.loadModel()` blocks the main thread or runs without progress callbacks. No `LoadingDialog` or progress state in UI.
 
-### Slice C2 — Edge-to-edge insets across all screens
-**Goal**: Content respects status bar, nav bar, and IME everywhere.
-- `ChatScreen`: apply `Modifier.statusBarsPadding()` to the `TopAppBar` area (or use
-  `Scaffold` with `contentWindowInsets` properly), and `imePadding()` +
-  `navigationBarsPadding()` to the input bar (already partial).
-- `MessageList`: add `consumeWindowInsets` + vertical content padding that accounts for
-  the top bar height so messages don't hide behind the status bar.
-- `ChatHistoryDrawer`: add `statusBarsPadding()` to drawer content.
-- Verify `ModelDetailsScreen`, `DownloadedModelsScreen`, `SettingsScreen`,
-  `ModelsBrowseScreen` also handle insets (they use Scaffold, so mostly OK — verify).
-- **Commit**: `fix(chat): C2 — edge-to-edge insets for chat + drawer`
+### Issue 2: Unnecessary Session Creation
+- **Symptom:** Every time entering model detail (even without chatting), a new empty chat session is created in the database.
+- **Root Cause:** Session is created on model detail screen enter, not when user actually starts chatting.
 
-### Slice C3 — Per-message timestamps
-**Goal**: Show sent/completed times below each message.
-- Add `completedAt: Long?` to `UiChatMessage` (for assistant messages).
-- Add `completedAt` to the `ChatMessage` domain model + Room entity + DAO (migration
-  or `ALTER TABLE` additive column).
-- `MessageBubble`: render a timestamp row below the bubble content:
-  - User: `"Sent  14:32"`
-  - Assistant: `"Sent 14:32  ·  Completed 14:33  ·  1.2s"` (duration when available).
-- Use a shared `Formatters.formatTime(epochMs)` helper.
-- **Commit**: `feat(chat): C3 — per-message sent/completed timestamps`
+### Issue 3: Model Not Unloaded on Exit
+- **Symptom:** After exiting chat, the model stays loaded in RAM, causing memory bloat.
+- **Root Cause:** `ModelManager.unloadModel()` is not called in `ChatViewModel.onCleared()` or lifecycle callbacks.
 
-### Slice C4 — Proper cancel generation
-**Goal**: Stop button halts the engine cleanly.
-- Add `ConversationSession.stop()` that cancels the LiteRT-LM generation (if the API
-  supports it; otherwise document the limitation and cancel the flow + mark partial).
-- `ChatViewModel.cancelGeneration()`: call `session.stop()` + cancel the job + persist
-  partial text as `isComplete = false`.
-- UI: the Stop button already exists; ensure it's enabled and visible during generation.
-- **Commit**: `feat(chat): C4 — proper cancel with engine stop + partial persistence`
-
-### Slice C5 — Regenerate last response
-**Goal**: Re-run the last user prompt to get a fresh assistant reply.
-- Add `ChatEvent.Regenerate` to MVI.
-- `ChatViewModel.onRegenerate()`:
-  1. Find the last user message in the active chat.
-  2. Delete the last assistant message (if any) from Room.
-  3. Remove the last assistant turn from the `ConversationSession` history (if possible;
-  otherwise rebuild the session from trimmed history).
-  4. Re-run `runGeneration()` with the same user prompt.
-- UI: add a "Regenerate" icon button below the last assistant message (or in the input
-  bar when idle and last message is assistant).
-- **Commit**: `feat(chat): C5 — regenerate last response`
-
-### Slice C6 — Edit and re-send a prompt
-**Goal**: Tap a user message to edit it, replacing everything after it.
-- Add `ChatEvent.EditMessage(messageId, newText)` to MVI.
-- `ChatViewModel.onEditMessage()`:
-  1. Find the user message by id.
-  2. Delete it + all messages after it from Room.
-  3. Rebuild the `ConversationSession` from the remaining history.
-  4. Send the edited text as a new prompt.
-- UI: user messages become tappable (not just long-press copy). Tapping opens an edit
-  sheet/dialog with the original text in a text field + Save/Cancel.
-- Show an "edited" indicator on the message.
-- **Commit**: `feat(chat): C6 — edit and re-send a prompt`
-
-### Slice C7 — Polished custom input bar
-**Goal**: A beautiful, functional composer.
-- Replace `OutlinedTextField` with a custom surface:
-  - Rounded container card with `surfaceContainerHigh` color.
-  - Multi-line text that grows up to 6 lines, then scrolls internally.
-  - Animated height transition when growing.
-  - Trailing row: Send (filled, primary) / Stop (filled, error) / and when editing, a
-    "Cancel edit" text button.
-  - Leading: a character/token count (`123 chars · ~31 tokens`) in muted color.
-  - Disabled state: dimmed + "Load a model to chat" placeholder.
-- When `canSend == false` and not generating: show a subtle hint row above the bar
-  ("Pick a model" / "Loading model…").
-- **Commit**: `feat(chat): C7 — polished custom input bar with animated growth`
-
-### Slice C8 — Chat ViewModel unit tests
-**Goal**: Cover the new flows.
-- `ChatViewModelTest`: send message (stream mock), cancel, regenerate, edit, timestamp
-  persistence.
-- Use fake `ChatRepository` + mockk for `ModelManager` / `SettingsRepository`.
-- **Commit**: `test(chat): C8 — ViewModel tests for cancel/regenerate/edit/timestamps`
+### Issue 4: No Inference Settings UI
+- **Symptom:** No way to change temperature, max tokens, or context length during chat session.
+- **Root Cause:** Settings are global only. No per-model or per-session UI to adjust inference parameters.
 
 ---
 
-## 3. Data model changes
+## Slice-Based Implementation Plan
 
-### ChatMessage (domain + Room)
-```kotlin
-data class ChatMessage(
-    val id: String,
-    val chatId: String,
-    val role: Role,
-    val content: String,
-    val tokenCount: Int,
-    val createdAt: Long,         // when the message was sent/created
-    val completedAt: Long?,      // NEW: when generation finished (assistant only)
-    val isComplete: Boolean = true,
-    val isEdited: Boolean = false // NEW: user message was edited
-)
-```
-- Room: additive migration (add `completedAt INTEGER` + `isEdited INTEGER DEFAULT 0`).
+### Slice 1: Model Loading Progress Indicator
+**Files:** `ChatScreen.kt`, `ChatViewModel.kt`, `InferenceError.kt`  
+**Commit:** `Implement model loading progress indicator`
 
-### UiChatMessage
-```kotlin
-data class UiChatMessage(
-    val id: String,
-    val isUser: Boolean,
-    val text: String,
-    val isStreaming: Boolean = false,
-    val timestamp: Long = 0L,       // sent time
-    val completedAt: Long? = null,   // completed time (assistant)
-    val isEdited: Boolean = false    // edited indicator (user)
-)
-```
+**Steps:**
+1. Add `modelLoadProgress` (Float) and `isLoadingModel` (Boolean) to `ChatUiState`.
+2. Update `ModelManager.loadModel()` to accept an optional `onProgress: (Float) -> Unit` callback.
+3. In `ChatViewModel.loadModel()`, call `onProgress` with intermediate progress values (0.0 → 1.0).
+4. Create `LoadingDialog` composable with:
+   - CircularProgressIndicator
+   - Progress text ("Loading model... 45%")
+   - Optional: Token count or model size info
+5. In `ChatScreen`, show `LoadingDialog` when `isLoadingModel` is true.
+6. Wire progress updates: `onProgress { progress -> _uiState.update { it.copy(modelLoadProgress = progress) } }`
+7. Hide dialog when `isLoadingModel` becomes false.
+8. Test with a large model (>1GB) to verify progress updates are visible.
+9. Verify dialog is dismissable only by model load completion (not back button).
 
 ---
 
-## 4. UI component changes
+### Slice 2: Fix Unnecessary Session Creation
+**Files:** `ChatViewModel.kt`, `SessionManager.kt`, `Model.kt`  
+**Commit:** `Prevent automatic chat session creation`
 
-| Component | Change |
-|----------|--------|
-| `MessageBubble` | + timestamp row below content, + regenerate button (last assistant), + tap-to-edit (user), + edit indicator, + safe Markdown fallback |
-| `ChatInputBar` | Full rewrite: custom container, animated multi-line, token count, edit-mode, disabled hint |
-| `ChatScreen` | Inset handling, streaming merge, empty-state polish |
-| `ChatHistoryDrawer` | `statusBarsPadding` |
-
----
-
-## 5. New MVI events
-```kotlin
-sealed interface ChatEvent {
-    // existing
-    data class SelectModel(val modelId: String) : ChatEvent
-    data class SendMessage(val text: String) : ChatEvent
-    data object CancelGeneration : ChatEvent
-    data object NewChat : ChatEvent
-    data class OpenChat(val chatId: String) : ChatEvent
-    data class DeleteChat(val chatId: String) : ChatEvent
-    data object DismissError : ChatEvent
-    // new
-    data object Regenerate : ChatEvent
-    data class EditMessage(val messageId: String, val newText: String) : ChatEvent
-}
-```
+**Steps:**
+1. Add `shouldCreateSession` flag to `ChatUiState` (default: false).
+2. In `ChatViewModel`, remove automatic session creation on `onModelSelected()`.
+3. Add `startChat()` method in `ChatViewModel` that:
+   - Checks if a session exists for the model
+   - Creates session only if none exists AND user clicks "Start Chat"
+   - Sets `shouldCreateSession = true` on model selection
+4. Update `ModelDetailsScreen` to show "Start Chat" button only when `shouldCreateSession` is true.
+5. In `SessionManager`, add `createSessionIfNotExists(modelId)` that returns existing or creates new.
+6. Ensure `Model.kt` does not auto-create sessions in `ModelDetails`.
+7. Test: Navigate to model detail → Verify no session created → Click "Start Chat" → Verify session created.
+8. Test: Navigate away and back → Verify same session reused, not duplicated.
 
 ---
 
-## 6. Execution order & dependencies
+### Slice 3: Proper Model Cleanup on Exit
+**Files:** `ChatViewModel.kt`, `ModelManager.kt`  
+**Commit:** `Unload model when exiting chat session`
+
+**Steps:**
+1. In `ChatViewModel.onCleared()`, call `modelManager.unloadModel(currentModelId)`.
+2. Add `unloadModel(modelId: String?)` method in `ModelManager` that:
+   - Calls `engine.unload()` if engine is loaded
+   - Clears cached model references
+   - Logs unload action
+3. In `ChatViewModel`, add `onChatExit()` callback that:
+   - Triggers model unload
+   - Resets `isLoadingModel`, `modelLoadProgress`, and session state
+4. Update `ChatScreen` to call `viewModel.onChatExit()` when user navigates away (using lifecycle).
+5. Add `ModelUnloadListener` interface in `ModelManager` to notify UI of unload completion.
+6. In `ChatScreen`, show brief toast/snackbar: "Model unloaded to free memory".
+7. Test: Open chat → Verify model loads → Exit chat → Check RAM usage drops → Reopen chat → Verify fresh load.
+8. Verify no memory leaks: Run profiler before/after chat sessions.
+
+---
+
+### Slice 4: Inference Session Settings Dialog
+**Files:** `InferenceSettingsDialog.kt`, `ChatScreen.kt`, `ChatViewModel.kt`, `SettingsRepository.kt`  
+**Commit:** `Add inference settings configuration dialog`
+
+**Steps:**
+1. Create `InferenceSettingsDialog.kt` composable with:
+   - Temperature slider (0.0–2.0, default 0.7)
+   - Max tokens input (spinner or text field, default 512)
+   - Context length dropdown (256, 512, 1024, 2048)
+   - Reset to defaults button
+   - Save and Cancel buttons
+2. Add `showInferenceSettings` Boolean to `ChatUiState`.
+3. In `ChatScreen`, add gear icon button next to model name to open `InferenceSettingsDialog`.
+4. In `ChatViewModel`, add `openInferenceSettings()` and `saveInferenceSettings(temp, maxTokens, contextLen)` methods.
+5. Persist settings per model: Add `inferenceSettings` map in `SettingsRepository` (`Map<String, InferenceSettings>`).
+6. `InferenceSettings` data class:
+   ```kotlin
+   data class InferenceSettings(
+       val temperature: Float = 0.7f,
+       val maxTokens: Int = 512,
+       val contextLength: Int = 1024
+   )
+   ```
+7. When loading model, pass `inferenceSettings` to `ModelManager.loadModel()`.
+8. Test: Open settings → Change values → Save → Verify model reloaded with new settings.
+9. Test: Exit and re-enter chat → Verify settings persist.
+10. Ensure dialog follows Material3 theme and font scale.
+
+---
+
+### Slice 5: Settings Persistence Per Model
+**Files:** `SettingsRepository.kt`, `SettingsDataSource.kt`, `Model.kt`  
+**Commit:** `Persist inference settings per model`
+
+**Steps:**
+1. In `SettingsDataSource`, add table `model_inference_settings` with columns:
+   - `model_id` (TEXT, PRIMARY KEY)
+   - `temperature` (REAL)
+   - `max_tokens` (INTEGER)
+   - `context_length` (INTEGER)
+   - `updated_at` (INTEGER)
+2. Add DAO methods:
+   - `getInferenceSettings(modelId: String): InferenceSettings?`
+   - `saveInferenceSettings(modelId: String, settings: InferenceSettings): Unit`
+   - `resetInferenceSettings(modelId: String): Unit`
+3. In `SettingsRepository`, update `getInferenceSettings()` to fetch from DB, fallback to defaults.
+4. Add `Model.inferenceSettings: InferenceSettings` computed property that merges default + saved.
+5. Migrate existing `Settings` table to new `model_inference_settings` table.
+6. Test: Save settings for Model A → Verify saved in DB → Load Model A → Verify settings applied.
+7. Test: Save settings for Model B → Verify independent from Model A.
+8. Test: Reset settings → Verify defaults restored.
+
+---
+
+### Slice 6: Testing & Polish
+**Files:** `ChatViewModelTest.kt`, `ModelManagerTest.kt`, `InferenceSettingsDialogTest.kt`  
+**Commit:** `Add comprehensive test coverage for chat features`
+
+**Steps:**
+1. In `ChatViewModelTest`:
+   - Test `loadModel()` shows progress and completes
+   - Test `startChat()` creates session only when needed
+   - Test `onCleared()` unloads model
+   - Test `saveInferenceSettings()` persists correctly
+2. In `ModelManagerTest`:
+   - Test `loadModel()` with progress callback
+   - Test `unloadModel()` releases resources
+   - Test settings are applied correctly
+3. Create `InferenceSettingsDialogTest`:
+   - Test UI renders correctly
+   - Test save/cancel actions
+   - Test persistence round-trip
+4. Add UI tests (Espresso) for:
+   - Progress dialog visibility
+   - Session creation flow
+   - Settings dialog interaction
+5. Run all tests: `./gradlew :app:testDebugUnitTest`
+6. Run UI tests on emulator: `./gradlew :app:connectedAndroidTest`
+7. Verify all tests pass before merging.
+8. Update `README.md` with new features and usage.
+
+---
+
+## Execution Order & Dependencies
 
 ```
-C1 (fix streaming) ──► C3 (timestamps) ──► C5 (regenerate)
-                  └──► C2 (insets)         └──► C6 (edit)
-                  └──► C4 (cancel)         └──► C7 (input bar)
-                                            └──► C8 (tests)
+Slice 1 (Progress) ──► Slice 2 (Session Fix) ──► Slice 3 (Cleanup)
+                    └──► Slice 4 (Settings) ──► Slice 5 (Persistence)
+                                              └──► Slice 6 (Testing)
 ```
 
-C1 first (fixes the core bug). C2/C3/C4 independent. C5/C6 depend on C1+C3.
-C7 depends on C6 (edit mode in bar). C8 last.
+- **Slice 1** is foundational (fixes UX blocker).
+- **Slice 2** and **Slice 3** are independent but related to lifecycle.
+- **Slice 4** depends on **Slice 1** (settings dialog shown during load).
+- **Slice 5** depends on **Slice 4** (persists what Slice 4 creates).
+- **Slice 6** is last (tests all slices).
 
 ---
 
-## 7. Verification
+## Verification Checklist
 
-Each slice:
+After each slice:
+
+### Slice 1
+- [ ] Progress dialog appears during model load
+- [ ] Progress updates smoothly (0% → 100%)
+- [ ] Dialog dismisses only on completion
+- [ ] No UI freeze during load
+
+### Slice 2
+- [ ] No session created on model detail enter
+- [ ] Session created only when "Start Chat" clicked
+- [ ] Same session reused on re-entry
+
+### Slice 3
+- [ ] Model unloads on chat exit
+- [ ] RAM usage drops after unload
+- [ ] Toast shown on unload
+- [ ] No memory leaks in profiler
+
+### Slice 4
+- [ ] Settings dialog opens from gear icon
+- [ ] All controls work (slider, input, dropdown)
+- [ ] Save applies new settings immediately
+- [ ] Cancel discards changes
+
+### Slice 5
+- [ ] Settings persist across app restarts
+- [ ] Per-model settings are independent
+- [ ] Reset restores defaults
+
+### Slice 6
+- [ ] All unit tests pass
+- [ ] All UI tests pass
+- [ ] No regressions in existing features
+
+---
+
+## Theme & Font Guidelines
+
+All UI changes must follow:
+- **Material3 theme** (use `MaterialTheme.colorScheme`)
+- **Typography** (use `MaterialTheme.typography`)
+- **Font scale support** (all text uses `fontSize` from `Typography`)
+- **Edge-to-edge** (use `statusBarsPadding`, `navigationBarsPadding`, `imePadding`)
+- **Accessibility** (minimum touch target 48dp, contrast ≥ 4.5:1)
+
+---
+
+## Risk Analysis
+
+| Risk | Mitigation |
+|------|------------|
+| Progress callback blocks main thread | Run progress updates on `Dispatchers.Default` and `collectAsState()` on main |
+| Session creation race condition | Use `mutex` in `SessionManager` to serialize session creation |
+| Model unload crashes | Wrap `unloadModel()` in try/catch, log errors |
+| Settings migration data loss | Use additive migration (new table), keep old settings as fallback |
+| Dialog too large on small screens | Make `InferenceSettingsDialog` scrollable and use `minWidth(320.dp)` |
+
+---
+
+## Commit Messages (Ready to Use)
+
 ```bash
-./gradlew :app:assembleDebug          # BUILD SUCCESSFUL
-./gradlew :app:testDebugUnitTest      # green (C8 adds new tests)
+# Slice 1
+git commit -m "Implement model loading progress indicator"
+
+# Slice 2
+git commit -m "Prevent automatic chat session creation"
+
+# Slice 3
+git commit -m "Unload model when exiting chat session"
+
+# Slice 4
+git commit -m "Add inference settings configuration dialog"
+
+# Slice 5
+git commit -m "Persist inference settings per model"
+
+# Slice 6
+git commit -m "Add comprehensive test coverage for chat features"
 ```
 
-Manual checklist (on device):
-- [ ] Send a prompt → response streams correctly, no duplication, no missing text.
-- [ ] Content extends behind status/nav bars without overlap.
-- [ ] Stop button halts generation, partial text retained.
-- [ ] Regenerate re-runs the last prompt.
-- [ ] Edit a user message → replaces downstream messages.
-- [ ] Timestamps visible below each message.
-- [ ] Input bar grows smoothly, shows token count, edit mode works.
+---
+
+## Next Steps
+
+1. Review this plan with the team (optional).
+2. Start with **Slice 1** (model loading progress).
+3. Implement each slice in order, committing after each.
+4. Run tests after every slice.
+5. Merge to `main` only after all slices are complete and tested.
+
+---
+
+**Plan Created:** 2024-01-20  
+**Version:** 1.0  
+**Author:** AI Assistant  
+**Status:** Ready for Implementation
