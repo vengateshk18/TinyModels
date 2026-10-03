@@ -1,5 +1,6 @@
 package com.example.tinymodels.di
 
+import com.example.tinymodels.core.common.SnackbarManager
 import com.example.tinymodels.data.repository.ChatRepositoryImpl
 import com.example.tinymodels.data.repository.ModelRepositoryImpl
 import com.example.tinymodels.data.repository.SettingsRepositoryImpl
@@ -8,6 +9,7 @@ import com.example.tinymodels.domain.repository.ModelRepository
 import com.example.tinymodels.domain.repository.SettingsRepository
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
@@ -27,4 +29,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindSettingsRepository(impl: SettingsRepositoryImpl): SettingsRepository
+
+    companion object {
+        @Provides
+        @Singleton
+        fun provideSnackbarManager(): SnackbarManager = SnackbarManager()
+    }
 }

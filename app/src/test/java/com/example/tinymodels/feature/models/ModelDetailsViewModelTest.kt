@@ -181,6 +181,9 @@ private class FakeModelRepository : ModelRepository {
     override suspend fun listModels(): AppResult<List<ModelSummary>>
         = throw NotImplementedError()
 
+    override suspend fun listModels(search: String?, pipelineTag: String?): AppResult<List<ModelSummary>>
+        = throw NotImplementedError()
+
     override suspend fun getModelDetails(modelId: String): AppResult<ModelDetails> = detailsResult
 
     override fun observeDownloadedModels() = downloaded

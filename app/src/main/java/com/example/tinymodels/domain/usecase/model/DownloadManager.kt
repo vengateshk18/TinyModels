@@ -11,8 +11,7 @@ import javax.inject.Singleton
  * Prevents conflicts and ensures predictable download behavior.
  */
 @Singleton
-class DownloadManager @Inject constructor() {
-    
+class DownloadManager @Inject constructor() : DownloadManagerService {
     private val _activeDownloads = MutableStateFlow<Set<String>>(emptySet())
     val activeDownloads: StateFlow<Set<String>> = _activeDownloads.asStateFlow()
     
@@ -22,12 +21,12 @@ class DownloadManager @Inject constructor() {
     /**
      * Check if a download is currently active for a specific model.
      */
-    fun isActive(modelId: String): Boolean = _activeDownloads.value.contains(modelId)
+    override fun isActive(modelId: String): Boolean = _activeDownloads.value.contains(modelId)
     
     /**
      * Attempt to start a new download. Returns false if another download is active.
      */
-    fun startDownload(modelId: String, fileName: String? = null): Boolean {
+    override fun startDownload(modelId: String, fileName: String?): Boolean {
         synchronized(this) {
             if (_activeDownloads.value.isNotEmpty()) {
                 return false
@@ -40,7 +39,7 @@ class DownloadManager @Inject constructor() {
     /**
      * Mark a download as complete.
      */
-    fun completeDownload(modelId: String) {
+    override fun completeDownload(modelId: String) {
         synchronized(this) {
             _activeDownloads.value -= modelId
         }
@@ -49,7 +48,7 @@ class DownloadManager @Inject constructor() {
     /**
      * Cancel an active download.
      */
-    fun cancelDownload(modelId: String) {
+    override fun cancelDownload(modelId: String) {
         synchronized(this) {
             _activeDownloads.value -= modelId
         }
@@ -79,7 +78,7 @@ class DownloadManager @Inject constructor() {
     /**
      * Check if any download is currently active.
      */
-    fun hasActiveDownload(): Boolean = _activeDownloads.value.isNotEmpty()
+    override fun hasActiveDownload(): Boolean = _activeDownloads.value.isNotEmpty()
     
     /**
      * Get the count of queued downloads.

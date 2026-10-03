@@ -5,6 +5,7 @@ import android.content.ComponentCallbacks2
 import android.content.res.Configuration
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration as WorkConfiguration
+import com.example.tinymodels.core.common.DownloadNotifier
 import com.example.tinymodels.core.inference.ModelManager
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
@@ -46,5 +47,8 @@ class TinyModelsApp : Application(), WorkConfiguration.Provider {
     override fun onCreate() {
         super.onCreate()
         registerComponentCallbacks(memoryCallbacks)
+        // Create the download notification channel up-front so it exists before
+        // any ModelDownloadWorker runs (channel creation is idempotent).
+        DownloadNotifier.createChannel(this)
     }
 }

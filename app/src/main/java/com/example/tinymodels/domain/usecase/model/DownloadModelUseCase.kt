@@ -77,6 +77,7 @@ class DownloadModelUseCase @Inject constructor(
             .setInputData(
                 Data.Builder()
                     .putString(ModelDownloadWorker.KEY_MODEL_ID, model.id)
+                    .putString(ModelDownloadWorker.KEY_MODEL_NAME, model.id)
                     .putStringArray(ModelDownloadWorker.KEY_FILES, arrayOf(fileName))
                     .putString(ModelDownloadWorker.KEY_AUTHOR, model.author)
                     .putString(ModelDownloadWorker.KEY_LIBRARY, model.libraryName)
@@ -126,6 +127,7 @@ class DownloadModelUseCase @Inject constructor(
             .setInputData(
                 Data.Builder()
                     .putString(ModelDownloadWorker.KEY_MODEL_ID, model.id)
+                    .putString(ModelDownloadWorker.KEY_MODEL_NAME, model.id)
                     .putStringArray(ModelDownloadWorker.KEY_FILES, model.runtimeFiles.ifEmpty { model.liteRtFiles }.toTypedArray())
                     .putString(ModelDownloadWorker.KEY_AUTHOR, model.author)
                     .putString(ModelDownloadWorker.KEY_LIBRARY, model.libraryName)

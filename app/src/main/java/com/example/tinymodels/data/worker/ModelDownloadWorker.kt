@@ -1,17 +1,14 @@
 package com.example.tinymodels.data.worker
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.ServiceInfo
 import android.os.Build
-import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import com.example.tinymodels.R
+import com.example.tinymodels.core.common.DownloadNotifier
 import com.example.tinymodels.core.database.DownloadedModelDao
 import com.example.tinymodels.core.database.ModelFileDao
 import com.example.tinymodels.core.database.entities.DownloadedModelEntity
@@ -29,8 +26,14 @@ import java.io.File
 import kotlin.coroutines.coroutineContext
 
 /**
- * Downloads a model's LiteRT files in the foreground with a progress notification,
- * then records the result in Room. Hilt-injected (DAO + API + OkHttp).
+ * Downloads a model's LiteRT files in the foreground with a throttled progress
+ * notification, then records the result in Room. Hilt-injected (DAO + API + OkHttp).
+ *
+ * Progress is posted to the system notification at most every [NOTIFY_INTERVAL_MS]
+ * (or when the percent changes by >= 1) so the system isn't flooded with per-chunk
+ * updates; the WorkManager `setProgress` flow to the UI still updates every chunk.
+ * Terminal states post a complete / failed notification; a user cancel dismisses
+ * the progress notification without a terminal post.
  */
 @HiltWorker
 class ModelDownloadWorker @AssistedInject constructor(
@@ -42,18 +45,20 @@ class ModelDownloadWorker @AssistedInject constructor(
     private val client: OkHttpClient
 ) : CoroutineWorker(appContext, workerParams) {
 
-    private val notificationManager =
-        appContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    // Throttling state for notification updates.
+    private var lastNotifyMs = 0L
+    private var lastNotifiedPct = -1
 
     override suspend fun doWork(): Result {
         val modelId = inputData.getString(KEY_MODEL_ID) ?: return Result.failure()
         val files = inputData.getStringArray(KEY_FILES)?.toList().orEmpty()
         val total = inputData.getLong(KEY_TOTAL_BYTES, 0L)
+        val title = inputData.getString(KEY_MODEL_NAME) ?: DEFAULT_TITLE
         val modelDirectory = File(applicationContext.filesDir, "models/${modelId.replace("/", "_")}")
         var downloaded = 0L
 
-        createChannel()
-        setForeground(createForegroundInfo(0L, total))
+        DownloadNotifier.createChannel(applicationContext)
+        setForeground(createForegroundInfo(0L, total, title))
 
         val startTimeMs = System.currentTimeMillis()
         return try {
@@ -75,7 +80,7 @@ class ModelDownloadWorker @AssistedInject constructor(
                             KEY_BYTES_PER_SEC to speed
                         )
                     )
-                    notificationManager.notify(NOTIFICATION_ID, createNotification(downloaded, total))
+                    maybeNotifyProgress(title, downloaded, total)
                 }
             }
 
@@ -102,6 +107,7 @@ class ModelDownloadWorker @AssistedInject constructor(
                     )
                 )
             }
+            DownloadNotifier.notifyComplete(applicationContext, id, title)
             Result.success()
         } catch (cancellation: kotlinx.coroutines.CancellationException) {
             files.forEach { fileName ->
@@ -110,6 +116,7 @@ class ModelDownloadWorker @AssistedInject constructor(
                 )
             }
             modelDirectory.deleteRecursively()
+            DownloadNotifier.cancelProgress(applicationContext, id)
             throw cancellation
         } catch (exception: Exception) {
             files.forEach { fileName ->
@@ -118,8 +125,21 @@ class ModelDownloadWorker @AssistedInject constructor(
                 )
             }
             modelDirectory.deleteRecursively()
+            DownloadNotifier.notifyFailed(applicationContext, id, title, exception.message)
             Result.retry()
         }
+    }
+
+    /** Posts a progress notification, throttled to avoid flooding the system. */
+    private fun maybeNotifyProgress(title: String, downloaded: Long, total: Long) {
+        val nowMs = System.currentTimeMillis()
+        val pct = if (total > 0) (downloaded * 100 / total).toInt() else 0
+        val due = nowMs - lastNotifyMs >= NOTIFY_INTERVAL_MS
+        val pctAdvanced = pct != lastNotifiedPct && (pct - lastNotifiedPct >= 1 || pct >= 100)
+        if (!due && !pctAdvanced) return
+        lastNotifyMs = nowMs
+        lastNotifiedPct = pct
+        DownloadNotifier.notifyProgress(applicationContext, id, title, downloaded, total)
     }
 
     private suspend fun downloadFile(
@@ -149,37 +169,23 @@ class ModelDownloadWorker @AssistedInject constructor(
         }
     }
 
-    private fun createForegroundInfo(downloaded: Long, total: Long): ForegroundInfo =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ForegroundInfo(NOTIFICATION_ID, createNotification(downloaded, total),
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        } else {
-            ForegroundInfo(NOTIFICATION_ID, createNotification(downloaded, total))
-        }
-
-    private fun createNotification(downloaded: Long, total: Long) =
-        NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Downloading model")
-            .setContentText("${formatMb(downloaded)} / ${formatMb(total)}")
-            .setProgress(if (total > 0) 100 else 0,
-                if (total > 0) (downloaded * 100 / total).toInt() else 0, total <= 0)
-            .setOngoing(true)
-            .build()
-
-    private fun createChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            notificationManager.createNotificationChannel(
-                NotificationChannel(CHANNEL_ID, "Model downloads", NotificationManager.IMPORTANCE_LOW)
+    private fun createForegroundInfo(downloaded: Long, total: Long, title: String): ForegroundInfo {
+        val notification =
+            DownloadNotifier.progressNotification(applicationContext, id, title, downloaded, total)
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ForegroundInfo(
+                DownloadNotifier.notificationIdFor(id), notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
             )
+        } else {
+            ForegroundInfo(DownloadNotifier.notificationIdFor(id), notification)
         }
     }
-
-    private fun formatMb(bytes: Long): String = "%.1f MB".format(bytes / 1024.0 / 1024.0)
 
     companion object {
         const val TAG = "model_download"
         const val KEY_MODEL_ID = "model_id"
+        const val KEY_MODEL_NAME = "model_name"
         const val KEY_FILES = "files"
         const val KEY_AUTHOR = "author"
         const val KEY_LIBRARY = "library"
@@ -188,7 +194,8 @@ class ModelDownloadWorker @AssistedInject constructor(
         const val KEY_DOWNLOADED_BYTES = "downloaded_bytes"
         const val KEY_PROGRESS = "progress"
         const val KEY_BYTES_PER_SEC = "bytes_per_sec"
-        const val CHANNEL_ID = "model_downloads"
-        const val NOTIFICATION_ID = 1001
+
+        private const val DEFAULT_TITLE = "Downloading model"
+        private const val NOTIFY_INTERVAL_MS = 400L
     }
 }

@@ -14,7 +14,6 @@ import javax.inject.Singleton
  */
 @Singleton
 class SnackbarManager @Inject constructor() {
-    
     private val _snackbar = MutableStateFlow<SnackbarMessage?>(null)
     val snackbar: StateFlow<SnackbarMessage?> = _snackbar.asStateFlow()
     
