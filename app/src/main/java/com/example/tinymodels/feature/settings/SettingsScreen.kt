@@ -5,11 +5,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -44,7 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.tinymodels.domain.model.AppSettings
 import com.example.tinymodels.domain.model.BackendPreference
@@ -74,8 +80,13 @@ fun SettingsScreen(
         }
     }
 
+    // Tab screen — outer Scaffold already consumed the bottom nav-bar inset.
+    // Only Top + Horizontal needed.
+    val safeTopHorizontal = WindowInsets.systemBars.union(WindowInsets.displayCutout)
+        .only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
+
     Scaffold(
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        contentWindowInsets = safeTopHorizontal,
         topBar = {
             TopAppBar(
                 title = { Text("Settings") },
@@ -106,6 +117,8 @@ fun SettingsScreen(
                 onDeviceInfo = onDeviceInfo,
                 onClearHistory = { showClearDialog = true }
             )
+            // 24dp breathing room after the last item so content is never
+            // clipped at the scroll end by the navigation bar.
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
@@ -324,9 +337,22 @@ private fun FontBottomSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState
+        sheetState = sheetState,
+        // Suppress the sheet's built-in inset handling so we control it precisely.
+        contentWindowInsets = { WindowInsets(0) },
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 32.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .windowInsetsPadding(
+                    WindowInsets.systemBars
+                        .union(WindowInsets.displayCutout)
+                        .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+                )
+                .padding(bottom = 16.dp)
+        ) {
             Text(
                 "Choose font",
                 style = MaterialTheme.typography.titleMedium,

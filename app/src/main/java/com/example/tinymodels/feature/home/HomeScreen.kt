@@ -5,10 +5,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -36,8 +41,16 @@ fun HomeScreen(
 ) {
     val device by viewModel.state.collectAsStateWithLifecycle()
 
+    // Tab screen — the outer app Scaffold already consumed the bottom
+    // navigation-bar inset. Request only Top + Horizontal so there is no
+    // double bottom padding. The trailing Spacer at the end of the scroll
+    // column provides the 24dp breathing room above the nav bar.
+    val safeTopHorizontal = WindowInsets.systemBars
+        .union(WindowInsets.displayCutout)
+        .only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
+
     Scaffold(
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        contentWindowInsets = safeTopHorizontal,
         topBar = {
             TopAppBar(
                 title = { Text("TinyModels") },
@@ -52,6 +65,8 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
+                // horizontal content padding only; bottom breathing room is
+                // added as the last Spacer so it appears after the last item
                 .padding(horizontal = 20.dp)
         ) {
             Spacer(modifier = Modifier.height(8.dp))

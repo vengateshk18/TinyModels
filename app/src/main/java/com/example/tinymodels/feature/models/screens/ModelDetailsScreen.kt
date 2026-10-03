@@ -9,7 +9,13 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
@@ -17,6 +23,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -56,7 +63,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.tinymodels.core.ui.Formatters
 import com.example.tinymodels.domain.model.FileDownloadStatus
@@ -74,8 +81,10 @@ fun ModelDetailsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-        Scaffold(
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        val safeDrawing = WindowInsets.systemBars.union(WindowInsets.displayCutout)
+
+    Scaffold(
+        contentWindowInsets = safeDrawing,
         topBar = {
             TopAppBar(
                 title = { Text("Model details", maxLines = 1, overflow = TextOverflow.Ellipsis) },
@@ -132,7 +141,11 @@ fun ModelDetailsScreen(
             }
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
             when {
                 uiState.isLoading ->
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -506,7 +519,16 @@ private fun FileDownloadBar(
         shadowElevation = 8.dp,
         modifier = Modifier.imePadding()
     ) {
-        Column(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                // navigationBarsPadding handles bottom; windowInsetsPadding for horizontal cutout
+                .windowInsetsPadding(
+                    WindowInsets.systemBars.union(WindowInsets.displayCutout)
+                        .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+                )
+                .padding(16.dp)
+        ) {
             when (download.status) {
                 DownloadStatus.DOWNLOADING, DownloadStatus.CHECKING_SIZE -> {
                     FileDownloadInProgress(fileName, fileSize, download, onCancel)
@@ -644,7 +666,16 @@ private fun DownloadBar(
         shadowElevation = 8.dp,
         modifier = Modifier.imePadding()
     ) {
-        Column(modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                // windowInsetsPadding covers both horizontal cutout and bottom nav bar
+                .windowInsetsPadding(
+                    WindowInsets.systemBars.union(WindowInsets.displayCutout)
+                        .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+                )
+                .padding(16.dp)
+        ) {
             if (isDownloaded) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.CheckCircle, contentDescription = null,

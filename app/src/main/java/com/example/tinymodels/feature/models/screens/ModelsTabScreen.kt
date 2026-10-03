@@ -9,11 +9,16 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -80,8 +85,13 @@ fun ModelsTabScreen(
     val downloadedModels by downloadedViewModel.models.collectAsStateWithLifecycle()
     val downloadedFiles by downloadedViewModel.downloadedFiles.collectAsStateWithLifecycle()
 
+    // Tab screen — outer Scaffold already handled the bottom nav-bar inset.
+    // Only top + horizontal needed here.
+    val safeTopHorizontal = WindowInsets.systemBars.union(WindowInsets.displayCutout)
+        .only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
+
     Scaffold(
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        contentWindowInsets = safeTopHorizontal,
         topBar = {
             TopAppBar(
                 title = { Text("Models") },
@@ -205,7 +215,14 @@ private fun BrowseContent(
                 }
             else ->
                 LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
+                    // top/horizontal: 16dp; bottom: 16dp list gap + 24dp breathing
+                    // room above the nav bar so the last card is never clipped.
+                    contentPadding = PaddingValues(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 16.dp,
+                        bottom = 40.dp
+                    ),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(uiState.models, key = { it.modelId }) { model ->
@@ -351,7 +368,12 @@ private fun DownloadedContent(
         }
     } else {
         LazyColumn(
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = 16.dp,
+                bottom = 40.dp
+            ),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item {

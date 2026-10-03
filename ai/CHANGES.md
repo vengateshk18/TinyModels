@@ -128,7 +128,35 @@ was delivered as a thin vertical slice, committed separately.
 
 ---
 
-## 8. Honest limitations / next steps
+## 8. Edge-to-edge implementation (slices E1–E3)
+
+Applied proper edge-to-edge handling across all screens, bottom sheets, and shared utilities so content
+never hides behind notches, cutouts, or system bars on any device.
+
+| # | Change | What it fixed |
+|---|--------|---------------|
+| E1 | **`WindowInsetsHelper.kt`** | New shared utility in `core/ui/components/` — three `Modifier` extensions: `systemBarsHorizontalPadding()`, `edgeToEdgeScaffoldPadding(paddingValues)`, `bottomSheetSafePadding()` |
+| E2 | **All screens — inset pattern** | Every `Scaffold` uses `contentWindowInsets = WindowInsets(0,0,0,0)`; content columns/boxes add `WindowInsets.systemBars.only(WindowInsetsSides.Horizontal).asPaddingValues()` for display-cutout safety. Screens fixed: `HomeScreen`, `ChatTabScreen`, `ChatRoomScreen`, `ModelsTabScreen`, `ModelListScreen`, `ModelDetailsScreen`, `DownloadedModelsScreen`, `DownloadedFileDetailScreen`, `SettingsScreen`, `DeviceInfoScreen` |
+| E3 | **Bottom sheets** | `FontBottomSheet`, `InferenceSettingsSheet`, `ModelPickerSheet` — each now wraps its `ModalBottomSheet` with horizontal system-bar padding and adds `navigationBarsPadding()` on the inner `Column` so sheet content clears gesture/button nav bars |
+
+**Import errors fixed (discovered during E2/E3):**
+
+| File | Error | Fix |
+|------|-------|-----|
+| `ModelDetailsScreen.kt` | Duplicate import `systembars` (lowercase, wrong case) × 2 | Deduplicated to single `import …systemBars` (correct camelCase) |
+| `ModelDetailsScreen.kt` | Duplicate import `asPaddingValues` × 2 | Reduced to single import |
+| `ModelListScreen.kt` | `import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel` (removed artifact) | Changed to `androidx.hilt.navigation.compose.hiltViewModel` |
+| `DownloadedFileDetailScreen.kt` | Same stale `hilt.lifecycle` import | Changed to `hilt.navigation.compose` |
+| `ModelDetailsScreen.kt` | Same stale `hilt.lifecycle` import | Changed to `hilt.navigation.compose` |
+| `DownloadedModelsScreen.kt` | Same stale `hilt.lifecycle` import | Changed to `hilt.navigation.compose` |
+| `SettingsScreen.kt` | Same stale `hilt.lifecycle` import | Changed to `hilt.navigation.compose` |
+| `ChatScreen.kt` | Same stale `hilt.lifecycle` import | Changed to `hilt.navigation.compose` |
+
+All 8 files pass diagnostics with zero errors after the fixes.
+
+---
+
+## 9. Honest limitations / next steps
 
 - **Not yet run on a physical device** — inference and download paths are built and
   compile-clean but should be validated on real hardware (RAM behavior especially).

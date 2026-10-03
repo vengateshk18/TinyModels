@@ -6,11 +6,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -67,8 +72,14 @@ fun ChatTabScreen(
         }
     }
 
+    // Tab screen — the outer Scaffold already consumed the bottom nav-bar inset.
+    // Only request Top + Horizontal so the FAB is still placed away from the
+    // cutout, but the LazyColumn gets no double bottom gap.
+    val safeTopHorizontal = WindowInsets.systemBars.union(WindowInsets.displayCutout)
+        .only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
+
     Scaffold(
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        contentWindowInsets = safeTopHorizontal,
         topBar = {
             TopAppBar(
                 title = { Text("Chats") },
@@ -78,19 +89,23 @@ fun ChatTabScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                // createNewChat now validates models are downloaded and returns the
-                // NEW_CHAT_SENTINEL id — no DB row is created here.
-                viewModel.createNewChat(
-                    onCreated = { chatId -> onOpenChat(chatId) },
-                    onError = { msg -> showSnackbar = msg }
-                )
-            }) {
+            FloatingActionButton(
+                onClick = {
+                    // createNewChat validates models are downloaded and returns the
+                    // NEW_CHAT_SENTINEL id — no DB row is created here.
+                    viewModel.createNewChat(
+                        onCreated = { chatId -> onOpenChat(chatId) },
+                        onError = { msg -> showSnackbar = msg }
+                    )
+                }
+            ) {
                 Icon(Icons.Filled.Add, contentDescription = "New chat")
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
+        // `padding` already includes top (TopAppBar height + status bar),
+        // bottom (nav bar), and horizontal (cutout) safe areas via safeDrawing.
         if (chats.isEmpty()) {
             Box(
                 modifier = Modifier
@@ -116,7 +131,14 @@ fun ChatTabScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 8.dp)
+                // top: 8dp breathing room below the app bar
+                // bottom: 88dp = FAB height (56dp) + 16dp FAB margin + 16dp list gap
+                //         so the last item is never hidden behind the FAB,
+                //         and there is a comfortable 24dp gap below it.
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                    top = 8.dp,
+                    bottom = 88.dp
+                )
             ) {
                 items(chats, key = { it.id }) { chat ->
                     ChatSessionRow(

@@ -2,13 +2,18 @@ package com.example.tinymodels.feature.chat.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -36,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.tinymodels.core.ui.components.bottomSheetTopSafePadding
 import com.example.tinymodels.domain.model.BackendPreference
 import com.example.tinymodels.domain.model.InferenceSettings
 import kotlin.math.roundToInt
@@ -66,14 +72,25 @@ fun InferenceSettingsSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-        modifier = Modifier.fillMaxHeight(0.92f)
+        // Suppress the sheet's built-in inset handling so we control it precisely.
+        contentWindowInsets = { WindowInsets(0) },
+        // Keep the sheet surface below the status bar when fully expanded.
+        // NOTE: no fixed height here — Material3 anchors the sheet flush
+        // against the bottom of the screen and it grows upward to fit its
+        // content. Forcing a fraction (e.g. fillMaxHeight(0.92f)) breaks that
+        // anchoring and leaves the sheet floating above the screen bottom.
+        modifier = Modifier.bottomSheetTopSafePadding()
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp)
-                .navigationBarsPadding()
+                .windowInsetsPadding(
+                    WindowInsets.systemBars
+                        .union(WindowInsets.displayCutout)
+                        .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+                )
         ) {
             // Header
             Text(

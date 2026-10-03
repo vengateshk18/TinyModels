@@ -6,11 +6,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -40,7 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.tinymodels.domain.model.DownloadedModel
 import com.example.tinymodels.feature.models.DownloadedModelsViewModel
@@ -59,7 +63,12 @@ fun DownloadedModelsScreen(
     val totalSize by viewModel.totalSizeBytes.collectAsStateWithLifecycle()
     var pendingDelete by remember { mutableStateOf<DownloadedModel?>(null) }
 
+    // Pushed screen (no bottom nav bar) — consume full safeDrawing so the
+    // Scaffold padding includes bottom nav-bar height and display cutout.
+    val safeDrawing = WindowInsets.systemBars.union(WindowInsets.displayCutout)
+
     Scaffold(
+        contentWindowInsets = safeDrawing,
         topBar = {
             TopAppBar(
                 title = { Text("Downloaded models") },
@@ -88,8 +97,15 @@ fun DownloadedModelsScreen(
             }
         } else {
             LazyColumn(
-                modifier = Modifier.padding(padding).fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize(),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 16.dp,
+                    bottom = 40.dp
+                ),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item {
