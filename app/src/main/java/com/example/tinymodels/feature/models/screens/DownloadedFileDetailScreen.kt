@@ -60,7 +60,7 @@ import java.util.Locale
 @Composable
 fun DownloadedFileDetailScreen(
     onBack: () -> Unit,
-    onStartChat: () -> Unit,
+    onStartChat: (preferredModelId: String) -> Unit,
     viewModel: DownloadedFileDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -95,7 +95,7 @@ fun DownloadedFileDetailScreen(
                         isLoadingModel = uiState.isLoadingModel,
                         loadModelError = uiState.loadModelError,
                         isDeleting = uiState.isDeleting,
-                        onStartChat = { viewModel.onStartChat(onStartChat) },
+                        onStartChat = { modelId -> onStartChat(modelId) },
                         onDelete = { showDeleteDialog = true },
                         onClearLoadError = viewModel::clearLoadError
                     )
@@ -137,7 +137,7 @@ private fun FileDetailContent(
     isLoadingModel: Boolean,
     loadModelError: String?,
     isDeleting: Boolean,
-    onStartChat: () -> Unit,
+    onStartChat: (String) -> Unit,
     onDelete: () -> Unit,
     onClearLoadError: () -> Unit
 ) {
@@ -215,7 +215,7 @@ private fun FileDetailContent(
 
         // Actions
         Button(
-            onClick = onStartChat,
+            onClick = { onStartChat(fileInfo.modelId) },
             modifier = Modifier.fillMaxWidth(),
             enabled = !isLoadingModel && !isDeleting
         ) {

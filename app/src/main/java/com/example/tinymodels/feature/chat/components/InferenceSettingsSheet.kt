@@ -2,6 +2,7 @@ package com.example.tinymodels.feature.chat.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -51,7 +52,7 @@ fun InferenceSettingsSheet(
     onSave: (InferenceSettings) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     // Local draft — only applied on Save.
     var temperature by remember { mutableFloatStateOf(current.temperature.toFloat()) }
@@ -64,7 +65,8 @@ fun InferenceSettingsSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        modifier = Modifier.fillMaxHeight(0.92f)
     ) {
         Column(
             modifier = Modifier

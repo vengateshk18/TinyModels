@@ -25,5 +25,9 @@ interface DownloadedModelDao {
 
     @Query("DELETE FROM downloaded_models WHERE modelId = :modelId")
     suspend fun delete(modelId: String)
+
+    /** Returns the single most recently downloaded model. */
+    @Query("SELECT * FROM downloaded_models ORDER BY downloadedAt DESC LIMIT 1")
+    suspend fun getLastDownloaded(): DownloadedModelEntity?
 }
 

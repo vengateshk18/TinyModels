@@ -143,15 +143,10 @@ fun TinyModelsApp(navController: NavHostController = rememberNavController()) {
             ) {
                 DownloadedFileDetailScreen(
                     onBack = { navController.popBackStack() },
-                    onStartChat = {
-                        // Navigate to chat tab - a new session will be created there
-                        navController.navigate(Routes.CHAT) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
+                    onStartChat = { preferredModelId ->
+                        // Navigate directly to a new chat room with the preferred model.
+                        // Model loading happens inside ChatViewModel — not here.
+                        navController.navigate(Routes.chatRoomWithPreference(preferredModelId))
                     }
                 )
             }
@@ -163,6 +158,20 @@ fun TinyModelsApp(navController: NavHostController = rememberNavController()) {
             composable(
                 route = Routes.CHAT_ROOM,
                 arguments = listOf(navArgument("chatId") { type = NavType.StringType })
+            ) {
+                ChatRoomScreen(onBack = { navController.popBackStack() })
+            }
+
+            composable(
+                route = Routes.CHAT_ROOM_WITH_PREF,
+                arguments = listOf(
+                    navArgument("chatId") { type = NavType.StringType },
+                    navArgument("preferredModelId") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
             ) {
                 ChatRoomScreen(onBack = { navController.popBackStack() })
             }

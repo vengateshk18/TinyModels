@@ -109,10 +109,13 @@ fun ModelLoadingDialog(
                         text = when (progress.stage) {
                             ModelLoadProgress.LoadStage.INITIALIZING -> "Initializing engine…"
                             ModelLoadProgress.LoadStage.LOADING_WEIGHTS -> "Loading weights…"
-                            ModelLoadProgress.LoadStage.READY -> "Almost ready…"
+                            ModelLoadProgress.LoadStage.READY -> "Ready!"
                         },
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (progress.stage == ModelLoadProgress.LoadStage.READY)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = "${(progress.progress * 100).toInt()}%",

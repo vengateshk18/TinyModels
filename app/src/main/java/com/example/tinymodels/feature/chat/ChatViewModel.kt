@@ -23,6 +23,7 @@ import com.example.tinymodels.feature.chat.model.ModelLoadProgress
 import com.example.tinymodels.feature.chat.model.UiChatMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -67,14 +68,55 @@ class ChatViewModel @Inject constructor(
     /** The chatId for this screen, passed via nav arguments (SavedStateHandle). */
     val chatId: String? get() = savedStateHandle["chatId"]
 
+    /** Preferred model to load, passed as a nav argument from model detail. */
+    private val preferredModelId: String?
+        get() = savedStateHandle["preferredModelId"]
+
     init {
         observeChats()           // populate the history drawer
         observeDownloadedModels()
         observeEngineState()
-        // Open an existing chat from nav args — but ignore the "new" sentinel
-        // which means "start a fresh blank canvas without a DB row yet".
-        chatId?.takeIf { it != "new" }
-            ?.let { viewModelScope.launch { openChatInternal(it) } }
+
+        val existingChatId = chatId?.takeIf { it != "new" }
+        if (existingChatId != null) {
+            // Opening a specific existing chat — load its model inside openChatInternal.
+            viewModelScope.launch { openChatInternal(existingChatId) }
+        } else {
+            // New chat or direct entry — auto-load the best available model.
+            viewModelScope.launch { autoLoadModel() }
+        }
+    }
+
+    /**
+     * Auto-selects a model on chat entry using this priority cascade:
+     * 1. preferredModelId (from model detail nav arg)
+     * 2. lastUsedModelId  (persisted in DataStore)
+     * 3. Most recently downloaded model (fallback)
+     *
+     * Skips if a model is already in RAM.
+     */
+    private suspend fun autoLoadModel() {
+        // Don't auto-load if a model is already in RAM.
+        if (modelManager.loadedModelId != null) return
+
+        val candidates = listOfNotNull(
+            preferredModelId,
+            settingsRepository.getLastUsedModelId()
+        )
+
+        for (modelId in candidates) {
+            val downloaded = modelRepository.getDownloadedModel(modelId)
+            if (downloaded != null) {
+                selectModel(modelId)
+                return
+            }
+        }
+
+        // Fallback: most recently downloaded model.
+        val fallback = modelRepository.getLastDownloadedModel()
+        if (fallback != null) {
+            selectModel(fallback.modelId)
+        }
     }
 
     fun onEvent(event: ChatEvent) {
@@ -190,8 +232,19 @@ class ChatViewModel @Inject constructor(
             when (result) {
                 is com.example.tinymodels.core.common.AppResult.Success -> {
                     activeModel = downloaded
-                    // Clear progress on success
+                    // Animate to 100% with "Ready!" label, hold briefly, then dismiss.
+                    _uiState.update {
+                        it.copy(
+                            modelLoadProgress = it.modelLoadProgress?.copy(
+                                progress = 1.0f,
+                                stage = ModelLoadProgress.LoadStage.READY
+                            )
+                        )
+                    }
+                    delay(400)
                     _uiState.update { it.copy(modelLoadProgress = null) }
+                    // Persist last-used model preference.
+                    settingsRepository.setLastUsedModelId(modelId)
                     // (Re)build a conversation bound to the active chat, if any.
                     _uiState.value.activeChatId?.let { rebuildSession(it) }
                 }

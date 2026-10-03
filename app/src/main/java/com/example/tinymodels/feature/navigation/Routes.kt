@@ -14,6 +14,7 @@ object Routes {
     const val MODEL_DETAILS = "model_details/{modelId}"
     const val DOWNLOADED_FILE_DETAIL = "downloaded_file_detail/{modelId}/{fileName}"
     const val CHAT_ROOM = "chat_room/{chatId}"
+    const val CHAT_ROOM_WITH_PREF = "chat_room/{chatId}?preferredModelId={preferredModelId}"
     const val DOWNLOADED_MODELS = "downloaded_models"
     const val DEVICE_INFO = "device_info"
 
@@ -26,4 +27,8 @@ object Routes {
 
     /** chatRoom route for a specific chat session. */
     fun chatRoom(chatId: String) = "chat_room/${Uri.encode(chatId)}"
+
+    /** chatRoom route with a preferred model pre-selected (from model detail). */
+    fun chatRoomWithPreference(preferredModelId: String) =
+        "chat_room/new?preferredModelId=${Uri.encode(preferredModelId)}"
 }

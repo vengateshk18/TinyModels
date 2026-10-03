@@ -33,7 +33,7 @@ class DownloadedFileDetailViewModel @Inject constructor(
         val isLoading: Boolean = true,
         val fileInfo: DownloadedModelFile? = null,
         val error: String? = null,
-        val isLoadingModel: Boolean = false,
+        val isLoadingModel: Boolean = false, // Kept for backward compat — always false now
         val loadModelError: String? = null,
         val isDeleting: Boolean = false
     )
@@ -57,56 +57,28 @@ class DownloadedFileDetailViewModel @Inject constructor(
         }
     }
 
-    fun onStartChat(onSuccess: () -> Unit) {
+    /**
+     * Navigate to chat room, passing [modelId] as a preferred model.
+     * Model loading happens exclusively inside [ChatViewModel] so the
+     * loading dialog is always visible in the chat room.
+     */
+    fun onStartChat(onSuccess: (preferredModelId: String) -> Unit) {
         val fileInfo = _uiState.value.fileInfo ?: return
-        _uiState.update { it.copy(isLoadingModel = true, loadModelError = null) }
 
-        viewModelScope.launch {
-            try {
-                val settings = settingsRepository.settings.first()
-                val localPath = fileInfo.localPath ?: throw IllegalStateException("File has no local path")
-                val file = File(localPath, fileName.substringAfterLast("/"))
-                
-                if (!file.exists()) {
-                    _uiState.update {
-                        it.copy(
-                            isLoadingModel = false,
-                            loadModelError = "File not found on disk. It may have been deleted."
-                        )
-                    }
-                    return@launch
-                }
-
-                val result = modelManager.loadModel(
-                    modelId = modelId,
-                    modelFile = file,
-                    backend = settings.defaultBackend,
-                    maxNumTokens = ModelManager.DEFAULT_MAX_TOKENS
-                )
-
-                when (result) {
-                    is com.example.tinymodels.core.common.AppResult.Success -> {
-                        _uiState.update { it.copy(isLoadingModel = false) }
-                        onSuccess()
-                    }
-                    is com.example.tinymodels.core.common.AppResult.Error -> {
-                        _uiState.update {
-                            it.copy(
-                                isLoadingModel = false,
-                                loadModelError = result.error.message ?: "Failed to load model"
-                            )
-                        }
-                    }
-                }
-            } catch (e: Exception) {
+        // Validate the file still exists on disk before navigating.
+        val localPath = fileInfo.localPath
+        if (localPath != null) {
+            val file = File(localPath, fileName.substringAfterLast("/"))
+            if (!file.exists()) {
                 _uiState.update {
-                    it.copy(
-                        isLoadingModel = false,
-                        loadModelError = e.message ?: "Failed to load model"
-                    )
+                    it.copy(loadModelError = "File not found on disk. Please re-download.")
                 }
+                return
             }
         }
+
+        // Navigate — do NOT call modelManager.loadModel() here.
+        onSuccess(modelId)
     }
 
     fun onDelete(onSuccess: () -> Unit) {

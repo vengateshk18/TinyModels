@@ -13,6 +13,7 @@ import com.example.tinymodels.domain.model.ThemeMode
 import com.example.tinymodels.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,6 +31,7 @@ class SettingsRepositoryImpl @Inject constructor(
         val FONT_CHOICE = stringPreferencesKey("font_choice")
         val FONT_SCALE = floatPreferencesKey("font_scale")
         val DEFAULT_BACKEND = stringPreferencesKey("default_backend")
+        val LAST_USED_MODEL_ID = stringPreferencesKey("last_used_model_id")
     }
 
     override val settings: Flow<AppSettings> = context.dataStore.data.map { prefs ->
@@ -63,5 +65,12 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun setDefaultBackend(backend: BackendPreference) {
         context.dataStore.edit { it[Keys.DEFAULT_BACKEND] = backend.name }
+    }
+
+    override suspend fun getLastUsedModelId(): String? =
+        context.dataStore.data.map { it[Keys.LAST_USED_MODEL_ID] }.first()
+
+    override suspend fun setLastUsedModelId(modelId: String) {
+        context.dataStore.edit { it[Keys.LAST_USED_MODEL_ID] = modelId }
     }
 }

@@ -90,6 +90,11 @@ class ModelRepositoryImpl @Inject constructor(
             modelFileDao.getFirstDownloadedForModel(modelId)?.toDomain()
         }
 
+    override suspend fun getLastDownloadedModel(): DownloadedModel? =
+        withContext(dispatchers.io) {
+            downloadedModelDao.getLastDownloaded()?.toDomain()
+        }
+
     override suspend fun preRegisterModel(model: ModelDetails) =
         withContext(dispatchers.io) {
             // Only pre-register file tracking rows — do NOT insert into downloaded_models yet.

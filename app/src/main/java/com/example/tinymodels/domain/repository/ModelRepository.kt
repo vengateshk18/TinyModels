@@ -26,6 +26,9 @@ interface ModelRepository {
     suspend fun getModelFile(modelId: String, fileName: String): DownloadedModelFile?
     /** First DOWNLOADED file for a model (used to resolve the file to load for chat). */
     suspend fun getDownloadedFileForModel(modelId: String): DownloadedModelFile?
+
+    /** Returns the most recently downloaded model, ordered by downloadedAt descending. */
+    suspend fun getLastDownloadedModel(): DownloadedModel?
     suspend fun preRegisterModel(model: ModelDetails)
     suspend fun updateFileStatus(
         modelId: String,
