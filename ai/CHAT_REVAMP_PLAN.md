@@ -1,288 +1,275 @@
 # Chat Feature Revamp Plan
 
-> **Goal:** Fix model loading progress, prevent unnecessary session creation, ensure proper model cleanup, and add inference session settings — delivered as **thin vertical slices**, each committed separately.  
-> **Format:** Code-free steps only. No code snippets. Each slice is independently implementable and commit-ready.
+> **Goal:** Fix model loading progress indicator, prevent unnecessary session creation, ensure
+> proper model cleanup on exit, and add inference session settings — delivered as **thin vertical
+> slices**, each committed separately.
+> **Format:** Code-free steps only. No code snippets. Each slice is independently implementable
+> and commit-ready.
 
 ---
 
 ## Problem Summary
 
-### Issue 1: Model Loading Progress
-- **Symptom:** When entering a chat, the model loads silently with no feedback. User sees a blank screen or frozen UI.
-- **Root Cause:** `ChatViewModel.loadModel()` blocks the main thread or runs without progress callbacks. No `LoadingDialog` or progress state in UI.
+### Issue 1: Model Loading Progress — DONE ✅
+- **Symptom:** When entering a chat, the model loads silently with no feedback.
+- **Root Cause:** No `LoadingDialog` or progress state in UI.
+- **Status:** `ModelLoadingDialog.kt` created, `modelLoadProgress` wired in `ChatViewModel` and shown in `ChatScreen`.
 
 ### Issue 2: Unnecessary Session Creation
-- **Symptom:** Every time entering model detail (even without chatting), a new empty chat session is created in the database.
-- **Root Cause:** Session is created on model detail screen enter, not when user actually starts chatting.
+- **Symptom:** Every time a model is selected (even browsing), a new empty chat session
+  is created in the database.
+- **Root Cause:** `sendMessage()` in `ChatViewModel` calls `chatRepository.createChat()`
+  even before the user types anything, because `activeChatId` is always null on first entry.
+  The `NewChat` drawer button also creates a chat immediately on tap — before any message is sent.
+- **What should happen:** A session row must only exist in the DB once the user sends the
+  **first real message**. Model selection and navigation must not write to the DB.
 
 ### Issue 3: Model Not Unloaded on Exit
-- **Symptom:** After exiting chat, the model stays loaded in RAM, causing memory bloat.
-- **Root Cause:** `ModelManager.unloadModel()` is not called in `ChatViewModel.onCleared()` or lifecycle callbacks.
+- **Symptom:** After leaving the chat screen the model stays resident in RAM.
+- **Root Cause:** `onCleared()` in `ChatViewModel` calls `modelManager.unloadModel()` inside
+  a new `viewModelScope.launch` — but `viewModelScope` is cancelled the moment `onCleared()`
+  returns, so the coroutine never runs.
+- **What should happen:** `unloadModel()` must be called as a blocking/synchronous call or
+  via a scope that outlives `onCleared()`.
 
 ### Issue 4: No Inference Settings UI
-- **Symptom:** No way to change temperature, max tokens, or context length during chat session.
-- **Root Cause:** Settings are global only. No per-model or per-session UI to adjust inference parameters.
+- **Symptom:** No way to change temperature, max tokens, top-k, top-p, backend, or system
+  instruction per session from within the chat screen.
+- **Root Cause:** `InferenceSettings` is stored per-chat in the DB but there is no dialog or
+  sheet to surface or edit it in `ChatScreen`.
 
 ---
 
 ## Slice-Based Implementation Plan
 
-### Slice 1: Model Loading Progress Indicator
-**Files:** `ChatScreen.kt`, `ChatViewModel.kt`, `InferenceError.kt`  
+---
+
+### Slice 1: Model Loading Progress Indicator — DONE ✅
+**Files:** `ChatScreen.kt`, `ChatViewModel.kt`, `ChatUi.kt`, `ModelLoadingDialog.kt`
 **Commit:** `Implement model loading progress indicator`
 
-**Steps:**
-1. Add `modelLoadProgress` (Float) and `isLoadingModel` (Boolean) to `ChatUiState`.
-2. Update `ModelManager.loadModel()` to accept an optional `onProgress: (Float) -> Unit` callback.
-3. In `ChatViewModel.loadModel()`, call `onProgress` with intermediate progress values (0.0 → 1.0).
-4. Create `LoadingDialog` composable with:
-   - CircularProgressIndicator
-   - Progress text ("Loading model... 45%")
-   - Optional: Token count or model size info
-5. In `ChatScreen`, show `LoadingDialog` when `isLoadingModel` is true.
-6. Wire progress updates: `onProgress { progress -> _uiState.update { it.copy(modelLoadProgress = progress) } }`
-7. Hide dialog when `isLoadingModel` becomes false.
-8. Test with a large model (>1GB) to verify progress updates are visible.
-9. Verify dialog is dismissable only by model load completion (not back button).
+**What was done:**
+- Added `modelLoadProgress: ModelLoadProgress?` to `ChatUiState`.
+- `ModelManager.loadModel()` now accepts `onProgress: ((Float, ModelLoadStage) -> Unit)?`.
+- `ChatViewModel.selectModel()` passes progress updates into `_uiState`.
+- Created `ModelLoadingDialog` composable with spinner, stage label, linear progress bar, and percentage.
+- `ChatScreen` renders the dialog overlay whenever `modelLoadProgress != null`.
 
 ---
 
-### Slice 2: Fix Unnecessary Session Creation
-**Files:** `ChatViewModel.kt`, `SessionManager.kt`, `Model.kt`  
-**Commit:** `Prevent automatic chat session creation`
+### Slice 2: Prevent Empty Session Creation
+**Files:** `ChatViewModel.kt`
+**Commit:** `Create chat session only on first message, not on model selection`
 
 **Steps:**
-1. Add `shouldCreateSession` flag to `ChatUiState` (default: false).
-2. In `ChatViewModel`, remove automatic session creation on `onModelSelected()`.
-3. Add `startChat()` method in `ChatViewModel` that:
-   - Checks if a session exists for the model
-   - Creates session only if none exists AND user clicks "Start Chat"
-   - Sets `shouldCreateSession = true` on model selection
-4. Update `ModelDetailsScreen` to show "Start Chat" button only when `shouldCreateSession` is true.
-5. In `SessionManager`, add `createSessionIfNotExists(modelId)` that returns existing or creates new.
-6. Ensure `Model.kt` does not auto-create sessions in `ModelDetails`.
-7. Test: Navigate to model detail → Verify no session created → Click "Start Chat" → Verify session created.
-8. Test: Navigate away and back → Verify same session reused, not duplicated.
+1. Read `sendMessage()` in `ChatViewModel` — locate the block that calls
+   `chatRepository.createChat()` when `chatId == null`.
+2. Verify this block already runs lazily (only when a message is being sent) — confirm
+   no `createChat()` is called at model-selection time or in `init`.
+3. In `newChat()` — currently calls `chatRepository.createChat()` immediately on tap.
+   Change it so tapping "New Chat" only **clears** the active chat state (`activeChatId = null`,
+   `messages = emptyList()`) without writing to the DB.
+4. The actual `createChat()` DB write stays only inside `sendMessage()`, triggered on first
+   message send with `chatId == null`.
+5. Update `ChatHistoryDrawer` "New Chat" button label/icon to reflect that it resets the
+   current view, not that it creates a persisted chat.
+6. Verify `observeChats()` is called after `init` and not before — sessions in the drawer
+   list should only appear after a message is sent.
+7. Test: Select model → Do NOT send a message → Navigate away → Open chat history → Confirm
+   no empty session exists in the list.
+8. Test: Select model → Send one message → Confirm a single session now appears in the list
+   with the correct title.
 
 ---
 
-### Slice 3: Proper Model Cleanup on Exit
-**Files:** `ChatViewModel.kt`, `ModelManager.kt`  
-**Commit:** `Unload model when exiting chat session`
+### Slice 3: Properly Unload Model on Chat Exit
+**Files:** `ChatViewModel.kt`, `ModelManager.kt`
+**Commit:** `Unload model synchronously when leaving chat`
 
 **Steps:**
-1. In `ChatViewModel.onCleared()`, call `modelManager.unloadModel(currentModelId)`.
-2. Add `unloadModel(modelId: String?)` method in `ModelManager` that:
-   - Calls `engine.unload()` if engine is loaded
-   - Clears cached model references
-   - Logs unload action
-3. In `ChatViewModel`, add `onChatExit()` callback that:
-   - Triggers model unload
-   - Resets `isLoadingModel`, `modelLoadProgress`, and session state
-4. Update `ChatScreen` to call `viewModel.onChatExit()` when user navigates away (using lifecycle).
-5. Add `ModelUnloadListener` interface in `ModelManager` to notify UI of unload completion.
-6. In `ChatScreen`, show brief toast/snackbar: "Model unloaded to free memory".
-7. Test: Open chat → Verify model loads → Exit chat → Check RAM usage drops → Reopen chat → Verify fresh load.
-8. Verify no memory leaks: Run profiler before/after chat sessions.
+1. In `ModelManager`, add a non-suspend `unloadModelSync()` method that acquires the mutex
+   in a blocking fashion and closes the engine — suitable to call from `onCleared()`.
+   Alternatively, use a dedicated `ApplicationScope` (injected) that survives ViewModel
+   destruction, so a coroutine launched there will complete after `onCleared()` returns.
+2. Remove the `viewModelScope.launch { modelManager.unloadModel() }` call from
+   `ChatViewModel.onCleared()` — replace it with a call that uses the long-lived scope.
+3. Inject an `@ApplicationScope CoroutineScope` into `ChatViewModel` via Hilt. Launch
+   `unloadModel()` on that scope inside `onCleared()`.
+4. Confirm `unloadModel()` emits `EngineState.Idle` so any other observer reacts correctly.
+5. Add a brief `Snackbar` or `Toast` in `ChatScreen` via `LaunchedEffect` on
+   `engineState == Idle` to show "Model unloaded" — optional, keep it subtle.
+6. Test: Open chat with a model → Confirm model loads → Press back → Use Android memory
+   profiler or log to verify `Engine.close()` is called and RAM drops.
+7. Test: Return to chat → Confirm model reloads fresh.
 
 ---
 
-### Slice 4: Inference Session Settings Dialog
-**Files:** `InferenceSettingsDialog.kt`, `ChatScreen.kt`, `ChatViewModel.kt`, `SettingsRepository.kt`  
-**Commit:** `Add inference settings configuration dialog`
+### Slice 4: Inference Settings Dialog
+**Files:** `InferenceSettingsSheet.kt` (new), `ChatScreen.kt`, `ChatViewModel.kt`,
+`ChatUi.kt`
+**Commit:** `Add per-session inference settings sheet`
 
 **Steps:**
-1. Create `InferenceSettingsDialog.kt` composable with:
-   - Temperature slider (0.0–2.0, default 0.7)
-   - Max tokens input (spinner or text field, default 512)
-   - Context length dropdown (256, 512, 1024, 2048)
-   - Reset to defaults button
-   - Save and Cancel buttons
-2. Add `showInferenceSettings` Boolean to `ChatUiState`.
-3. In `ChatScreen`, add gear icon button next to model name to open `InferenceSettingsDialog`.
-4. In `ChatViewModel`, add `openInferenceSettings()` and `saveInferenceSettings(temp, maxTokens, contextLen)` methods.
-5. Persist settings per model: Add `inferenceSettings` map in `SettingsRepository` (`Map<String, InferenceSettings>`).
-6. `InferenceSettings` data class:
-   ```kotlin
-   data class InferenceSettings(
-       val temperature: Float = 0.7f,
-       val maxTokens: Int = 512,
-       val contextLength: Int = 1024
-   )
-   ```
-7. When loading model, pass `inferenceSettings` to `ModelManager.loadModel()`.
-8. Test: Open settings → Change values → Save → Verify model reloaded with new settings.
-9. Test: Exit and re-enter chat → Verify settings persist.
-10. Ensure dialog follows Material3 theme and font scale.
+1. Add `showInferenceSettings: Boolean = false` to `ChatUiState`.
+2. Add two events to `ChatEvent`: `OpenInferenceSettings` and `CloseInferenceSettings`.
+3. In `ChatViewModel.onEvent()`, handle both events to toggle `showInferenceSettings`.
+4. Create `InferenceSettingsSheet.kt` as a `ModalBottomSheet` composable with:
+   - Temperature slider (range 0.0–2.0, step 0.05, default 0.7) with value label.
+   - Max context tokens dropdown or segmented button (512 / 1024 / 2048 / 4096).
+   - Top-K numeric field (default 40).
+   - Top-P slider (range 0.0–1.0, step 0.05, default 0.95).
+   - Backend dropdown (AUTO / CPU / GPU).
+   - System instruction text field (multi-line, optional).
+   - Save button and Discard button.
+   - All labels use `MaterialTheme.typography`; all colours from `MaterialTheme.colorScheme`.
+5. In `ChatScreen` top bar `actions`, add a settings `IconButton` (tune icon) next to the
+   existing settings icon — wire it to `ChatEvent.OpenInferenceSettings`.
+   Show the icon only when `model is ModelChipState.Ready`.
+6. Show `InferenceSettingsSheet` when `uiState.showInferenceSettings` is true.
+7. On Save: dispatch `ChatEvent.UpdateInferenceSettings(settings)` — already handled in
+   `ChatViewModel.updateInferenceSettings()`.
+8. On Discard: dispatch `ChatEvent.CloseInferenceSettings`.
+9. Pre-populate sheet fields from `uiState.inferenceSettings` (already in `ChatUiState`).
+10. Verify the sheet title says "Session settings" and has a subtitle "Changes apply to
+    this chat only."
+11. Test: Open sheet → change temperature → Save → Send a message → Confirm the new
+    temperature is used (check logs or response behaviour).
+12. Test: Reopen chat → Confirm settings persisted (they are per-chat in DB via
+    `chatRepository.updateInferenceSettings()`).
 
 ---
 
-### Slice 5: Settings Persistence Per Model
-**Files:** `SettingsRepository.kt`, `SettingsDataSource.kt`, `Model.kt`  
-**Commit:** `Persist inference settings per model`
+### Slice 5: Settings Persistence Verification
+**Files:** `SettingsRepository.kt`, `ChatRepositoryImpl.kt`
+**Commit:** `Verify and harden per-chat inference settings persistence`
 
 **Steps:**
-1. In `SettingsDataSource`, add table `model_inference_settings` with columns:
-   - `model_id` (TEXT, PRIMARY KEY)
-   - `temperature` (REAL)
-   - `max_tokens` (INTEGER)
-   - `context_length` (INTEGER)
-   - `updated_at` (INTEGER)
-2. Add DAO methods:
-   - `getInferenceSettings(modelId: String): InferenceSettings?`
-   - `saveInferenceSettings(modelId: String, settings: InferenceSettings): Unit`
-   - `resetInferenceSettings(modelId: String): Unit`
-3. In `SettingsRepository`, update `getInferenceSettings()` to fetch from DB, fallback to defaults.
-4. Add `Model.inferenceSettings: InferenceSettings` computed property that merges default + saved.
-5. Migrate existing `Settings` table to new `model_inference_settings` table.
-6. Test: Save settings for Model A → Verify saved in DB → Load Model A → Verify settings applied.
-7. Test: Save settings for Model B → Verify independent from Model A.
-8. Test: Reset settings → Verify defaults restored.
+1. Confirm `Chat` domain model contains all `InferenceSettings` fields and they are
+   stored as columns in the Room entity `ChatEntity`.
+2. Confirm `updateInferenceSettings()` in `ChatRepositoryImpl` writes all fields to DB.
+3. Confirm `getChat()` and `observeMessages()` correctly restore `inferenceSettings` when
+   reopening a session.
+4. Add a fallback: if any field is missing/null in the DB row (e.g. old sessions before this
+   feature), use defaults from `InferenceSettings()`.
+5. Write a unit test in `ChatRepositoryTest`: create chat → update settings → retrieve chat
+   → assert all settings fields match.
+6. Test edge case: app killed mid-chat → reopen → settings restored.
 
 ---
 
-### Slice 6: Testing & Polish
-**Files:** `ChatViewModelTest.kt`, `ModelManagerTest.kt`, `InferenceSettingsDialogTest.kt`  
-**Commit:** `Add comprehensive test coverage for chat features`
+### Slice 6: Polish and Regression Testing
+**Files:** All chat feature files
+**Commit:** `Chat feature polish: accessibility, edge cases, regression checks`
 
 **Steps:**
-1. In `ChatViewModelTest`:
-   - Test `loadModel()` shows progress and completes
-   - Test `startChat()` creates session only when needed
-   - Test `onCleared()` unloads model
-   - Test `saveInferenceSettings()` persists correctly
-2. In `ModelManagerTest`:
-   - Test `loadModel()` with progress callback
-   - Test `unloadModel()` releases resources
-   - Test settings are applied correctly
-3. Create `InferenceSettingsDialogTest`:
-   - Test UI renders correctly
-   - Test save/cancel actions
-   - Test persistence round-trip
-4. Add UI tests (Espresso) for:
-   - Progress dialog visibility
-   - Session creation flow
-   - Settings dialog interaction
-5. Run all tests: `./gradlew :app:testDebugUnitTest`
-6. Run UI tests on emulator: `./gradlew :app:connectedAndroidTest`
-7. Verify all tests pass before merging.
-8. Update `README.md` with new features and usage.
+1. Verify `ModelLoadingDialog` is not dismissible via back-press or tap-outside —
+   confirm `onDismissRequest = {}` is set.
+2. Verify that when the model is loading (`isLoadingModel = true`), the `ChatInputBar`
+   is disabled so users cannot attempt to send before the model is ready.
+3. Verify "No models downloaded" empty state navigates correctly to the Models tab.
+4. Verify the drawer chat list updates in real-time when a new session is created
+   (first message sent).
+5. Verify deleting the active chat clears `activeChatId` and resets the message list.
+6. Ensure all touch targets ≥ 48 dp (check the settings icon button in top bar).
+7. Check font scale at 200% — all text in `ModelLoadingDialog` and `InferenceSettingsSheet`
+   must remain readable.
+8. Verify `ChatScreen` has edge-to-edge support (`imePadding`, `navigationBarsPadding`).
+9. Run all existing unit tests: `./gradlew :app:testDebugUnitTest`.
 
 ---
 
-## Execution Order & Dependencies
+## Execution Order
 
 ```
-Slice 1 (Progress) ──► Slice 2 (Session Fix) ──► Slice 3 (Cleanup)
-                    └──► Slice 4 (Settings) ──► Slice 5 (Persistence)
-                                              └──► Slice 6 (Testing)
+Slice 1 ✅ (done)
+    │
+    ▼
+Slice 2 (no empty sessions)
+    │
+    ▼
+Slice 3 (unload on exit)
+    │
+    ▼
+Slice 4 (inference settings dialog)
+    │
+    ▼
+Slice 5 (persistence verification)
+    │
+    ▼
+Slice 6 (polish + testing)
 ```
 
-- **Slice 1** is foundational (fixes UX blocker).
-- **Slice 2** and **Slice 3** are independent but related to lifecycle.
-- **Slice 4** depends on **Slice 1** (settings dialog shown during load).
-- **Slice 5** depends on **Slice 4** (persists what Slice 4 creates).
-- **Slice 6** is last (tests all slices).
+Slices 2 and 3 are independent and can be done in either order.
+Slice 4 depends on the `ChatUiState` and event infra being stable (Slices 1–3).
+Slice 5 depends on Slice 4.
+Slice 6 is last.
 
 ---
 
 ## Verification Checklist
 
-After each slice:
-
-### Slice 1
-- [ ] Progress dialog appears during model load
-- [ ] Progress updates smoothly (0% → 100%)
-- [ ] Dialog dismisses only on completion
-- [ ] No UI freeze during load
+### Slice 1 ✅
+- [x] Progress dialog appears during model load
+- [x] Progress updates smoothly (0% → 100%)
+- [x] Dialog dismisses only on completion
+- [x] No UI freeze during load
 
 ### Slice 2
-- [ ] No session created on model detail enter
-- [ ] Session created only when "Start Chat" clicked
-- [ ] Same session reused on re-entry
+- [ ] No DB row created when model is selected
+- [ ] No DB row created when "New Chat" is tapped before any message
+- [ ] DB row created exactly once when first message is sent
+- [ ] Existing session reused when navigating back to same chat
 
 ### Slice 3
-- [ ] Model unloads on chat exit
-- [ ] RAM usage drops after unload
-- [ ] Toast shown on unload
-- [ ] No memory leaks in profiler
+- [ ] `Engine.close()` called when navigating away from chat
+- [ ] `EngineState.Idle` observed after exit
+- [ ] RAM usage visibly drops in profiler after exit
+- [ ] Model reloads cleanly on re-entry
 
 ### Slice 4
-- [ ] Settings dialog opens from gear icon
-- [ ] All controls work (slider, input, dropdown)
-- [ ] Save applies new settings immediately
-- [ ] Cancel discards changes
+- [ ] Settings sheet opens from tune icon
+- [ ] All controls render correctly at all font scales
+- [ ] Save updates `inferenceSettings` in `ChatUiState`
+- [ ] Discard leaves settings unchanged
+- [ ] Sheet follows Material3 theme
 
 ### Slice 5
-- [ ] Settings persist across app restarts
-- [ ] Per-model settings are independent
-- [ ] Reset restores defaults
+- [ ] Settings survive app restart
+- [ ] Missing fields default to `InferenceSettings()` values
+- [ ] Unit test passes
 
 ### Slice 6
+- [ ] No regressions in existing chat, download, or model-browse flows
 - [ ] All unit tests pass
-- [ ] All UI tests pass
-- [ ] No regressions in existing features
+- [ ] Edge-to-edge layout correct
 
 ---
 
-## Theme & Font Guidelines
+## Theme & Font Rules
 
-All UI changes must follow:
-- **Material3 theme** (use `MaterialTheme.colorScheme`)
-- **Typography** (use `MaterialTheme.typography`)
-- **Font scale support** (all text uses `fontSize` from `Typography`)
-- **Edge-to-edge** (use `statusBarsPadding`, `navigationBarsPadding`, `imePadding`)
-- **Accessibility** (minimum touch target 48dp, contrast ≥ 4.5:1)
-
----
-
-## Risk Analysis
-
-| Risk | Mitigation |
-|------|------------|
-| Progress callback blocks main thread | Run progress updates on `Dispatchers.Default` and `collectAsState()` on main |
-| Session creation race condition | Use `mutex` in `SessionManager` to serialize session creation |
-| Model unload crashes | Wrap `unloadModel()` in try/catch, log errors |
-| Settings migration data loss | Use additive migration (new table), keep old settings as fallback |
-| Dialog too large on small screens | Make `InferenceSettingsDialog` scrollable and use `minWidth(320.dp)` |
+All new UI must:
+- Use `MaterialTheme.colorScheme` for all colours.
+- Use `MaterialTheme.typography` for all text styles.
+- Support font scale up to 200% without text being clipped.
+- Use `imePadding()` and `navigationBarsPadding()` on bottom-anchored composables.
+- Minimum touch target: 48 dp.
+- Contrast ratio: ≥ 4.5:1 for body text.
 
 ---
 
-## Commit Messages (Ready to Use)
+## Commit Messages
 
-```bash
-# Slice 1
-git commit -m "Implement model loading progress indicator"
-
-# Slice 2
-git commit -m "Prevent automatic chat session creation"
-
-# Slice 3
-git commit -m "Unload model when exiting chat session"
-
-# Slice 4
-git commit -m "Add inference settings configuration dialog"
-
-# Slice 5
-git commit -m "Persist inference settings per model"
-
-# Slice 6
-git commit -m "Add comprehensive test coverage for chat features"
+```
+Slice 1  — Implement model loading progress indicator          ✅ done
+Slice 2  — Create chat session only on first message
+Slice 3  — Unload model synchronously when leaving chat
+Slice 4  — Add per-session inference settings sheet
+Slice 5  — Verify and harden per-chat inference settings persistence
+Slice 6  — Chat feature polish and regression checks
 ```
 
 ---
 
-## Next Steps
-
-1. Review this plan with the team (optional).
-2. Start with **Slice 1** (model loading progress).
-3. Implement each slice in order, committing after each.
-4. Run tests after every slice.
-5. Merge to `main` only after all slices are complete and tested.
-
----
-
-**Plan Created:** 2024-01-20  
-**Version:** 1.0  
-**Author:** AI Assistant  
-**Status:** Ready for Implementation
+**Plan version:** 2.0  
+**Last updated:** based on full codebase analysis  
+**Status:** Slice 1 complete. Ready to implement Slice 2.
