@@ -76,6 +76,8 @@ class ChatListViewModel @Inject constructor(
         id = id,
         title = title,
         preview = lastMessagePreview,
-        updatedAt = updatedAt
+        updatedAt = updatedAt,
+        modelId = modelId,
+        messageCount = messageCount
     )
 }

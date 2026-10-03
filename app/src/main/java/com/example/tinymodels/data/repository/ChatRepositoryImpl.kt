@@ -31,7 +31,8 @@ class ChatRepositoryImpl @Inject constructor(
                     title = row.title,
                     modelId = row.modelId,
                     lastMessagePreview = row.lastMessagePreview,
-                    updatedAt = row.updatedAt
+                    updatedAt = row.updatedAt,
+                    messageCount = row.messageCount
                 )
             }
         }

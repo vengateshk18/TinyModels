@@ -37,16 +37,18 @@ interface ChatDao {
     suspend fun deleteAllChats()
 
     /**
-     * Chats for the history list, each with a preview of its latest message.
-     * Ordered by most recently active.
+     * Chats for the history list, each with a preview of its latest message
+     * and its message count. Ordered by most recently active.
      */
     @Query(
         """
         SELECT c.chatId AS id, c.title AS title, c.modelId AS modelId,
                c.updatedAt AS updatedAt,
                (SELECT m.content FROM messages m
-                 WHERE m.chatId = c.chatId
-                 ORDER BY m.createdAt DESC LIMIT 1) AS lastMessagePreview
+                  WHERE m.chatId = c.chatId
+                  ORDER BY m.createdAt DESC LIMIT 1) AS lastMessagePreview,
+               (SELECT COUNT(*) FROM messages m
+                  WHERE m.chatId = c.chatId) AS messageCount
         FROM chats c
         WHERE c.isArchived = 0
         ORDER BY c.updatedAt DESC
@@ -81,5 +83,6 @@ data class ChatSummaryRow(
     val title: String,
     val modelId: String,
     val lastMessagePreview: String?,
-    val updatedAt: Long
+    val updatedAt: Long,
+    val messageCount: Int
 )

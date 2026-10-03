@@ -38,8 +38,9 @@ import com.example.tinymodels.feature.chat.components.ChatInputBar
 import com.example.tinymodels.feature.chat.components.EditMessageDialog
 import com.example.tinymodels.feature.chat.components.InferenceSettingsSheet
 import com.example.tinymodels.feature.chat.components.MessageBubble
+import com.example.tinymodels.feature.chat.components.ModelChip
+import com.example.tinymodels.feature.chat.components.ModelFilePickerSheet
 import com.example.tinymodels.feature.chat.components.ModelLoadingDialog
-import com.example.tinymodels.feature.chat.components.ModelPickerSheet
 import com.example.tinymodels.feature.chat.model.ChatEvent
 import com.example.tinymodels.feature.chat.model.ChatUiState
 import com.example.tinymodels.feature.chat.model.ModelChipState
@@ -64,7 +65,7 @@ fun ChatRoomScreen(
     viewModel: ChatViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val downloadedModels by viewModel.downloadedModels.collectAsStateWithLifecycle()
+    val downloadedFiles by viewModel.downloadedFiles.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var editingMessage by remember { mutableStateOf<Pair<String, String>?>(null) }
     var showModelPicker by remember { mutableStateOf(false) }
@@ -83,13 +84,20 @@ fun ChatRoomScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = uiState.chats
-                            .firstOrNull { it.id == uiState.activeChatId }?.title
-                            ?: "New chat",
-                        maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                    )
+                    Column {
+                        Text(
+                            text = uiState.chats
+                                .firstOrNull { it.id == uiState.activeChatId }?.title
+                                ?: "New chat",
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        )
+                        // Always-tappable model chip — opens the file picker sheet.
+                        ModelChip(
+                            state = uiState.model,
+                            onClick = { showModelPicker = true }
+                        )
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -163,13 +171,15 @@ fun ChatRoomScreen(
         ModelLoadingDialog(progress = progress)
     }
 
-    // Model picker sheet for selecting a different model mid-chat.
+    // File-level model picker sheet for selecting a model file mid-chat.
     if (showModelPicker) {
-        ModelPickerSheet(
-            models = downloadedModels,
-            activeModelId = (uiState.model as? ModelChipState.Ready)?.modelId,
-            onSelect = {
-                viewModel.onEvent(ChatEvent.SelectModel(it))
+        val activeChip = uiState.model as? ModelChipState.Ready
+        ModelFilePickerSheet(
+            files = downloadedFiles,
+            activeModelId = activeChip?.modelId,
+            activeFileName = activeChip?.fileName,
+            onSelect = { modelId, fileName ->
+                viewModel.onEvent(ChatEvent.SelectModel(modelId, fileName))
                 showModelPicker = false
             },
             onDismiss = { showModelPicker = false }

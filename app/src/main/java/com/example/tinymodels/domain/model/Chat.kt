@@ -32,5 +32,7 @@ data class ChatSummary(
     val title: String,
     val modelId: String,
     val lastMessagePreview: String?,
-    val updatedAt: Long
+    val updatedAt: Long,
+    /** Total number of messages in this chat. */
+    val messageCount: Int = 0
 )

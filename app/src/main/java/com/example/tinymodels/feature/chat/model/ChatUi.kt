@@ -19,7 +19,12 @@ data class UiChatMessage(
 sealed interface ModelChipState {
     data object NotSelected : ModelChipState
     data object Loading : ModelChipState
-    data class Ready(val modelId: String, val backendLabel: String) : ModelChipState
+    data class Ready(
+        val modelId: String,
+        val backendLabel: String,
+        /** The specific model file loaded (e.g. "model.int4.litertlm"), if known. */
+        val fileName: String? = null
+    ) : ModelChipState
     data class Error(val message: String) : ModelChipState
 }
 
@@ -40,7 +45,11 @@ data class ChatListItem(
     val id: String,
     val title: String,
     val preview: String?,
-    val updatedAt: Long
+    val updatedAt: Long,
+    /** The model this chat was last used with (for the history row metadata). */
+    val modelId: String? = null,
+    /** Total number of messages in this chat. */
+    val messageCount: Int = 0
 )
 
 /** Transient, user-facing error surfaced via snackbar/banner. */
@@ -86,7 +95,8 @@ data class ChatUiState(
 
 /** One-way events from the UI into the ViewModel (MVI intents). */
 sealed interface ChatEvent {
-    data class SelectModel(val modelId: String) : ChatEvent
+    /** Selects a model — and optionally the exact file within it — to load. */
+    data class SelectModel(val modelId: String, val fileName: String? = null) : ChatEvent
     data class SendMessage(val text: String) : ChatEvent
     data object CancelGeneration : ChatEvent
     data object Regenerate : ChatEvent

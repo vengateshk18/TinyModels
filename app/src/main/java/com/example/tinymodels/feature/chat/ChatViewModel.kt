@@ -10,6 +10,7 @@ import com.example.tinymodels.core.inference.ModelManager
 import com.example.tinymodels.domain.model.ChatMessage
 import com.example.tinymodels.domain.model.InferenceSettings
 import com.example.tinymodels.domain.model.DownloadedModel
+import com.example.tinymodels.domain.model.DownloadedModelFile
 import com.example.tinymodels.domain.repository.ChatRepository
 import com.example.tinymodels.domain.repository.ModelRepository
 import com.example.tinymodels.domain.repository.SettingsRepository
@@ -56,14 +57,25 @@ class ChatViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
 
-    /** Downloaded models for the picker sheet. */
+    /** Downloaded models (parents) for the picker sheet. */
     val downloadedModels: StateFlow<List<DownloadedModel>> =
         modelRepository.observeDownloadedModels()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Downloaded model files (children) for the file-level picker sheet. */
+    val downloadedFiles: StateFlow<List<DownloadedModelFile>> =
+        modelRepository.observeDownloadedFiles()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     private var session: ConversationSession? = null
     private var generationJob: Job? = null
     private var activeModel: DownloadedModel? = null
+
+    /** The specific file of the active model that was loaded, if known. */
+    private var activeFileName: String? = null
+
+    /** Simulated progress ticker running while a model loads (see [selectModel]). */
+    private var progressTickerJob: Job? = null
 
     /** The chatId for this screen, passed via nav arguments (SavedStateHandle). */
     val chatId: String? get() = savedStateHandle["chatId"]
@@ -121,7 +133,7 @@ class ChatViewModel @Inject constructor(
 
     fun onEvent(event: ChatEvent) {
         when (event) {
-            is ChatEvent.SelectModel -> selectModel(event.modelId)
+            is ChatEvent.SelectModel -> selectModel(event.modelId, event.fileName)
             is ChatEvent.SendMessage -> sendMessage(event.text)
             ChatEvent.CancelGeneration -> cancelGeneration()
             ChatEvent.Regenerate -> regenerate()
@@ -143,7 +155,14 @@ class ChatViewModel @Inject constructor(
             chatRepository.observeChatSummaries().collect { summaries ->
                 _uiState.update { state ->
                     state.copy(chats = summaries.map {
-                        ChatListItem(it.id, it.title, it.lastMessagePreview, it.updatedAt)
+                        ChatListItem(
+                            id = it.id,
+                            title = it.title,
+                            preview = it.lastMessagePreview,
+                            updatedAt = it.updatedAt,
+                            modelId = it.modelId,
+                            messageCount = it.messageCount
+                        )
                     })
                 }
             }
@@ -166,7 +185,8 @@ class ChatViewModel @Inject constructor(
                     is ModelManager.EngineState.Loading -> ModelChipState.Loading
                     is ModelManager.EngineState.Ready -> ModelChipState.Ready(
                         modelId = engineState.model.modelId,
-                        backendLabel = engineState.model.backendUsed.name
+                        backendLabel = engineState.model.backendUsed.name,
+                        fileName = activeFileName
                     )
                     is ModelManager.EngineState.Error ->
                         ModelChipState.Error(friendlyError(engineState.error))
@@ -178,16 +198,30 @@ class ChatViewModel @Inject constructor(
 
     // ---- Model selection / loading ----
 
-    private fun selectModel(modelId: String) {
-        if (modelManager.loadedModelId == modelId && session != null) return
+    private fun selectModel(modelId: String, fileName: String? = null) {
+        // Same model AND same file already loaded with a live session — nothing to do.
+        if (modelManager.loadedModelId == modelId && session != null && activeFileName == fileName) return
         viewModelScope.launch {
             val downloaded = modelRepository.getDownloadedModel(modelId)
             if (downloaded == null) {
                 _uiState.update { it.copy(error = ChatError("Model $modelId is not downloaded")) }
                 return@launch
             }
-            val modelFile = resolveModelFile(downloaded)
-            if (modelFile == null) {
+            // Resolve the exact file record to load — the user's pick, or the
+            // first downloaded file as fallback.
+            val fileRecord = if (fileName != null) {
+                modelRepository.getModelFile(downloaded.modelId, fileName)
+            } else {
+                modelRepository.getDownloadedFileForModel(downloaded.modelId)
+            }
+            if (fileRecord == null) {
+                _uiState.update {
+                    it.copy(error = ChatError("Model file missing on device", "Re-download"))
+                }
+                return@launch
+            }
+            val modelFile = File(File(downloaded.localPath), fileRecord.fileName.substringAfterLast("/"))
+            if (!modelFile.exists()) {
                 _uiState.update {
                     it.copy(error = ChatError("Model file missing on device", "Re-download"))
                 }
@@ -197,6 +231,12 @@ class ChatViewModel @Inject constructor(
             val chat = chatId?.let { chatRepository.getChat(it) }
             val inference = chat?.inferenceSettings ?: InferenceSettings()
             
+            // Record the file being loaded BEFORE the engine flips to Ready so the
+            // chip collector (observeEngineState) already sees the correct value.
+            // Use the resolved record's name so auto-loads (no explicit pick)
+            // also highlight the right file in the picker sheet.
+            activeFileName = fileRecord.fileName
+
             // Track loading progress
             _uiState.update { 
                 it.copy(
@@ -207,7 +247,14 @@ class ChatViewModel @Inject constructor(
                     )
                 ) 
             }
-            
+
+            // The native engine reports only a few discrete milestones (10% → 30% → 50%)
+            // around one long-blocking initialize() call, so the bar would otherwise
+            // stall and then jump to 100%. Run a simulated ticker alongside the real
+            // load: it creeps asymptotically toward 90% and never reaches it, while
+            // real milestones are merged in as a floor. Completion snaps to 100%.
+            startProgressTicker(modelId)
+
             val result = modelManager.loadModel(
                 modelId = modelId,
                 modelFile = modelFile,
@@ -222,13 +269,16 @@ class ChatViewModel @Inject constructor(
                         }
                         currentState.copy(
                             modelLoadProgress = currentState.modelLoadProgress?.copy(
-                                progress = progress,
+                                // Never regress below the simulated value.
+                                progress = maxOf(simulatedProgress, progress),
                                 stage = uiStage
                             )
                         )
                     }
                 }
             )
+            progressTickerJob?.cancel()
+            progressTickerJob = null
             when (result) {
                 is com.example.tinymodels.core.common.AppResult.Success -> {
                     activeModel = downloaded
@@ -260,11 +310,50 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    private suspend fun resolveModelFile(model: DownloadedModel): File? {
-        val directory = File(model.localPath)
-        val file = modelRepository.getDownloadedFileForModel(model.modelId) ?: return null
-        val resolved = File(directory, file.fileName.substringAfterLast("/"))
-        return if (resolved.exists()) resolved else null
+    /**
+     * Simulated progress for the loading dialog. [simulatedProgress] is the current
+     * fake value; the ticker nudges it toward [SIMULATED_PROGRESS_CEILING] (~90%)
+     * with decreasing steps so it never actually arrives while the real load runs.
+     */
+    private var simulatedProgress = 0f
+
+    private fun startProgressTicker(modelId: String) {
+        progressTickerJob?.cancel()
+        simulatedProgress = 0.05f
+        progressTickerJob = viewModelScope.launch {
+            while (true) {
+                delay(150)
+                simulatedProgress += (SIMULATED_PROGRESS_CEILING - simulatedProgress) * 0.06f
+                val stage = if (simulatedProgress < 0.35f) {
+                    ModelLoadProgress.LoadStage.INITIALIZING
+                } else {
+                    ModelLoadProgress.LoadStage.LOADING_WEIGHTS
+                }
+                _uiState.update { state ->
+                    val current = state.modelLoadProgress ?: return@update state
+                    if (current.stage == ModelLoadProgress.LoadStage.READY) return@update state
+                    // Stage is monotonic: never regress from LOADING_WEIGHTS to INITIALIZING.
+                    val mergedStage = if (stage == ModelLoadProgress.LoadStage.LOADING_WEIGHTS ||
+                        current.stage == ModelLoadProgress.LoadStage.LOADING_WEIGHTS
+                    ) {
+                        ModelLoadProgress.LoadStage.LOADING_WEIGHTS
+                    } else {
+                        ModelLoadProgress.LoadStage.INITIALIZING
+                    }
+                    state.copy(
+                        modelLoadProgress = current.copy(
+                            progress = maxOf(current.progress, simulatedProgress),
+                            stage = mergedStage
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    private companion object {
+        /** The simulated ticker approaches but never reaches this value. */
+        const val SIMULATED_PROGRESS_CEILING = 0.90f
     }
 
     // ---- Chat lifecycle ----

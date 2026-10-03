@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material3.CircularProgressIndicator
@@ -71,7 +72,12 @@ fun ModelChip(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = state.modelId.substringAfterLast('/'),
+                        // Prefer the specific loaded file (extension stripped) — it is
+                        // the most precise identifier of what's in memory.
+                        text = state.fileName
+                            ?.substringAfterLast('/')
+                            ?.removeSuffix(".litertlm")
+                            ?: state.modelId.substringAfterLast('/'),
                         style = MaterialTheme.typography.labelMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -84,6 +90,13 @@ fun ModelChip(
                     Text("Select model", style = MaterialTheme.typography.labelMedium)
                 }
             }
+            // Dropdown affordance — signals the chip opens the model picker.
+            Icon(
+                Icons.Filled.ArrowDropDown,
+                contentDescription = "Choose model",
+                modifier = Modifier.size(18.dp),
+                tint = MaterialTheme.colorScheme.onSecondaryContainer
+            )
         }
     }
 }
