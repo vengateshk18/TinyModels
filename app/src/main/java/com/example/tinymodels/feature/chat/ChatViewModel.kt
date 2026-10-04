@@ -452,14 +452,16 @@ class ChatViewModel @Inject constructor(
                     // assistant message (with its live partial text) when active.
                     val streamingId = state.streamingMessageId
                     val streamingMsg = state.messages.firstOrNull { it.id == streamingId }
-                    if (streamingId != null && streamingMsg != null) {
+                    val merged = if (streamingId != null && streamingMsg != null) {
                         // Drop any stale Room version of the streaming placeholder
                         // (it won't exist until persisted) and append the live one.
-                        val without = roomUi.filterNot { it.id == streamingId }
-                        state.copy(messages = without + streamingMsg)
+                        roomUi.filterNot { it.id == streamingId } + streamingMsg
                     } else {
-                        state.copy(messages = roomUi)
+                        roomUi
                     }
+                    // Safety net: the message list is keyed by id in LazyColumn,
+                    // so a duplicate id here would crash the list at measure time.
+                    state.copy(messages = merged.distinctBy { it.id })
                 }
             }
         }
@@ -501,10 +503,18 @@ class ChatViewModel @Inject constructor(
             // Optimistic UI: append user bubble + a streaming assistant placeholder.
             val assistantId = UUID.randomUUID().toString()
             _uiState.update { s ->
+                // The Room observer can deliver the persisted user message while
+                // saveMessage() is still suspended (invalidation + re-query emit
+                // before this update runs). Appending it again would create two
+                // items with the same id and crash LazyColumn, which keys
+                // messages by id — so only append when it is not already present.
+                val withUserMessage =
+                    if (s.messages.any { it.id == userMessage.id }) s.messages
+                    else s.messages + userMessage.toUi()
                 s.copy(
                     generation = GenerationState.GENERATING,
                     streamingMessageId = assistantId,
-                    messages = s.messages + userMessage.toUi() + UiChatMessage(
+                    messages = withUserMessage + UiChatMessage(
                         id = assistantId, isUser = false, text = "", isStreaming = true,
                         timestamp = System.currentTimeMillis()
                     )
