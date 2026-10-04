@@ -66,6 +66,7 @@ fun SettingsScreen(
     onManageModels: () -> Unit,
     onDownloadedModels: () -> Unit,
     onDeviceInfo: () -> Unit,
+    onBenchmark: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -116,6 +117,7 @@ fun SettingsScreen(
             HuggingFaceSection(viewModel)
             SectionDivider()
             AboutSection(
+                onBenchmark = onBenchmark,
                 onDeviceInfo = onDeviceInfo,
                 onClearHistory = { showClearDialog = true }
             )
@@ -296,8 +298,17 @@ private fun TokenDialog(
 }
 
 @Composable
-private fun AboutSection(onDeviceInfo: () -> Unit, onClearHistory: () -> Unit) {
+private fun AboutSection(
+    onBenchmark: () -> Unit,
+    onDeviceInfo: () -> Unit,
+    onClearHistory: () -> Unit
+) {
     SectionHeader("About")
+    NavigationRow(
+        label = "Benchmark",
+        subtitle = "Measure load time, TTFT, and tokens/sec",
+        onClick = onBenchmark
+    )
     NavigationRow(
         label = "Device information",
         subtitle = "See your device's AI capability",

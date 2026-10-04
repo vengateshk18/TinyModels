@@ -71,6 +71,10 @@ class ChatViewModel @Inject constructor(
     private var generationJob: Job? = null
     private var activeModel: DownloadedModel? = null
 
+    /** The modelId the current [session] was built against. Used to detect a
+     *  stale session after the shared engine was swapped (e.g. by Benchmark). */
+    private var sessionModelId: String? = null
+
     /** The specific file of the active model that was loaded, if known. */
     private var activeFileName: String? = null
 
@@ -431,6 +435,7 @@ class ChatViewModel @Inject constructor(
                     maxContextTokens = inference.maxContextTokens
                 )
             }
+            sessionModelId = modelManager.loadedModelId
             updateContextUsage()
         } catch (e: InferenceException) {
             // Engine not loaded yet; session will be built when the model finishes loading.
@@ -509,6 +514,13 @@ class ChatViewModel @Inject constructor(
             // Title the chat from the first message.
             if (chatRepository.messageCount(activeChatId) <= 1) {
                 chatRepository.renameChat(activeChatId, text.take(40))
+            }
+
+            // The shared engine may have been swapped since this session was
+            // built (e.g. a benchmark loaded another model) — rebuild before
+            // generating so we never stream through a dead engine.
+            if (sessionModelId != modelManager.loadedModelId) {
+                rebuildSession(activeChatId)
             }
 
             runGeneration(activeChatId, assistantId, text)

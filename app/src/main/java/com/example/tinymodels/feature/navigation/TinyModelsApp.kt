@@ -30,6 +30,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.tinymodels.feature.benchmark.BenchmarkScreen
 import com.example.tinymodels.feature.chat.ChatListViewModel
 import com.example.tinymodels.feature.chat.ChatRoomScreen
 import com.example.tinymodels.feature.chat.ChatTabScreen
@@ -132,7 +133,8 @@ fun TinyModelsApp(navController: NavHostController = rememberNavController()) {
                     onBack = { navController.popBackStack() },
                     onManageModels = { navController.navigate(Routes.MODELS) },
                     onDownloadedModels = { navController.navigate(Routes.DOWNLOADED_MODELS) },
-                    onDeviceInfo = { navController.navigate(Routes.DEVICE_INFO) }
+                    onDeviceInfo = { navController.navigate(Routes.DEVICE_INFO) },
+                    onBenchmark = { navController.navigate(Routes.BENCHMARK) }
                 )
             }
 
@@ -201,6 +203,10 @@ fun TinyModelsApp(navController: NavHostController = rememberNavController()) {
                         navController.navigate(Routes.MODELS)
                     }
                 )
+            }
+
+            composable(Routes.BENCHMARK) {
+                BenchmarkScreen(onBack = { navController.popBackStack() })
             }
         }
     }
