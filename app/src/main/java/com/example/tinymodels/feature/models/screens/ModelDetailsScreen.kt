@@ -65,7 +65,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.tinymodels.core.common.AppError
 import com.example.tinymodels.core.ui.Formatters
+import com.example.tinymodels.core.ui.components.ErrorState
+import com.example.tinymodels.core.ui.components.OfflineState
 import com.example.tinymodels.domain.model.FileDownloadStatus
 import com.example.tinymodels.domain.model.ModelDetails
 import com.example.tinymodels.domain.usecase.model.DownloadState
@@ -77,6 +80,7 @@ import com.example.tinymodels.feature.models.ModelDetailsViewModel
 fun ModelDetailsScreen(
     onBack: () -> Unit,
     onDownloadedFileClick: (String) -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     viewModel: ModelDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -151,8 +155,17 @@ fun ModelDetailsScreen(
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
-                uiState.error != null ->
-                    ErrorState(message = uiState.error!!, onRetry = viewModel::load)
+                uiState.isOfflineError ->
+                    OfflineState(onRetry = viewModel::load)
+                uiState.error != null -> ErrorState(
+                    message = uiState.errorMessage ?: "Failed to load details",
+                    onRetry = viewModel::load,
+                    // Gated model — offer a direct path to add a token.
+                    secondaryActionLabel = if (uiState.error is AppError.Auth)
+                        "Add Hugging Face token" else null,
+                    onSecondaryAction = if (uiState.error is AppError.Auth)
+                        onOpenSettings else null
+                )
                 uiState.model != null ->
                     ModelDetailsContent(
                         model = uiState.model!!,
@@ -194,23 +207,6 @@ private fun ModelDetailsContent(
         }
         // Bottom spacer so content clears the sticky bar.
         item { Spacer(modifier = Modifier.height(4.dp)) }
-    }
-}
-
-@Composable
-private fun ErrorState(message: String, onRetry: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(Icons.Filled.ErrorOutline, contentDescription = null,
-            tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(44.dp))
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(message, color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodyMedium)
-        Spacer(modifier = Modifier.height(4.dp))
-        TextButton(onClick = onRetry) { Text("Retry") }
     }
 }
 
@@ -530,7 +526,8 @@ private fun FileDownloadBar(
                 .padding(16.dp)
         ) {
             when (download.status) {
-                DownloadStatus.DOWNLOADING, DownloadStatus.CHECKING_SIZE -> {
+                DownloadStatus.DOWNLOADING, DownloadStatus.CHECKING_SIZE,
+                DownloadStatus.WAITING_FOR_NETWORK -> {
                     FileDownloadInProgress(fileName, fileSize, download, onCancel)
                 }
                 DownloadStatus.FAILED -> {
@@ -599,6 +596,7 @@ private fun FileDownloadInProgress(
 ) {
     val total = if (download.totalBytes > 0) download.totalBytes else fileSize
     val isPreparing = download.status == DownloadStatus.CHECKING_SIZE
+    val isWaitingForNetwork = download.status == DownloadStatus.WAITING_FOR_NETWORK
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(modifier = Modifier.weight(1f)) {
@@ -610,12 +608,16 @@ private fun FileDownloadInProgress(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                if (isPreparing) "Preparing download\u2026" else "Downloading\u2026",
+                when {
+                    isWaitingForNetwork -> "Waiting for connection\u2026"
+                    isPreparing -> "Preparing download\u2026"
+                    else -> "Downloading\u2026"
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(8.dp))
-            if (isPreparing) {
+            if (isPreparing || isWaitingForNetwork) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth().height(6.dp))
             } else {
                 LinearProgressIndicator(
@@ -623,23 +625,25 @@ private fun FileDownloadInProgress(
                     modifier = Modifier.fillMaxWidth().height(6.dp)
                 )
             }
-            Spacer(modifier = Modifier.height(6.dp))
-            Row(modifier = Modifier.fillMaxWidth()) {
-                val pct = (download.progress * 100).toInt()
-                Text(
-                    if (total > 0)
-                        "${Formatters.formatBytes(download.downloadedBytes)} / ${Formatters.formatBytes(total)} \u00b7 $pct%"
-                    else "$pct%",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f)
-                )
-                if (download.bytesPerSecond > 0) {
+            if (!isWaitingForNetwork) {
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    val pct = (download.progress * 100).toInt()
                     Text(
-                        "${Formatters.formatBytes(download.bytesPerSecond)}/s",
+                        if (total > 0)
+                            "${Formatters.formatBytes(download.downloadedBytes)} / ${Formatters.formatBytes(total)} \u00b7 $pct%"
+                        else "$pct%",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f)
                     )
+                    if (download.bytesPerSecond > 0) {
+                        Text(
+                            "${Formatters.formatBytes(download.bytesPerSecond)}/s",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }

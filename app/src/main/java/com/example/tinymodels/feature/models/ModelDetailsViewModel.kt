@@ -3,8 +3,11 @@ package com.example.tinymodels.feature.models
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.tinymodels.core.common.AppError
 import com.example.tinymodels.core.common.AppResult
 import com.example.tinymodels.core.common.StorageUtils
+import com.example.tinymodels.core.network.NetworkErrorMapper
+import com.example.tinymodels.core.network.NetworkMonitor
 import com.example.tinymodels.domain.model.DownloadedModelFile
 import com.example.tinymodels.domain.model.FileDownloadStatus
 import com.example.tinymodels.domain.model.ModelDetails
@@ -26,7 +29,8 @@ class ModelDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val modelRepository: ModelRepository,
     private val downloadModel: DownloadModelUseCase,
-    private val storageUtils: StorageUtils
+    private val storageUtils: StorageUtils,
+    private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
 
     private val modelId: String = checkNotNull(savedStateHandle["modelId"])
@@ -34,7 +38,8 @@ class ModelDetailsViewModel @Inject constructor(
     data class UiState(
         val isLoading: Boolean = true,
         val model: ModelDetails? = null,
-        val error: String? = null,
+        /** Typed error from the last failed load — drives offline vs error UI. */
+        val error: AppError? = null,
         val isDownloaded: Boolean = false,
         val download: DownloadState = DownloadState(),
         // Per-file state
@@ -53,6 +58,14 @@ class ModelDetailsViewModel @Inject constructor(
         
         /** Get size of a specific file (0 if not yet calculated). */
         fun getFileSize(fileName: String): Long = fileSizes[fileName] ?: 0L
+
+        /** Friendly, user-presentable copy for [error]. */
+        val errorMessage: String?
+            get() = error?.let(NetworkErrorMapper::friendlyMessage)
+
+        /** True when the current error is simply "no connection". */
+        val isOfflineError: Boolean
+            get() = error is AppError.NoConnection
     }
 
     private val _uiState = MutableStateFlow(UiState())
@@ -65,6 +78,20 @@ class ModelDetailsViewModel @Inject constructor(
         observeDownloaded()
         observeModelFiles()
         resumeActiveDownload()
+        observeConnectivity()
+    }
+
+    /** Tracks connectivity and auto-retries the last failed load on reconnect. */
+    private fun observeConnectivity() {
+        viewModelScope.launch {
+            var wasOnline: Boolean? = null
+            networkMonitor.isOnline.collect { online ->
+                if (wasOnline == false && online && _uiState.value.error != null) {
+                    load()
+                }
+                wasOnline = online
+            }
+        }
     }
 
     override fun onCleared() {
@@ -83,6 +110,13 @@ class ModelDetailsViewModel @Inject constructor(
 
     fun load() {
         viewModelScope.launch {
+            // Fail fast when the device is offline — details need the HF API.
+            if (!networkMonitor.isOnline.value) {
+                _uiState.update {
+                    it.copy(isLoading = false, error = AppError.NoConnection())
+                }
+                return@launch
+            }
             _uiState.update { it.copy(isLoading = true, error = null) }
             when (val result = modelRepository.getModelDetails(modelId)) {
                 is AppResult.Success -> {
@@ -93,7 +127,7 @@ class ModelDetailsViewModel @Inject constructor(
                     calculateFileSizes(result.data)
                 }
                 is AppResult.Error -> _uiState.update {
-                    it.copy(isLoading = false, error = result.error.message ?: "Failed to load details")
+                    it.copy(isLoading = false, error = result.error)
                 }
             }
         }
@@ -119,6 +153,9 @@ class ModelDetailsViewModel @Inject constructor(
 
     private fun calculateFileSizes(model: ModelDetails) {
         viewModelScope.launch {
+            // Each size is a HEAD request — skip entirely when offline.
+            // Rows keep showing "—" until a later successful load fills them in.
+            if (!networkMonitor.isOnline.value) return@launch
             val files = model.runtimeFiles.ifEmpty { model.liteRtFiles }
             val sizes = mutableMapOf<String, Long>()
             files.forEach { fileName ->
@@ -267,11 +304,8 @@ class ModelDetailsViewModel @Inject constructor(
             viewModelScope.launch {
                 // Give WorkManager time to cancel
                 kotlinx.coroutines.delay(500)
-                _uiState.update { 
-                    it.copy(
-                        download = DownloadState(status = DownloadStatus.IDLE),
-                        error = "Download cancelled"
-                    ) 
+                _uiState.update {
+                    it.copy(download = DownloadState(status = DownloadStatus.IDLE))
                 }
             }
             return

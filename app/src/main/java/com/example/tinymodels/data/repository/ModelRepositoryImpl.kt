@@ -9,6 +9,7 @@ import com.example.tinymodels.core.database.ModelFileDao
 import com.example.tinymodels.core.database.entities.DownloadedModelEntity
 import com.example.tinymodels.core.database.entities.ModelFileEntity
 import com.example.tinymodels.core.network.HuggingFaceApi
+import com.example.tinymodels.core.network.NetworkErrorMapper
 import com.example.tinymodels.core.network.dto.ModelDtoParser
 import dagger.hilt.android.qualifiers.ApplicationContext
 import com.example.tinymodels.domain.model.DownloadedModel
@@ -42,7 +43,7 @@ class ModelRepositoryImpl @Inject constructor(
     override suspend fun listModels(search: String?, pipelineTag: String?): AppResult<List<ModelSummary>> =
         withContext(dispatchers.io) {
             AppResult.runCatching(
-                errorMapper = { AppError.Network(it.message) }
+                errorMapper = NetworkErrorMapper::toAppError
             ) {
                 val models = ModelDtoParser.parseModelList(api.listModels(search, pipelineTag, null))
                 // Client-side filter: drop models whose siblings are known but contain no runtime files.
@@ -53,7 +54,7 @@ class ModelRepositoryImpl @Inject constructor(
     override suspend fun getModelDetails(modelId: String): AppResult<ModelDetails> =
         withContext(dispatchers.io) {
             AppResult.runCatching(
-                errorMapper = { AppError.Network(it.message) }
+                errorMapper = NetworkErrorMapper::toAppError
             ) {
                 ModelDtoParser.parseDetails(api.getModelDetails(modelId))
             }

@@ -46,6 +46,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.tinymodels.core.ui.components.EmptyState
 import com.example.tinymodels.domain.model.DownloadedModel
 import com.example.tinymodels.feature.models.DownloadedModelsViewModel
 import java.text.SimpleDateFormat
@@ -84,16 +85,12 @@ fun DownloadedModelsScreen(
         }
     ) { padding ->
         if (models.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Filled.Inventory2, contentDescription = null,
-                        modifier = Modifier.size(56.dp), tint = MaterialTheme.colorScheme.outline)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("No models downloaded", style = MaterialTheme.typography.titleMedium)
-                    Text("Models you download appear here for offline use.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+            Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+                EmptyState(
+                    title = "No models downloaded",
+                    icon = Icons.Filled.Inventory2,
+                    message = "Models you download appear here for offline use."
+                )
             }
         } else {
             LazyColumn(

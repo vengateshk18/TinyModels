@@ -27,7 +27,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -38,6 +37,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.tinymodels.core.ui.components.EmptyState
+import com.example.tinymodels.core.ui.components.ErrorState
+import com.example.tinymodels.core.ui.components.OfflineState
 import com.example.tinymodels.domain.model.ModelSummary
 import com.example.tinymodels.feature.models.ModelListViewModel
 
@@ -79,19 +81,18 @@ fun ModelListScreen(
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
+                uiState.isOfflineError ->
+                    OfflineState(onRetry = viewModel::refresh)
                 uiState.error != null ->
-                    Column(
-                        modifier = Modifier.fillMaxSize().padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            uiState.error!!,
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        TextButton(onClick = { viewModel.refresh() }) { Text("Retry") }
-                    }
+                    ErrorState(
+                        message = uiState.errorMessage ?: "Failed to load models",
+                        onRetry = viewModel::refresh
+                    )
+                uiState.models.isEmpty() ->
+                    EmptyState(
+                        title = "No models found",
+                        message = "Try a different search or filter."
+                    )
                 else ->
                     LazyColumn(
                         contentPadding = PaddingValues(

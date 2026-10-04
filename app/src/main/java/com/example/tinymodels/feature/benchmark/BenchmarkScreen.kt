@@ -59,6 +59,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.tinymodels.core.inference.BenchmarkResult
 import com.example.tinymodels.core.ui.Formatters
+import com.example.tinymodels.core.ui.components.ErrorState
 import com.example.tinymodels.feature.benchmark.model.BenchmarkUiState
 
 /**
@@ -141,9 +142,11 @@ fun BenchmarkScreen(
                 modifier = Modifier.fillMaxSize().padding(padding)
             )
 
-            is BenchmarkUiState.Failed -> FailedContent(
+            is BenchmarkUiState.Failed -> ErrorState(
+                title = "Benchmark failed",
                 message = s.message,
                 onRetry = viewModel::backToPicker,
+                retryLabel = "Back to models",
                 modifier = Modifier.fillMaxSize().padding(padding)
             )
         }
@@ -485,35 +488,6 @@ private fun ResultContent(
         }
 
         Spacer(modifier = Modifier.height(32.dp))
-    }
-}
-
-@Composable
-private fun FailedContent(
-    message: String,
-    onRetry: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier.padding(horizontal = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            "Benchmark failed",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.error
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onRetry) { Text("Back to models") }
     }
 }
 

@@ -25,6 +25,8 @@ enum class DownloadStatus {
     IDLE,
     /** Resolving total size / enqueueing work. */
     CHECKING_SIZE,
+    /** Work is enqueued but blocked on the network constraint. */
+    WAITING_FOR_NETWORK,
     DOWNLOADING,
     COMPLETED,
     FAILED
@@ -42,7 +44,9 @@ data class DownloadState(
 ) {
     /** Back-compat convenience for existing call sites. */
     val isDownloading: Boolean
-        get() = status == DownloadStatus.DOWNLOADING || status == DownloadStatus.CHECKING_SIZE
+        get() = status == DownloadStatus.DOWNLOADING ||
+            status == DownloadStatus.CHECKING_SIZE ||
+            status == DownloadStatus.WAITING_FOR_NETWORK
 }
 
 /**
@@ -169,6 +173,11 @@ class DownloadModelUseCase @Inject constructor(
                         ?: "Download failed. Check your connection and retry."
                 )
                 WorkInfo.State.CANCELLED -> DownloadState(status = DownloadStatus.IDLE)
+                // ENQUEUED = waiting on a constraint (network) — show an honest
+                // "waiting" state instead of fake download progress.
+                WorkInfo.State.ENQUEUED -> DownloadState(
+                    status = DownloadStatus.WAITING_FOR_NETWORK
+                )
                 else -> DownloadState(
                     status = DownloadStatus.DOWNLOADING,
                     progress = progress,

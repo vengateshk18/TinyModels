@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.tinymodels.core.network.NetworkMonitor
 import com.example.tinymodels.core.ui.theme.TinyModelsTheme
 import com.example.tinymodels.core.ui.theme.resolveColorScheme
 import com.example.tinymodels.domain.model.AppSettings
@@ -42,6 +43,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var settingsRepository: SettingsRepository
+
+    @Inject
+    lateinit var networkMonitor: NetworkMonitor
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -113,7 +117,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    TinyModelsApp()
+                    TinyModelsApp(networkMonitor = networkMonitor)
                 }
             }
         }

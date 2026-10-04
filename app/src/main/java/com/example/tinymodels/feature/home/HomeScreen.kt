@@ -428,6 +428,28 @@ private fun RecommendedModelCard(
                         }
                     }
                 }
+                download.status == DownloadStatus.WAITING_FOR_NETWORK -> {
+                    // Enqueued but blocked on the network constraint — be honest
+                    // instead of showing fake progress.
+                    LinearProgressIndicator(
+                        modifier = Modifier.fillMaxWidth().height(6.dp)
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "Waiting for connection… download starts automatically.",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        TextButton(onClick = { onCancelDownload(recommended) }) {
+                            Text("Cancel")
+                        }
+                    }
+                }
                 else -> {
                     // CHECKING_SIZE or DOWNLOADING
                     LinearProgressIndicator(

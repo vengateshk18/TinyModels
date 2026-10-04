@@ -49,7 +49,7 @@ class HomeViewModel @Inject constructor(
     private val _recommendedDownload = MutableStateFlow<DownloadState?>(null)
     val recommendedDownload: StateFlow<DownloadState?> = _recommendedDownload.asStateFlow()
 
-    /** One-shot error surfaced as a snackbar. */
+    /** One-shot error surfaced as a snackbar, with friendly copy. */
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
@@ -98,13 +98,11 @@ class HomeViewModel @Inject constructor(
                     .collect { state ->
                         _recommendedDownload.value = state
                         if (state.status == DownloadStatus.FAILED) {
-                            _error.value = state.error
-                                ?: "Download failed. Check your connection and retry."
+                            _error.value = friendlyDownloadError(state.error)
                         }
                     }
             } catch (t: Throwable) {
-                _error.value = t.message
-                    ?: "Download failed. Check your connection and retry."
+                _error.value = friendlyDownloadError(t.message)
             }
         }
     }
@@ -112,6 +110,22 @@ class HomeViewModel @Inject constructor(
     /** Cancels the recommended-model download. */
     fun cancelRecommendedDownload(model: RecommendedModel) {
         downloadUseCase.cancelFile(model.modelId, model.fileName)
+    }
+
+    /**
+     * Friendly copy for a failed recommended-model download. Worker errors keep
+     * their specific reason (auth, storage) when present; otherwise fall back to
+     * a connection-oriented message since these models are ungated.
+     */
+    private fun friendlyDownloadError(raw: String?): String {
+        if (raw.isNullOrBlank()) {
+            return "Download failed. Check your connection and retry."
+        }
+        // Keep actionable auth/storage messages as-is.
+        if (raw.contains("401") || raw.contains("403") || raw.contains("storage", ignoreCase = true)) {
+            return raw
+        }
+        return "Download failed. Check your connection and retry."
     }
 
     // ---- State assembly ----

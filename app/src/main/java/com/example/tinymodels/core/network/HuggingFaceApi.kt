@@ -68,7 +68,7 @@ class HuggingFaceApi @Inject constructor(
         val request = Request.Builder().url(url).get().build()
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
-                throw java.io.IOException("HTTP ${response.code}: ${response.message}")
+                throw HttpException(response.code, "HTTP ${response.code}: ${response.message}")
             }
             return response.body?.string().orEmpty()
         }

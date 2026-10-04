@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import com.example.tinymodels.core.common.AppError
 import com.example.tinymodels.core.common.AppResult
 import com.example.tinymodels.core.common.StorageUtils
+import com.example.tinymodels.core.network.NetworkMonitor
 import com.example.tinymodels.domain.model.DownloadedModel
 import com.example.tinymodels.domain.model.DownloadedModelFile
 import com.example.tinymodels.domain.model.FileDownloadStatus
@@ -30,6 +31,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -44,6 +46,12 @@ class ModelDetailsViewModelTest {
     private val repo = FakeModelRepository()
     private val downloadUseCase = mockk<DownloadModelUseCase>(relaxed = true)
     private val storage = mockk<StorageUtils>(relaxed = true)
+    private val networkMonitor = FakeNetworkMonitor()
+
+    /** In-memory monitor so tests can toggle connectivity. */
+    private class FakeNetworkMonitor : NetworkMonitor {
+        override val isOnline = MutableStateFlow(true)
+    }
 
     private val sampleModel = ModelDetails(
         id = "org/model-270m",
@@ -80,7 +88,8 @@ class ModelDetailsViewModelTest {
         SavedStateHandle(mapOf("modelId" to modelId)),
         repo,
         downloadUseCase,
-        storage
+        storage,
+        networkMonitor
     )
 
     @Test
@@ -105,7 +114,35 @@ class ModelDetailsViewModelTest {
         val state = viewModel.uiState.value
         assertFalse(state.isLoading)
         assertNotNull(state.error)
-        assertEquals("boom", state.error)
+        assertEquals("boom", state.error?.message)
+    }
+
+    @Test
+    fun `load fails fast with NoConnection when offline`() = runTest {
+        networkMonitor.isOnline.value = false
+        val viewModel = vm()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertFalse(state.isLoading)
+        assertTrue(state.error is AppError.NoConnection)
+        assertTrue(state.isOfflineError)
+    }
+
+    @Test
+    fun `load auto-retries when connectivity returns after a failure`() = runTest {
+        networkMonitor.isOnline.value = false
+        val viewModel = vm()
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.error is AppError.NoConnection)
+
+        // Back online — the failed load should retry automatically.
+        networkMonitor.isOnline.value = true
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertNull(state.error)
+        assertEquals(sampleModel.id, state.model?.id)
     }
 
     @Test

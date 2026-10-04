@@ -1,5 +1,7 @@
 package com.example.tinymodels.di
 
+import com.example.tinymodels.core.network.ConnectivityMonitor
+import com.example.tinymodels.core.network.NetworkMonitor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,4 +23,8 @@ object NetworkModule {
             .followRedirects(true)
             .followSslRedirects(true)
             .build()
+
+    @Provides
+    @Singleton
+    fun provideNetworkMonitor(impl: ConnectivityMonitor): NetworkMonitor = impl
 }

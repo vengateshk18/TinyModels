@@ -62,6 +62,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.tinymodels.core.ui.Formatters
+import com.example.tinymodels.core.ui.components.EmptyState
+import com.example.tinymodels.core.ui.components.ErrorState
+import com.example.tinymodels.core.ui.components.OfflineState
 import com.example.tinymodels.domain.model.DownloadedModel
 import com.example.tinymodels.domain.model.DownloadedModelFile
 import com.example.tinymodels.domain.model.ModelFilter
@@ -187,32 +190,18 @@ private fun BrowseContent(
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
+            uiState.isOfflineError ->
+                OfflineState(onRetry = onRetry)
             uiState.error != null ->
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        uiState.error!!,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    TextButton(onClick = onRetry) { Text("Retry") }
-                }
+                ErrorState(
+                    message = uiState.errorMessage ?: "Failed to load models",
+                    onRetry = onRetry
+                )
             uiState.models.isEmpty() ->
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("No models found", style = MaterialTheme.typography.titleMedium)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            "Try a different search or filter.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                EmptyState(
+                    title = "No models found",
+                    message = "Try a different search or filter."
+                )
             else ->
                 LazyColumn(
                     // top/horizontal: 16dp; bottom: 16dp list gap + 24dp breathing

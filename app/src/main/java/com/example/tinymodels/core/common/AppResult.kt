@@ -49,12 +49,30 @@ sealed interface AppResult<out T> {
 }
 
 /**
- * Typed, user-presentable errors. Each feature can map these to friendly copy.
+ * Typed, user-presentable errors. Each feature can map these to friendly copy
+ * (see [com.example.tinymodels.core.network.NetworkErrorMapper.friendlyMessage]).
  */
 sealed class AppError(open val message: String?) {
+    /** Device is offline — no usable network connection. */
+    data class NoConnection(override val message: String? = null) : AppError(message)
+
+    /** Request timed out. */
+    data class Timeout(override val message: String? = null) : AppError(message)
+
+    /** Generic network failure (connection reset, HTTP error without a known code…). */
     data class Network(override val message: String?) : AppError(message)
-    data class NotFound(override val message: String?) : AppError(message)
-    data class Storage(override val message: String?) : AppError(message)
+
+    /** HTTP 401/403 — gated model or missing/invalid Hugging Face token. */
+    data class Auth(override val message: String? = null) : AppError(message)
+
+    /** HTTP 4xx/5xx server-side failure. */
+    data class ServerError(
+        override val message: String? = null,
+        val code: Int? = null
+    ) : AppError(message)
+
+    data class NotFound(override val message: String? = null) : AppError(message)
+    data class Storage(override val message: String? = null) : AppError(message)
     data class Unknown(override val message: String?, val cause: Throwable? = null) : AppError(message)
 }
 

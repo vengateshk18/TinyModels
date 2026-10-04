@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.tinymodels.core.ui.Formatters
+import com.example.tinymodels.core.ui.components.ErrorState
 import com.example.tinymodels.feature.models.DownloadedFileDetailViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -99,7 +100,12 @@ fun DownloadedFileDetailScreen(
                         CircularProgressIndicator()
                     }
                 uiState.error != null ->
-                    ErrorState(message = uiState.error!!, onBack = onBack)
+                    ErrorState(
+                        message = uiState.error!!,
+                        title = "File not found",
+                        onRetry = onBack,
+                        retryLabel = "Go back"
+                    )
                 uiState.fileInfo != null ->
                     FileDetailContent(
                         fileInfo = uiState.fileInfo!!,
@@ -293,26 +299,3 @@ private fun InfoRow(icon: ImageVector, label: String, value: String) {
     }
 }
 
-@Composable
-private fun ErrorState(message: String, onBack: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            Icons.Filled.ErrorOutline,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.error,
-            modifier = Modifier.size(44.dp)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            message,
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        TextButton(onClick = onBack) { Text("Go back") }
-    }
-}

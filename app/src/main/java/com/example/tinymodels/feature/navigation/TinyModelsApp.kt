@@ -18,10 +18,12 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -30,6 +32,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.tinymodels.core.network.NetworkMonitor
+import com.example.tinymodels.core.ui.components.OfflineBanner
 import com.example.tinymodels.feature.benchmark.BenchmarkScreen
 import com.example.tinymodels.feature.chat.ChatListViewModel
 import com.example.tinymodels.feature.chat.ChatRoomScreen
@@ -49,9 +53,13 @@ import com.example.tinymodels.feature.settings.SettingsScreen
  * are full-screen and hide the bottom bar.
  */
 @Composable
-fun TinyModelsApp(navController: NavHostController = rememberNavController()) {
+fun TinyModelsApp(
+    navController: NavHostController = rememberNavController(),
+    networkMonitor: NetworkMonitor
+) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
+    val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle()
 
     val showBottomBar = currentRoute in setOf(
         Routes.HOME, Routes.CHAT, Routes.MODELS, Routes.SETTINGS
@@ -88,125 +96,131 @@ fun TinyModelsApp(navController: NavHostController = rememberNavController()) {
             }
         }
     ) { padding ->
-        NavHost(
-            navController = navController,
-            startDestination = Routes.HOME,
-            modifier = Modifier.fillMaxSize().padding(padding)
-        ) {
-            // --- Tab destinations ---
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+            // App-wide offline awareness — chat and local features keep working.
+            OfflineBanner(visible = !isOnline)
 
-            composable(Routes.HOME) {
-                HomeScreen(
-                    onBrowseModels = { navController.navigate(Routes.MODELS) },
-                    onResumeChat = { chatId ->
-                        navController.navigate(Routes.chatRoom(chatId))
-                    },
-                    onNewChat = { modelId ->
-                        navController.navigate(
-                            if (modelId != null) {
-                                Routes.chatRoomWithPreference(modelId)
-                            } else {
-                                Routes.chatRoom(ChatListViewModel.NEW_CHAT_SENTINEL)
-                            }
-                        )
-                    },
-                    onManageModels = { navController.navigate(Routes.DOWNLOADED_MODELS) },
-                    onOpenSettings = { navController.navigate(Routes.SETTINGS) }
-                )
-            }
-
-            composable(Routes.CHAT) {
-                ChatTabScreen(
-                    onOpenChat = { chatId -> navController.navigate(Routes.chatRoom(chatId)) },
-                    onNavigateToModels = { navController.navigate(Routes.MODELS) }
-                )
-            }
-
-            composable(Routes.MODELS) {
-                ModelsTabScreen(
-                    onModelClick = { modelId -> navController.navigate(Routes.modelDetails(modelId)) }
-                )
-            }
-
-            composable(Routes.SETTINGS) {
-                SettingsScreen(
-                    onBack = { navController.popBackStack() },
-                    onManageModels = { navController.navigate(Routes.MODELS) },
-                    onDownloadedModels = { navController.navigate(Routes.DOWNLOADED_MODELS) },
-                    onDeviceInfo = { navController.navigate(Routes.DEVICE_INFO) },
-                    onBenchmark = { navController.navigate(Routes.BENCHMARK) }
-                )
-            }
-
-            // --- Pushed routes ---
-
-            composable(
-                route = Routes.MODEL_DETAILS,
-                arguments = listOf(navArgument("modelId") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val modelId = backStackEntry.arguments?.getString("modelId") ?: return@composable
-                ModelDetailsScreen(
-                    onBack = { navController.popBackStack() },
-                    onDownloadedFileClick = { fileName ->
-                        navController.navigate(Routes.downloadedFileDetail(modelId, fileName))
-                    }
-                )
-            }
-
-            composable(
-                route = Routes.DOWNLOADED_FILE_DETAIL,
-                arguments = listOf(
-                    navArgument("modelId") { type = NavType.StringType },
-                    navArgument("fileName") { type = NavType.StringType }
-                )
+            NavHost(
+                navController = navController,
+                startDestination = Routes.HOME,
+                modifier = Modifier.fillMaxSize()
             ) {
-                DownloadedFileDetailScreen(
-                    onBack = { navController.popBackStack() },
-                    onStartChat = { preferredModelId ->
-                        // Navigate directly to a new chat room with the preferred model.
-                        // Model loading happens inside ChatViewModel — not here.
-                        navController.navigate(Routes.chatRoomWithPreference(preferredModelId))
-                    }
-                )
-            }
+                // --- Tab destinations ---
 
-            composable(Routes.DOWNLOADED_MODELS) {
-                DownloadedModelsScreen(onBack = { navController.popBackStack() })
-            }
+                composable(Routes.HOME) {
+                    HomeScreen(
+                        onBrowseModels = { navController.navigate(Routes.MODELS) },
+                        onResumeChat = { chatId ->
+                            navController.navigate(Routes.chatRoom(chatId))
+                        },
+                        onNewChat = { modelId ->
+                            navController.navigate(
+                                if (modelId != null) {
+                                    Routes.chatRoomWithPreference(modelId)
+                                } else {
+                                    Routes.chatRoom(ChatListViewModel.NEW_CHAT_SENTINEL)
+                                }
+                            )
+                        },
+                        onManageModels = { navController.navigate(Routes.DOWNLOADED_MODELS) },
+                        onOpenSettings = { navController.navigate(Routes.SETTINGS) }
+                    )
+                }
 
-            composable(
-                route = Routes.CHAT_ROOM,
-                arguments = listOf(navArgument("chatId") { type = NavType.StringType })
-            ) {
-                ChatRoomScreen(onBack = { navController.popBackStack() })
-            }
+                composable(Routes.CHAT) {
+                    ChatTabScreen(
+                        onOpenChat = { chatId -> navController.navigate(Routes.chatRoom(chatId)) },
+                        onNavigateToModels = { navController.navigate(Routes.MODELS) }
+                    )
+                }
 
-            composable(
-                route = Routes.CHAT_ROOM_WITH_PREF,
-                arguments = listOf(
-                    navArgument("chatId") { type = NavType.StringType },
-                    navArgument("preferredModelId") {
-                        type = NavType.StringType
-                        nullable = true
-                        defaultValue = null
-                    }
-                )
-            ) {
-                ChatRoomScreen(onBack = { navController.popBackStack() })
-            }
+                composable(Routes.MODELS) {
+                    ModelsTabScreen(
+                        onModelClick = { modelId -> navController.navigate(Routes.modelDetails(modelId)) }
+                    )
+                }
 
-            composable(Routes.DEVICE_INFO) {
-                DeviceInfoScreen(
-                    onBack = { navController.popBackStack() },
-                    onBrowseModels = {
-                        navController.popBackStack()
-                        navController.navigate(Routes.MODELS)
-                    }
-                )
-            }
+                composable(Routes.SETTINGS) {
+                    SettingsScreen(
+                        onBack = { navController.popBackStack() },
+                        onManageModels = { navController.navigate(Routes.MODELS) },
+                        onDownloadedModels = { navController.navigate(Routes.DOWNLOADED_MODELS) },
+                        onDeviceInfo = { navController.navigate(Routes.DEVICE_INFO) },
+                        onBenchmark = { navController.navigate(Routes.BENCHMARK) }
+                    )
+                }
 
-            composable(Routes.BENCHMARK) {
-                BenchmarkScreen(onBack = { navController.popBackStack() })
+                // --- Pushed routes ---
+
+                composable(
+                    route = Routes.MODEL_DETAILS,
+                    arguments = listOf(navArgument("modelId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val modelId = backStackEntry.arguments?.getString("modelId") ?: return@composable
+                    ModelDetailsScreen(
+                        onBack = { navController.popBackStack() },
+                        onDownloadedFileClick = { fileName ->
+                            navController.navigate(Routes.downloadedFileDetail(modelId, fileName))
+                        },
+                        onOpenSettings = { navController.navigate(Routes.SETTINGS) }
+                    )
+                }
+
+                composable(
+                    route = Routes.DOWNLOADED_FILE_DETAIL,
+                    arguments = listOf(
+                        navArgument("modelId") { type = NavType.StringType },
+                        navArgument("fileName") { type = NavType.StringType }
+                    )
+                ) {
+                    DownloadedFileDetailScreen(
+                        onBack = { navController.popBackStack() },
+                        onStartChat = { preferredModelId ->
+                            // Navigate directly to a new chat room with the preferred model.
+                            // Model loading happens inside ChatViewModel — not here.
+                            navController.navigate(Routes.chatRoomWithPreference(preferredModelId))
+                        }
+                    )
+                }
+
+                composable(Routes.DOWNLOADED_MODELS) {
+                    DownloadedModelsScreen(onBack = { navController.popBackStack() })
+                }
+
+                composable(
+                    route = Routes.CHAT_ROOM,
+                    arguments = listOf(navArgument("chatId") { type = NavType.StringType })
+                ) {
+                    ChatRoomScreen(onBack = { navController.popBackStack() })
+                }
+
+                composable(
+                    route = Routes.CHAT_ROOM_WITH_PREF,
+                    arguments = listOf(
+                        navArgument("chatId") { type = NavType.StringType },
+                        navArgument("preferredModelId") {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        }
+                    )
+                ) {
+                    ChatRoomScreen(onBack = { navController.popBackStack() })
+                }
+
+                composable(Routes.DEVICE_INFO) {
+                    DeviceInfoScreen(
+                        onBack = { navController.popBackStack() },
+                        onBrowseModels = {
+                            navController.popBackStack()
+                            navController.navigate(Routes.MODELS)
+                        }
+                    )
+                }
+
+                composable(Routes.BENCHMARK) {
+                    BenchmarkScreen(onBack = { navController.popBackStack() })
+                }
             }
         }
     }
