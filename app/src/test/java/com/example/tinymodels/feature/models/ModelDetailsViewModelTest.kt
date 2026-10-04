@@ -17,6 +17,8 @@ import com.example.tinymodels.domain.usecase.model.DownloadState
 import com.example.tinymodels.domain.usecase.model.DownloadStatus
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -48,6 +50,9 @@ class ModelDetailsViewModelTest {
     private val storage = mockk<StorageUtils>(relaxed = true)
     private val networkMonitor = FakeNetworkMonitor()
 
+    /** Mocked app context — MemoryUtils.totalRamBytes is stubbed to a fixed value. */
+    private val appContext = mockk<android.content.Context>()
+
     /** In-memory monitor so tests can toggle connectivity. */
     private class FakeNetworkMonitor : NetworkMonitor {
         override val isOnline = MutableStateFlow(true)
@@ -77,6 +82,15 @@ class ModelDetailsViewModelTest {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         repo.reset(sampleModel)
         every { storage.hasSpaceFor(any()) } returns true
+        // Stub totalRamBytes: a 4GB device. MemoryUtils is a Kotlin object,
+        // so mockkObject (not mockkStatic) is required.
+        io.mockk.mockkObject(com.example.tinymodels.core.common.MemoryUtils)
+        every { com.example.tinymodels.core.common.MemoryUtils.totalRamBytes(any()) } returns 4L * 1024 * 1024 * 1024
+    }
+
+    @After
+    fun tearDownMemory() {
+        io.mockk.unmockkObject(com.example.tinymodels.core.common.MemoryUtils)
     }
 
     @After
@@ -86,6 +100,7 @@ class ModelDetailsViewModelTest {
 
     private fun vm(modelId: String = sampleModel.id) = ModelDetailsViewModel(
         SavedStateHandle(mapOf("modelId" to modelId)),
+        appContext,
         repo,
         downloadUseCase,
         storage,

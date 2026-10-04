@@ -50,4 +50,18 @@ object MemoryUtils {
         if (snapshot.lowMemory) return false
         return snapshot.availableBytes - requiredBytes >= floorBytes
     }
+
+    /**
+     * True when a model file of [fileSizeBytes] can realistically be loaded and
+     * used on a device with [totalRamBytes] of RAM. Applies the same math as
+     * [requiredBytesForModel] (size × 1.25 safety multiplier) plus the system
+     * floor from [hasHeadroom] (400MB), but against TOTAL RAM rather than a
+     * live snapshot — this is a pre-download capacity judgment, and available
+     * memory fluctuates by the time the user actually loads the model.
+     */
+    fun canLoadModelOfSize(fileSizeBytes: Long, totalRamBytes: Long): Boolean {
+        if (fileSizeBytes <= 0) return true // Unknown size — can't judge; assume loadable.
+        val required = (fileSizeBytes * 1.25).toLong()
+        return totalRamBytes - required >= 400L * 1024 * 1024
+    }
 }

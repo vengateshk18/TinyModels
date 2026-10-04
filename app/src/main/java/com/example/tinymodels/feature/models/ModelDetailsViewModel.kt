@@ -3,8 +3,10 @@ package com.example.tinymodels.feature.models
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.content.Context
 import com.example.tinymodels.core.common.AppError
 import com.example.tinymodels.core.common.AppResult
+import com.example.tinymodels.core.common.MemoryUtils
 import com.example.tinymodels.core.common.StorageUtils
 import com.example.tinymodels.core.network.NetworkErrorMapper
 import com.example.tinymodels.core.network.NetworkMonitor
@@ -16,6 +18,7 @@ import com.example.tinymodels.domain.usecase.model.DownloadModelUseCase
 import com.example.tinymodels.domain.usecase.model.DownloadState
 import com.example.tinymodels.domain.usecase.model.DownloadStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,6 +30,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ModelDetailsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
+    @ApplicationContext private val appContext: Context,
     private val modelRepository: ModelRepository,
     private val downloadModel: DownloadModelUseCase,
     private val storageUtils: StorageUtils,
@@ -46,7 +50,9 @@ class ModelDetailsViewModel @Inject constructor(
         val modelFiles: List<DownloadedModelFile> = emptyList(),
         val fileSizes: Map<String, Long> = emptyMap(),
         val selectedFile: String? = null,
-        val fileDownload: DownloadState = DownloadState()
+        val fileDownload: DownloadState = DownloadState(),
+        /** Total device RAM — used for the per-file capacity indicator. */
+        val deviceRamBytes: Long = 0L
     ) {
         /** Best-known total size: model repo size, else what the worker reports. */
         val totalSizeBytes: Long
@@ -59,6 +65,13 @@ class ModelDetailsViewModel @Inject constructor(
         /** Get size of a specific file (0 if not yet calculated). */
         fun getFileSize(fileName: String): Long = fileSizes[fileName] ?: 0L
 
+        /**
+         * True when this file can realistically be loaded and used on this
+         * device (based on total RAM). Unknown sizes are assumed loadable.
+         */
+        fun isFileLoadable(fileName: String): Boolean =
+            MemoryUtils.canLoadModelOfSize(getFileSize(fileName), deviceRamBytes)
+
         /** Friendly, user-presentable copy for [error]. */
         val errorMessage: String?
             get() = error?.let(NetworkErrorMapper::friendlyMessage)
@@ -68,7 +81,7 @@ class ModelDetailsViewModel @Inject constructor(
             get() = error is AppError.NoConnection
     }
 
-    private val _uiState = MutableStateFlow(UiState())
+    private val _uiState = MutableStateFlow(UiState(deviceRamBytes = MemoryUtils.totalRamBytes(appContext)))
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     private var downloadJob: Job? = null

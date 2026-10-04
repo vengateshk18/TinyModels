@@ -39,6 +39,8 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SdStorage
 import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -58,6 +60,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -84,6 +89,7 @@ fun ModelDetailsScreen(
     viewModel: ModelDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showOversizedFileDialog by remember { mutableStateOf(false) }
 
         val safeDrawing = WindowInsets.systemBars.union(WindowInsets.displayCutout)
 
@@ -127,8 +133,17 @@ fun ModelDetailsScreen(
                         FileDownloadBar(
                             fileName = fileName,
                             fileSize = uiState.getFileSize(fileName),
+                            isLoadable = uiState.isFileLoadable(fileName),
+                            deviceRamBytes = uiState.deviceRamBytes,
                             download = uiState.fileDownload,
-                            onDownload = viewModel::onDownloadFileClick,
+                            onDownload = {
+                                // Alert before downloading a file too large for this device.
+                                if (uiState.isFileLoadable(fileName)) {
+                                    viewModel.onDownloadFileClick()
+                                } else {
+                                    showOversizedFileDialog = true
+                                }
+                            },
                             onCancel = viewModel::onCancelFileDownload
                         )
                     }
@@ -145,6 +160,41 @@ fun ModelDetailsScreen(
             }
         }
     ) { padding ->
+        // Oversized-file confirmation: the user explicitly wants to download
+        // a file this device cannot load. Let them, but make the cost clear.
+        if (showOversizedFileDialog) {
+            val fileName = uiState.selectedFile
+            AlertDialog(
+                onDismissRequest = { showOversizedFileDialog = false },
+                icon = { Icon(Icons.Filled.Warning, contentDescription = null) },
+                title = { Text("File too large for this device") },
+                text = {
+                    Text(
+                        if (fileName != null && uiState.getFileSize(fileName) > 0)
+                            "This file (${Formatters.formatBytes(uiState.getFileSize(fileName))}) " +
+                                "needs more RAM than your device has " +
+                                "(${Formatters.formatBytes(uiState.deviceRamBytes)}). " +
+                                "You can download it, but it cannot be used for chat or " +
+                                "benchmark on this device."
+                        else
+                            "This file needs more RAM than your device has " +
+                                "(${Formatters.formatBytes(uiState.deviceRamBytes)}). " +
+                                "You can download it, but it cannot be used for chat or " +
+                                "benchmark on this device."
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showOversizedFileDialog = false
+                        viewModel.onDownloadFileClick()
+                    }) { Text("Download anyway") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showOversizedFileDialog = false }) { Text("Cancel") }
+                }
+            )
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -349,6 +399,7 @@ private fun InteractiveFilesCard(
                     fileName = fileName,
                     status = uiState.getFileStatus(fileName),
                     fileSize = uiState.getFileSize(fileName),
+                    isLoadable = uiState.isFileLoadable(fileName),
                     isSelected = uiState.selectedFile == fileName,
                     download = if (uiState.selectedFile == fileName) uiState.fileDownload else null,
                     onSelect = { onFileSelected(fileName) },
@@ -364,6 +415,7 @@ private fun FileRow(
     fileName: String,
     status: FileDownloadStatus,
     fileSize: Long,
+    isLoadable: Boolean,
     isSelected: Boolean,
     download: DownloadState?,
     onSelect: () -> Unit,
@@ -416,7 +468,7 @@ private fun FileRow(
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 
-                // File name and size
+                // File name, size, and device-capacity indicator
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         fileName.substringAfterLast("/"),
@@ -429,6 +481,16 @@ private fun FileRow(
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    // Capacity indicator — only meaningful once the size is known.
+                    if (fileSize > 0) {
+                        Text(
+                            if (isLoadable) "✓ Fits your device"
+                            else "⚠ Too large for this device",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (isLoadable) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
                 
                 // Status badge
@@ -505,6 +567,8 @@ private fun Chip(label: String, leading: (@Composable () -> Unit)? = null) {
 private fun FileDownloadBar(
     fileName: String,
     fileSize: Long,
+    isLoadable: Boolean,
+    deviceRamBytes: Long,
     download: DownloadState,
     onDownload: () -> Unit,
     onCancel: () -> Unit
@@ -525,6 +589,32 @@ private fun FileDownloadBar(
                 )
                 .padding(16.dp)
         ) {
+            // Warning banner when the selected file can't be loaded on this device.
+            if (!isLoadable && fileSize > 0 && !download.isDownloading) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Filled.Warning,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        "Too large for this device " +
+                            "(${Formatters.formatBytes(fileSize)} vs " +
+                            "${Formatters.formatBytes(deviceRamBytes)} RAM). " +
+                            "It can be downloaded but not used here.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+
             when (download.status) {
                 DownloadStatus.DOWNLOADING, DownloadStatus.CHECKING_SIZE,
                 DownloadStatus.WAITING_FOR_NETWORK -> {
