@@ -96,27 +96,23 @@ fun MessageBubble(
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     } else if (message.text.isBlank() && message.isStreaming) {
-                        Text(
-                            text = "\u258D",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        // Awaiting the first token — blinking caret.
+                        StreamingCursor()
                     } else {
                         if (message.isStreaming) {
                             // While streaming, use plain Text to avoid the Markdown
                             // renderer's layout glitches (text overlapping itself)
                             // caused by rapid re-parsing on every token emission.
-                            Text(
-                                text = message.text,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                            Text(
-                                text = "\u258D",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
+                            Row(verticalAlignment = Alignment.Bottom) {
+                                Text(
+                                    text = message.text,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.weight(1f, fill = false)
+                                )
+                                Spacer(modifier = Modifier.width(2.dp))
+                                StreamingCursor()
+                            }
                         } else {
                             // Once complete, render full Markdown for formatting.
                             SafeMarkdown(

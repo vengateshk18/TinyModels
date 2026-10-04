@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
@@ -77,7 +79,12 @@ fun ChatRoomScreen(
         }
     }
 
-    val safeDrawing = WindowInsets.systemBars.union(WindowInsets.displayCutout)
+    // Include the IME inset so the Scaffold's content padding shrinks when
+    // the keyboard opens — the message list then ends exactly at the input
+    // bar and never slides under the keyboard.
+    val safeDrawing = WindowInsets.systemBars
+        .union(WindowInsets.displayCutout)
+        .union(WindowInsets.ime)
 
     Scaffold(
         contentWindowInsets = safeDrawing,
@@ -118,6 +125,10 @@ fun ChatRoomScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
+        // NOTE: IME insets are already part of `safeDrawing` (Scaffold's
+        // contentWindowInsets), so `padding` shrinks the content when the
+        // keyboard opens. No extra imePadding here — that would double-pad
+        // and push the input bar up over the app bar.
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -235,18 +246,31 @@ private fun MessageListRoom(
     onEditMessage: (String, String) -> Unit
 ) {
     val listState = rememberLazyListState()
+
+    // The list is REVERSED: item 0 renders at the BOTTOM of the viewport and
+    // the list grows upward. This is the standard chat layout — the newest
+    // message is permanently anchored just above the input bar, on first
+    // load and while the keyboard animates open/closed, with no scroll
+    // gymnastics required. Older messages scroll up out of view naturally.
+    val reversedMessages = remember(uiState.messages) { uiState.messages.asReversed() }
+
+    // With reverseLayout, "scroll to newest" is simply index 0. Only needed
+    // when the user has scrolled up and new content arrives.
     LaunchedEffect(uiState.messages.size, uiState.messages.lastOrNull()?.text?.length) {
-        if (uiState.messages.isNotEmpty()) {
-            listState.animateScrollToItem(uiState.messages.size - 1)
+        if (reversedMessages.isNotEmpty() && listState.firstVisibleItemIndex <= 2) {
+            listState.animateScrollToItem(0)
         }
     }
+
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 80.dp),
+        reverseLayout = true,
+        // Padding is in VIEWPORT space: `bottom` is next to the input bar.
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        items(uiState.messages, key = { it.id }) { message ->
+        items(reversedMessages, key = { it.id }) { message ->
             MessageBubble(
                 message = message,
                 onRegenerate = if (!message.isUser && !message.isStreaming) {
