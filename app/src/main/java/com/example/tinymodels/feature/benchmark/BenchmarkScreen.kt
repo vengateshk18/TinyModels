@@ -39,6 +39,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -60,6 +61,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.tinymodels.core.inference.BenchmarkResult
 import com.example.tinymodels.core.ui.Formatters
 import com.example.tinymodels.core.ui.components.ErrorState
+import com.example.tinymodels.feature.benchmark.model.BenchmarkFileOption
 import com.example.tinymodels.feature.benchmark.model.BenchmarkUiState
 
 /**
@@ -113,7 +115,6 @@ fun BenchmarkScreen(
 
             is BenchmarkUiState.Picker -> PickerContent(
                 state = s,
-                onSelectModel = viewModel::selectModel,
                 onSelectFile = viewModel::selectFile,
                 onRun = viewModel::runBenchmark,
                 modifier = Modifier.fillMaxSize().padding(padding)
@@ -177,8 +178,7 @@ fun BenchmarkScreen(
 @Composable
 private fun PickerContent(
     state: BenchmarkUiState.Picker,
-    onSelectModel: (String) -> Unit,
-    onSelectFile: (String) -> Unit,
+    onSelectFile: (BenchmarkFileOption) -> Unit,
     onRun: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -189,7 +189,7 @@ private fun PickerContent(
     ) {
         Spacer(modifier = Modifier.height(8.dp))
 
-        if (state.models.isEmpty()) {
+        if (state.files.isEmpty()) {
             Text(
                 "No downloaded models. Download a model first, then come back to benchmark it.",
                 style = MaterialTheme.typography.bodyMedium,
@@ -206,8 +206,8 @@ private fun PickerContent(
         )
         Spacer(modifier = Modifier.height(12.dp))
 
-        state.models.forEach { model ->
-            val isSelected = model.modelId == state.selectedModelId
+        state.files.forEach { file ->
+            val isSelected = file == state.selectedFile
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -216,7 +216,7 @@ private fun PickerContent(
                     containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
                     else MaterialTheme.colorScheme.surfaceContainer
                 ),
-                onClick = { onSelectModel(model.modelId) }
+                onClick = { onSelectFile(file) }
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -228,32 +228,23 @@ private fun PickerContent(
                             else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            model.displayName,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
-                            else MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                    if (model.files.size > 1 && isSelected) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        model.files.forEach { file ->
-                            val fileSelected = file.fileName == state.selectedFileName
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = file.fileName.substringAfterLast("/")
-                                    .removeSuffix(".litertlm")
-                                    .uppercase() + " • ${Formatters.formatBytes(file.sizeBytes)}",
+                                file.fileName.substringAfterLast("/"),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                else MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                "${file.modelId} • ${Formatters.formatBytes(file.sizeBytes)}",
                                 style = MaterialTheme.typography.bodySmall,
-                                fontWeight = if (fileSelected) FontWeight.Bold else FontWeight.Normal,
-                                color = if (fileSelected) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickableNoRipple { onSelectFile(file.fileName) }
-                                    .padding(vertical = 4.dp)
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -277,16 +268,14 @@ private fun PickerContent(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    "2 fixed prompts (short + medium) × 3 runs each, capped at 256 " +
-                        "output tokens. The first run is discarded as a warm-up; the median " +
-                        "of the remaining runs is reported. Fixed sampler (0.7 / 40 / 0.95). " +
-                        "Model load time is one cold load. Peak memory is sampled every " +
-                        "250 ms during the run.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
+                Spacer(modifier = Modifier.height(8.dp))
+                BulletPoint("2 fixed prompts (short + medium), 3 runs each")
+                BulletPoint("Output capped at 256 tokens per run")
+                BulletPoint("First run is a warm-up and is discarded")
+                BulletPoint("Median of the remaining runs is reported")
+                BulletPoint("Fixed sampler: temp 0.7 / top-k 40 / top-p 0.95")
+                BulletPoint("Load time = one cold load of the model")
+                BulletPoint("Peak memory sampled every 250 ms during the run")
             }
         }
 
@@ -341,45 +330,132 @@ private fun RunningContent(
 ) {
     Column(
         modifier = modifier
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp)
+            .fillMaxSize()
+            .padding(horizontal = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(48.dp))
+
+        // Animated indicator
+        CircularProgressIndicator(modifier = Modifier.size(56.dp), strokeWidth = 4.dp)
         Spacer(modifier = Modifier.height(24.dp))
+
         Text(
             "Running benchmark",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            "${progress.promptLabel} prompt • run ${progress.runIndex + 1} of ${progress.runTotal}" +
-                (if (progress.isWarmUp) " (warm-up)" else ""),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(16.dp))
 
-        // Overall progress across prompts × runs.
-        val totalRuns = progress.promptTotal * progress.runTotal
-        val doneRuns = progress.promptIndex * progress.runTotal + progress.runIndex
-        LinearProgressIndicator(
-            progress = { doneRuns.toFloat() / totalRuns },
-            modifier = Modifier.fillMaxWidth().height(8.dp)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            "Prompt ${progress.promptIndex + 1}/${progress.promptTotal} • " +
-                "Run ${progress.runIndex + 1}/${progress.runTotal} • " +
-                "${progress.tokensSoFar} tokens",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        // Current stage chip
+        val stageLabel = buildString {
+            append("${progress.promptLabel} prompt")
+            append(" • run ${progress.runIndex + 1} of ${progress.runTotal}")
+            if (progress.isWarmUp) append(" • warm-up")
+        }
+        Surface(
+            color = MaterialTheme.colorScheme.secondaryContainer,
+            shape = MaterialTheme.shapes.large
+        ) {
+            Text(
+                stageLabel,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+            )
+        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // ---- Progress card ----
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
+            )
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                // Overall progress across prompts × runs.
+                val totalRuns = progress.promptTotal * progress.runTotal
+                val doneRuns = progress.promptIndex * progress.runTotal + progress.runIndex
+                val fraction = doneRuns.toFloat() / totalRuns
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Overall progress",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        "${(fraction * 100).toInt()}%",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                LinearProgressIndicator(
+                    progress = { fraction },
+                    modifier = Modifier.fillMaxWidth().height(8.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    ProgressStat("Prompt", "${progress.promptIndex + 1}/${progress.promptTotal}", Modifier.weight(1f))
+                    ProgressStat("Run", "${progress.runIndex + 1}/${progress.runTotal}", Modifier.weight(1f))
+                    ProgressStat("Tokens", "${progress.tokensSoFar}", Modifier.weight(1f))
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // Cancel pinned to the bottom.
         OutlinedButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
             Text("Cancel")
         }
         Spacer(modifier = Modifier.height(32.dp))
+    }
+}
+
+@Composable
+private fun ProgressStat(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            value,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+private fun BulletPoint(text: String) {
+    Row(modifier = Modifier.padding(vertical = 3.dp)) {
+        Text(
+            "•",
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.padding(end = 8.dp)
+        )
+        Text(
+            text,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSecondaryContainer
+        )
     }
 }
 

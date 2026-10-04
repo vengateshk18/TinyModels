@@ -46,8 +46,9 @@ class ModelRepositoryImpl @Inject constructor(
                 errorMapper = NetworkErrorMapper::toAppError
             ) {
                 val models = ModelDtoParser.parseModelList(api.listModels(search, pipelineTag, null))
-                // Client-side filter: drop models whose siblings are known but contain no runtime files.
-                models.filter { it.siblings.isEmpty() || it.hasRuntimeFiles }
+                // Client-side filter: only keep models that actually have runnable
+                // LiteRT files — no point showing models we can never run.
+                models.filter { it.hasRuntimeFiles }
             }
         }
 

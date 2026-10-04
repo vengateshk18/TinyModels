@@ -33,7 +33,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.tinymodels.core.network.NetworkMonitor
-import com.example.tinymodels.core.ui.components.OfflineBanner
 import com.example.tinymodels.feature.benchmark.BenchmarkScreen
 import com.example.tinymodels.feature.chat.ChatListViewModel
 import com.example.tinymodels.feature.chat.ChatRoomScreen
@@ -59,7 +58,6 @@ fun TinyModelsApp(
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
-    val isOnline by networkMonitor.isOnline.collectAsStateWithLifecycle()
 
     val showBottomBar = currentRoute in setOf(
         Routes.HOME, Routes.CHAT, Routes.MODELS, Routes.SETTINGS
@@ -97,9 +95,6 @@ fun TinyModelsApp(
         }
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            // App-wide offline awareness — chat and local features keep working.
-            OfflineBanner(visible = !isOnline)
-
             NavHost(
                 navController = navController,
                 startDestination = Routes.HOME,
@@ -136,7 +131,10 @@ fun TinyModelsApp(
 
                 composable(Routes.MODELS) {
                     ModelsTabScreen(
-                        onModelClick = { modelId -> navController.navigate(Routes.modelDetails(modelId)) }
+                        onModelClick = { modelId -> navController.navigate(Routes.modelDetails(modelId)) },
+                        onFileClick = { modelId, fileName ->
+                            navController.navigate(Routes.downloadedFileDetail(modelId, fileName))
+                        }
                     )
                 }
 
@@ -184,7 +182,12 @@ fun TinyModelsApp(
                 }
 
                 composable(Routes.DOWNLOADED_MODELS) {
-                    DownloadedModelsScreen(onBack = { navController.popBackStack() })
+                    DownloadedModelsScreen(
+                        onBack = { navController.popBackStack() },
+                        onFileClick = { modelId, fileName ->
+                            navController.navigate(Routes.downloadedFileDetail(modelId, fileName))
+                        }
+                    )
                 }
 
                 composable(

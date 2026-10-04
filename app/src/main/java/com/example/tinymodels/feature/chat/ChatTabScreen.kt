@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -34,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -49,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.tinymodels.core.ui.components.EmptyState
+import com.example.tinymodels.feature.chat.model.ChatListItem
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -67,6 +70,7 @@ fun ChatTabScreen(
     val chats by viewModel.chats.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showSnackbar by remember { mutableStateOf<String?>(null) }
+    var pendingDelete by remember { mutableStateOf<ChatListItem?>(null) }
 
     LaunchedEffect(showSnackbar) {
         showSnackbar?.let {
@@ -138,12 +142,35 @@ fun ChatTabScreen(
                     ChatSessionRow(
                         chat = chat,
                         onClick = { onOpenChat(chat.id) },
-                        onDelete = { viewModel.deleteChat(chat.id) }
+                        onDelete = { pendingDelete = chat }
                     )
                     HorizontalDivider()
                 }
             }
         }
+    }
+
+    // Delete confirmation dialog
+    pendingDelete?.let { chat ->
+        AlertDialog(
+            onDismissRequest = { pendingDelete = null },
+            title = { Text("Delete chat?") },
+            text = {
+                Text(
+                    "\"${chat.title.ifBlank { "Untitled" }}\" will be permanently deleted. " +
+                        "This action cannot be undone."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.deleteChat(chat.id)
+                    pendingDelete = null
+                }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingDelete = null }) { Text("Cancel") }
+            }
+        )
     }
 }
 

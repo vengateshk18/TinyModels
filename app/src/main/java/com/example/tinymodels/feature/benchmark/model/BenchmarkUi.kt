@@ -3,19 +3,12 @@ package com.example.tinymodels.feature.benchmark.model
 import androidx.compose.runtime.Immutable
 import com.example.tinymodels.core.inference.BenchmarkResult
 
-/** A downloadable file of a model, as an option in the benchmark picker. */
+/** A downloaded model file, as an option in the benchmark picker. */
 @Immutable
 data class BenchmarkFileOption(
+    val modelId: String,
     val fileName: String,
     val sizeBytes: Long
-)
-
-/** A downloaded model, as an option in the benchmark picker. */
-@Immutable
-data class BenchmarkModelOption(
-    val modelId: String,
-    val displayName: String,
-    val files: List<BenchmarkFileOption>
 )
 
 /** Live progress of the run currently executing. */
@@ -43,11 +36,10 @@ sealed interface BenchmarkUiState {
     /** Model list still loading from Room. */
     data object Loading : BenchmarkUiState
 
-    /** No benchmark in flight — pick a model and run. */
+    /** No benchmark in flight — pick a file and run. */
     data class Picker(
-        val models: List<BenchmarkModelOption>,
-        val selectedModelId: String?,
-        val selectedFileName: String?,
+        val files: List<BenchmarkFileOption>,
+        val selectedFile: BenchmarkFileOption?,
         val canRun: Boolean
     ) : BenchmarkUiState
 

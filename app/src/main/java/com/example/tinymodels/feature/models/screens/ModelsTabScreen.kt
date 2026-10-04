@@ -23,13 +23,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.TrendingUp
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -65,7 +65,6 @@ import com.example.tinymodels.core.ui.Formatters
 import com.example.tinymodels.core.ui.components.EmptyState
 import com.example.tinymodels.core.ui.components.ErrorState
 import com.example.tinymodels.core.ui.components.OfflineState
-import com.example.tinymodels.domain.model.DownloadedModel
 import com.example.tinymodels.domain.model.DownloadedModelFile
 import com.example.tinymodels.domain.model.ModelFilter
 import com.example.tinymodels.domain.model.ModelSummary
@@ -80,6 +79,7 @@ import com.example.tinymodels.feature.models.ModelListViewModel
 @Composable
 fun ModelsTabScreen(
     onModelClick: (String) -> Unit,
+    onFileClick: (modelId: String, fileName: String) -> Unit = { _, _ -> },
     listViewModel: ModelListViewModel = hiltViewModel(),
     downloadedViewModel: DownloadedModelsViewModel = hiltViewModel()
 ) {
@@ -118,7 +118,7 @@ fun ModelsTabScreen(
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text("Downloaded (${downloadedModels.size})") }
+                    text = { Text("Downloaded (${downloadedFiles.size})") }
                 )
             }
 
@@ -131,12 +131,9 @@ fun ModelsTabScreen(
                     onModelClick = onModelClick
                 )
                 1 -> DownloadedContent(
-                    models = downloadedModels,
                     downloadedFiles = downloadedFiles,
                     totalSizeBytes = downloadedViewModel.totalSizeBytes.value,
-                    activeModelId = downloadedViewModel.activeModelId,
-                    onDelete = downloadedViewModel::delete,
-                    onModelClick = onModelClick
+                    onFileClick = onFileClick
                 )
             }
         }
@@ -232,8 +229,7 @@ private fun ModelCard(model: ModelSummary, onClick: () -> Unit) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceBetween
+                verticalAlignment = Alignment.Top
             ) {
                 Text(
                     text = model.modelId,
@@ -242,9 +238,6 @@ private fun ModelCard(model: ModelSummary, onClick: () -> Unit) {
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
-                model.pipelineTag?.takeIf { it.isNotBlank() }?.let { tag ->
-                    PipelineChip(tag)
-                }
             }
             if (model.author.isNotBlank()) {
                 Spacer(modifier = Modifier.height(6.dp))
@@ -280,8 +273,12 @@ private fun ModelCard(model: ModelSummary, onClick: () -> Unit) {
             Spacer(modifier = Modifier.height(6.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                // Pipeline tag — always shown; defaults to text-generation when
+                // the API omits it (common for LiteRT model repos).
+                PipelineChip(model.pipelineTag?.takeIf { it.isNotBlank() } ?: "text-generation")
                 model.libraryName?.takeIf { it.isNotBlank() }?.let { lib ->
                     SmallChip(lib)
                 }
@@ -330,20 +327,15 @@ private fun SmallChip(label: String) {
     }
 }
 
-// ---- Downloaded content with summary + rich cards ----
+// ---- Downloaded content: flat list of individual files ----
 
 @Composable
 private fun DownloadedContent(
-    models: List<DownloadedModel>,
     downloadedFiles: List<DownloadedModelFile>,
     totalSizeBytes: Long,
-    activeModelId: String?,
-    onDelete: (DownloadedModel) -> Unit,
-    onModelClick: (String) -> Unit
+    onFileClick: (modelId: String, fileName: String) -> Unit
 ) {
-    var pendingDelete by remember { androidx.compose.runtime.mutableStateOf<DownloadedModel?>(null) }
-
-    if (models.isEmpty()) {
+    if (downloadedFiles.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("No models downloaded", style = MaterialTheme.typography.titleMedium)
@@ -377,7 +369,7 @@ private fun DownloadedContent(
                     ) {
                         Column {
                             Text(
-                                "${models.size} model${if (models.size > 1) "s" else ""}",
+                                "${downloadedFiles.size} file${if (downloadedFiles.size > 1) "s" else ""}",
                                 style = MaterialTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
@@ -395,108 +387,62 @@ private fun DownloadedContent(
                     }
                 }
             }
-            items(models, key = { it.modelId }) { model ->
-                val files = downloadedFiles.filter { it.modelId == model.modelId }
-                DownloadedModelCard(
-                    model = model,
-                    fileCount = files.size,
-                    sizeBytes = files.sumOf { it.sizeBytes },
-                    isActive = activeModelId == model.modelId,
-                    onClick = { onModelClick(model.modelId) },
-                    onDelete = { pendingDelete = model }
+            items(downloadedFiles, key = { "${it.modelId}/${it.fileName}" }) { file ->
+                DownloadedFileCard(
+                    file = file,
+                    onClick = { onFileClick(file.modelId, file.fileName) }
                 )
             }
         }
     }
-
-    pendingDelete?.let { model ->
-        AlertDialog(
-            onDismissRequest = { pendingDelete = null },
-            title = { Text("Delete model?") },
-            text = { Text("This will remove \"${model.modelId}\" from your device. This cannot be undone.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onDelete(model)
-                        pendingDelete = null
-                    }
-                ) { Text("Delete", color = MaterialTheme.colorScheme.error) }
-            },
-            dismissButton = {
-                TextButton(onClick = { pendingDelete = null }) { Text("Cancel") }
-            }
-        )
-    }
 }
 
 @Composable
-private fun DownloadedModelCard(
-    model: DownloadedModel,
-    fileCount: Int,
-    sizeBytes: Long,
-    isActive: Boolean,
-    onClick: () -> Unit,
-    onDelete: () -> Unit
+private fun DownloadedFileCard(
+    file: DownloadedModelFile,
+    onClick: () -> Unit
 ) {
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Filled.InsertDriveFile,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = model.modelId,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
+                    file.fileName.substringAfterLast("/"),
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
-                if (isActive) {
-                    Surface(color = MaterialTheme.colorScheme.tertiaryContainer, shape = MaterialTheme.shapes.small) {
-                        Text(
-                            "Loaded",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                IconButton(onClick = onDelete) {
-                    Icon(
-                        Icons.Filled.Delete,
-                        contentDescription = "Delete",
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    file.modelId,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    Formatters.formatBytes(file.sizeBytes),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
-            if (!model.author.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Person, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(model.author, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                StatBadge(Icons.Filled.Download, Formatters.formatBytes(sizeBytes))
-                StatBadge(Icons.Filled.TrendingUp, "$fileCount file${if (fileCount > 1) "s" else ""}")
-            }
-            model.pipelineTag?.takeIf { it.isNotBlank() }?.let { tag ->
-                Spacer(modifier = Modifier.height(6.dp))
-                PipelineChip(tag)
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                "Downloaded ${Formatters.formatEpoch(model.downloadedAt)}",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+            Icon(
+                Icons.Filled.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }

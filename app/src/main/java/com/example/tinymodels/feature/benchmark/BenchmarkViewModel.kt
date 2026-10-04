@@ -13,7 +13,6 @@ import com.example.tinymodels.core.inference.PssMonitor
 import com.example.tinymodels.domain.repository.ModelRepository
 import com.example.tinymodels.domain.repository.SettingsRepository
 import com.example.tinymodels.feature.benchmark.model.BenchmarkFileOption
-import com.example.tinymodels.feature.benchmark.model.BenchmarkModelOption
 import com.example.tinymodels.feature.benchmark.model.BenchmarkUiState
 import com.example.tinymodels.feature.benchmark.model.RunProgress
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -51,42 +50,21 @@ class BenchmarkViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val models = modelRepository.observeDownloadedModels().first()
-            val files = modelRepository.observeDownloadedFiles().first()
-                .groupBy { it.modelId }
-
-            val options = models.map { m ->
-                BenchmarkModelOption(
-                    modelId = m.modelId,
-                    displayName = m.modelId.substringAfterLast('/'),
-                    files = files[m.modelId].orEmpty().map {
-                        BenchmarkFileOption(fileName = it.fileName, sizeBytes = it.sizeBytes)
-                    }
-                )
+            val options = modelRepository.observeDownloadedFiles().first().map {
+                BenchmarkFileOption(modelId = it.modelId, fileName = it.fileName, sizeBytes = it.sizeBytes)
             }
             _uiState.value = BenchmarkUiState.Picker(
-                models = options,
-                selectedModelId = options.firstOrNull()?.modelId,
-                selectedFileName = options.firstOrNull()?.files?.firstOrNull()?.fileName,
+                files = options,
+                selectedFile = options.firstOrNull(),
                 canRun = options.isNotEmpty()
             )
         }
     }
 
-    /** Selects a model (and its first file) in the picker. */
-    fun selectModel(modelId: String) {
+    /** Selects a specific file in the picker. */
+    fun selectFile(file: BenchmarkFileOption) {
         val state = _uiState.value as? BenchmarkUiState.Picker ?: return
-        val model = state.models.firstOrNull { it.modelId == modelId } ?: return
-        _uiState.value = state.copy(
-            selectedModelId = modelId,
-            selectedFileName = model.files.firstOrNull()?.fileName
-        )
-    }
-
-    /** Selects a specific file of the selected model. */
-    fun selectFile(fileName: String) {
-        val state = _uiState.value as? BenchmarkUiState.Picker ?: return
-        _uiState.value = state.copy(selectedFileName = fileName)
+        _uiState.value = state.copy(selectedFile = file)
     }
 
     /**
@@ -98,8 +76,9 @@ class BenchmarkViewModel @Inject constructor(
      */
     fun runBenchmark() {
         val state = _uiState.value as? BenchmarkUiState.Picker ?: return
-        val modelId = state.selectedModelId ?: return
-        val fileName = state.selectedFileName ?: return
+        val selected = state.selectedFile ?: return
+        val modelId = selected.modelId
+        val fileName = selected.fileName
 
         if (benchmarkJob?.isActive == true) return
         benchmarkJob = viewModelScope.launch {
@@ -221,28 +200,18 @@ class BenchmarkViewModel @Inject constructor(
         benchmarkJob?.cancel()
         benchmarkJob = null
         _uiState.value = BenchmarkUiState.Picker(
-            models = (_uiState.value as? BenchmarkUiState.Picker)?.models ?: emptyList(),
-            selectedModelId = null,
-            selectedFileName = null,
+            files = emptyList(),
+            selectedFile = null,
             canRun = false
         )
         // Re-populate the picker from Room.
         viewModelScope.launch {
-            val models = modelRepository.observeDownloadedModels().first()
-            val files = modelRepository.observeDownloadedFiles().first().groupBy { it.modelId }
-            val options = models.map { m ->
-                BenchmarkModelOption(
-                    modelId = m.modelId,
-                    displayName = m.modelId.substringAfterLast('/'),
-                    files = files[m.modelId].orEmpty().map {
-                        BenchmarkFileOption(it.fileName, it.sizeBytes)
-                    }
-                )
+            val options = modelRepository.observeDownloadedFiles().first().map {
+                BenchmarkFileOption(it.modelId, it.fileName, it.sizeBytes)
             }
             _uiState.value = BenchmarkUiState.Picker(
-                models = options,
-                selectedModelId = options.firstOrNull()?.modelId,
-                selectedFileName = options.firstOrNull()?.files?.firstOrNull()?.fileName,
+                files = options,
+                selectedFile = options.firstOrNull(),
                 canRun = options.isNotEmpty()
             )
         }
@@ -255,21 +224,12 @@ class BenchmarkViewModel @Inject constructor(
         ) {
             // Re-populate the picker (keeps the previous selection if possible).
             viewModelScope.launch {
-                val models = modelRepository.observeDownloadedModels().first()
-                val files = modelRepository.observeDownloadedFiles().first().groupBy { it.modelId }
-                val options = models.map { m ->
-                    BenchmarkModelOption(
-                        modelId = m.modelId,
-                        displayName = m.modelId.substringAfterLast('/'),
-                        files = files[m.modelId].orEmpty().map {
-                            BenchmarkFileOption(it.fileName, it.sizeBytes)
-                        }
-                    )
+                val options = modelRepository.observeDownloadedFiles().first().map {
+                    BenchmarkFileOption(it.modelId, it.fileName, it.sizeBytes)
                 }
                 _uiState.value = BenchmarkUiState.Picker(
-                    models = options,
-                    selectedModelId = options.firstOrNull()?.modelId,
-                    selectedFileName = options.firstOrNull()?.files?.firstOrNull()?.fileName,
+                    files = options,
+                    selectedFile = options.firstOrNull(),
                     canRun = options.isNotEmpty()
                 )
             }
