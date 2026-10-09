@@ -82,6 +82,9 @@ class ConversationSession(
         private const val HIGH_WATER_RATIO = 0.8
         private const val CHARS_PER_TOKEN = 4
 
+        /** Fraction of the context budget reserved for the assistant's reply. */
+        private const val GENERATION_HEADROOM_RATIO = 0.25
+
         fun estimateTokens(text: String): Int =
             (text.length / CHARS_PER_TOKEN).coerceAtLeast(1)
 
@@ -97,7 +100,11 @@ class ConversationSession(
             sampler: SamplerSettings,
             maxContextTokens: Int
         ): ConversationSession {
-            val trimmed = trimToBudget(history, maxContextTokens)
+            // Reserve headroom for the model's reply (and tokenizer estimation
+            // error) so the prompt + history never overflow the engine's real
+            // context window — overflow surfaces as "Status code 13: Task
+            // failed with large input" from the native task.
+            val trimmed = trimToBudget(history, (maxContextTokens * (1 - GENERATION_HEADROOM_RATIO)).toInt())
             val initialMessages = trimmed.map { turn ->
                 when (turn.role) {
                     ChatTurn.Role.USER -> Message.user(turn.text)

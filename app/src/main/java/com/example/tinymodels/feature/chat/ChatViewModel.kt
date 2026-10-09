@@ -558,7 +558,7 @@ class ChatViewModel @Inject constructor(
                         it.copy(
                             generation = GenerationState.IDLE,
                             streamingMessageId = null,
-                            error = ChatError(throwable.message ?: "Generation failed")
+                            error = ChatError(friendlyGenerationError(throwable))
                         )
                     }
                 }
@@ -760,6 +760,19 @@ class ChatViewModel @Inject constructor(
         completedAt = completedAt
     )
 
+    /**
+     * Maps raw engine failures to user-friendly messages. Notably, MediaPipe/
+     * LiteRT-LM surfaces context-overflow as "Status code 13: Task failed with
+     * large input Id" — translate that into actionable guidance.
+     */
+    private fun friendlyGenerationError(throwable: Throwable): String {
+        val raw = throwable.message ?: return "Generation failed"
+        return if (raw.contains("Status code 13") || raw.contains("large input", ignoreCase = true)) {
+            "Prompt or chat history is too long for this model's context window. " +
+                "Start a new chat or reduce max context tokens in session settings."
+        } else raw
+    }
+
     private fun friendlyError(error: InferenceError): String = when (error) {
         is InferenceError.OutOfMemory -> "Not enough free memory. Close other apps and retry."
         is InferenceError.ModelFileMissing -> "Model file missing. Re-download the model."
@@ -770,6 +783,9 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun updateInferenceSettings(settings: InferenceSettings) {
+        // Reflect the saved settings in the UI state immediately so the sheet
+        // shows them (not defaults) the next time it is opened.
+        _uiState.update { it.copy(inferenceSettings = settings) }
         val chatId = _uiState.value.activeChatId ?: return
         viewModelScope.launch {
             chatRepository.updateInferenceSettings(chatId, settings)
