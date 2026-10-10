@@ -77,6 +77,33 @@ class ConversationSession(
         }
     }
 
+    /**
+     * One-shot (non-streaming) summarization of older turns, used by the
+     * context-compaction flow. Returns null on failure — the caller then
+     * falls back to the plain sliding-window trim.
+     */
+    suspend fun summarizeOlderTurns(older: List<ChatTurn>): String? {
+        if (older.isEmpty()) return null
+        val transcript = older.joinToString("\n") {
+            (if (it.role == ChatTurn.Role.USER) "User: " else "Assistant: ") + it.text
+        }
+        return try {
+            val sb = StringBuilder()
+            conversation.sendMessageAsync(SUMMARIZE_PROMPT + transcript)
+                .collect { message ->
+                    sb.append(
+                        message.contents.contents
+                            .filterIsInstance<Content.Text>()
+                            .joinToString(separator = "") { it.text }
+                    )
+                }
+            sb.toString().trim().takeIf { it.isNotBlank() }
+        } catch (throwable: Throwable) {
+            Log.w(TAG, "Compaction summarization failed: ${throwable.message}")
+            null
+        }
+    }
+
     companion object {
         private const val TAG = "ConversationSession"
         private const val HIGH_WATER_RATIO = 0.8
@@ -85,6 +112,13 @@ class ConversationSession(
         /** Fraction of the context budget reserved for the assistant's reply. */
         private const val GENERATION_HEADROOM_RATIO = 0.25
 
+        /** Prompt used when asking the model to digest older turns. */
+        private const val SUMMARIZE_PROMPT =
+            "Summarize the following conversation so far in under 200 tokens. " +
+                "Keep: user goals, decisions, constraints, key facts, and any " +
+                "unresolved questions. Drop pleasantries and repetition. " +
+                "Reply with the summary only.\n\n"
+
         fun estimateTokens(text: String): Int =
             (text.length / CHARS_PER_TOKEN).coerceAtLeast(1)
 
@@ -92,13 +126,16 @@ class ConversationSession(
          * Build a session from an [Engine], restoring prior [history] and applying
          * [sampler]. History is trimmed to the most recent turns that fit the budget
          * (sliding window) so reopening a long chat cannot overflow the KV cache.
+         * [priorSummary] (a compaction digest of older, summarized-away turns)
+         * is folded into the system instruction so the model keeps the gist.
          */
         fun create(
             engine: Engine,
             systemInstruction: String?,
             history: List<ChatTurn>,
             sampler: SamplerSettings,
-            maxContextTokens: Int
+            maxContextTokens: Int,
+            priorSummary: String? = null
         ): ConversationSession {
             // Reserve headroom for the model's reply (and tokenizer estimation
             // error) so the prompt + history never overflow the engine's real
@@ -111,8 +148,18 @@ class ConversationSession(
                     ChatTurn.Role.ASSISTANT -> Message.model(turn.text)
                 }
             }
+            // Fold any prior compaction digest into the system instruction so
+            // the model retains the gist of summarized-away older turns.
+            val effectiveSystemInstruction = buildString {
+                systemInstruction?.let { append(it) }
+                priorSummary?.let {
+                    if (isNotEmpty()) append("\n\n")
+                    append("Conversation so far (summary of earlier messages):\n")
+                    append(it)
+                }
+            }.takeIf { it.isNotBlank() }
             val config = ConversationConfig(
-                systemInstruction = systemInstruction?.let { Contents.of(Content.Text(it)) },
+                systemInstruction = effectiveSystemInstruction?.let { Contents.of(Content.Text(it)) },
                 initialMessages = initialMessages,
                 samplerConfig = SamplerConfig(
                     topK = sampler.topK,

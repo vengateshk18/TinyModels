@@ -79,6 +79,10 @@ class ModelManager @Inject constructor(
     val isModelLoaded: Boolean get() = engine != null
     val loadedModelId: String? get() = (engineState.value as? EngineState.Ready)?.model?.modelId
 
+    /** The maxNumTokens the live engine was actually loaded with, if any. */
+    val activeMaxNumTokens: Int?
+        get() = (engineState.value as? EngineState.Ready)?.model?.maxNumTokens
+
     /**
      * Load [modelFile] with the given backend preference + token budget.
      *
