@@ -29,7 +29,7 @@ object DatabaseModule {
             // The app is pre-release; recreate on migration rather than ship
             // migration SQL for the v1 -> v2 chat-persistence addition.
             .fallbackToDestructiveMigration(dropAllTables = true)
-            .addMigrations(Migrations.MIGRATION_4_5)
+            .addMigrations(Migrations.MIGRATION_4_5, Migrations.MIGRATION_5_6, Migrations.MIGRATION_6_7)
             .build()
 
     @Provides

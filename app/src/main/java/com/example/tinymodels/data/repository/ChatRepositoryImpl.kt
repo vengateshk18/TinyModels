@@ -67,6 +67,11 @@ class ChatRepositoryImpl @Inject constructor(
             chatDao.updateChatTitle(chatId, title, System.currentTimeMillis())
         }
 
+    override suspend fun saveCompaction(chatId: String, summary: String?, cutoffCreatedAt: Long?) =
+        withContext(dispatchers.io) {
+            chatDao.saveCompaction(chatId, summary, cutoffCreatedAt)
+        }
+
     override suspend fun updateInferenceSettings(chatId: String, settings: InferenceSettings) =
         withContext(dispatchers.io) {
             val existing = chatDao.getChat(chatId) ?: return@withContext
@@ -75,7 +80,6 @@ class ChatRepositoryImpl @Inject constructor(
                 temperature = settings.temperature,
                 topK = settings.topK,
                 topP = settings.topP,
-                maxContextTokens = settings.maxContextTokens,
                 systemInstruction = settings.systemInstruction
             ))
         }
@@ -137,13 +141,15 @@ class ChatRepositoryImpl @Inject constructor(
         modelId = modelId,
         createdAt = createdAt,
         updatedAt = updatedAt,
-        isArchived = isArchived,
-        inferenceSettings = InferenceSettings(
+                isArchived = isArchived,
+                compactedSummary = compactedSummary,
+                compactedUpToCreatedAt = compactedUpToCreatedAt,
+                compactionCount = compactionCount,
+                inferenceSettings = InferenceSettings(
             backend = runCatching { BackendPreference.valueOf(backend) }.getOrDefault(BackendPreference.AUTO),
             temperature = temperature,
             topK = topK,
             topP = topP,
-            maxContextTokens = maxContextTokens,
             systemInstruction = systemInstruction
         )
     )

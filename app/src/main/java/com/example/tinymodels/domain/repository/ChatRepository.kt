@@ -25,6 +25,13 @@ interface ChatRepository {
     /** Update the per-session inference settings for a chat. */
     suspend fun updateInferenceSettings(chatId: String, settings: InferenceSettings)
 
+    /**
+     * Persist a context-compaction digest for a chat: [summary] covers all
+     * messages created strictly before [cutoffCreatedAt]. Pass a null summary
+     * to clear the compaction (e.g. when the user edits a summarized turn).
+     */
+    suspend fun saveCompaction(chatId: String, summary: String?, cutoffCreatedAt: Long?)
+
     /** Insert or update a message; bumps the chat's updatedAt. */
     suspend fun saveMessage(message: ChatMessage)
 

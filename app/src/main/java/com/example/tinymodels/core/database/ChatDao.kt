@@ -27,6 +27,23 @@ interface ChatDao {
     @Query("UPDATE chats SET updatedAt = :updatedAt WHERE chatId = :chatId")
     suspend fun touchChat(chatId: String, updatedAt: Long)
 
+    /**
+     * Persist a context-compaction digest: [summary] covers all messages
+     * created strictly before [cutoffCreatedAt]. Null summary clears the
+     * compaction (used when the user edits/regenerates inside the region).
+     */
+    @Query(
+        """
+        UPDATE chats SET compactedSummary = :summary,
+                         compactedUpToCreatedAt = CASE WHEN :summary IS NULL THEN NULL
+                                                       ELSE :cutoffCreatedAt END,
+                         compactionCount = CASE WHEN :summary IS NULL THEN 0
+                                                ELSE compactionCount + 1 END
+        WHERE chatId = :chatId
+        """
+    )
+    suspend fun saveCompaction(chatId: String, summary: String?, cutoffCreatedAt: Long?)
+
     @Query("DELETE FROM chats WHERE chatId = :chatId")
     suspend fun deleteChat(chatId: String)
 

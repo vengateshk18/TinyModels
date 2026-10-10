@@ -15,6 +15,29 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  */
 object Migrations {
 
+    /**
+     * v5 → v6: adds context-compaction columns to `chats` —
+     * `compactedSummary` (digest of summarized-away older turns) and
+     * `compactedUpToCreatedAt` (cutoff; messages before it are covered by
+     * the digest and excluded from the rebuilt session history).
+     */
+    val MIGRATION_5_6 = object : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE chats ADD COLUMN compactedSummary TEXT")
+            db.execSQL("ALTER TABLE chats ADD COLUMN compactedUpToCreatedAt INTEGER")
+        }
+    }
+
+    /**
+     * v6 → v7: adds `compactionCount` to `chats` — how many times the
+     * conversation has been compacted (shown as a metric in the UI).
+     */
+    val MIGRATION_6_7 = object : Migration(6, 7) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE chats ADD COLUMN compactionCount INTEGER NOT NULL DEFAULT 0")
+        }
+    }
+
     val MIGRATION_4_5 = object : Migration(4, 5) {
         override fun migrate(db: SupportSQLiteDatabase) {
             // 1. Create the new model_files table.

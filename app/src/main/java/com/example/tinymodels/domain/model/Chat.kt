@@ -8,7 +8,13 @@ data class Chat(
     val createdAt: Long,
     val updatedAt: Long,
     val isArchived: Boolean = false,
-    val inferenceSettings: InferenceSettings = InferenceSettings()
+    val inferenceSettings: InferenceSettings = InferenceSettings(),
+    /** Digest of older turns summarized away to fit the model's context window. */
+    val compactedSummary: String? = null,
+    /** Messages strictly BEFORE this createdAt are covered by [compactedSummary]. */
+    val compactedUpToCreatedAt: Long? = null,
+    /** How many times compaction has run for this chat (observability metric). */
+    val compactionCount: Int = 0
 )
 
 /** A single message within a chat. */

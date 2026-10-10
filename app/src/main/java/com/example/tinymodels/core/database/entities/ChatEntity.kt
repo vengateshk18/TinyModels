@@ -18,7 +18,15 @@ data class ChatEntity(
     val topK: Int = 40,
     val topP: Double = 0.95,
     val maxContextTokens: Int = 2048,
-    val systemInstruction: String = "You are a helpful assistant."
+    val systemInstruction: String = "You are a helpful assistant.",
+    // ---- Context compaction (DB v6) ----
+    /** Digest of older turns that were summarized away to fit the context window. */
+    val compactedSummary: String? = null,
+    /** createdAt cutoff: messages strictly BEFORE this timestamp are covered by [compactedSummary]. */
+    val compactedUpToCreatedAt: Long? = null,
+    // ---- Context compaction (DB v7) ----
+    /** How many times compaction has run for this chat (observability metric). */
+    val compactionCount: Int = 0
 )
 
 @Entity(
