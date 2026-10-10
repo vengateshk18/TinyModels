@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.runBlocking
 import com.example.tinymodels.core.network.NetworkMonitor
 import com.example.tinymodels.core.ui.theme.TinyModelsTheme
 import com.example.tinymodels.core.ui.theme.resolveColorScheme
@@ -49,11 +50,45 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        // Read the persisted settings ONCE, synchronously, BEFORE the first
+        // composition. Collecting the flow with a default initial value
+        // instead renders the first frames with the default (light) theme
+        // and then flips to the persisted (dark) theme a moment later —
+        // the visible "app bar flash" on launch.
+        val initialSettings = runBlocking { settingsRepository.getSettings() }
+
+        // Apply edge-to-edge with the correct theme up front (not in a
+        // LaunchedEffect after first composition) so the system bars are
+        // painted the right color on the very first frame.
+        val initialDarkTheme = when (initialSettings.themeMode) {
+            ThemeMode.SYSTEM -> (resources.configuration.uiMode and
+                android.content.res.Configuration.UI_MODE_NIGHT_MASK) ==
+                android.content.res.Configuration.UI_MODE_NIGHT_YES
+            ThemeMode.DARK -> true
+            ThemeMode.LIGHT -> false
+        }
+        val initialNavBarColor = resolveColorScheme(
+            context = this,
+            darkTheme = initialDarkTheme,
+            dynamicColor = initialSettings.useDynamicColor
+        ).surfaceContainer.toArgb()
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.auto(
+                lightScrim = android.graphics.Color.TRANSPARENT,
+                darkScrim = android.graphics.Color.TRANSPARENT,
+                detectDarkMode = { initialDarkTheme }
+            ),
+            navigationBarStyle = if (initialDarkTheme) {
+                SystemBarStyle.dark(initialNavBarColor)
+            } else {
+                SystemBarStyle.light(initialNavBarColor, initialNavBarColor)
+            }
+        )
 
         setContent {
             val settings by settingsRepository.settings
-                .collectAsStateWithLifecycle(initialValue = AppSettings())
+                .collectAsStateWithLifecycle(initialValue = initialSettings)
 
             // Re-apply edge-to-edge whenever the theme changes, so the system
             // navigation bar follows the app theme instead of staying

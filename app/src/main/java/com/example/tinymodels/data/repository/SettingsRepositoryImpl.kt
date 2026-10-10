@@ -48,6 +48,8 @@ class SettingsRepositoryImpl @Inject constructor(
         )
     }
 
+    override suspend fun getSettings(): AppSettings = settings.first()
+
     override suspend fun setThemeMode(mode: ThemeMode) {
         context.dataStore.edit { it[Keys.THEME_MODE] = mode.name }
     }

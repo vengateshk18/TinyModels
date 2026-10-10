@@ -9,6 +9,14 @@ import kotlinx.coroutines.flow.Flow
 interface SettingsRepository {
     val settings: Flow<AppSettings>
 
+    /**
+     * One-shot blocking read of the persisted settings. Used at app start
+     * (before first composition) so the theme is correct on the very first
+     * frame — collecting [settings] with a default initial value instead
+     * causes a visible theme flash (light -> dark) on launch.
+     */
+    suspend fun getSettings(): AppSettings
+
     suspend fun setThemeMode(mode: ThemeMode)
     suspend fun setDynamicColor(enabled: Boolean)
     suspend fun setFontChoice(choice: FontChoice)
