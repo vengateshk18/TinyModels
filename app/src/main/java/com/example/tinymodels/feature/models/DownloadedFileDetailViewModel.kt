@@ -9,6 +9,7 @@ import com.example.tinymodels.domain.model.DownloadedModelFile
 import com.example.tinymodels.domain.repository.ModelRepository
 import com.example.tinymodels.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -46,7 +47,7 @@ class DownloadedFileDetailViewModel @Inject constructor(
     }
 
     private fun load() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             _uiState.update { it.copy(isLoading = true, error = null) }
             val fileInfo = modelRepository.getModelFile(modelId, fileName)
             if (fileInfo != null) {
@@ -85,7 +86,7 @@ class DownloadedFileDetailViewModel @Inject constructor(
         val fileInfo = _uiState.value.fileInfo ?: return
         _uiState.update { it.copy(isDeleting = true) }
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             try {
                 // If this is the currently loaded model, unload it first
                 if (modelManager.loadedModelId == modelId) {

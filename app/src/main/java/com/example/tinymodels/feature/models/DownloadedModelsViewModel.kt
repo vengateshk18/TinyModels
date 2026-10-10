@@ -7,6 +7,7 @@ import com.example.tinymodels.domain.model.DownloadedModel
 import com.example.tinymodels.domain.model.DownloadedModelFile
 import com.example.tinymodels.domain.repository.ModelRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -38,7 +39,7 @@ class DownloadedModelsViewModel @Inject constructor(
     val totalSizeBytes: StateFlow<Long> = _totalSizeBytes.asStateFlow()
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             downloadedFiles.collect { files -> _totalSizeBytes.value = files.sumOf { it.sizeBytes } }
         }
     }
@@ -49,7 +50,7 @@ class DownloadedModelsViewModel @Inject constructor(
      * live inference session.
      */
     fun delete(model: DownloadedModel) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             if (modelManager.loadedModelId == model.modelId) {
                 modelManager.unloadModel()
             }

@@ -9,6 +9,7 @@ import com.example.tinymodels.domain.repository.ModelRepository
 import com.example.tinymodels.domain.repository.SettingsRepository
 import com.example.tinymodels.feature.chat.model.ChatListItem
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first

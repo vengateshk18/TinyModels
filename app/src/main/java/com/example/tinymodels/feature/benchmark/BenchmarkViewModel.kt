@@ -18,6 +18,7 @@ import com.example.tinymodels.feature.benchmark.model.RunProgress
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -49,7 +50,7 @@ class BenchmarkViewModel @Inject constructor(
     private var benchmarkJob: Job? = null
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             val options = modelRepository.observeDownloadedFiles().first().map {
                 BenchmarkFileOption(modelId = it.modelId, fileName = it.fileName, sizeBytes = it.sizeBytes)
             }
@@ -81,7 +82,7 @@ class BenchmarkViewModel @Inject constructor(
         val fileName = selected.fileName
 
         if (benchmarkJob?.isActive == true) return
-        benchmarkJob = viewModelScope.launch {
+        benchmarkJob = viewModelScope.launch(Dispatchers.Default) {
             // ---- Resolve the file on disk ----
             val downloaded = modelRepository.getDownloadedModel(modelId)
             val fileRecord = modelRepository.getModelFile(modelId, fileName)
@@ -205,7 +206,7 @@ class BenchmarkViewModel @Inject constructor(
             canRun = false
         )
         // Re-populate the picker from Room.
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             val options = modelRepository.observeDownloadedFiles().first().map {
                 BenchmarkFileOption(it.modelId, it.fileName, it.sizeBytes)
             }
@@ -223,7 +224,7 @@ class BenchmarkViewModel @Inject constructor(
             _uiState.value is BenchmarkUiState.Failed
         ) {
             // Re-populate the picker (keeps the previous selection if possible).
-            viewModelScope.launch {
+            viewModelScope.launch(Dispatchers.Default) {
                 val options = modelRepository.observeDownloadedFiles().first().map {
                     BenchmarkFileOption(it.modelId, it.fileName, it.sizeBytes)
                 }

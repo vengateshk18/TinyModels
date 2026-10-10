@@ -21,6 +21,7 @@ import com.example.tinymodels.feature.home.model.StorageBreakdown
 import com.example.tinymodels.feature.home.model.UsageStats
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -54,7 +55,7 @@ class HomeViewModel @Inject constructor(
     val error: StateFlow<String?> = _error.asStateFlow()
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             modelRepository.observeDownloadedModels().collect { models ->
                 refreshState(models.isNotEmpty())
             }
@@ -67,7 +68,7 @@ class HomeViewModel @Inject constructor(
 
     /** Starts (or observes) the download of the recommended model. */
     fun downloadRecommended(model: RecommendedModel) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             // Observe an already-running download for this file, if any.
             val existing = downloadUseCase.observeExistingFile(model.modelId, model.fileName)
             if (existing != null) {
