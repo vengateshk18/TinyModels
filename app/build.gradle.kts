@@ -19,13 +19,25 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Real phones are arm64; shipping x86/x86_64/armeabi-v7a doubles the
+        // native-lib size (LiteRT-LM's .so is ~22MB per ABI). Emulators can
+        // still run the app via arm64 translation.
+        ndk {
+            abiFilters += listOf("arm64-v8a")
+        }
     }
 
     buildTypes {
         release {
-            optimization {
-                enable = false
-            }
+            // R8 shrinking: strips unused code/resources and compresses the
+            // dex — the APK was ~61MB with optimization disabled.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
     compileOptions {
