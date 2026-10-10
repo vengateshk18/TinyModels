@@ -87,7 +87,25 @@ data class ChatUiState(
     val error: ChatError? = null,
     val modelLoadProgress: ModelLoadProgress? = null,
     /** Whether the inference-settings bottom sheet is open. */
-    val showInferenceSettings: Boolean = false
+    val showInferenceSettings: Boolean = false,
+    /**
+     * Digest of older turns that were summarized away to fit the model's
+     * context window (context compaction). Non-null only when compaction
+     * has occurred for the active chat; shown as a system chip in the list.
+     */
+    val compactedSummary: String? = null,
+    /**
+     * The model's TRUE compiled context window, detected from the model file
+     * name (null when detection failed). Used as the automatic compaction
+     * budget — NOT user-tunable anymore.
+     */
+    val detectedContextTokens: Int? = null,
+    /** How many times compaction has run for the active chat (metric). */
+    val compactionCount: Int = 0,
+    /** True while a (manual or auto) compaction is running. */
+    val isCompacting: Boolean = false,
+    /** Result message of the last manual compaction (shown in the metrics sheet). */
+    val compactionMessage: String? = null
 ) {
     val canSend: Boolean
         get() = model is ModelChipState.Ready && generation == GenerationState.IDLE
@@ -108,4 +126,6 @@ sealed interface ChatEvent {
     data class UpdateInferenceSettings(val settings: InferenceSettings) : ChatEvent
     data object OpenInferenceSettings : ChatEvent
     data object CloseInferenceSettings : ChatEvent
+    /** Manually compact the conversation (from the context metrics sheet). */
+    data object CompactConversation : ChatEvent
 }

@@ -64,7 +64,6 @@ fun InferenceSettingsSheet(
     var temperature by remember { mutableFloatStateOf(current.temperature.toFloat()) }
     var topK by remember { mutableIntStateOf(current.topK) }
     var topP by remember { mutableFloatStateOf(current.topP.toFloat()) }
-    var maxContextTokens by remember { mutableIntStateOf(current.maxContextTokens) }
     var backend by remember { mutableStateOf(current.backend) }
     var systemInstruction by remember { mutableStateOf(current.systemInstruction) }
 
@@ -145,14 +144,6 @@ fun InferenceSettingsSheet(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Max context tokens
-            ContextTokensDropdown(
-                selected = maxContextTokens,
-                onSelect = { maxContextTokens = it }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             // Backend
             BackendDropdown(
                 selected = backend,
@@ -199,7 +190,6 @@ fun InferenceSettingsSheet(
                                 temperature = temperature.toDouble(),
                                 topK = topK,
                                 topP = topP.toDouble(),
-                                maxContextTokens = maxContextTokens,
                                 systemInstruction = systemInstruction.trim()
                             )
                         )
@@ -212,6 +202,15 @@ fun InferenceSettingsSheet(
                     Text("Save", style = MaterialTheme.typography.labelLarge)
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Context window is managed automatically — no user knob anymore.
+            Text(
+                text = "Context window is managed automatically — older messages are summarized when the conversation outgrows it.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -251,52 +250,6 @@ private fun SliderSetting(
             steps = steps,
             modifier = Modifier.fillMaxWidth()
         )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ContextTokensDropdown(
-    selected: Int,
-    onSelect: (Int) -> Unit
-) {
-    val options = listOf(512, 1024, 2048, 4096)
-    var expanded by remember { mutableStateOf(false) }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        OutlinedTextField(
-            value = "$selected tokens",
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Max context tokens", style = MaterialTheme.typography.bodyMedium) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier
-                .menuAnchor()
-                .fillMaxWidth()
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            options.forEach { tokens ->
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            "$tokens tokens",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    },
-                    onClick = {
-                        onSelect(tokens)
-                        expanded = false
-                    }
-                )
-            }
-        }
     }
 }
 

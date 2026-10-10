@@ -2,10 +2,12 @@ package com.example.tinymodels.feature.chat
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.tinymodels.core.common.DispatcherProvider
 import com.example.tinymodels.core.common.InferenceError
 import com.example.tinymodels.core.inference.ChatTurn
 import com.example.tinymodels.core.inference.ConversationSession
 import com.example.tinymodels.core.inference.InferenceException
+import com.example.tinymodels.core.inference.ModelContextInspector
 import com.example.tinymodels.core.inference.ModelManager
 import com.example.tinymodels.domain.model.ChatMessage
 import com.example.tinymodels.domain.model.InferenceSettings
@@ -25,6 +27,7 @@ import com.example.tinymodels.feature.chat.model.UiChatMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +37,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
 import javax.inject.Inject
@@ -51,7 +57,8 @@ class ChatViewModel @Inject constructor(
     private val modelManager: ModelManager,
     private val chatRepository: ChatRepository,
     private val modelRepository: ModelRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val dispatchers: DispatcherProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChatUiState())
@@ -70,6 +77,14 @@ class ChatViewModel @Inject constructor(
     private var session: ConversationSession? = null
     private var generationJob: Job? = null
     private var activeModel: DownloadedModel? = null
+
+    /**
+     * Serializes ALL access to the native [ConversationSession] / engine.
+     * LiteRT-LM's native runtime is NOT thread-safe: concurrent use of the
+     * same conversation (e.g. a generation while compaction summarizes, or
+     * two rebuilds racing) segfaults in liblitertlm_jni.so.
+     */
+    private val nativeMutex = Mutex()
 
     /** The modelId the current [session] was built against. Used to detect a
      *  stale session after the shared engine was swapped (e.g. by Benchmark). */
@@ -96,10 +111,10 @@ class ChatViewModel @Inject constructor(
         val existingChatId = chatId?.takeIf { it != "new" }
         if (existingChatId != null) {
             // Opening a specific existing chat — load its model inside openChatInternal.
-            viewModelScope.launch { openChatInternal(existingChatId) }
+            viewModelScope.launch(Dispatchers.Default) { openChatInternal(existingChatId) }
         } else {
             // New chat or direct entry — auto-load the best available model.
-            viewModelScope.launch { autoLoadModel() }
+            viewModelScope.launch(Dispatchers.Default) { autoLoadModel() }
         }
     }
 
@@ -149,13 +164,14 @@ class ChatViewModel @Inject constructor(
             is ChatEvent.UpdateInferenceSettings -> updateInferenceSettings(event.settings)
             ChatEvent.OpenInferenceSettings -> _uiState.update { it.copy(showInferenceSettings = true) }
             ChatEvent.CloseInferenceSettings -> _uiState.update { it.copy(showInferenceSettings = false) }
+            ChatEvent.CompactConversation -> compactNow()
         }
     }
 
     // ---- Observation ----
 
     private fun observeChats() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             chatRepository.observeChatSummaries().collect { summaries ->
                 _uiState.update { state ->
                     state.copy(chats = summaries.map {
@@ -174,7 +190,7 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun observeDownloadedModels() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             modelRepository.observeDownloadedModels().collect { models ->
                 _uiState.update { it.copy(hasDownloadedModels = models.isNotEmpty()) }
             }
@@ -182,7 +198,7 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun observeEngineState() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             modelManager.engineState.collect { engineState ->
                 val chip = when (engineState) {
                     is ModelManager.EngineState.Idle -> ModelChipState.NotSelected
@@ -205,7 +221,7 @@ class ChatViewModel @Inject constructor(
     private fun selectModel(modelId: String, fileName: String? = null) {
         // Same model AND same file already loaded with a live session — nothing to do.
         if (modelManager.loadedModelId == modelId && session != null && activeFileName == fileName) return
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             val downloaded = modelRepository.getDownloadedModel(modelId)
             if (downloaded == null) {
                 _uiState.update { it.copy(error = ChatError("Model $modelId is not downloaded")) }
@@ -234,6 +250,19 @@ class ChatViewModel @Inject constructor(
             val chatId = _uiState.value.activeChatId
             val chat = chatId?.let { chatRepository.getChat(it) }
             val inference = chat?.inferenceSettings ?: InferenceSettings()
+
+            // Detect the model's true compiled context window — the automatic
+            // compaction budget. Context is NO LONGER user-tunable: detected
+            // value when available, safe default otherwise.
+            // File I/O — must stay off the main thread (ANR otherwise).
+            val detectedContext = withContext(dispatchers.io) {
+                ModelContextInspector.detectContext(modelFile)
+            }
+            val effectiveMaxTokens = detectedContext
+                ?: com.example.tinymodels.domain.model.InferenceSettings.DEFAULT_CONTEXT_TOKENS
+
+            // Surface the detected context window to the UI.
+            _uiState.update { it.copy(detectedContextTokens = detectedContext) }
             
             // Record the file being loaded BEFORE the engine flips to Ready so the
             // chip collector (observeEngineState) already sees the correct value.
@@ -263,7 +292,7 @@ class ChatViewModel @Inject constructor(
                 modelId = modelId,
                 modelFile = modelFile,
                 backend = inference.backend,
-                maxNumTokens = inference.maxContextTokens,
+                maxNumTokens = effectiveMaxTokens,
                 onProgress = { progress, stage ->
                     _uiState.update { currentState ->
                         val uiStage = when (stage) {
@@ -324,7 +353,7 @@ class ChatViewModel @Inject constructor(
     private fun startProgressTicker(modelId: String) {
         progressTickerJob?.cancel()
         simulatedProgress = 0.05f
-        progressTickerJob = viewModelScope.launch {
+        progressTickerJob = viewModelScope.launch(Dispatchers.Default) {
             while (true) {
                 delay(150)
                 simulatedProgress += (SIMULATED_PROGRESS_CEILING - simulatedProgress) * 0.06f
@@ -358,6 +387,9 @@ class ChatViewModel @Inject constructor(
     private companion object {
         /** The simulated ticker approaches but never reaches this value. */
         const val SIMULATED_PROGRESS_CEILING = 0.90f
+
+        /** Compaction triggers when usage crosses this fraction of the budget. */
+        const val COMPACTION_HEADROOM = 0.90
     }
 
     // ---- Chat lifecycle ----
@@ -374,13 +406,15 @@ class ChatViewModel @Inject constructor(
                 messages = emptyList(),
                 streamingMessageId = null,
                 generation = GenerationState.IDLE,
-                error = null
+                error = null,
+                compactedSummary = null,
+                compactionCount = 0
             )
         }
     }
 
     private fun openChat(chatId: String) {
-        viewModelScope.launch { openChatInternal(chatId) }
+        viewModelScope.launch(Dispatchers.Default) { openChatInternal(chatId) }
     }
 
     private suspend fun openChatInternal(chatId: String) {
@@ -391,13 +425,20 @@ class ChatViewModel @Inject constructor(
             // selectModel triggers rebuildSession via activeChatId once ready; set id now.
             _uiState.update { it.copy(activeChatId = chatId) }
         }
-        _uiState.update { it.copy(activeChatId = chatId, inferenceSettings = chat.inferenceSettings) }
+        _uiState.update {
+            it.copy(
+                activeChatId = chatId,
+                inferenceSettings = chat.inferenceSettings,
+                compactedSummary = chat.compactedSummary,
+                compactionCount = chat.compactionCount
+            )
+        }
         rebuildSession(chatId)
         observeMessages(chatId)
     }
 
     private fun deleteChat(chatId: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             chatRepository.deleteChat(chatId)
             if (_uiState.value.activeChatId == chatId) {
                 session?.close()
@@ -411,29 +452,41 @@ class ChatViewModel @Inject constructor(
     private suspend fun rebuildSession(chatId: String) {
         session?.close()
         session = null
+        val chat = chatRepository.getChat(chatId)
+        val inference = chat?.inferenceSettings ?: InferenceSettings()
+        // Messages covered by a compaction digest are excluded — their gist
+        // is carried by the digest instead (folded into the system prompt).
+        val cutoff = chat?.compactedUpToCreatedAt
         val history = chatRepository.getMessages(chatId)
-            .filter { it.isComplete }
+            .filter { it.isComplete && (cutoff == null || it.createdAt > cutoff) }
             .map {
                 ChatTurn(
                     role = if (it.role == ChatMessage.Role.USER) ChatTurn.Role.USER else ChatTurn.Role.ASSISTANT,
                     text = it.content
                 )
             }
-        val chat = chatRepository.getChat(chatId)
-        val inference = chat?.inferenceSettings ?: InferenceSettings()
+        // Engine + conversation construction is native blocking work — run it
+        // off the main thread (viewModelScope defaults to Dispatchers.Main).
+        // Hold the native mutex: closing the old session + creating the new
+        // one must never race another native call.
         try {
-            modelManager.withEngine { engine, config ->
-                session = ConversationSession.create(
-                    engine = engine,
-                    systemInstruction = inference.systemInstruction,
-                    history = history,
-                    sampler = com.example.tinymodels.domain.model.SamplerSettings(
-                        temperature = inference.temperature,
-                        topK = inference.topK,
-                        topP = inference.topP
-                    ),
-                    maxContextTokens = inference.maxContextTokens
-                )
+            withContext(dispatchers.io) {
+                nativeMutex.withLock {
+                    modelManager.withEngine { engine, config ->
+                        session = ConversationSession.create(
+                            engine = engine,
+                            systemInstruction = inference.systemInstruction,
+                            history = history,
+                            sampler = com.example.tinymodels.domain.model.SamplerSettings(
+                                temperature = inference.temperature,
+                                topK = inference.topK,
+                                topP = inference.topP
+                            ),
+                            maxContextTokens = config.maxNumTokens,
+                            priorSummary = chat?.compactedSummary
+                        )
+                    }
+                }
             }
             sessionModelId = modelManager.loadedModelId
             updateContextUsage()
@@ -442,8 +495,155 @@ class ChatViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Compact the conversation when it outgrows the model's context budget:
+     * summarize older turns into a digest (via the same local model), persist
+     * it with a cutoff timestamp, and rebuild the session so the KV cache
+     * only holds the digest + recent turns. Falls back to the plain
+     * sliding-window trim if summarization fails.
+     */
+    private suspend fun maybeCompact(chatId: String) {
+        val activeSession = session ?: return
+        val chat = chatRepository.getChat(chatId) ?: return
+        // The summarization generation is native blocking work — run the
+        // whole compaction flow off the main thread. The native mutex (held
+        // here for the summarization, and re-acquired inside rebuildSession)
+        // serializes native access against any concurrent generation.
+        withContext(dispatchers.io) {
+            nativeMutex.withLock {
+                maybeCompactInternal(chatId, activeSession, chat)
+            }
+        }
+    }
+
+    /**
+     * Manual compaction (context metrics sheet's Compact button). Same flow
+     * as auto-compaction but bypasses the 90% threshold check.
+     */
+    private fun compactNow() {
+        val chatId = _uiState.value.activeChatId ?: return
+        val activeSession = session ?: return
+        _uiState.update { it.copy(isCompacting = true, compactionMessage = null) }
+        viewModelScope.launch(Dispatchers.Default) {
+            val chat = chatRepository.getChat(chatId)
+            val message = if (chat == null) {
+                "No active chat to compact"
+            } else {
+                withContext(dispatchers.io) {
+                    nativeMutex.withLock {
+                        compactInternal(chatId, activeSession, chat)
+                    }
+                }
+            }
+            // rebuildSession (inside compactInternal) already refreshed
+            // contextUsage; refresh again so the sheet/icon always reflect
+            // the post-compaction token count, then surface the result.
+            updateContextUsage()
+            _uiState.update { it.copy(isCompacting = false, compactionMessage = message) }
+        }
+    }
+
+    /** The automatic compaction budget: detected context window, or safe default. */
+    private fun autoContextBudget(): Int =
+        _uiState.value.detectedContextTokens
+            ?: com.example.tinymodels.domain.model.InferenceSettings.DEFAULT_CONTEXT_TOKENS
+
+    private suspend fun maybeCompactInternal(
+        chatId: String,
+        activeSession: ConversationSession,
+        chat: com.example.tinymodels.domain.model.Chat
+    ) {
+        val budget = (autoContextBudget() * (1 - COMPACTION_HEADROOM)).toInt()
+        if (activeSession.estimatedTokensInContext < budget) return
+        _uiState.update { it.copy(isCompacting = true) }
+        try {
+            compactInternal(chatId, activeSession, chat)
+        } finally {
+            _uiState.update { it.copy(isCompacting = false) }
+        }
+    }
+
+    /**
+     * The actual compaction work. Caller must hold [nativeMutex].
+     * Returns a user-facing result message for the metrics sheet.
+     */
+    private suspend fun compactInternal(
+        chatId: String,
+        activeSession: ConversationSession,
+        chat: com.example.tinymodels.domain.model.Chat
+    ): String {
+        val budget = autoContextBudget()
+
+        val cutoff = chat.compactedUpToCreatedAt
+        val allTurns = chatRepository.getMessages(chatId)
+            .filter { it.isComplete }
+            .map {
+                ChatTurn(
+                    role = if (it.role == ChatMessage.Role.USER) ChatTurn.Role.USER else ChatTurn.Role.ASSISTANT,
+                    text = it.content
+                )
+            }
+        // Keep the most recent turns that fit in half the budget; summarize the rest.
+        val keepBudget = budget / 2
+        val kept = ConversationSession.trimToBudget(allTurns, keepBudget)
+        val older = allTurns.take(allTurns.size - kept.size)
+        if (older.isEmpty()) {
+            return "Nothing to compact — the conversation already fits the context window"
+        }
+
+        // Include the previous digest in the summarization input (iterative
+        // compaction: summarize the summary).
+        val priorDigest = chat.compactedSummary
+        val digestInput = if (priorDigest != null) {
+            listOf(ChatTurn(ChatTurn.Role.ASSISTANT, priorDigest)) + older
+        } else {
+            older
+        }
+        val digest = activeSession.summarizeOlderTurns(digestInput)
+        if (digest == null) {
+            // Summarization failed — the rebuild below still trims to budget.
+            // Release the mutex so rebuildSession can re-acquire it.
+            nativeMutex.unlock()
+            try {
+                rebuildSession(chatId)
+            } finally {
+                nativeMutex.lock()
+            }
+            return "Summarization failed — history was trimmed to fit the context window"
+        }
+        val newCutoff = older.lastOrNull()?.let { last ->
+            chatRepository.getMessages(chatId).lastOrNull { m -> m.content == last.text }?.createdAt
+        } ?: return "Compaction failed — could not locate the cutoff message"
+        chatRepository.saveCompaction(chatId, digest, newCutoff)
+        _uiState.update {
+            it.copy(
+                compactedSummary = digest,
+                compactionCount = chat.compactionCount + 1
+            )
+        }
+        // Release the mutex so rebuildSession can re-acquire it.
+        nativeMutex.unlock()
+        try {
+            rebuildSession(chatId)
+        } finally {
+            nativeMutex.lock()
+        }
+        return "Compacted ${older.size} older message${if (older.size == 1) "" else "s"} into a summary"
+    }
+
+    /** Invalidate the compaction digest when the user edits a summarized turn. */
+    private suspend fun invalidateCompactionIfNeeded(chatId: String, messageId: String) {
+        val chat = chatRepository.getChat(chatId) ?: return
+        val cutoff = chat.compactedUpToCreatedAt ?: return
+        val edited = chatRepository.getMessages(chatId).firstOrNull { it.id == messageId } ?: return
+        if (edited.createdAt < cutoff) {
+            chatRepository.saveCompaction(chatId, null, null)
+            _uiState.update { it.copy(compactedSummary = null, compactionCount = 0) }
+        }
+    }
+
     private fun observeMessages(chatId: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             chatRepository.observeMessages(chatId).collect { messages ->
                 _uiState.update { state ->
                     if (state.activeChatId != chatId) return@update state
@@ -479,7 +679,7 @@ class ChatViewModel @Inject constructor(
             return
         }
         var chatId = state.activeChatId
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             if (chatId == null) {
                 val modelId = activeModel?.modelId ?: modelManager.loadedModelId ?: return@launch
                 chatId = chatRepository.createChat(modelId, title = text.take(40)).id
@@ -545,9 +745,12 @@ class ChatViewModel @Inject constructor(
             }
             return
         }
-        generationJob = viewModelScope.launch {
+        generationJob = viewModelScope.launch(Dispatchers.Default) {
             val buffer = StringBuilder()
-            activeSession.send(prompt)
+            // Hold the native mutex for the whole generation so a concurrent
+            // compaction summarization can never touch the same conversation.
+            nativeMutex.withLock {
+                activeSession.send(prompt)
                 .catch { throwable ->
                     // Re-throw cancellation so the cancel handler (cancelGeneration)
                     // owns the cleanup path instead of surfacing a spurious error.
@@ -573,6 +776,7 @@ class ChatViewModel @Inject constructor(
                         })
                     }
                 }
+            }
             // Completed normally (catch already handled the failure path).
             if (_uiState.value.generation == GenerationState.GENERATING) {
                 val finishedAt = System.currentTimeMillis()
@@ -586,6 +790,8 @@ class ChatViewModel @Inject constructor(
                         }
                     )
                 }
+                // Compact the conversation if it has outgrown the context budget.
+                maybeCompact(chatId)
             }
             updateContextUsage()
         }
@@ -600,7 +806,7 @@ class ChatViewModel @Inject constructor(
             s.copy(generation = GenerationState.IDLE, streamingMessageId = null, messages = updated)
         }
         // Persist whatever partial assistant text remains for this chat.
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             val chatId = _uiState.value.activeChatId ?: return@launch
             val streaming = _uiState.value.messages.lastOrNull { !it.isUser } ?: return@launch
             if (streaming.text.isNotBlank()) {
@@ -631,7 +837,7 @@ class ChatViewModel @Inject constructor(
             return
         }
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             // Delete the old assistant message from Room.
             chatRepository.deleteMessage(lastAssistant.id)
             // Remove it from the UI immediately.
@@ -672,7 +878,7 @@ class ChatViewModel @Inject constructor(
             return
         }
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             val allMessages = chatRepository.getMessages(chatId)
             val targetIndex = allMessages.indexOfFirst { it.id == messageId }
             if (targetIndex < 0) return@launch
@@ -680,6 +886,8 @@ class ChatViewModel @Inject constructor(
             // Update the user message content.
             val updated = allMessages[targetIndex].copy(content = text)
             chatRepository.saveMessage(updated)
+            // Editing a turn inside the compacted region invalidates the digest.
+            invalidateCompactionIfNeeded(chatId, messageId)
 
             // Delete all messages after the edited one (assistant replies etc).
             allMessages.drop(targetIndex + 1).forEach { msg ->
@@ -742,7 +950,11 @@ class ChatViewModel @Inject constructor(
             it.copy(
                 contextUsage = com.example.tinymodels.feature.chat.model.ContextUsage(
                     usedTokens = activeSession.estimatedTokensInContext,
-                    maxTokens = it.contextUsage.maxTokens,
+                    // Prefer the engine's actual loaded budget (clamped to the
+                    // detected context window) over the raw user setting.
+                    maxTokens = modelManager.activeMaxNumTokens
+                        ?: it.detectedContextTokens
+                        ?: it.contextUsage.maxTokens,
                     nearFull = activeSession.isContextNearFull
                 )
             )
@@ -787,7 +999,7 @@ class ChatViewModel @Inject constructor(
         // shows them (not defaults) the next time it is opened.
         _uiState.update { it.copy(inferenceSettings = settings) }
         val chatId = _uiState.value.activeChatId ?: return
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             chatRepository.updateInferenceSettings(chatId, settings)
             // Rebuild the session with the new sampler + context window.
             rebuildSession(chatId)
