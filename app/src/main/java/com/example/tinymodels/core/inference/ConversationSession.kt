@@ -9,6 +9,7 @@ import com.google.ai.edge.litertlm.ConversationConfig
 import com.google.ai.edge.litertlm.Engine
 import com.google.ai.edge.litertlm.Message
 import com.google.ai.edge.litertlm.SamplerConfig
+import com.google.ai.edge.litertlm.ToolProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -135,7 +136,9 @@ class ConversationSession(
             history: List<ChatTurn>,
             sampler: SamplerSettings,
             maxContextTokens: Int,
-            priorSummary: String? = null
+            priorSummary: String? = null,
+            /** Model-callable tools (e.g. web search). Empty = no tool overhead. */
+            tools: List<ToolProvider> = emptyList()
         ): ConversationSession {
             // Reserve headroom for the model's reply (and tokenizer estimation
             // error) so the prompt + history never overflow the engine's real
@@ -161,6 +164,10 @@ class ConversationSession(
             val config = ConversationConfig(
                 systemInstruction = effectiveSystemInstruction?.let { Contents.of(Content.Text(it)) },
                 initialMessages = initialMessages,
+                tools = tools,
+                // The runtime executes tool calls (e.g. web search) itself and
+                // feeds results back — the app just streams the final text.
+                automaticToolCalling = tools.isNotEmpty(),
                 samplerConfig = SamplerConfig(
                     topK = sampler.topK,
                     topP = sampler.topP,

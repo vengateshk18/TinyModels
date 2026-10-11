@@ -35,6 +35,9 @@ interface ChatRepository {
     /** Insert or update a message; bumps the chat's updatedAt. */
     suspend fun saveMessage(message: ChatMessage)
 
+    /** Per-chat opt-in for the model's web_search tool. */
+    suspend fun updateWebSearchEnabled(chatId: String, enabled: Boolean)
+
     /** Delete a single message by id (used by regenerate / edit). */
     suspend fun deleteMessage(messageId: String)
 

@@ -90,6 +90,11 @@ class ChatRepositoryImpl @Inject constructor(
             chatDao.touchChat(message.chatId, System.currentTimeMillis())
         }
 
+    override suspend fun updateWebSearchEnabled(chatId: String, enabled: Boolean) =
+        withContext(dispatchers.io) {
+            chatDao.updateWebSearchEnabled(chatId, enabled)
+        }
+
     override suspend fun deleteMessage(messageId: String) =
         withContext(dispatchers.io) {
             chatDao.deleteMessage(messageId)
@@ -145,6 +150,7 @@ class ChatRepositoryImpl @Inject constructor(
                 compactedSummary = compactedSummary,
                 compactedUpToCreatedAt = compactedUpToCreatedAt,
                 compactionCount = compactionCount,
+                webSearchEnabled = webSearchEnabled,
                 inferenceSettings = InferenceSettings(
             backend = runCatching { BackendPreference.valueOf(backend) }.getOrDefault(BackendPreference.AUTO),
             temperature = temperature,

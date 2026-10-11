@@ -26,7 +26,10 @@ data class ChatEntity(
     val compactedUpToCreatedAt: Long? = null,
     // ---- Context compaction (DB v7) ----
     /** How many times compaction has run for this chat (observability metric). */
-    val compactionCount: Int = 0
+    val compactionCount: Int = 0,
+    // ---- Web search tool (DB v8) ----
+    /** Per-chat opt-in for the model's web_search tool (global setting gates availability). */
+    val webSearchEnabled: Boolean = false
 )
 
 @Entity(

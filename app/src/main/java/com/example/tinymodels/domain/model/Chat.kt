@@ -14,7 +14,9 @@ data class Chat(
     /** Messages strictly BEFORE this createdAt are covered by [compactedSummary]. */
     val compactedUpToCreatedAt: Long? = null,
     /** How many times compaction has run for this chat (observability metric). */
-    val compactionCount: Int = 0
+    val compactionCount: Int = 0,
+    /** Per-chat opt-in for the model's web_search tool (global setting gates availability). */
+    val webSearchEnabled: Boolean = false
 )
 
 /** A single message within a chat. */

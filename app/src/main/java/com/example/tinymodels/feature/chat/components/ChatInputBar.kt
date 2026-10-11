@@ -25,9 +25,15 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -64,9 +70,16 @@ fun ChatInputBar(
     canSend: Boolean,
     onSend: (String) -> Unit,
     onStop: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /** Global availability gate for the web_search tool (Settings switch). */
+    webSearchAvailable: Boolean = true,
+    /** Per-chat opt-in state for the web_search tool. */
+    webSearchEnabled: Boolean = false,
+    /** Toggle the per-chat web_search tool. */
+    onToggleWebSearch: (Boolean) -> Unit = {}
 ) {
     var text by remember { mutableStateOf("") }
+    var menuExpanded by remember { mutableStateOf(false) }
     val isGenerating = generation == GenerationState.GENERATING
     val keyboard = LocalSoftwareKeyboardController.current
     val sendEnabled = canSend && text.isNotBlank() && !isGenerating
@@ -89,6 +102,45 @@ fun ChatInputBar(
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.Bottom
     ) {
+        // "+" menu — per-chat tool toggles (web search for now).
+        Box {
+            IconButton(
+                onClick = { menuExpanded = true },
+                modifier = Modifier.padding(bottom = 4.dp)
+            ) {
+                Icon(
+                    Icons.Filled.Add,
+                    contentDescription = "Chat options",
+                    tint = if (webSearchEnabled) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            DropdownMenu(
+                expanded = menuExpanded,
+                onDismissRequest = { menuExpanded = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Web search") },
+                    onClick = {
+                        onToggleWebSearch(!webSearchEnabled)
+                        menuExpanded = false
+                    },
+                    leadingIcon = {
+                        Icon(Icons.Filled.Search, contentDescription = null)
+                    },
+                    trailingIcon = {
+                        if (webSearchEnabled) {
+                            Icon(
+                                Icons.Filled.Check,
+                                contentDescription = "Enabled",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(8.dp))
         OutlinedTextField(
             value = text,
             onValueChange = { text = it },

@@ -31,6 +31,7 @@ class SettingsRepositoryImpl @Inject constructor(
         val FONT_CHOICE = stringPreferencesKey("font_choice")
         val FONT_SCALE = floatPreferencesKey("font_scale")
         val DEFAULT_BACKEND = stringPreferencesKey("default_backend")
+        val WEB_SEARCH_ENABLED = booleanPreferencesKey("web_search_enabled")
         val LAST_USED_MODEL_ID = stringPreferencesKey("last_used_model_id")
         val HUGGINGFACE_TOKEN = stringPreferencesKey("hugging_face_token")
     }
@@ -44,7 +45,8 @@ class SettingsRepositoryImpl @Inject constructor(
                 ?: FontChoice.SYSTEM,
             fontScale = prefs[Keys.FONT_SCALE] ?: 1.0f,
             defaultBackend = prefs[Keys.DEFAULT_BACKEND]?.let { runCatching { BackendPreference.valueOf(it) }.getOrNull() }
-                ?: BackendPreference.AUTO
+                ?: BackendPreference.AUTO,
+            webSearchEnabled = prefs[Keys.WEB_SEARCH_ENABLED] ?: true
         )
     }
 
@@ -68,6 +70,10 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun setDefaultBackend(backend: BackendPreference) {
         context.dataStore.edit { it[Keys.DEFAULT_BACKEND] = backend.name }
+    }
+
+    override suspend fun setWebSearchEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.WEB_SEARCH_ENABLED] = enabled }
     }
 
     override suspend fun getLastUsedModelId(): String? =

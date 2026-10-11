@@ -105,7 +105,11 @@ data class ChatUiState(
     /** True while a (manual or auto) compaction is running. */
     val isCompacting: Boolean = false,
     /** Result message of the last manual compaction (shown in the metrics sheet). */
-    val compactionMessage: String? = null
+    val compactionMessage: String? = null,
+    /** Per-chat opt-in for the model's web_search tool (global setting gates availability). */
+    val webSearchEnabled: Boolean = false,
+    /** Global availability gate for the web_search tool (from app settings). */
+    val webSearchAvailable: Boolean = true
 ) {
     val canSend: Boolean
         get() = model is ModelChipState.Ready && generation == GenerationState.IDLE
@@ -128,4 +132,6 @@ sealed interface ChatEvent {
     data object CloseInferenceSettings : ChatEvent
     /** Manually compact the conversation (from the context metrics sheet). */
     data object CompactConversation : ChatEvent
+    /** Toggle the per-chat web_search tool (from the + menu in the input bar). */
+    data class ToggleWebSearch(val enabled: Boolean) : ChatEvent
 }

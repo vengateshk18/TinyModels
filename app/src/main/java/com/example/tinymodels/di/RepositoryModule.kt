@@ -4,9 +4,11 @@ import com.example.tinymodels.core.common.SnackbarManager
 import com.example.tinymodels.data.repository.ChatRepositoryImpl
 import com.example.tinymodels.data.repository.ModelRepositoryImpl
 import com.example.tinymodels.data.repository.SettingsRepositoryImpl
+import com.example.tinymodels.data.repository.WebSearchRepositoryImpl
 import com.example.tinymodels.domain.repository.ChatRepository
 import com.example.tinymodels.domain.repository.ModelRepository
 import com.example.tinymodels.domain.repository.SettingsRepository
+import com.example.tinymodels.domain.repository.WebSearchRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -29,6 +31,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindSettingsRepository(impl: SettingsRepositoryImpl): SettingsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindWebSearchRepository(impl: WebSearchRepositoryImpl): WebSearchRepository
 
     companion object {
         @Provides

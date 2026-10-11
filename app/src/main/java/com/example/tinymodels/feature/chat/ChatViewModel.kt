@@ -9,6 +9,7 @@ import com.example.tinymodels.core.inference.ConversationSession
 import com.example.tinymodels.core.inference.InferenceException
 import com.example.tinymodels.core.inference.ModelContextInspector
 import com.example.tinymodels.core.inference.ModelManager
+import com.example.tinymodels.core.inference.tools.WebSearchToolSet
 import com.example.tinymodels.domain.model.ChatMessage
 import com.example.tinymodels.domain.model.InferenceSettings
 import com.example.tinymodels.domain.model.DownloadedModel
@@ -58,6 +59,7 @@ class ChatViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
     private val modelRepository: ModelRepository,
     private val settingsRepository: SettingsRepository,
+    private val webSearchToolSet: WebSearchToolSet,
     private val dispatchers: DispatcherProvider
 ) : ViewModel() {
 
@@ -107,6 +109,7 @@ class ChatViewModel @Inject constructor(
         observeChats()           // populate the history drawer
         observeDownloadedModels()
         observeEngineState()
+        observeWebSearchAvailability()
 
         val existingChatId = chatId?.takeIf { it != "new" }
         if (existingChatId != null) {
@@ -165,6 +168,18 @@ class ChatViewModel @Inject constructor(
             ChatEvent.OpenInferenceSettings -> _uiState.update { it.copy(showInferenceSettings = true) }
             ChatEvent.CloseInferenceSettings -> _uiState.update { it.copy(showInferenceSettings = false) }
             ChatEvent.CompactConversation -> compactNow()
+            is ChatEvent.ToggleWebSearch -> toggleWebSearch(event.enabled)
+        }
+    }
+
+    /** Per-chat web_search opt-in (the + menu in the input bar). */
+    private fun toggleWebSearch(enabled: Boolean) {
+        _uiState.update { it.copy(webSearchEnabled = enabled) }
+        val chatId = _uiState.value.activeChatId ?: return
+        viewModelScope.launch(Dispatchers.Default) {
+            chatRepository.updateWebSearchEnabled(chatId, enabled)
+            // Re-register (or unregister) the tool with the live session.
+            rebuildSession(chatId)
         }
     }
 
@@ -193,6 +208,15 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.Default) {
             modelRepository.observeDownloadedModels().collect { models ->
                 _uiState.update { it.copy(hasDownloadedModels = models.isNotEmpty()) }
+            }
+        }
+    }
+
+    /** Global availability gate for the web_search tool (Settings switch). */
+    private fun observeWebSearchAvailability() {
+        viewModelScope.launch(Dispatchers.Default) {
+            settingsRepository.settings.collect { settings ->
+                _uiState.update { it.copy(webSearchAvailable = settings.webSearchEnabled) }
             }
         }
     }
@@ -390,6 +414,8 @@ class ChatViewModel @Inject constructor(
 
         /** Compaction triggers when usage crosses this fraction of the budget. */
         const val COMPACTION_HEADROOM = 0.90
+
+        private const val TAG = "ChatViewModel"
     }
 
     // ---- Chat lifecycle ----
@@ -408,7 +434,8 @@ class ChatViewModel @Inject constructor(
                 generation = GenerationState.IDLE,
                 error = null,
                 compactedSummary = null,
-                compactionCount = 0
+                compactionCount = 0,
+                webSearchEnabled = false
             )
         }
     }
@@ -430,7 +457,8 @@ class ChatViewModel @Inject constructor(
                 activeChatId = chatId,
                 inferenceSettings = chat.inferenceSettings,
                 compactedSummary = chat.compactedSummary,
-                compactionCount = chat.compactionCount
+                compactionCount = chat.compactionCount,
+                webSearchEnabled = chat.webSearchEnabled
             )
         }
         rebuildSession(chatId)
@@ -465,6 +493,21 @@ class ChatViewModel @Inject constructor(
                     text = it.content
                 )
             }
+        // Tools: register the web_search tool only when the global setting
+        // (availability gate) AND the per-chat flag are both enabled —
+        // otherwise zero tool overhead in the prompt.
+        val tools = if (_uiState.value.webSearchAvailable && chat?.webSearchEnabled == true) {
+            android.util.Log.i(TAG, "Registering web_search tool for chat $chatId")
+            listOf(com.google.ai.edge.litertlm.tool(webSearchToolSet))
+        } else {
+            android.util.Log.i(
+                TAG,
+                "web_search tool NOT registered for chat $chatId " +
+                    "(global=${_uiState.value.webSearchAvailable}, perChat=${chat?.webSearchEnabled})"
+            )
+            emptyList()
+        }
+
         // Engine + conversation construction is native blocking work — run it
         // off the main thread (viewModelScope defaults to Dispatchers.Main).
         // Hold the native mutex: closing the old session + creating the new
@@ -483,7 +526,8 @@ class ChatViewModel @Inject constructor(
                                 topP = inference.topP
                             ),
                             maxContextTokens = config.maxNumTokens,
-                            priorSummary = chat?.compactedSummary
+                            priorSummary = chat?.compactedSummary,
+                            tools = tools
                         )
                     }
                 }
@@ -554,7 +598,19 @@ class ChatViewModel @Inject constructor(
         chat: com.example.tinymodels.domain.model.Chat
     ) {
         val budget = (autoContextBudget() * (1 - COMPACTION_HEADROOM)).toInt()
-        if (activeSession.estimatedTokensInContext < budget) return
+        if (activeSession.estimatedTokensInContext < budget) {
+            android.util.Log.i(
+                TAG,
+                "JOURNEY: auto-compaction skipped — " +
+                    "${activeSession.estimatedTokensInContext} tokens < trigger $budget"
+            )
+            return
+        }
+        android.util.Log.i(
+            TAG,
+            "JOURNEY: auto-compaction triggered — " +
+                "${activeSession.estimatedTokensInContext} tokens >= trigger $budget"
+        )
         _uiState.update { it.copy(isCompacting = true) }
         try {
             compactInternal(chatId, activeSession, chat)
@@ -679,14 +735,22 @@ class ChatViewModel @Inject constructor(
             return
         }
         var chatId = state.activeChatId
+        android.util.Log.i(TAG, "JOURNEY: user sent prompt (${text.length} chars): \"$text\"")
         viewModelScope.launch(Dispatchers.Default) {
             if (chatId == null) {
                 val modelId = activeModel?.modelId ?: modelManager.loadedModelId ?: return@launch
+                android.util.Log.i(TAG, "JOURNEY: no active chat — creating one for model $modelId")
                 chatId = chatRepository.createChat(modelId, title = text.take(40)).id
                 _uiState.update { it.copy(activeChatId = chatId) }
                 rebuildSession(chatId!!)
             }
             val activeChatId = chatId!!
+            android.util.Log.i(
+                TAG,
+                "JOURNEY: chat=$activeChatId session=${if (session != null) "live" else "null"} " +
+                    "webSearch(global=${state.webSearchAvailable}, chat=${state.webSearchEnabled}) " +
+                    "contextUsage=${state.contextUsage.usedTokens}/${state.contextUsage.maxTokens}"
+            )
 
             // Persist the user message.
             val userMessage = ChatMessage(
@@ -730,9 +794,11 @@ class ChatViewModel @Inject constructor(
             // built (e.g. a benchmark loaded another model) — rebuild before
             // generating so we never stream through a dead engine.
             if (sessionModelId != modelManager.loadedModelId) {
+                android.util.Log.i(TAG, "JOURNEY: engine swapped since session build — rebuilding session")
                 rebuildSession(activeChatId)
             }
 
+            android.util.Log.i(TAG, "JOURNEY: starting generation (assistantId=$assistantId)")
             runGeneration(activeChatId, assistantId, text)
         }
     }
@@ -747,6 +813,9 @@ class ChatViewModel @Inject constructor(
         }
         generationJob = viewModelScope.launch(Dispatchers.Default) {
             val buffer = StringBuilder()
+            val generationStart = System.currentTimeMillis()
+            var emissionCount = 0
+            var lastLogAt = generationStart
             // Hold the native mutex for the whole generation so a concurrent
             // compaction summarization can never touch the same conversation.
             nativeMutex.withLock {
@@ -755,6 +824,12 @@ class ChatViewModel @Inject constructor(
                     // Re-throw cancellation so the cancel handler (cancelGeneration)
                     // owns the cleanup path instead of surfacing a spurious error.
                     if (throwable is kotlinx.coroutines.CancellationException) throw throwable
+                    android.util.Log.e(
+                        TAG,
+                        "JOURNEY: generation FAILED after $emissionCount emissions " +
+                            "(${buffer.length} chars): ${throwable.message}",
+                        throwable
+                    )
                     // Persist partial, then surface the error.
                     persistAssistant(chatId, assistantId, buffer.toString(), isComplete = false)
                     _uiState.update {
@@ -768,8 +843,19 @@ class ChatViewModel @Inject constructor(
                 .collect { cumulative ->
                     // ConversationSession.send() accumulates delta chunks internally
                     // and emits cumulative text. Replace the buffer + UI with each emission.
+                    emissionCount++
                     buffer.setLength(0)
                     buffer.append(cumulative)
+                    // Throttled stream logging: at most every 2s, so long
+                    // generations are traceable without flooding logcat.
+                    val now = System.currentTimeMillis()
+                    if (now - lastLogAt >= 2_000) {
+                        android.util.Log.i(
+                            TAG,
+                            "JOURNEY: streaming… emission #$emissionCount, ${buffer.length} chars so far"
+                        )
+                        lastLogAt = now
+                    }
                     _uiState.update { s ->
                         s.copy(messages = s.messages.map { m ->
                             if (m.id == assistantId) m.copy(text = cumulative, isStreaming = true) else m
@@ -780,6 +866,13 @@ class ChatViewModel @Inject constructor(
             // Completed normally (catch already handled the failure path).
             if (_uiState.value.generation == GenerationState.GENERATING) {
                 val finishedAt = System.currentTimeMillis()
+                val totalMs = finishedAt - generationStart
+                android.util.Log.i(
+                    TAG,
+                    "JOURNEY: generation complete in ${totalMs}ms — $emissionCount emissions, " +
+                        "${buffer.length} chars, ~${buffer.length / 4} tokens " +
+                        "(~${if (totalMs > 0) (buffer.length / 4 * 1000 / totalMs) else 0} tokens/s)"
+                )
                 persistAssistant(chatId, assistantId, buffer.toString(), isComplete = true, completedAt = finishedAt)
                 _uiState.update { s ->
                     s.copy(
@@ -794,6 +887,11 @@ class ChatViewModel @Inject constructor(
                 maybeCompact(chatId)
             }
             updateContextUsage()
+            android.util.Log.i(
+                TAG,
+                "JOURNEY: turn done — context usage now " +
+                    "${_uiState.value.contextUsage.usedTokens}/${_uiState.value.contextUsage.maxTokens} tokens"
+            )
         }
     }
 

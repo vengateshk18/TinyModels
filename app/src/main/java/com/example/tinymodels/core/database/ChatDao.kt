@@ -44,6 +44,10 @@ interface ChatDao {
     )
     suspend fun saveCompaction(chatId: String, summary: String?, cutoffCreatedAt: Long?)
 
+    /** Per-chat opt-in for the model's web_search tool (DB v8). */
+    @Query("UPDATE chats SET webSearchEnabled = :enabled WHERE chatId = :chatId")
+    suspend fun updateWebSearchEnabled(chatId: String, enabled: Boolean)
+
     @Query("DELETE FROM chats WHERE chatId = :chatId")
     suspend fun deleteChat(chatId: String)
 

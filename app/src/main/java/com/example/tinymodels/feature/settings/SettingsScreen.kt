@@ -214,6 +214,18 @@ private fun InferenceSection(settings: AppSettings, viewModel: SettingsViewModel
             }
         }
     }
+    Spacer(modifier = Modifier.height(12.dp))
+    SwitchRow(
+        label = "Web search",
+        subtitle = "Let chats enable the model's web search tool. Search queries leave the device.",
+        checked = settings.webSearchEnabled,
+        onCheckedChange = { viewModel.setWebSearchEnabled(it) }
+    )
+    Text(
+        "When enabled for a chat (via the + menu in the chat), the model may search the web when it needs current information.",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
 }
 
 @Composable
