@@ -415,7 +415,9 @@ class ChatViewModel @Inject constructor(
         /** Compaction triggers when usage crosses this fraction of the budget. */
         const val COMPACTION_HEADROOM = 0.90
 
-        private const val TAG = "ChatViewModel"
+        // Same tag as WebSearchToolSet's tool logs so one logcat filter
+        // (adb logcat -s TinyModelsJourney) shows the entire turn.
+        private const val TAG = "TinyModelsJourney"
     }
 
     // ---- Chat lifecycle ----

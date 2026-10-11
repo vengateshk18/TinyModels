@@ -66,6 +66,8 @@ class WebSearchToolSet @Inject constructor(
     }
 
     private companion object {
-        private const val TAG = "WebSearchTool"
+        // Same tag as ChatViewModel's JOURNEY logs so one logcat filter
+        // (adb logcat -s TinyModelsJourney) shows the entire turn.
+        private const val TAG = "TinyModelsJourney"
     }
 }
