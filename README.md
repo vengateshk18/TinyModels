@@ -1,58 +1,94 @@
-# TinyModels
+# TinyModels 📱🤖
 
-An on-device AI chat Android app. Download small LLMs (LiteRT-LM `.litertlm` / `.task`) and chat fully offline, with careful memory management so only one model is resident in RAM at a time.
+**Run large language models entirely on your Android phone — fully offline, fully private.**
 
-## Architecture
+TinyModels lets you browse, download, and chat with small LLMs (Gemma and friends) directly on your device. No server, no account, no data leaving your phone. Powered by Google's **LiteRT-LM** on-device runtime.
 
-Clean Architecture, single-activity, Jetpack Compose, Hilt DI, Kotlin Coroutines/Flow.
+---
+
+## ✨ What it does
+
+| Feature | Details |
+|---|---|
+| 🔍 **Model catalog** | Browse the Hugging Face `litert-community` catalog — search, filter, and inspect models with per-file details (size, quantization, context window). |
+| ⬇️ **Downloads** | Resumable downloads via WorkManager with a foreground notification, progress, cancel, and per-file tracking. Device-capacity checks warn you before downloading a model that won't fit in RAM. |
+| 💬 **On-device chat** | Streaming, token-by-token generation with markdown-rendered bubbles. Multiple persisted conversations (Room DB), regenerate/edit any message, per-chat sampler settings. |
+| 🧠 **Automatic context management** | Detects each model's true context window, tracks live token usage (circular % indicator in the app bar), and **auto-compacts at 90% usage** — older turns are summarized into a digest so long chats never overflow. Manual "Compact" button + metrics sheet included. |
+| ⚡ **Benchmarks** | Built-in prompt benchmark measuring tokens/sec of the loaded model, with history. |
+| 📊 **Home dashboard** | Usage stats: chats created, models tried, tokens generated, average generation speed. |
+| 🎨 **Settings** | Theme (system/light/dark + dynamic color), font choice & scale, default backend, Hugging Face token, clear-data. |
+
+## 🛠️ Tech stack
+
+- **Kotlin** + **Jetpack Compose** (Material 3, edge-to-edge)
+- **MVI** architecture — single immutable `UiState` per screen
+- **Hilt** dependency injection
+- **Room** (v7) — chats, messages, downloaded models & files
+- **DataStore** — app settings
+- **WorkManager** — model downloads
+- **Coroutines/Flow** — all native/DB work off the main thread; native access serialized via mutex (LiteRT-LM is not thread-safe)
+- **LiteRT-LM 0.17.1** — the on-device inference engine (CPU/GPU/Auto backend)
+
+## 🏗️ Architecture
+
+Clean Architecture, single-activity, UI → domain ← data, DI-wired:
 
 ```
 app/src/main/java/com/example/tinymodels/
-├── core/                      # Shared building blocks (pure, no Android UI)
+├── core/                      # Shared building blocks
 │   ├── common/                #   AppResult, DispatcherProvider, MemoryUtils (OOM-safe checks)
-│   ├── database/              #   Room: TinyModelsDatabase, DAOs, entities (chat + downloaded models)
-│   ├── inference/             #   ModelManager (load/unload, memory guard, single-model)
-│   │                          #   ConversationSession (streaming generation, cancel, context)
-│   ├── network/               #   HuggingFaceApi (OkHttp), ModelDtoParser
-│   └── ui/theme/              #   Design tokens: Color, Type, Theme (light/dark/dynamic)
+│   ├── database/              #   Room: TinyModelsDatabase, DAOs, entities, migrations
+│   ├── inference/             #   ModelManager (single-model memory guard),
+│   │                          #   ConversationSession (streaming, compaction),
+│   │                          #   ModelContextInspector (context-window detection)
+│   ├── network/               #   HuggingFaceApi (OkHttp), DTOs
+│   └── ui/theme/              #   Design tokens: light/dark/dynamic themes
 │
-├── domain/                    # Business logic, framework-agnostic
-│   ├── model/                 #   Model, Chat, AppSettings, InferenceConfig, ...
-│   ├── repository/            #   Interfaces: ChatRepository, ModelRepository, SettingsRepository
-│   └── usecase/               #   DownloadModelUseCase, ...
+├── domain/                    # Framework-agnostic business logic
+│   ├── model/                 #   Model, Chat, AppSettings, InferenceSettings, ...
+│   ├── repository/            #   Interfaces: Chat/Model/SettingsRepository
+│   └── usecase/               #   Use cases
 │
-├── data/                      # Implementations of domain contracts
-│   ├── repository/            #   ChatRepositoryImpl, ModelRepositoryImpl, SettingsRepositoryImpl
-│   └── worker/                #   ModelDownloadWorker (@HiltWorker, foreground, progress)
+├── data/                      # Implementations
+│   ├── repository/            #   Chat/Model/SettingsRepositoryImpl
+│   └── worker/                #   ModelDownloadWorker (foreground, progress)
 │
-├── di/                        # Hilt modules: App, Database, Network, Repository
-│
+├── di/                        # Hilt modules
 ├── feature/                   # UI, one package per feature (MVI)
-│   ├── chat/                  #   ChatScreen, ChatViewModel, components/ (Bubble, InputBar, Drawer, Chip)
-│   ├── models/                #   Model list / details / downloaded-management screens + ViewModels
-│   ├── settings/              #   SettingsScreen, SettingsViewModel
-│   └── navigation/            #   Routes, TinyNavHost (single NavHost)
+│   ├── chat/                  #   Chat room, history drawer, settings sheets
+│   ├── models/                #   Catalog, details, downloaded management
+│   ├── benchmark/             #   Benchmark screen
+│   ├── home/                  #   Dashboard + device info
+│   ├── settings/              #   App settings
+│   └── navigation/            #   Single NavHost
 │
-├── MainActivity.kt            # Single activity, hosts TinyNavHost
-└── TinyModelsApp.kt           # @HiltAndroidApp + WorkManager Configuration.Provider
+├── MainActivity.kt            # Single activity (theme applied pre-composition — no flash)
+└── TinyModelsApp.kt           # @HiltAndroidApp + WorkManager config
 ```
 
-### Dependency flow
-`feature → domain ← data ← core`. UI depends only on domain interfaces; data implements them; DI wires it together.
+## 🔑 Key behaviors
 
-## Key behaviors
+- **Memory safety** — exactly **one model in RAM at a time**. `ModelManager` checks free RAM (plus buffer) before loading, unloads on `onTrimMemory`, and unloads before switching/deleting the active model.
+- **Context compaction** — the context budget is **automatic** (detected from the model file, safe 2048 default). At 90% usage, older turns are summarized into a digest (folded into the system prompt) and the session is rebuilt — the KV cache shrinks and usage drops. Editing a summarized turn invalidates the digest.
+- **Overflow-proof generation** — 25% of the budget is reserved for the reply, so "Status code 13: Task failed with large input" errors are prevented by design.
+- **Per-chat inference settings** — temperature, top-K, top-P, backend, and system instruction are stored per conversation; changes rebuild the session instantly.
 
-- **Memory management** — `ModelManager` loads exactly one model at a time. It checks available RAM (plus a buffer) against the model size before loading and throws `OutOfMemoryException` early instead of crashing. Switching or deleting the active model unloads it first. The app also reacts to `onTrimMemory` by unloading under pressure.
-- **Chat** — MVI: a single immutable `ChatUiState` drives the screen. History is persisted in Room; each conversation gets its own `ConversationSession` with bounded context (`maxContextTokens`).
-- **Downloads** — WorkManager unique-work per model with progress, a foreground notification, and partial-file cleanup on cancel/failure. Completed downloads are recorded in Room and shown under "Downloaded models".
-- **Catalog** — models are browsed from the Hugging Face `litert-community` catalog via `HuggingFaceApi` (network-only, size from `x-linked-size`).
-- **Settings** — theme (system/light/dark), dynamic color, inference backend (AUTO/GPU/CPU), sampler (temperature/topK/topP) and context-window size, persisted in DataStore.
+## 📱 Specs
 
-## Build & test
+- minSdk 26 (Android 8.0) · targetSdk 37
+- arm64-v8a native libs · R8-minified release APK ≈ **24 MB**
+- All inference **offline & private** — nothing leaves the device
+
+## 🔨 Build & test
 
 ```bash
-./gradlew :app:assembleDebug     # build
-./gradlew :app:testDebugUnitTest # unit tests
+./gradlew :app:assembleDebug      # debug build
+./gradlew :app:assembleRelease     # minified release (~24 MB)
+./gradlew :app:testDebugUnitTest   # unit tests
 ```
 
-Requires Android Studio (Hedgehog+), a device/emulator with enough free RAM for the chosen model, and network access on first run to fetch the model catalog.
+Requires Android Studio, a device/emulator with enough free RAM for the chosen model, and network access on first run to fetch the catalog (downloads and chat then work fully offline).
+
+## 📄 License
+
+See the repository for license details.
