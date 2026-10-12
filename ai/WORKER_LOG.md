@@ -35,7 +35,7 @@ Legend: `hash:` is the short commit hash (`git log --oneline`).
 
 ## Commit 2 — `ci: release APK workflow (tags + manual)`
 
-- hash: (filled at finalization — see bottom of file)
+- hash: 72cdbaa
 - What:
   - Added `.github/workflows/release.yml`: on `v*` tags (and manually via
     `workflow_dispatch`) it runs `:app:assembleRelease` (R8-minified,
@@ -57,7 +57,7 @@ Legend: `hash:` is the short commit hash (`git log --oneline`).
 
 ## Commit 3 — `ci: Dependabot (weekly Gradle + Actions updates)`
 
-- hash: (filled at finalization — see bottom of file)
+- hash: 0640b75
 - What:
   - Added `.github/dependabot.yml`: weekly PRs for the `gradle` ecosystem
     (version catalog, AGP/Kotlin/AndroidX bumps grouped as `android-stack`,
@@ -75,7 +75,7 @@ Legend: `hash:` is the short commit hash (`git log --oneline`).
 
 ## Commit 4 — `feat(chat): visible copy button + copied confirmation`
 
-- hash: (filled at finalization — see bottom of file)
+- hash: 6527394
 - What:
   - `feature/chat/components/MessageBubble.kt`: added an explicit copy
     `IconButton` (ContentCopy icon) in the message footer for all complete,
@@ -99,3 +99,14 @@ Legend: `hash:` is the short commit hash (`git log --oneline`).
   follows the device dynamic-color theme automatically). No hardcoded colors.
 - Verified: `:app:compileDebugKotlin` green, full `:app:testDebugUnitTest`
   green (no behavior change to tested layers).
+
+---
+
+## Hash index
+
+| Commit | Subject |
+|---|---|
+| `e88a1b0` | ci: Android CI (debug build + unit tests + lint) with artifacts |
+| `72cdbaa` | ci: release APK workflow (tags + manual) with test gate |
+| `0640b75` | ci: Dependabot (weekly Gradle + Actions updates) |
+| `6527394` | feat(chat): visible copy button + copied confirmation |
