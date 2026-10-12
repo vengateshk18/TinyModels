@@ -10,13 +10,18 @@ import com.example.tinymodels.core.inference.InferenceException
 import com.example.tinymodels.core.inference.ModelContextInspector
 import com.example.tinymodels.core.inference.ModelManager
 import com.example.tinymodels.core.inference.tools.WebSearchToolSet
+import com.example.tinymodels.core.network.WebSearchPrompt
+import com.example.tinymodels.core.network.WebSearchQuery
 import com.example.tinymodels.domain.model.ChatMessage
+import com.example.tinymodels.domain.model.WebSearchResult
 import com.example.tinymodels.domain.model.InferenceSettings
 import com.example.tinymodels.domain.model.DownloadedModel
 import com.example.tinymodels.domain.model.DownloadedModelFile
 import com.example.tinymodels.domain.repository.ChatRepository
 import com.example.tinymodels.domain.repository.ModelRepository
 import com.example.tinymodels.domain.repository.SettingsRepository
+import com.example.tinymodels.domain.repository.WebSearchException
+import com.example.tinymodels.domain.repository.WebSearchRepository
 import com.example.tinymodels.feature.chat.model.ChatError
 import com.example.tinymodels.feature.chat.model.ChatEvent
 import com.example.tinymodels.feature.chat.model.ChatListItem
@@ -60,6 +65,7 @@ class ChatViewModel @Inject constructor(
     private val modelRepository: ModelRepository,
     private val settingsRepository: SettingsRepository,
     private val webSearchToolSet: WebSearchToolSet,
+    private val webSearchRepository: WebSearchRepository,
     private val dispatchers: DispatcherProvider
 ) : ViewModel() {
 
@@ -94,6 +100,13 @@ class ChatViewModel @Inject constructor(
 
     /** The specific file of the active model that was loaded, if known. */
     private var activeFileName: String? = null
+
+    /**
+     * Last search sources per chat (in-memory recall for follow-ups).
+     * Without this, "what is the model name" after a searched answer is
+     * asked of a model that can no longer see the search.
+     */
+    private val lastSearchSources = mutableMapOf<String, List<WebSearchResult>>()
 
     /** Simulated progress ticker running while a model loads (see [selectModel]). */
     private var progressTickerJob: Job? = null
@@ -174,6 +187,7 @@ class ChatViewModel @Inject constructor(
 
     /** Per-chat web_search opt-in (the + menu in the input bar). */
     private fun toggleWebSearch(enabled: Boolean) {
+        android.util.Log.i(TAG, "JOURNEY: web search toggled enabled=$enabled — rebuilding session to (un)register the tool")
         _uiState.update { it.copy(webSearchEnabled = enabled) }
         val chatId = _uiState.value.activeChatId ?: return
         viewModelScope.launch(Dispatchers.Default) {
@@ -426,6 +440,7 @@ class ChatViewModel @Inject constructor(
         // Do NOT write to the DB here. Just reset the active chat state so the
         // user sees a blank canvas. The actual DB row is created in sendMessage()
         // when the user actually sends their first message.
+        android.util.Log.i(TAG, "JOURNEY: newChat — closing session and resetting active chat state")
         session?.close()
         session = null
         _uiState.update {
@@ -448,6 +463,11 @@ class ChatViewModel @Inject constructor(
 
     private suspend fun openChatInternal(chatId: String) {
         val chat = chatRepository.getChat(chatId) ?: return
+        android.util.Log.i(
+            TAG,
+            "JOURNEY: openChat(chatId=$chatId, model=${chat.modelId}, " +
+                "webSearchEnabled=${chat.webSearchEnabled}, compactionCount=${chat.compactionCount})"
+        )
         // Ensure the chat's model is the one loaded; if not, load it.
         if (modelManager.loadedModelId != chat.modelId) {
             selectModel(chat.modelId)
@@ -469,6 +489,7 @@ class ChatViewModel @Inject constructor(
 
     private fun deleteChat(chatId: String) {
         viewModelScope.launch(Dispatchers.Default) {
+            android.util.Log.i(TAG, "JOURNEY: deleteChat(chatId=$chatId)")
             chatRepository.deleteChat(chatId)
             if (_uiState.value.activeChatId == chatId) {
                 session?.close()
@@ -509,6 +530,25 @@ class ChatViewModel @Inject constructor(
             )
             emptyList()
         }
+        val priorSummary = chat?.compactedSummary
+        // When search is on, tell the model it can read live results so it
+        // never says "I cannot access the internet" over fresh headlines.
+        val effectiveSystem = if (tools.isNotEmpty()) {
+            listOfNotNull(
+                inference.systemInstruction?.takeIf { it.isNotBlank() },
+                WebSearchPrompt.SYSTEM_LINE
+            ).joinToString("\n\n")
+        } else {
+            inference.systemInstruction
+        }
+        android.util.Log.i(
+            TAG,
+            "JOURNEY: rebuildSession(chat=$chatId) — " +
+                "systemInstruction=\"${inference.systemInstruction}\", " +
+                "history=${history.size} turns (cutoff=${cutoff ?: "none"}), " +
+                "priorSummary=${priorSummary?.let { "${it.length} chars" } ?: "none"}, " +
+                "tools=${tools.size}"
+        )
 
         // Engine + conversation construction is native blocking work — run it
         // off the main thread (viewModelScope defaults to Dispatchers.Main).
@@ -520,7 +560,7 @@ class ChatViewModel @Inject constructor(
                     modelManager.withEngine { engine, config ->
                         session = ConversationSession.create(
                             engine = engine,
-                            systemInstruction = inference.systemInstruction,
+                            systemInstruction = effectiveSystem,
                             history = history,
                             sampler = com.example.tinymodels.domain.model.SamplerSettings(
                                 temperature = inference.temperature,
@@ -569,6 +609,7 @@ class ChatViewModel @Inject constructor(
     private fun compactNow() {
         val chatId = _uiState.value.activeChatId ?: return
         val activeSession = session ?: return
+        android.util.Log.i(TAG, "JOURNEY: manual compaction requested for chat $chatId")
         _uiState.update { it.copy(isCompacting = true, compactionMessage = null) }
         viewModelScope.launch(Dispatchers.Default) {
             val chat = chatRepository.getChat(chatId)
@@ -742,7 +783,19 @@ class ChatViewModel @Inject constructor(
             if (chatId == null) {
                 val modelId = activeModel?.modelId ?: modelManager.loadedModelId ?: return@launch
                 android.util.Log.i(TAG, "JOURNEY: no active chat — creating one for model $modelId")
-                chatId = chatRepository.createChat(modelId, title = text.take(40)).id
+                // Carry the pre-first-message UI toggle into the chat row —
+                // otherwise the entity default (false) silently drops the
+                // tool the user already enabled before sending.
+                val webSearchEnabled = _uiState.value.webSearchEnabled
+                chatId = chatRepository.createChat(
+                    modelId = modelId,
+                    title = text.take(40),
+                    webSearchEnabled = webSearchEnabled
+                ).id
+                android.util.Log.i(
+                    TAG,
+                    "JOURNEY: chat created (id=$chatId) with webSearchEnabled=$webSearchEnabled"
+                )
                 _uiState.update { it.copy(activeChatId = chatId) }
                 rebuildSession(chatId!!)
             }
@@ -801,8 +854,72 @@ class ChatViewModel @Inject constructor(
             }
 
             android.util.Log.i(TAG, "JOURNEY: starting generation (assistantId=$assistantId)")
-            runGeneration(activeChatId, assistantId, text)
+            val prompt = maybeAugmentWithSearch(activeChatId, text)
+            runGeneration(activeChatId, assistantId, prompt)
         }
+    }
+
+    /**
+     * App-side auto-search (primary trigger). Tiny on-device models often skip
+     * tool calls entirely — this does not need their cooperation.
+     *
+     * Returns the prompt to send: either [WebSearchPrompt.webSearchPrompt] /
+     * [WebSearchPrompt.webRecallPrompt] output, or the raw [text] when search
+     * is off, unneeded, empty, or failed (model then answers from knowledge).
+     * The raw user message is still what gets persisted; only this turn's
+     * prompt is augmented. Sources are kept in [lastSearchSources] for
+     * follow-up recall.
+     */
+    private suspend fun maybeAugmentWithSearch(chatId: String, text: String): String {
+        if (!_uiState.value.webSearchAvailable || !_uiState.value.webSearchEnabled) return text
+        // Fresh search when the message wants live info.
+        if (WebSearchQuery.needsWebSearch(text)) {
+            return try {
+                val previous = chatRepository.getMessages(chatId)
+                    .filter { it.role == ChatMessage.Role.USER }
+                    .takeLast(3)
+                    .map { it.content }
+                val sent = WebSearchQuery.searchQueryFrom(text, previous)
+                if (sent.isBlank()) return text
+                val started = System.currentTimeMillis()
+                val results = webSearchRepository.search(sent)
+                val ms = System.currentTimeMillis() - started
+                if (results.isNotEmpty) {
+                    lastSearchSources[chatId] = results.results
+                    android.util.Log.i(
+                        TAG,
+                        "JOURNEY: web_search auto (${results.results.size} results, lead=${results.leadText.length} chars) in ${ms}ms for \"$sent\""
+                    )
+                    WebSearchPrompt.webSearchPrompt(results, text)
+                } else {
+                    android.util.Log.w(
+                        TAG,
+                        "JOURNEY: web_search auto empty (blocked=${results.blocked}) in ${ms}ms for \"$sent\""
+                    )
+                    if (results.blocked) {
+                        "$text\n\n(Note: live web search was blocked just now; answer from your own knowledge and say so.)"
+                    } else {
+                        // Fall back to prior sources rather than nothing.
+                        val prior = lastSearchSources[chatId].orEmpty()
+                        if (prior.isNotEmpty()) WebSearchPrompt.webRecallPrompt(prior, text) else text
+                    }
+                }
+            } catch (e: WebSearchException) {
+                android.util.Log.w(TAG, "JOURNEY: web_search auto failed: ${e.message}")
+                text
+            } catch (e: Exception) {
+                android.util.Log.w(TAG, "JOURNEY: web_search auto failed unexpectedly: ${e.message}")
+                text
+            }
+        }
+        // Follow-up with no fresh need: re-show prior sources so the model
+        // does not invent or refuse ("what is the model name" after an answer).
+        val prior = lastSearchSources[chatId].orEmpty()
+        if (prior.isNotEmpty() && WebSearchQuery.readsAsFollowUp(text)) {
+            android.util.Log.i(TAG, "JOURNEY: web_search recall (${prior.size} sources) for follow-up \"$text\"")
+            return WebSearchPrompt.webRecallPrompt(prior, text)
+        }
+        return text
     }
 
     private fun runGeneration(chatId: String, assistantId: String, prompt: String) {
@@ -898,6 +1015,7 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun cancelGeneration() {
+        android.util.Log.i(TAG, "JOURNEY: generation cancelled by user")
         generationJob?.cancel()
         generationJob = null
         // Mark the in-flight assistant message as stopped (keep partial text).
@@ -938,6 +1056,7 @@ class ChatViewModel @Inject constructor(
         }
 
         viewModelScope.launch(Dispatchers.Default) {
+            android.util.Log.i(TAG, "JOURNEY: regenerate — deleting old reply, re-sending prompt: \"${lastUser.text}\"")
             // Delete the old assistant message from Room.
             chatRepository.deleteMessage(lastAssistant.id)
             // Remove it from the UI immediately.
@@ -979,6 +1098,7 @@ class ChatViewModel @Inject constructor(
         }
 
         viewModelScope.launch(Dispatchers.Default) {
+            android.util.Log.i(TAG, "JOURNEY: editMessage — edited prompt now: \"$text\"; rebuilding session and re-generating")
             val allMessages = chatRepository.getMessages(chatId)
             val targetIndex = allMessages.indexOfFirst { it.id == messageId }
             if (targetIndex < 0) return@launch
@@ -1095,6 +1215,11 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun updateInferenceSettings(settings: InferenceSettings) {
+        android.util.Log.i(
+            TAG,
+            "JOURNEY: inference settings updated — temp=${settings.temperature}, topK=${settings.topK}, " +
+                "topP=${settings.topP}, systemInstruction=\"${settings.systemInstruction}\" — rebuilding session"
+        )
         // Reflect the saved settings in the UI state immediately so the sheet
         // shows them (not defaults) the next time it is opened.
         _uiState.update { it.copy(inferenceSettings = settings) }

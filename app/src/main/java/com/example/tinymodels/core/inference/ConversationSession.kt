@@ -53,6 +53,7 @@ class ConversationSession(
      * display buffer.
      */
     fun send(text: String): Flow<String> {
+        Log.i(JOURNEY_TAG, "JOURNEY: prompt sent to model (${text.length} chars, ~${estimateTokens(text)} tokens): \"$text\"")
         estimatedTokensInContext += estimateTokens(text)
         lastStreamedLength = 0
         val accumulated = StringBuilder()
@@ -88,6 +89,11 @@ class ConversationSession(
         val transcript = older.joinToString("\n") {
             (if (it.role == ChatTurn.Role.USER) "User: " else "Assistant: ") + it.text
         }
+        Log.i(
+            JOURNEY_TAG,
+            "JOURNEY: compaction prompt sent to model — ${older.size} older turns, " +
+                "transcript ${transcript.length} chars:\n$transcript"
+        )
         return try {
             val sb = StringBuilder()
             conversation.sendMessageAsync(SUMMARIZE_PROMPT + transcript)
@@ -98,7 +104,12 @@ class ConversationSession(
                             .joinToString(separator = "") { it.text }
                     )
                 }
-            sb.toString().trim().takeIf { it.isNotBlank() }
+            val summary = sb.toString().trim().takeIf { it.isNotBlank() }
+            Log.i(
+                JOURNEY_TAG,
+                "JOURNEY: compaction summary received (${summary?.length ?: 0} chars): \"${summary ?: ""}\""
+            )
+            summary
         } catch (throwable: Throwable) {
             Log.w(TAG, "Compaction summarization failed: ${throwable.message}")
             null
@@ -107,6 +118,11 @@ class ConversationSession(
 
     companion object {
         private const val TAG = "ConversationSession"
+
+        // Same tag as ChatViewModel/WebSearchToolSet so one logcat filter
+        // (adb logcat -s TinyModelsJourney) shows the entire turn.
+        private const val JOURNEY_TAG = "TinyModelsJourney"
+
         private const val HIGH_WATER_RATIO = 0.8
         private const val CHARS_PER_TOKEN = 4
 
@@ -174,6 +190,31 @@ class ConversationSession(
                     temperature = sampler.temperature
                 )
             )
+            // JOURNEY logging: the exact payload handed to the engine — system
+            // prompt, tools, history, sampler — so one logcat filter shows
+            // everything the model is given (incl. whether tools are sent).
+            val toolNames = tools.joinToString { it.javaClass.simpleName }
+            val priorSummaryLabel = priorSummary?.let { "${it.length} chars" } ?: "none"
+            Log.i(
+                JOURNEY_TAG,
+                "JOURNEY: conversation handed to engine — " +
+                    "systemPrompt=\"${effectiveSystemInstruction ?: "<none>"}\", " +
+                    "tools=${tools.size}[$toolNames], " +
+                    "automaticToolCalling=${tools.isNotEmpty()}, " +
+                    "history=${trimmed.size}/${history.size} turns, " +
+                    "priorSummary=$priorSummaryLabel, " +
+                    "sampler(temp=${sampler.temperature}, topK=${sampler.topK}, topP=${sampler.topP}), " +
+                    "maxContextTokens=$maxContextTokens"
+            )
+            trimmed.forEachIndexed { index, turn ->
+                val preview = if (turn.text.length > 200) turn.text.take(200) + "…" else turn.text
+                Log.i(
+                    JOURNEY_TAG,
+                    "JOURNEY: history[$index] " +
+                        "${if (turn.role == ChatTurn.Role.USER) "USER" else "ASSISTANT"} " +
+                        "(${turn.text.length} chars): \"$preview\""
+                )
+            }
             val conversation = engine.createConversation(config)
             val session = ConversationSession(conversation, maxContextTokens)
             session.estimatedTokensInContext = trimmed.sumOf { estimateTokens(it.text) }

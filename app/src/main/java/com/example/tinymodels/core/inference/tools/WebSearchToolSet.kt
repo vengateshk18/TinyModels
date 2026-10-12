@@ -15,17 +15,24 @@ import javax.inject.Singleton
  * whenever the model emits a matching tool call, and feeds the returned text
  * back into the generation loop.
  *
- * The method returns compact plain text (title — snippet (url)) so a small
- * on-device model gets useful context without HTML noise, and degrades
- * gracefully on failure ("Search unavailable…") so the model can answer from
- * its own knowledge instead of crashing the turn.
+ * Backed by the keyless HTML fallback chain (DDG Lite → DDG HTML → Bing),
+ * so it answers live queries (news, prices, scores, weather, releases) —
+ * not just encyclopedia entities. Returns compact plain text plus the top
+ * page's excerpt, and degrades gracefully ("Search unavailable…",
+ * "blocked…", "no results…") so the model answers from its own knowledge
+ * instead of crashing the turn.
  */
 @Singleton
 class WebSearchToolSet @Inject constructor(
     private val webSearchRepository: WebSearchRepository
 ) : ToolSet {
 
-    @Tool("Search the web for current or factual information the assistant does not know. Input: a short search query. Returns a numbered list of results with title, snippet and URL.")
+    @Tool(
+        "Search the web for current or factual information the assistant does not know — " +
+            "news, prices, scores, weather, releases, people, places, concepts. " +
+            "Input: a short search query. Returns a numbered list of results with title, snippet " +
+            "and URL, plus an excerpt from the top page."
+    )
     fun webSearch(query: String): String {
         val startedAt = System.currentTimeMillis()
         Log.i(TAG, "Model called web_search: query=\"$query\"")
@@ -36,25 +43,41 @@ class WebSearchToolSet @Inject constructor(
         return try {
             // The repository switches to IO internally; the tool itself may
             // be invoked on the runtime's executor thread.
-            val results = kotlinx.coroutines.runBlocking {
+            val search = kotlinx.coroutines.runBlocking {
                 webSearchRepository.search(query.trim(), maxResults = 5)
             }
             val elapsedMs = System.currentTimeMillis() - startedAt
+            val results = search.results
             if (results.isEmpty()) {
-                Log.w(TAG, "web_search returned 0 results for \"$query\" in ${elapsedMs}ms")
-                "No results found for \"$query\". Answer from your own knowledge and say you could not verify with a web search."
+                if (search.blocked) {
+                    Log.w(TAG, "web_search blocked for \"$query\" in ${elapsedMs}ms")
+                    "Web search was blocked by the search engines for \"$query\". Answer from your own knowledge and say the live search was blocked."
+                } else {
+                    Log.w(TAG, "web_search returned 0 results for \"$query\" in ${elapsedMs}ms")
+                    "No results found for \"$query\". Answer from your own knowledge and say you could not verify with a web search."
+                }
             } else {
                 Log.i(
                     TAG,
                     "web_search returned ${results.size} results for \"$query\" in ${elapsedMs}ms: " +
                         results.joinToString(" | ") { it.url }
                 )
-                buildString {
-                    appendLine("Web search results for \"$query\":")
+                val toolText = buildString {
+                    appendLine("Web search results for \"${search.query}\":")
                     results.forEachIndexed { index, result ->
                         appendLine(result.toToolText(index + 1))
                     }
+                    if (search.leadText.isNotEmpty()) {
+                        appendLine()
+                        appendLine("Excerpt from ${results.first().displayHost}:")
+                        appendLine(search.leadText.take(800))
+                    }
                 }
+                // The exact tool payload the runtime feeds back into the
+                // generation loop — logged so the journey filter shows what
+                // the model actually receives from the tool.
+                Log.i(TAG, "JOURNEY: web_search tool result fed back to model (${toolText.length} chars):\n$toolText")
+                toolText
             }
         } catch (e: WebSearchException) {
             Log.e(TAG, "web_search failed for \"$query\": ${e.message}", e)

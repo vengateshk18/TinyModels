@@ -17,8 +17,17 @@ interface ChatRepository {
 
     suspend fun getChat(chatId: String): Chat?
 
-    /** Creates a chat and returns its id. */
-    suspend fun createChat(modelId: String, title: String, defaultBackend: BackendPreference = BackendPreference.AUTO): Chat
+    /**
+     * Creates a chat and returns its id. [webSearchEnabled] carries the
+     * pre-first-message UI toggle into the row — the per-chat flag the
+     * web_search tool registration is gated on.
+     */
+    suspend fun createChat(
+        modelId: String,
+        title: String,
+        defaultBackend: BackendPreference = BackendPreference.AUTO,
+        webSearchEnabled: Boolean = false
+    ): Chat
 
     suspend fun renameChat(chatId: String, title: String)
 
