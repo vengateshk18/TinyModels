@@ -1295,6 +1295,15 @@ class ChatViewModel @Inject constructor(
      */
     private fun friendlyGenerationError(throwable: Throwable): String {
         val raw = throwable.message ?: return "Generation failed"
+        // Photo sent to a text-only model (or vision init skipped): the
+        // native side reports a null vision executor / unavailable image input.
+        if (raw.contains("vision executor", ignoreCase = true) ||
+            raw.contains("TryLoadingVisionExecutor") ||
+            raw.contains("image input", ignoreCase = true)
+        ) {
+            return "This model can't read photos. Load a vision-capable model " +
+                "(e.g. Gemma 3) to analyze images."
+        }
         return if (raw.contains("Status code 13") || raw.contains("large input", ignoreCase = true)) {
             "Prompt or chat history is too long for this model's context window. " +
                 "Start a new chat or reduce max context tokens in session settings."

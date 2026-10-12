@@ -119,6 +119,32 @@ Legend: `hash:` is the short commit hash (`git log --oneline`).
 
 ---
 
+## Commit 11 — `fix(inference): load the vision executor so photos work`
+
+- hash: PENDING
+- What (`core/inference/ModelManager.kt`, `feature/chat/ChatViewModel.kt`):
+  - Root cause of "Vision executor should not be null… Status code 3": we
+    built `EngineConfig` with only `backend`, leaving `visionBackend` and
+    `maxNumImages` null — so native never created the vision executor and
+    every image part failed. `initializeEngine` now passes
+    `visionBackend = <tried backend>` and `maxNumImages = MAX_IMAGES (4)`,
+    so the existing GPU→CPU fallback loop covers vision init too, and photo
+    history (not just one message) fits the preallocated image slots.
+  - `friendlyGenerationError` maps executor/image-input failures to "This
+    model can't read photos. Load a vision-capable model (e.g. Gemma 3)…"
+    instead of the raw Status-3 text — text-only models degrade gracefully.
+  - Load log now records `visionImages=4` for logcat diagnosis.
+- Why: photo chat was 100% broken — every send with an image errored.
+- Architecture: inference-layer only; no schema, no UI, no API change.
+- Theme/font: n/a (no UI).
+- Verified: `:app:compileDebugKotlin` + `:app:testDebugUnitTest` green.
+  Needs a device pass: (1) photo send on a vision model answers with image
+  content, (2) photo send on a text-only model shows the friendly message,
+  (3) reload works after the update (engine is rebuilt on next load, so no
+  migration needed for already-loaded sessions).
+
+---
+
 ## Commit 5 — `fix(chat): compaction actually frees context (5 bugs)`
 
 - hash: d37ade0

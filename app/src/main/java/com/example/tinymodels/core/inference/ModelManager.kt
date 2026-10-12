@@ -51,6 +51,13 @@ class ModelManager @Inject constructor(
     companion object {
         private const val TAG = "ModelManager"
         const val DEFAULT_MAX_TOKENS = 2048
+
+        /**
+         * Images the live engine accepts. Covers several photo turns in one
+         * history; each photo also costs [ConversationSession.IMAGE_TOKEN_COST]
+         * context tokens, so the trim logic keeps this bounded.
+         */
+        const val MAX_IMAGES = 4
     }
 
     /** High-level lifecycle of the loaded model, surfaced to the UI. */
@@ -146,7 +153,7 @@ class ModelManager @Inject constructor(
                     val loaded = LoadedModel(modelId, preference, maxNumTokens)
                     _engineState.value = EngineState.Ready(loaded)
                     onProgress?.invoke(1.0f, ModelLoadStage.READY)
-                    Log.i(TAG, "Loaded $modelId on $preference (maxTokens=$maxNumTokens)")
+                    Log.i(TAG, "Loaded $modelId on $preference (maxTokens=$maxNumTokens, visionImages=$MAX_IMAGES)")
                     return AppResult.Success(loaded)
                 }
                 is AppResult.Error -> {
@@ -170,12 +177,19 @@ class ModelManager @Inject constructor(
         cacheDir: File
     ): AppResult<Engine> = withContext(dispatchers.io) {
         try {
+            // Vision backend + image slots are REQUIRED for photo messages:
+            // without them the native vision executor stays null and any
+            // image part fails with "Vision executor should not be null…
+            // TryLoadingVisionExecutor() first. Status code 3". The vision
+            // backend follows the tried backend so GPU→CPU fallback covers it.
             val engine = Engine(
                 EngineConfig(
                     modelPath = modelFile.absolutePath,
                     backend = backend,
-                    cacheDir = cacheDir.absolutePath,
-                    maxNumTokens = maxNumTokens
+                    visionBackend = backend,
+                    maxNumTokens = maxNumTokens,
+                    maxNumImages = MAX_IMAGES,
+                    cacheDir = cacheDir.absolutePath
                 )
             )
             engine.initialize()
