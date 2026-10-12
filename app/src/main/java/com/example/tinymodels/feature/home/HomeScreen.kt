@@ -560,10 +560,36 @@ private fun DashboardHome(
             StatTile("${state.usage.totalTokens}", "tokens", Modifier.weight(1f))
             StatTile("${state.usage.modelsTried}", "models tried", Modifier.weight(1f))
         }
+        Spacer(modifier = Modifier.height(12.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            StatTile("${state.usage.totalMessages}", "messages", Modifier.weight(1f))
+            StatTile("${state.usage.chatsThisWeek}", "chats this week", Modifier.weight(1f))
+            StatTile("${state.usage.compactionsRun}", "compactions", Modifier.weight(1f))
+        }
         state.tokensPerSecond?.let { tps ->
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 "Last session: ~${"%.1f".format(tps)} tok/s",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        state.usage.favoriteModel?.let { favorite ->
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                "Most chatted: $favorite",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        if (state.usage.webSearchChats > 0) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                "Web search on in ${state.usage.webSearchChats} chat" +
+                    (if (state.usage.webSearchChats == 1) "" else "s"),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

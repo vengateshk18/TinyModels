@@ -210,3 +210,23 @@ Legend: `hash:` is the short commit hash (`git log --oneline`).
 - Verified: `:app:compileDebugKotlin` green. Notification tap path and live
   section need a device pass (no Robolectric in this repo); the receiver,
   worker-cancel, and tag-mapping logic follow the traced code paths.
+
+---
+
+## Commit 8 — `feat(home): richer dashboard metrics (no schema change)`
+
+- hash: PENDING
+- What (`ChatDao`, `ChatRepository` + impl, `HomeUi.UsageStats`,
+  `HomeViewModel`, `HomeScreen`):
+  - 5 new DAO queries over existing columns: `totalMessages`,
+    `chatsSince` (7-day window), `favoriteModelId` (most-chatted model),
+    `totalCompactions` (SUM of the stored `compactionCount`), `webSearchChats`.
+  - Dashboard gains a second tile row (messages / chats this week /
+    compactions) plus "Most chatted" and "Web search on in N chats" lines.
+- Why: the dashboard showed 3 lifetime counters; activity, favorites, and
+  feature-adoption now make it feel alive — computed from already-stored
+  data, zero migration risk.
+- Architecture: data (DAO) → domain (repository seam) → feature (VM assembles,
+  screen renders). Single `ChatRepository` implementation, no fakes to update.
+- Theme/font: existing `StatTile`/`InfoRow` components and typography only.
+- Verified: `:app:compileDebugKotlin` green (full suite at finalization).

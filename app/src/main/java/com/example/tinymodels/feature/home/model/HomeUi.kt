@@ -21,7 +21,17 @@ data class RecommendedModel(
 data class UsageStats(
     val totalChats: Int = 0,
     val totalTokens: Long = 0L,
-    val modelsTried: Int = 0
+    val modelsTried: Int = 0,
+    /** Total messages across all chats. */
+    val totalMessages: Int = 0,
+    /** Chats created in the last 7 days. */
+    val chatsThisWeek: Int = 0,
+    /** Total compactions run across all chats. */
+    val compactionsRun: Int = 0,
+    /** Chats with web search enabled. */
+    val webSearchChats: Int = 0,
+    /** Most-chatted model id (short name shown), null when unknown. */
+    val favoriteModel: String? = null
 )
 
 /** Storage breakdown for the dashboard. */

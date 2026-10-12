@@ -57,6 +57,21 @@ interface ChatRepository {
 
     suspend fun messageCount(chatId: String): Int
 
+    /** Total messages across all chats. */
+    suspend fun totalMessages(): Int
+
+    /** Chats created since [sinceMs] (epoch millis). */
+    suspend fun chatsSince(sinceMs: Long): Int
+
+    /** Most-chatted model id, or null when no chats exist. */
+    suspend fun favoriteModelId(): String?
+
+    /** Total compactions run across all chats. */
+    suspend fun totalCompactions(): Int
+
+    /** Chats with web search enabled. */
+    suspend fun webSearchChats(): Int
+
     // ---- Usage stats (Home dashboard) ----
 
     /** Total number of chats ever created (excluding archived). */
