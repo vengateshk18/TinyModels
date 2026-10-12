@@ -126,6 +126,9 @@ class ConversationSession(
         private const val HIGH_WATER_RATIO = 0.8
         private const val CHARS_PER_TOKEN = 4
 
+        /** Rough per-tool cost (schema JSON the runtime injects into context). */
+        internal const val TOOL_TOKEN_OVERHEAD = 200
+
         /** Fraction of the context budget reserved for the assistant's reply. */
         private const val GENERATION_HEADROOM_RATIO = 0.25
 
@@ -217,9 +220,24 @@ class ConversationSession(
             }
             val conversation = engine.createConversation(config)
             val session = ConversationSession(conversation, maxContextTokens)
-            session.estimatedTokensInContext = trimmed.sumOf { estimateTokens(it.text) }
+            // Count everything the engine actually holds: live history PLUS
+            // the system instruction and compaction digest folded into it.
+            // Omitting those made the gauge drop further than reality after
+            // every compaction (and the next overflow arrived as Status 13).
+            // Tool schemas cost roughly ~200 tokens each — counted flat.
+            session.estimatedTokensInContext = trimmed.sumOf { estimateTokens(it.text) } +
+                (effectiveSystemInstruction?.let { estimateTokens(it) } ?: 0) +
+                tools.size * TOOL_TOKEN_OVERHEAD
             return session
         }
+
+        /**
+         * Whether a message is covered by the compaction digest and must be
+         * excluded from the live session history. Contract: messages created
+         * at or before [cutoffCreatedAt] are covered; null cutoff covers nothing.
+         */
+        fun isCoveredByDigest(createdAt: Long, cutoffCreatedAt: Long?): Boolean =
+            cutoffCreatedAt != null && createdAt <= cutoffCreatedAt
 
         /**
          * Sliding-window trim: keep the most recent turns whose combined estimated

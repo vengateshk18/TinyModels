@@ -22,7 +22,7 @@ data class ChatEntity(
     // ---- Context compaction (DB v6) ----
     /** Digest of older turns that were summarized away to fit the context window. */
     val compactedSummary: String? = null,
-    /** createdAt cutoff: messages strictly BEFORE this timestamp are covered by [compactedSummary]. */
+    /** createdAt cutoff: messages at or BEFORE this timestamp are covered by [compactedSummary]. */
     val compactedUpToCreatedAt: Long? = null,
     // ---- Context compaction (DB v7) ----
     /** How many times compaction has run for this chat (observability metric). */

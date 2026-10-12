@@ -29,7 +29,7 @@ interface ChatDao {
 
     /**
      * Persist a context-compaction digest: [summary] covers all messages
-     * created strictly before [cutoffCreatedAt]. Null summary clears the
+     * created at or before [cutoffCreatedAt]. Null summary clears the
      * compaction (used when the user edits/regenerates inside the region).
      */
     @Query(

@@ -110,3 +110,38 @@ Legend: `hash:` is the short commit hash (`git log --oneline`).
 | `72cdbaa` | ci: release APK workflow (tags + manual) with test gate |
 | `0640b75` | ci: Dependabot (weekly Gradle + Actions updates) |
 | `6527394` | feat(chat): visible copy button + copied confirmation |
+
+---
+
+## Commit 5 — `fix(chat): compaction actually frees context (5 bugs)`
+
+- hash: PENDING
+- What (`feature/chat/ChatViewModel.kt`, `core/inference/ConversationSession.kt`,
+  `ChatEntity`/`ChatDao`/`ChatRepository` docs, new `CompactionPolicyTest`):
+  1. **Auto-trigger was inverted (critical):** `(budget * (1 - 0.90))` fired at
+     10% usage — after ~1 short turn. Now `(budget * 0.90)`, matching the
+     sheet's "90%" copy.
+  2. **Cutoff resolved by content match (critical):** duplicate texts ("hi",
+     "thanks") resolved the cutoff to the wrong message and silently dropped
+     live turns. Cutoff now comes from the summarized entities' identity
+     (`olderEntities.last().createdAt`) — one query, no text matching.
+  3. **Boundary double-count (critical):** the boundary message was both
+     summarized and kept live. Contract is now explicit — covered = at or
+     before cutoff — centralized in `ConversationSession.isCoveredByDigest`
+     and used by rebuild, compact, and edit-invalidation (`<` → `<=`).
+  4. **Re-summarized prefix (high):** `compactInternal` ignored the existing
+     cutoff and re-digested old turns; now only live turns are eligible, and
+     the prior digest is folded in without duplicating covered turns.
+  5. **Under-counted gauge (high):** rebuilt sessions counted history only;
+     system instruction + digest + tool schemas were invisible, so the gauge
+     showed more freed than reality and the next overflow hit as Status 13.
+     Now counted (`TOOL_TOKEN_OVERHEAD` per tool).
+  6. **Regenerate leaked KV (high):** deleting the Room row left the reply in
+     the native session + counter; regenerate now rebuilds first.
+- Why: manual "Compact conversation" barely moved the number, and the number
+  itself lied in both directions.
+- Architecture: domain contract (`ChatRepository.saveCompaction` doc) updated
+  to match; pure rules (`isCoveredByDigest`, `trimToBudget`) unit-tested.
+- Theme/font: n/a (no UI).
+- Verified: new `CompactionPolicyTest` (coverage contract, window, trigger
+  math) green; full suite re-run at finalization.

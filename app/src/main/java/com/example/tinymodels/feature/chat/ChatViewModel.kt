@@ -509,7 +509,7 @@ class ChatViewModel @Inject constructor(
         // is carried by the digest instead (folded into the system prompt).
         val cutoff = chat?.compactedUpToCreatedAt
         val history = chatRepository.getMessages(chatId)
-            .filter { it.isComplete && (cutoff == null || it.createdAt > cutoff) }
+            .filter { it.isComplete && !ConversationSession.isCoveredByDigest(it.createdAt, cutoff) }
             .map {
                 ChatTurn(
                     role = if (it.role == ChatMessage.Role.USER) ChatTurn.Role.USER else ChatTurn.Role.ASSISTANT,
@@ -640,7 +640,9 @@ class ChatViewModel @Inject constructor(
         activeSession: ConversationSession,
         chat: com.example.tinymodels.domain.model.Chat
     ) {
-        val budget = (autoContextBudget() * (1 - COMPACTION_HEADROOM)).toInt()
+        // Trigger at 90% of the budget — NOT 10%: (1 - HEADROOM) was an
+        // inversion that compacted after ~1 short turn.
+        val budget = (autoContextBudget() * COMPACTION_HEADROOM).toInt()
         if (activeSession.estimatedTokensInContext < budget) {
             android.util.Log.i(
                 TAG,
@@ -673,21 +675,33 @@ class ChatViewModel @Inject constructor(
     ): String {
         val budget = autoContextBudget()
 
-        val cutoff = chat.compactedUpToCreatedAt
-        val allTurns = chatRepository.getMessages(chatId)
-            .filter { it.isComplete }
-            .map {
-                ChatTurn(
-                    role = if (it.role == ChatMessage.Role.USER) ChatTurn.Role.USER else ChatTurn.Role.ASSISTANT,
-                    text = it.content
-                )
+        // Only live (not yet summarized) turns are eligible. Re-summarizing
+        // the already-compacted prefix would bloat the digest and overstate
+        // the reported savings.
+        val live = chatRepository.getMessages(chatId)
+            .filter {
+                it.isComplete &&
+                    !ConversationSession.isCoveredByDigest(it.createdAt, chat.compactedUpToCreatedAt)
             }
+        val allTurns = live.map {
+            ChatTurn(
+                role = if (it.role == ChatMessage.Role.USER) ChatTurn.Role.USER else ChatTurn.Role.ASSISTANT,
+                text = it.content
+            )
+        }
         // Keep the most recent turns that fit in half the budget; summarize the rest.
         val keepBudget = budget / 2
         val kept = ConversationSession.trimToBudget(allTurns, keepBudget)
-        val older = allTurns.take(allTurns.size - kept.size)
-        if (older.isEmpty()) {
+        val olderCount = allTurns.size - kept.size
+        if (olderCount <= 0) {
             return "Nothing to compact — the conversation already fits the context window"
+        }
+        val olderEntities = live.take(olderCount)
+        val older = olderEntities.map {
+            ChatTurn(
+                role = if (it.role == ChatMessage.Role.USER) ChatTurn.Role.USER else ChatTurn.Role.ASSISTANT,
+                text = it.content
+            )
         }
 
         // Include the previous digest in the summarization input (iterative
@@ -710,9 +724,11 @@ class ChatViewModel @Inject constructor(
             }
             return "Summarization failed — history was trimmed to fit the context window"
         }
-        val newCutoff = older.lastOrNull()?.let { last ->
-            chatRepository.getMessages(chatId).lastOrNull { m -> m.content == last.text }?.createdAt
-        } ?: return "Compaction failed — could not locate the cutoff message"
+        // Cutoff by entity identity, never by content match: duplicate texts
+        // ("thanks", "hi") previously resolved the cutoff to the wrong message
+        // and silently dropped live turns from context. Contract: messages at
+        // or before the cutoff are covered by the digest (see isCoveredByDigest).
+        val newCutoff = olderEntities.last().createdAt
         chatRepository.saveCompaction(chatId, digest, newCutoff)
         _uiState.update {
             it.copy(
@@ -735,7 +751,8 @@ class ChatViewModel @Inject constructor(
         val chat = chatRepository.getChat(chatId) ?: return
         val cutoff = chat.compactedUpToCreatedAt ?: return
         val edited = chatRepository.getMessages(chatId).firstOrNull { it.id == messageId } ?: return
-        if (edited.createdAt < cutoff) {
+        // Covered = at or before the cutoff (boundary message IS summarized).
+        if (edited.createdAt <= cutoff) {
             chatRepository.saveCompaction(chatId, null, null)
             _uiState.update { it.copy(compactedSummary = null, compactionCount = 0) }
         }
@@ -1063,6 +1080,12 @@ class ChatViewModel @Inject constructor(
             _uiState.update { s ->
                 s.copy(messages = s.messages.filterNot { it.id == lastAssistant.id })
             }
+
+            // Rebuild so the deleted reply leaves the native KV cache AND the
+            // token counter — otherwise the stale reply keeps occupying context
+            // forever and the usage number only ever grows.
+            android.util.Log.i(TAG, "JOURNEY: regenerate — rebuilding session to drop stale reply")
+            rebuildSession(chatId)
 
             // Create a new streaming placeholder.
             val newAssistantId = java.util.UUID.randomUUID().toString()

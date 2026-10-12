@@ -36,7 +36,7 @@ interface ChatRepository {
 
     /**
      * Persist a context-compaction digest for a chat: [summary] covers all
-     * messages created strictly before [cutoffCreatedAt]. Pass a null summary
+     * messages created at or before [cutoffCreatedAt]. Pass a null summary
      * to clear the compaction (e.g. when the user edits a summarized turn).
      */
     suspend fun saveCompaction(chatId: String, summary: String?, cutoffCreatedAt: Long?)
