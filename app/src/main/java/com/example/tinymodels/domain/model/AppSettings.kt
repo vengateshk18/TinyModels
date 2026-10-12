@@ -32,5 +32,10 @@ data class AppSettings(
      * Global availability gate for the model's web_search tool. Each chat
      * can then opt in/out individually (per-chat column in Room).
      */
-    val webSearchEnabled: Boolean = true
+    val webSearchEnabled: Boolean = true,
+    /**
+     * When true, model downloads require an unmetered connection (Wi-Fi).
+     * A 4 GB model on mobile data is how users burn a month's quota in an hour.
+     */
+    val wifiOnlyDownloads: Boolean = false
 )

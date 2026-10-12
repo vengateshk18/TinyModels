@@ -26,6 +26,9 @@ interface SettingsRepository {
     /** Global availability gate for the model's web_search tool. */
     suspend fun setWebSearchEnabled(enabled: Boolean)
 
+    /** When true, model downloads wait for an unmetered connection (Wi-Fi). */
+    suspend fun setWifiOnlyDownloads(enabled: Boolean)
+
     /** Returns the modelId of the last successfully loaded model, or null. */
     suspend fun getLastUsedModelId(): String?
 

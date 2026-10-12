@@ -162,3 +162,51 @@ Legend: `hash:` is the short commit hash (`git log --oneline`).
 - Theme/font: unchanged tokens (`headlineSmall`, `labelMedium`,
   `onSurfaceVariant`) — same theme, just geometry.
 - Verified: `:app:compileDebugKotlin` green (full suite at finalization).
+
+---
+
+## Commit 7 — `fix(downloads): cancel that works + live downloads section`
+
+- hash: PENDING
+- What:
+  - **Notification Cancel actually fires (critical):** the cancel intent was
+    implicit (action + package) but the manifest receiver declared NO
+    `<intent-filter>`, so the system resolved zero targets and the tap died
+    silently. Added the matching `<intent-filter>` (`AndroidManifest.xml`);
+    kept the intent package-scoped + immutable (Android 12+ safe). Also gave
+    the action a real icon (`ic_menu_close_clear_cancel`) — icon id `0`
+    gets dropped by some SystemUI builds, hiding Cancel entirely.
+  - **Worker aborts promptly:** `CoroutineWorker.onStopped` is final and
+    cannot be overridden, so cancellation now rides the coroutine job: the
+    in-flight OkHttp `Call` is cancelled from an `invokeOnCompletion`
+    handler, `ensureActive()` is checked per chunk, and the resulting
+    `SocketException("Socket closed")` is converted back to
+    `CancellationException` so `doWork()` takes the cancel path (DB reset +
+    partial cleanup, no terminal post) instead of FAILED + retry.
+  - **Live "Active downloads" section:** `DownloadModelUseCase` tags every
+    job (`model:<id>`, `file:<name>`) and exposes
+    `observeActiveDownloads()` from `getWorkInfosByTagFlow` — progress,
+    bytes, speed, WAITING vs DOWNLOADING. New shared
+    `feature/models/components/ActiveDownloadsSection.kt` (progress bar,
+    bytes/%/speed line, per-row Cancel via `cancelWorkById` — the same path
+    the notification uses) is shown at the top of both the Models-tab
+    Downloaded list and `DownloadedModelsScreen`. Finished jobs vanish on
+    their own. `DownloadedModelsViewModel` exposes the flow + cancel.
+  - **KEEP re-tap fix:** `executeFile`/`execute` first return the existing
+    active job's flow — previously a re-tap observed the stillborn new
+    request id and flashed IDLE while the real download ran.
+  - **Wi-Fi-only plumbing:** new `AppSettings.wifiOnlyDownloads` (+ DataStore
+    key/setter); the use case caches the flag off-main-thread and switches
+    constraints between `CONNECTED` and `UNMETERED`. The Settings switch UI
+    lands in the settings commit.
+- Why: notification Cancel did literally nothing; in-flight downloads were
+  invisible outside the detail screen that started them.
+- Architecture: domain owns the new seam (`ActiveDownload`,
+  `observeActiveDownloads`, `cancelActive` in `DownloadModelUseCase`);
+  data/worker owns cancellation mechanics; presentation only renders the
+  flow. All new UI uses `MaterialTheme` tokens (no hardcoded colors).
+- Theme/font: theme-only tokens (`surfaceContainer`, `primary`,
+  `onSurfaceVariant`), standard typography — dynamic color safe.
+- Verified: `:app:compileDebugKotlin` green. Notification tap path and live
+  section need a device pass (no Robolectric in this repo); the receiver,
+  worker-cancel, and tag-mapping logic follow the traced code paths.
