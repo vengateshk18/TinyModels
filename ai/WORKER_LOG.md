@@ -110,12 +110,18 @@ Legend: `hash:` is the short commit hash (`git log --oneline`).
 | `72cdbaa` | ci: release APK workflow (tags + manual) with test gate |
 | `0640b75` | ci: Dependabot (weekly Gradle + Actions updates) |
 | `6527394` | feat(chat): visible copy button + copied confirmation |
+| `d37ade0` | fix(chat): compaction actually frees context (trigger, cutoff, counting) |
+| `5531f2f` | fix(chat): context gauge labels fit inside the ring |
+| `d148356` | fix(downloads): cancel that works + live downloads section |
+| `a089f72` | feat(home): richer dashboard metrics (no schema change) |
+| `e440da7` | feat(settings): Wi-Fi-only, auto-load, keep-awake, token counts |
+| `376500f` | feat(chat): attach photos for multimodal models (Gemma vision) |
 
 ---
 
 ## Commit 5 — `fix(chat): compaction actually frees context (5 bugs)`
 
-- hash: PENDING
+- hash: d37ade0
 - What (`feature/chat/ChatViewModel.kt`, `core/inference/ConversationSession.kt`,
   `ChatEntity`/`ChatDao`/`ChatRepository` docs, new `CompactionPolicyTest`):
   1. **Auto-trigger was inverted (critical):** `(budget * (1 - 0.90))` fired at
@@ -150,7 +156,7 @@ Legend: `hash:` is the short commit hash (`git log --oneline`).
 
 ## Commit 6 — `fix(chat): context gauge labels fit inside the ring`
 
-- hash: PENDING
+- hash: 5531f2f
 - What (`feature/chat/ChatRoomScreen.kt`, `ContextMetricsSheet` only):
   - Inner label padding `20.dp` → `12.dp`: the ring is 120dp with a 10dp
     stroke, so the inner diameter is ~100dp; 20dp/side left ~60dp and long
@@ -167,7 +173,7 @@ Legend: `hash:` is the short commit hash (`git log --oneline`).
 
 ## Commit 7 — `fix(downloads): cancel that works + live downloads section`
 
-- hash: PENDING
+- hash: d148356
 - What:
   - **Notification Cancel actually fires (critical):** the cancel intent was
     implicit (action + package) but the manifest receiver declared NO
@@ -215,7 +221,7 @@ Legend: `hash:` is the short commit hash (`git log --oneline`).
 
 ## Commit 8 — `feat(home): richer dashboard metrics (no schema change)`
 
-- hash: PENDING
+- hash: a089f72
 - What (`ChatDao`, `ChatRepository` + impl, `HomeUi.UsageStats`,
   `HomeViewModel`, `HomeScreen`):
   - 5 new DAO queries over existing columns: `totalMessages`,
@@ -235,7 +241,7 @@ Legend: `hash:` is the short commit hash (`git log --oneline`).
 
 ## Commit 9 — `feat(settings): Wi-Fi-only, auto-load, keep-awake, token counts`
 
-- hash: PENDING
+- hash: e440da7
 - What (domain `AppSettings` + `SettingsRepository`, data impl, `SettingsVM`,
   `SettingsScreen`, chat state/VM/screens):
   - 4 new DataStore-backed settings (all default to current behavior):
@@ -257,7 +263,7 @@ Legend: `hash:` is the short commit hash (`git log --oneline`).
 
 ## Commit 10 — `feat(chat): attach photos for multimodal models (Gemma vision)`
 
-- hash: PENDING
+- hash: 376500f
 - What:
   - Data: `messages.imagePath` column (DB v9 + `MIGRATION_8_9`, registered in
     `DatabaseModule`); domain `ChatMessage.imagePath`; repo mapping both ways.
