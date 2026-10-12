@@ -52,3 +52,21 @@ Legend: `hash:` is the short commit hash (`git log --oneline`).
 - Verified: `assembleRelease` is the documented release path in README
   (`./gradlew :app:assembleRelease`); task graph identical to CI's proven
   setup steps.
+
+---
+
+## Commit 3 — `ci: Dependabot (weekly Gradle + Actions updates)`
+
+- hash: (filled at finalization — see bottom of file)
+- What:
+  - Added `.github/dependabot.yml`: weekly PRs for the `gradle` ecosystem
+    (version catalog, AGP/Kotlin/AndroidX bumps grouped as `android-stack`,
+    max 5 open) and the `github-actions` ecosystem (keeps our new workflow
+    pins current).
+- Why: the catalog moves fast (AGP 9.x, Kotlin 2.x, Compose BOM). Automated
+  PRs + the CI gate from commit 1 mean updates arrive tested, instead of
+  rotting until something breaks.
+- Architecture: build automation only, no app code.
+- Theme/font: n/a (no UI).
+- Verified: schema matches Dependabot docs (`version: 2`, two ecosystems,
+  weekly interval); every generated PR triggers the CI workflow.
