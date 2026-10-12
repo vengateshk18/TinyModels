@@ -14,7 +14,9 @@ data class UiChatMessage(
     /** Wall-clock time when the assistant finished replying (null for user msgs / in-flight). */
     val completedAt: Long? = null,
     /** Estimated tokens for this message (null for in-flight placeholders). */
-    val tokenCount: Int? = null
+    val tokenCount: Int? = null,
+    /** Absolute path of an attached photo (user messages, multimodal models). */
+    val imagePath: String? = null
 )
 
 /** State of the model chip shown in the top bar. */
@@ -125,7 +127,7 @@ data class ChatUiState(
 sealed interface ChatEvent {
     /** Selects a model — and optionally the exact file within it — to load. */
     data class SelectModel(val modelId: String, val fileName: String? = null) : ChatEvent
-    data class SendMessage(val text: String) : ChatEvent
+    data class SendMessage(val text: String, val imageUri: String? = null) : ChatEvent
     data object CancelGeneration : ChatEvent
     data object Regenerate : ChatEvent
     data class EditMessage(val messageId: String, val newText: String) : ChatEvent

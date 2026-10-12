@@ -1,5 +1,7 @@
 package com.example.tinymodels.feature.chat.components
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -9,11 +11,14 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -27,6 +32,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.DropdownMenu
@@ -47,7 +54,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -60,6 +69,8 @@ import com.example.tinymodels.feature.chat.model.GenerationState
  *  - Multi-line text field (up to 5 lines), transparent border.
  *  - Circular [FilledIconButton] for Send (primary) / Stop (error) so the
  *    action is clearly identifiable.
+ *  - Photo attach button + thumbnail preview for multimodal models (Gemma):
+ *    the photo travels with the message via [onSend]'s Uri parameter.
  *  - Send/Stop cross-fade via AnimatedContent.
  *  - Keyboard "Send" action triggers [onSend].
  *  - IME insets are handled by the parent (ChatRoomScreen Scaffold).
@@ -68,7 +79,7 @@ import com.example.tinymodels.feature.chat.model.GenerationState
 fun ChatInputBar(
     generation: GenerationState,
     canSend: Boolean,
-    onSend: (String) -> Unit,
+    onSend: (String, android.net.Uri?) -> Unit,
     onStop: () -> Unit,
     modifier: Modifier = Modifier,
     /** Global availability gate for the web_search tool (Settings switch). */
@@ -80,15 +91,20 @@ fun ChatInputBar(
 ) {
     var text by remember { mutableStateOf("") }
     var menuExpanded by remember { mutableStateOf(false) }
+    var pickedImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
     val isGenerating = generation == GenerationState.GENERATING
     val keyboard = LocalSoftwareKeyboardController.current
-    val sendEnabled = canSend && text.isNotBlank() && !isGenerating
+    val sendEnabled = canSend && (text.isNotBlank() || pickedImageUri != null) && !isGenerating
+    val pickPhoto = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri -> pickedImageUri = uri }
 
     fun doSend() {
         val trimmed = text.trim()
-        if (trimmed.isNotEmpty() && !isGenerating) {
-            onSend(trimmed)
+        if ((trimmed.isNotEmpty() || pickedImageUri != null) && !isGenerating) {
+            onSend(trimmed, pickedImageUri)
             text = ""
+            pickedImageUri = null
             keyboard?.hide()
         }
     }
@@ -96,12 +112,20 @@ fun ChatInputBar(
     // NOTE: no navigationBarsPadding/imePadding here — the parent Scaffold's
     // contentWindowInsets already include system bars + IME, so adding them
     // again would double-pad and push this bar over the app bar.
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.Bottom
-    ) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        // Picked-photo preview with a remove button.
+        pickedImageUri?.let { uri ->
+            PhotoPreviewRow(
+                uri = uri,
+                onRemove = { pickedImageUri = null }
+            )
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.Bottom
+        ) {
         // "+" menu — per-chat tool toggles (web search for now).
         Box {
             IconButton(
@@ -139,6 +163,20 @@ fun ChatInputBar(
                     }
                 )
             }
+        }
+        // Photo attach — feeds multimodal models (Gemma). Disabled while
+        // generating so the preview can't change mid-send.
+        IconButton(
+            onClick = { pickPhoto.launch("image/*") },
+            enabled = canSend && !isGenerating,
+            modifier = Modifier.padding(bottom = 4.dp)
+        ) {
+            Icon(
+                Icons.Filled.Image,
+                contentDescription = "Attach photo",
+                tint = if (pickedImageUri != null) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
         Spacer(modifier = Modifier.width(8.dp))
         OutlinedTextField(
@@ -203,6 +241,68 @@ fun ChatInputBar(
                     Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send")
                 }
             }
+        }
+        }
+    }
+}
+
+/**
+ * Thumbnail of the picked photo above the input row, with a remove button.
+ * Decoded downsampled from the content URI so the preview stays light.
+ */
+@Composable
+private fun PhotoPreviewRow(
+    uri: android.net.Uri,
+    onRemove: () -> Unit
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val bitmap = remember(uri) {
+        try {
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                val bytes = input.readBytes()
+                val bounds = android.graphics.BitmapFactory.Options()
+                    .apply { inJustDecodeBounds = true }
+                android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+                var sample = 1
+                while (maxOf(bounds.outWidth, bounds.outHeight) / sample > 256) sample *= 2
+                android.graphics.BitmapFactory.decodeByteArray(
+                    bytes, 0, bytes.size,
+                    android.graphics.BitmapFactory.Options().apply { inSampleSize = sample }
+                )
+            }
+        } catch (_: Throwable) {
+            null
+        }
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (bitmap != null) {
+            Image(
+                bitmap = bitmap.asImageBitmap(),
+                contentDescription = "Photo to send",
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+            )
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            "Photo attached",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f)
+        )
+        IconButton(onClick = onRemove, modifier = Modifier.size(32.dp)) {
+            Icon(
+                Icons.Filled.Close,
+                contentDescription = "Remove photo",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

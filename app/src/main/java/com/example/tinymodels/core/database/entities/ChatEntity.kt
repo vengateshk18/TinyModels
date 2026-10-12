@@ -45,5 +45,7 @@ data class MessageEntity(
     val createdAt: Long,
     val isComplete: Boolean = true,
     /** Wall-clock time when generation finished (assistant messages only). */
-    val completedAt: Long? = null
+    val completedAt: Long? = null,
+    /** Absolute path of an attached photo (user messages only, DB v9). Null when text-only. */
+    val imagePath: String? = null
 )

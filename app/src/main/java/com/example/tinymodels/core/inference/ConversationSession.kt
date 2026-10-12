@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 /** A prior turn, used to restore a conversation's context after reopen. */
-data class ChatTurn(val role: Role, val text: String) {
+data class ChatTurn(val role: Role, val text: String, val imagePaths: List<String> = emptyList()) {
     enum class Role { USER, ASSISTANT }
 }
 
@@ -45,19 +45,30 @@ class ConversationSession(
         get() = estimatedTokensInContext >= (maxContextTokens * HIGH_WATER_RATIO)
 
     /**
-     * Send [text] and stream the assistant's reply as CUMULATIVE text.
+     * Send [text] (with optional attached photo paths) and stream the
+     * assistant's reply as CUMULATIVE text.
      *
      * LiteRT-LM's `sendMessageAsync` emits **delta chunks** (only the new tokens),
      * NOT cumulative text. This method accumulates them internally and emits the
      * full cumulative text on each emission so the caller can simply replace its
      * display buffer.
+     *
+     * Photos ride as [Content.ImageFile] parts in the same user message
+     * (multimodal models like Gemma 3). Text-only turns keep the exact
+     * previous String path — zero behavior change when no photo is attached.
      */
-    fun send(text: String): Flow<String> {
-        Log.i(JOURNEY_TAG, "JOURNEY: prompt sent to model (${text.length} chars, ~${estimateTokens(text)} tokens): \"$text\"")
-        estimatedTokensInContext += estimateTokens(text)
+    fun send(text: String, imagePaths: List<String> = emptyList()): Flow<String> {
+        Log.i(JOURNEY_TAG, "JOURNEY: prompt sent to model (${text.length} chars, ~${estimateTokens(text)} tokens, ${imagePaths.size} image(s)): \"$text\"")
+        estimatedTokensInContext += estimateTokens(text) + imagePaths.size * IMAGE_TOKEN_COST
         lastStreamedLength = 0
         val accumulated = StringBuilder()
-        return conversation.sendMessageAsync(text).map { message ->
+        val outgoing = if (imagePaths.isEmpty()) {
+            conversation.sendMessageAsync(text)
+        } else {
+            val parts = imagePaths.map { Content.ImageFile(it) } + Content.Text(text)
+            conversation.sendMessageAsync(Message.user(Contents.of(parts)))
+        }
+        return outgoing.map { message ->
             val delta = message.contents.contents
                 .filterIsInstance<Content.Text>()
                 .joinToString(separator = "") { it.text }
@@ -87,7 +98,8 @@ class ConversationSession(
     suspend fun summarizeOlderTurns(older: List<ChatTurn>): String? {
         if (older.isEmpty()) return null
         val transcript = older.joinToString("\n") {
-            (if (it.role == ChatTurn.Role.USER) "User: " else "Assistant: ") + it.text
+            val photo = if (it.imagePaths.isNotEmpty()) " [photo attached]" else ""
+            (if (it.role == ChatTurn.Role.USER) "User: " else "Assistant: ") + it.text + photo
         }
         Log.i(
             JOURNEY_TAG,
@@ -129,6 +141,13 @@ class ConversationSession(
         /** Rough per-tool cost (schema JSON the runtime injects into context). */
         internal const val TOOL_TOKEN_OVERHEAD = 200
 
+        /**
+         * Conservative per-photo cost. Vision encoders turn one image into
+         * hundreds of tokens; over-counting slightly is safer than a
+         * Status-13 overflow because the estimate was short.
+         */
+        const val IMAGE_TOKEN_COST = 1024
+
         /** Fraction of the context budget reserved for the assistant's reply. */
         private const val GENERATION_HEADROOM_RATIO = 0.25
 
@@ -166,7 +185,7 @@ class ConversationSession(
             val trimmed = trimToBudget(history, (maxContextTokens * (1 - GENERATION_HEADROOM_RATIO)).toInt())
             val initialMessages = trimmed.map { turn ->
                 when (turn.role) {
-                    ChatTurn.Role.USER -> Message.user(turn.text)
+                    ChatTurn.Role.USER -> turn.toUserMessage()
                     ChatTurn.Role.ASSISTANT -> Message.model(turn.text)
                 }
             }
@@ -225,7 +244,10 @@ class ConversationSession(
             // Omitting those made the gauge drop further than reality after
             // every compaction (and the next overflow arrived as Status 13).
             // Tool schemas cost roughly ~200 tokens each — counted flat.
-            session.estimatedTokensInContext = trimmed.sumOf { estimateTokens(it.text) } +
+            // Photos cost IMAGE_TOKEN_COST each (vision encoder output).
+            session.estimatedTokensInContext = trimmed.sumOf {
+                estimateTokens(it.text) + it.imagePaths.size * IMAGE_TOKEN_COST
+            } +
                 (effectiveSystemInstruction?.let { estimateTokens(it) } ?: 0) +
                 tools.size * TOOL_TOKEN_OVERHEAD
             return session
@@ -248,12 +270,21 @@ class ConversationSession(
             var tokens = 0
             val kept = mutableListOf<ChatTurn>()
             for (turn in history.asReversed()) {
-                val turnTokens = estimateTokens(turn.text)
+                val turnTokens = estimateTokens(turn.text) + turn.imagePaths.size * IMAGE_TOKEN_COST
                 if (tokens + turnTokens > budget && kept.isNotEmpty()) break
                 tokens += turnTokens
                 kept.add(0, turn)
             }
             return kept
         }
+
+        /** A user turn as a runtime message, with photos as image parts. */
+        internal fun ChatTurn.toUserMessage(): Message =
+            if (imagePaths.isEmpty()) {
+                Message.user(text)
+            } else {
+                val parts = imagePaths.map { Content.ImageFile(it) } + Content.Text(text)
+                Message.user(Contents.of(parts))
+            }
     }
 }

@@ -66,6 +66,7 @@ class ChatViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val webSearchToolSet: WebSearchToolSet,
     private val webSearchRepository: WebSearchRepository,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val appContext: android.content.Context,
     private val dispatchers: DispatcherProvider
 ) : ViewModel() {
 
@@ -174,7 +175,7 @@ class ChatViewModel @Inject constructor(
     fun onEvent(event: ChatEvent) {
         when (event) {
             is ChatEvent.SelectModel -> selectModel(event.modelId, event.fileName)
-            is ChatEvent.SendMessage -> sendMessage(event.text)
+            is ChatEvent.SendMessage -> sendMessage(event.text, event.imageUri)
             ChatEvent.CancelGeneration -> cancelGeneration()
             ChatEvent.Regenerate -> regenerate()
             is ChatEvent.EditMessage -> editMessage(event.messageId, event.newText)
@@ -524,7 +525,8 @@ class ChatViewModel @Inject constructor(
             .map {
                 ChatTurn(
                     role = if (it.role == ChatMessage.Role.USER) ChatTurn.Role.USER else ChatTurn.Role.ASSISTANT,
-                    text = it.content
+                    text = it.content,
+                    imagePaths = listOfNotNull(it.imagePath)
                 )
             }
         // Tools: register the web_search tool only when the global setting
@@ -697,7 +699,8 @@ class ChatViewModel @Inject constructor(
         val allTurns = live.map {
             ChatTurn(
                 role = if (it.role == ChatMessage.Role.USER) ChatTurn.Role.USER else ChatTurn.Role.ASSISTANT,
-                text = it.content
+                text = it.content,
+                imagePaths = listOfNotNull(it.imagePath)
             )
         }
         // Keep the most recent turns that fit in half the budget; summarize the rest.
@@ -711,7 +714,8 @@ class ChatViewModel @Inject constructor(
         val older = olderEntities.map {
             ChatTurn(
                 role = if (it.role == ChatMessage.Role.USER) ChatTurn.Role.USER else ChatTurn.Role.ASSISTANT,
-                text = it.content
+                text = it.content,
+                imagePaths = listOfNotNull(it.imagePath)
             )
         }
 
@@ -796,9 +800,9 @@ class ChatViewModel @Inject constructor(
 
     // ---- Sending / generation ----
 
-    private fun sendMessage(rawText: String) {
+    private fun sendMessage(rawText: String, imageUri: String?) {
         val text = rawText.trim()
-        if (text.isEmpty()) return
+        if (text.isEmpty() && imageUri == null) return
         val state = _uiState.value
         if (state.generation == GenerationState.GENERATING) return
         if (state.model !is ModelChipState.Ready) {
@@ -806,7 +810,7 @@ class ChatViewModel @Inject constructor(
             return
         }
         var chatId = state.activeChatId
-        android.util.Log.i(TAG, "JOURNEY: user sent prompt (${text.length} chars): \"$text\"")
+        android.util.Log.i(TAG, "JOURNEY: user sent prompt (${text.length} chars, image=${imageUri != null}): \"$text\"")
         viewModelScope.launch(Dispatchers.Default) {
             if (chatId == null) {
                 val modelId = activeModel?.modelId ?: modelManager.loadedModelId ?: return@launch
@@ -835,7 +839,19 @@ class ChatViewModel @Inject constructor(
                     "contextUsage=${state.contextUsage.usedTokens}/${state.contextUsage.maxTokens}"
             )
 
-            // Persist the user message.
+            // Persist the user message (photo is copied into app storage first
+            // so the content-URI permission doesn't expire out from under us).
+            val savedImagePath = imageUri?.let { copyPickedImage(activeChatId, it) }
+            if (imageUri != null && savedImagePath == null) {
+                _uiState.update {
+                    it.copy(
+                        generation = GenerationState.IDLE,
+                        streamingMessageId = null,
+                        error = ChatError("Couldn't read that photo — try another image")
+                    )
+                }
+                return@launch
+            }
             val userMessage = ChatMessage(
                 id = UUID.randomUUID().toString(),
                 chatId = activeChatId,
@@ -843,7 +859,8 @@ class ChatViewModel @Inject constructor(
                 content = text,
                 tokenCount = ConversationSession.estimateTokens(text),
                 createdAt = System.currentTimeMillis(),
-                isComplete = true
+                isComplete = true,
+                imagePath = savedImagePath
             )
             chatRepository.saveMessage(userMessage)
 
@@ -883,9 +900,47 @@ class ChatViewModel @Inject constructor(
 
             android.util.Log.i(TAG, "JOURNEY: starting generation (assistantId=$assistantId)")
             val prompt = maybeAugmentWithSearch(activeChatId, text)
-            runGeneration(activeChatId, assistantId, prompt)
+                .ifBlank { "What do you see in this image?" }
+            runGeneration(activeChatId, assistantId, prompt, listOfNotNull(savedImagePath))
         }
     }
+
+    /**
+     * Copies a picked photo (content URI) into app-private storage, downscaled
+     * so a 12 MP camera shot doesn't blow the vision encoder's budget.
+     * Returns the absolute file path, or null when the image is unreadable.
+     */
+    private suspend fun copyPickedImage(chatId: String, uriString: String): String? =
+        withContext(Dispatchers.IO) {
+            try {
+                val uri = android.net.Uri.parse(uriString)
+                val dir = java.io.File(appContext.filesDir, "chat_images").apply { mkdirs() }
+                val target = java.io.File(dir, "${chatId}_${java.util.UUID.randomUUID()}.jpg")
+                appContext.contentResolver.openInputStream(uri)?.use { input ->
+                    // Downscale to ≤1568px on the long edge before saving.
+                    val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                    val bytes = input.readBytes()
+                    android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+                    var sample = 1
+                    val longest = maxOf(bounds.outWidth, bounds.outHeight)
+                    while (longest / sample > 1568) sample *= 2
+                    val opts = android.graphics.BitmapFactory.Options().apply { inSampleSize = sample }
+                    val bitmap = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
+                        ?: return@withContext null
+                    target.outputStream().use { out ->
+                        if (!bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out)) {
+                            return@withContext null
+                        }
+                    }
+                    if (!bitmap.isRecycled) bitmap.recycle()
+                } ?: return@withContext null
+                android.util.Log.i(TAG, "JOURNEY: photo saved for vision (${target.length()} bytes): ${target.absolutePath}")
+                target.absolutePath
+            } catch (t: Throwable) {
+                android.util.Log.w(TAG, "Photo copy failed: ${t.message}")
+                null
+            }
+        }
 
     /**
      * App-side auto-search (primary trigger). Tiny on-device models often skip
@@ -950,7 +1005,12 @@ class ChatViewModel @Inject constructor(
         return text
     }
 
-    private fun runGeneration(chatId: String, assistantId: String, prompt: String) {
+    private fun runGeneration(
+        chatId: String,
+        assistantId: String,
+        prompt: String,
+        imagePaths: List<String> = emptyList()
+    ) {
         val activeSession = session
         if (activeSession == null) {
             _uiState.update {
@@ -966,7 +1026,7 @@ class ChatViewModel @Inject constructor(
             // Hold the native mutex for the whole generation so a concurrent
             // compaction summarization can never touch the same conversation.
             nativeMutex.withLock {
-                activeSession.send(prompt)
+                activeSession.send(prompt, imagePaths)
                 .catch { throwable ->
                     // Re-throw cancellation so the cancel handler (cancelGeneration)
                     // owns the cleanup path instead of surfacing a spurious error.
@@ -1224,7 +1284,8 @@ class ChatViewModel @Inject constructor(
         isStreaming = !isComplete,
         timestamp = createdAt,
         completedAt = completedAt,
-        tokenCount = tokenCount.takeIf { isComplete }
+        tokenCount = tokenCount.takeIf { isComplete },
+        imagePath = imagePath
     )
 
     /**

@@ -200,7 +200,7 @@ fun ChatRoomScreen(
             ChatInputBar(
                 generation = uiState.generation,
                 canSend = uiState.canSend,
-                onSend = { viewModel.onEvent(ChatEvent.SendMessage(it)) },
+                onSend = { text, uri -> viewModel.onEvent(ChatEvent.SendMessage(text, uri?.toString())) },
                 onStop = { viewModel.onEvent(ChatEvent.CancelGeneration) },
                 webSearchAvailable = uiState.webSearchAvailable,
                 webSearchEnabled = uiState.webSearchEnabled,

@@ -190,7 +190,8 @@ class ChatRepositoryImpl @Inject constructor(
         tokenCount = tokenCount,
         createdAt = createdAt,
         isComplete = isComplete,
-        completedAt = completedAt
+        completedAt = completedAt,
+        imagePath = imagePath
     )
 
     private fun ChatMessage.toEntity() = MessageEntity(
@@ -201,6 +202,7 @@ class ChatRepositoryImpl @Inject constructor(
         tokenCount = tokenCount,
         createdAt = createdAt,
         isComplete = isComplete,
-        completedAt = completedAt
+        completedAt = completedAt,
+        imagePath = imagePath
     )
 }

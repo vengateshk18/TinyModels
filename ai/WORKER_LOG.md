@@ -252,3 +252,35 @@ Legend: `hash:` is the short commit hash (`git log --oneline`).
   overrides remain Room columns — the repo's own documented split.
 - Theme/font: existing `SwitchRow`/typography/colors only.
 - Verified: `:app:compileDebugKotlin` green (full suite at finalization).
+
+---
+
+## Commit 10 — `feat(chat): attach photos for multimodal models (Gemma vision)`
+
+- hash: PENDING
+- What:
+  - Data: `messages.imagePath` column (DB v9 + `MIGRATION_8_9`, registered in
+    `DatabaseModule`); domain `ChatMessage.imagePath`; repo mapping both ways.
+  - Inference: `ChatTurn.imagePaths`; `send(text, imagePaths)` builds
+    `Message.user(Contents.of(ImageFile…, Text…))` (verified against the
+    0.17.1 AAR: `Content.ImageFile`, `Message.user(Contents)`,
+    `sendMessageAsync(Message)` all exist); text-only turns keep the exact
+    old String path. `IMAGE_TOKEN_COST` (1024, conservative) counted in
+    `send`, `create`, and `trimToBudget`; digests note "[photo attached]".
+  - VM: `SendMessage(text, imageUri)`; picked content URIs are copied into
+    `filesDir/chat_images` downscaled to ≤1568px (permission-safe +
+    vision-budget-safe); unreadable photo aborts with a friendly error;
+    blank-text + photo defaults the prompt to "What do you see in this
+    image?"; history restore/regenerate/compaction all carry image paths.
+  - UI: `ChatInputBar` attach button (GetContent image/*) + 64dp preview with
+    remove; `MessageBubble` shows the rounded photo above the text;
+    `ChatImage.kt` holds the downsampled-decode helpers (1024px bubbles,
+    256px preview — no new image-loading dependency).
+- Why: vision-capable on-device models couldn't receive images at all.
+- Architecture: entity → domain → session → VM → components, following the
+  existing message pipeline; no new dependencies, no new permissions
+  (GetContent needs none).
+- Theme/font: theme tokens only; standard shapes/typography.
+- Verified: new `VisionMessageTest` (String path preserved, image parts
+  order/path, trim accounting) green; `:app:compileDebugKotlin` green.
+  On-device pass needed for end-to-end vision quality per model.

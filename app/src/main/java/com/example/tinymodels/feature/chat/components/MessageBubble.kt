@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -97,12 +98,20 @@ fun MessageBubble(
                 )
             ) {
                 Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                    message.imagePath?.let { path ->
+                        AttachedPhoto(path = path)
+                        if (message.text.isNotBlank()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
                     if (isUser) {
-                        Text(
-                            text = message.text,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        if (message.text.isNotBlank()) {
+                            Text(
+                                text = message.text,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
                     } else if (message.text.isBlank() && message.isStreaming) {
                         // Awaiting the first token — blinking caret.
                         StreamingCursor()
