@@ -116,12 +116,13 @@ Legend: `hash:` is the short commit hash (`git log --oneline`).
 | `a089f72` | feat(home): richer dashboard metrics (no schema change) |
 | `e440da7` | feat(settings): Wi-Fi-only, auto-load, keep-awake, token counts |
 | `376500f` | feat(chat): attach photos for multimodal models (Gemma vision) |
+| `34ca307` | fix(inference): load the vision executor so photos work |
 
 ---
 
 ## Commit 11 — `fix(inference): load the vision executor so photos work`
 
-- hash: PENDING
+- hash: 34ca307
 - What (`core/inference/ModelManager.kt`, `feature/chat/ChatViewModel.kt`):
   - Root cause of "Vision executor should not be null… Status code 3": we
     built `EngineConfig` with only `backend`, leaving `visionBackend` and
