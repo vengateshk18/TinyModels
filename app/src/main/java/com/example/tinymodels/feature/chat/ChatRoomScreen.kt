@@ -86,6 +86,16 @@ fun ChatRoomScreen(
     var showModelPicker by remember { mutableStateOf(false) }
     var showContextSheet by remember { mutableStateOf(false) }
 
+    // Keep the screen awake while generating (Settings → Chat). Flag is
+    // cleared on dispose so it never leaks into other screens.
+    val holdAwake = uiState.keepScreenOn &&
+        uiState.generation == com.example.tinymodels.feature.chat.model.GenerationState.GENERATING
+    val view = androidx.compose.ui.platform.LocalView.current
+    androidx.compose.runtime.DisposableEffect(holdAwake) {
+        view.keepScreenOn = holdAwake
+        onDispose { view.keepScreenOn = false }
+    }
+
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
             snackbarHostState.showSnackbar(it.message, actionLabel = it.actionLabel)
@@ -328,7 +338,8 @@ private fun MessageListRoom(
                 onEdit = if (message.isUser && !message.isStreaming) {
                     { text -> onEditMessage(message.id, text) }
                 } else null,
-                onCopied = onCopied
+                onCopied = onCopied,
+                showTokenCounts = uiState.showTokenCounts
             )
         }
 

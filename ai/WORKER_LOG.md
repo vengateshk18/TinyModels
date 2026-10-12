@@ -230,3 +230,25 @@ Legend: `hash:` is the short commit hash (`git log --oneline`).
   screen renders). Single `ChatRepository` implementation, no fakes to update.
 - Theme/font: existing `StatTile`/`InfoRow` components and typography only.
 - Verified: `:app:compileDebugKotlin` green (full suite at finalization).
+
+---
+
+## Commit 9 — `feat(settings): Wi-Fi-only, auto-load, keep-awake, token counts`
+
+- hash: PENDING
+- What (domain `AppSettings` + `SettingsRepository`, data impl, `SettingsVM`,
+  `SettingsScreen`, chat state/VM/screens):
+  - 4 new DataStore-backed settings (all default to current behavior):
+    `wifiOnlyDownloads` (UNMETERED constraint in `DownloadModelUseCase`;
+    flag cached off-main-thread in the singleton), `autoLoadLastModel`
+    (gates `autoLoadModel()` on chat entry), `keepScreenOn`
+    (FLAG_KEEP_SCREEN_ON only while GENERATING, cleared on dispose),
+    `showTokenCounts` (footer "• N tok" from the already-stored
+    `tokenCount`; threaded Settings → ChatUiState → MessageListRoom →
+    MessageBubble).
+  - Settings screen gains Downloads + Chat sections reusing `SwitchRow`.
+- Why: the four most-asked-for knobs; each was either hardcoded or missing.
+- Architecture: settings stay global in DataStore (defaults), per-chat
+  overrides remain Room columns — the repo's own documented split.
+- Theme/font: existing `SwitchRow`/typography/colors only.
+- Verified: `:app:compileDebugKotlin` green (full suite at finalization).

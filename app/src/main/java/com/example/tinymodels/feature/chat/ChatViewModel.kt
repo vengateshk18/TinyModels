@@ -129,8 +129,13 @@ class ChatViewModel @Inject constructor(
             // Opening a specific existing chat — load its model inside openChatInternal.
             viewModelScope.launch(Dispatchers.Default) { openChatInternal(existingChatId) }
         } else {
-            // New chat or direct entry — auto-load the best available model.
-            viewModelScope.launch(Dispatchers.Default) { autoLoadModel() }
+            // New chat or direct entry — auto-load the best available model,
+            // unless the user disabled it in Settings (manual pick instead).
+            viewModelScope.launch(Dispatchers.Default) {
+                if (settingsRepository.getSettings().autoLoadLastModel) {
+                    autoLoadModel()
+                }
+            }
         }
     }
 
@@ -230,7 +235,13 @@ class ChatViewModel @Inject constructor(
     private fun observeWebSearchAvailability() {
         viewModelScope.launch(Dispatchers.Default) {
             settingsRepository.settings.collect { settings ->
-                _uiState.update { it.copy(webSearchAvailable = settings.webSearchEnabled) }
+                _uiState.update {
+                    it.copy(
+                        webSearchAvailable = settings.webSearchEnabled,
+                        keepScreenOn = settings.keepScreenOn,
+                        showTokenCounts = settings.showTokenCounts
+                    )
+                }
             }
         }
     }
@@ -1212,7 +1223,8 @@ class ChatViewModel @Inject constructor(
         text = content,
         isStreaming = !isComplete,
         timestamp = createdAt,
-        completedAt = completedAt
+        completedAt = completedAt,
+        tokenCount = tokenCount.takeIf { isComplete }
     )
 
     /**

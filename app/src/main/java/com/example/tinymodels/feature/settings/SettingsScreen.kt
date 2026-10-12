@@ -114,6 +114,10 @@ fun SettingsScreen(
             SectionDivider()
             InferenceSection(settings, viewModel)
             SectionDivider()
+            DownloadsSection(settings, viewModel)
+            SectionDivider()
+            ChatSection(settings, viewModel)
+            SectionDivider()
             HuggingFaceSection(viewModel)
             SectionDivider()
             AboutSection(
@@ -225,6 +229,47 @@ private fun InferenceSection(settings: AppSettings, viewModel: SettingsViewModel
         "When enabled for a chat (via the + menu in the chat), the model may search the web when it needs current information.",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+}
+
+@Composable
+private fun DownloadsSection(settings: AppSettings, viewModel: SettingsViewModel) {
+    SectionHeader("Downloads")
+    SwitchRow(
+        label = "Wi-Fi only downloads",
+        subtitle = "Wait for an unmetered connection before downloading models",
+        checked = settings.wifiOnlyDownloads,
+        onCheckedChange = { viewModel.setWifiOnlyDownloads(it) }
+    )
+    Text(
+        "Model files are gigabytes — this guards your mobile data plan.",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
+}
+
+@Composable
+private fun ChatSection(settings: AppSettings, viewModel: SettingsViewModel) {
+    SectionHeader("Chat")
+    SwitchRow(
+        label = "Auto-load last model",
+        subtitle = "Load the previously used model when opening chat",
+        checked = settings.autoLoadLastModel,
+        onCheckedChange = { viewModel.setAutoLoadLastModel(it) }
+    )
+    Spacer(modifier = Modifier.height(12.dp))
+    SwitchRow(
+        label = "Keep screen on",
+        subtitle = "Prevent sleep while the model is generating",
+        checked = settings.keepScreenOn,
+        onCheckedChange = { viewModel.setKeepScreenOn(it) }
+    )
+    Spacer(modifier = Modifier.height(12.dp))
+    SwitchRow(
+        label = "Show token counts",
+        subtitle = "Show per-message token counts under each bubble",
+        checked = settings.showTokenCounts,
+        onCheckedChange = { viewModel.setShowTokenCounts(it) }
     )
 }
 

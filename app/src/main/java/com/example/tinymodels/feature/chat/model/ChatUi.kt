@@ -12,7 +12,9 @@ data class UiChatMessage(
     val isStreaming: Boolean = false,
     val timestamp: Long = 0L,
     /** Wall-clock time when the assistant finished replying (null for user msgs / in-flight). */
-    val completedAt: Long? = null
+    val completedAt: Long? = null,
+    /** Estimated tokens for this message (null for in-flight placeholders). */
+    val tokenCount: Int? = null
 )
 
 /** State of the model chip shown in the top bar. */
@@ -109,7 +111,11 @@ data class ChatUiState(
     /** Per-chat opt-in for the model's web_search tool (global setting gates availability). */
     val webSearchEnabled: Boolean = false,
     /** Global availability gate for the web_search tool (from app settings). */
-    val webSearchAvailable: Boolean = true
+    val webSearchAvailable: Boolean = true,
+    /** Keep the screen awake while generating (from app settings). */
+    val keepScreenOn: Boolean = true,
+    /** Show per-message token counts in footers (from app settings). */
+    val showTokenCounts: Boolean = false
 ) {
     val canSend: Boolean
         get() = model is ModelChipState.Ready && generation == GenerationState.IDLE

@@ -49,7 +49,9 @@ fun MessageBubble(
     modifier: Modifier = Modifier,
     onRegenerate: (() -> Unit)? = null,
     onEdit: ((String) -> Unit)? = null,
-    onCopied: (() -> Unit)? = null
+    onCopied: (() -> Unit)? = null,
+    /** Show the stored per-message token count in the footer (Settings). */
+    showTokenCounts: Boolean = false
 ) {
     val clipboard = LocalClipboardManager.current
     val isUser = message.isUser
@@ -131,7 +133,7 @@ fun MessageBubble(
             }
         }
         // Timestamp + action row below the bubble.
-        MessageFooter(message, onRegenerate, onCopy = copy)
+        MessageFooter(message, onRegenerate, onCopy = copy, showTokenCounts = showTokenCounts)
     }
 }
 
@@ -145,15 +147,17 @@ fun MessageBubble(
 private fun MessageFooter(
     message: UiChatMessage,
     onRegenerate: (() -> Unit)?,
-    onCopy: (() -> Unit)?
+    onCopy: (() -> Unit)?,
+    showTokenCounts: Boolean
 ) {
     if (message.timestamp <= 0L) return
     val showRegen = !message.isUser && !message.isStreaming && onRegenerate != null
     val showCopy = !message.isStreaming && message.text.isNotBlank() && onCopy != null
+    val showTokens = showTokenCounts && !message.isStreaming && (message.tokenCount ?: 0) > 0
     val label = remember(message.id, message.completedAt, message.isStreaming) {
         buildTimestampLabel(message)
     }
-    if (label.isBlank() && !showRegen && !showCopy) return
+    if (label.isBlank() && !showRegen && !showCopy && !showTokens) return
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = if (message.isUser) Arrangement.End else Arrangement.Start,
@@ -166,6 +170,16 @@ private fun MessageFooter(
         if (label.isNotBlank()) {
             Text(
                 text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        if (showTokens) {
+            if (label.isNotBlank() || showCopy || showRegen) {
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+            Text(
+                text = "• ${message.tokenCount} tok",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

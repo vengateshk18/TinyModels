@@ -29,6 +29,15 @@ interface SettingsRepository {
     /** When true, model downloads wait for an unmetered connection (Wi-Fi). */
     suspend fun setWifiOnlyDownloads(enabled: Boolean)
 
+    /** Auto-load the last-used model on chat entry. */
+    suspend fun setAutoLoadLastModel(enabled: Boolean)
+
+    /** Keep the screen on while generating. */
+    suspend fun setKeepScreenOn(enabled: Boolean)
+
+    /** Show per-message token counts in chat footers. */
+    suspend fun setShowTokenCounts(enabled: Boolean)
+
     /** Returns the modelId of the last successfully loaded model, or null. */
     suspend fun getLastUsedModelId(): String?
 
