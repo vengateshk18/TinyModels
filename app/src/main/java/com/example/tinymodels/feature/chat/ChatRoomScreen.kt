@@ -458,17 +458,22 @@ private fun ContextMetricsSheet(
                     )
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        // Keep the labels clear of the ring's inner edge.
-                        modifier = Modifier.padding(horizontal = 20.dp)
+                        // Inner diameter is ~100dp (120dp ring minus stroke);
+                        // keep side padding small and center multi-line counts
+                        // so "12345 / 8192 tokens" wraps inside the ring
+                        // instead of touching its edge.
+                        modifier = Modifier.padding(horizontal = 12.dp)
                     ) {
                         Text(
                             "${(ratio * 100).toInt()}%",
-                            style = MaterialTheme.typography.headlineSmall
+                            style = MaterialTheme.typography.headlineSmall,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
                         Text(
                             "$usedTokens / $maxTokens tokens",
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
                     }
                 }

@@ -145,3 +145,20 @@ Legend: `hash:` is the short commit hash (`git log --oneline`).
 - Theme/font: n/a (no UI).
 - Verified: new `CompactionPolicyTest` (coverage contract, window, trigger
   math) green; full suite re-run at finalization.
+
+---
+
+## Commit 6 — `fix(chat): context gauge labels fit inside the ring`
+
+- hash: PENDING
+- What (`feature/chat/ChatRoomScreen.kt`, `ContextMetricsSheet` only):
+  - Inner label padding `20.dp` → `12.dp`: the ring is 120dp with a 10dp
+    stroke, so the inner diameter is ~100dp; 20dp/side left ~60dp and long
+    counts ("12345 / 8192 tokens") touched the ring edge.
+  - Both texts now `textAlign = Center` so wrapped counts stay balanced
+    inside the circle instead of spilling left-aligned.
+- Why: the usage count collided with the gauge ring on large numbers.
+- Architecture: presentation-only, no logic changes.
+- Theme/font: unchanged tokens (`headlineSmall`, `labelMedium`,
+  `onSurfaceVariant`) — same theme, just geometry.
+- Verified: `:app:compileDebugKotlin` green (full suite at finalization).
