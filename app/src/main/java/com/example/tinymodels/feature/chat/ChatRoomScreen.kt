@@ -32,11 +32,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import com.example.tinymodels.core.ui.components.bottomSheetTopSafePadding
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -79,6 +81,7 @@ fun ChatRoomScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val downloadedFiles by viewModel.downloadedFiles.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val copyScope = rememberCoroutineScope()
     var editingMessage by remember { mutableStateOf<Pair<String, String>?>(null) }
     var showModelPicker by remember { mutableStateOf(false) }
     var showContextSheet by remember { mutableStateOf(false) }
@@ -173,7 +176,14 @@ fun ChatRoomScreen(
                             title = "Say hello",
                             body = "Your conversation stays on this device."
                         )
-                    else -> MessageListRoom(uiState, viewModel::onEvent) { id, text -> editingMessage = id to text }
+                    else -> MessageListRoom(
+                        uiState = uiState,
+                        onEvent = viewModel::onEvent,
+                        onEditMessage = { id, text -> editingMessage = id to text },
+                        onCopied = {
+                            copyScope.launch { snackbarHostState.showSnackbar("Copied to clipboard") }
+                        }
+                    )
                 }
             }
 
@@ -280,7 +290,8 @@ private fun ChatRoomEmpty(
 private fun MessageListRoom(
     uiState: ChatUiState,
     onEvent: (ChatEvent) -> Unit,
-    onEditMessage: (String, String) -> Unit
+    onEditMessage: (String, String) -> Unit,
+    onCopied: () -> Unit
 ) {
     var showSummary by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
@@ -316,7 +327,8 @@ private fun MessageListRoom(
                 } else null,
                 onEdit = if (message.isUser && !message.isStreaming) {
                     { text -> onEditMessage(message.id, text) }
-                } else null
+                } else null,
+                onCopied = onCopied
             )
         }
 

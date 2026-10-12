@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -38,7 +39,8 @@ import java.util.concurrent.TimeUnit
 /**
  * A single chat bubble. User messages are right-aligned with primary-container
  * colors; assistant messages are left-aligned and rendered as Markdown (code
- * blocks, lists, bold). Long-press copies the raw text.
+ * blocks, lists, bold). Copying (footer button or long-press) copies the raw
+ * text and reports via [onCopied] so the screen can confirm with a Snackbar.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -46,10 +48,18 @@ fun MessageBubble(
     message: UiChatMessage,
     modifier: Modifier = Modifier,
     onRegenerate: (() -> Unit)? = null,
-    onEdit: ((String) -> Unit)? = null
+    onEdit: ((String) -> Unit)? = null,
+    onCopied: (() -> Unit)? = null
 ) {
     val clipboard = LocalClipboardManager.current
     val isUser = message.isUser
+    // Single copy path shared by the footer button and long-press.
+    val copy: () -> Unit = {
+        if (message.text.isNotBlank()) {
+            clipboard.setText(AnnotatedString(message.text))
+            onCopied?.invoke()
+        }
+    }
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -68,11 +78,7 @@ fun MessageBubble(
                                 onEdit(message.text)
                             }
                         },
-                        onLongClick = {
-                            if (message.text.isNotBlank()) {
-                                clipboard.setText(AnnotatedString(message.text))
-                            }
-                        }
+                        onLongClick = { copy() }
                     ),
                 shape = RoundedCornerShape(
                     topStart = 18.dp,
@@ -125,28 +131,29 @@ fun MessageBubble(
             }
         }
         // Timestamp + action row below the bubble.
-        MessageFooter(message, onRegenerate)
+        MessageFooter(message, onRegenerate, onCopy = copy)
     }
 }
 
 /**
- * Compact footer below a bubble: timestamp text + optional regenerate button
- * (shown only for complete assistant messages).
- * - User message: "HH:mm"
- * - Assistant (complete): "HH:mm • {duration}" + [regenerate icon]
- * - Assistant (streaming): hidden until done.
+ * Compact footer below a bubble: timestamp text + action buttons.
+ * - User message: "HH:mm" + [copy icon]
+ * - Assistant (complete): "HH:mm • {duration}" + [copy icon] + [regenerate icon]
+ * - Assistant (streaming): hidden until done (copying partial text misleads).
  */
 @Composable
 private fun MessageFooter(
     message: UiChatMessage,
-    onRegenerate: (() -> Unit)?
+    onRegenerate: (() -> Unit)?,
+    onCopy: (() -> Unit)?
 ) {
     if (message.timestamp <= 0L) return
     val showRegen = !message.isUser && !message.isStreaming && onRegenerate != null
+    val showCopy = !message.isStreaming && message.text.isNotBlank() && onCopy != null
     val label = remember(message.id, message.completedAt, message.isStreaming) {
         buildTimestampLabel(message)
     }
-    if (label.isBlank() && !showRegen) return
+    if (label.isBlank() && !showRegen && !showCopy) return
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = if (message.isUser) Arrangement.End else Arrangement.Start,
@@ -162,6 +169,22 @@ private fun MessageFooter(
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+        if (showCopy) {
+            if (label.isNotBlank()) {
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+            IconButton(
+                onClick = onCopy!!,
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.ContentCopy,
+                    contentDescription = "Copy",
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
         if (showRegen) {
             if (label.isNotBlank()) {
