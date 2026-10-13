@@ -35,6 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.tinymodels.core.ui.Formatters
+import com.example.tinymodels.feature.home.components.DeviceInsights
+import com.example.tinymodels.feature.home.components.RamRecommendations
+import com.example.tinymodels.feature.home.components.RamUsageChart
 
 /**
  * Full-screen device-information page, reachable from Settings → About.
@@ -114,13 +117,21 @@ fun DeviceInfoScreen(
             InfoRow("Recommended for AI", "~${Formatters.formatMbAsGb(device.availableRamForAiMb)}")
 
             Spacer(modifier = Modifier.height(16.dp))
-            SectionTitle("Storage")
-            InfoRow("Free storage", Formatters.formatMbAsGb(device.freeStorageMb))
+            SectionTitle("Live RAM Usage")
+            RamUsageChart(
+                samples = device.ramHistory,
+                totalRam = device.totalRamMb * 1024 * 1024
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            RamRecommendations(
+                availableRamMb = device.availableRamMb,
+                totalRamMb = device.totalRamMb,
+                thermalState = device.thermalState,
+                batteryLevel = device.batteryLevel
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
-            SectionTitle("Processor")
-            InfoRow("CPU cores", "${device.cpuCores}")
-            InfoRow("Architecture", device.arch)
+            DeviceInsights(state = device)
 
             Spacer(modifier = Modifier.height(24.dp))
             Button(onClick = onBrowseModels, modifier = Modifier.fillMaxWidth()) {
