@@ -21,7 +21,13 @@ data class DeviceInfoState(
     val arch: String = "",
     val aiCapabilityLevel: AiCapability = AiCapability.UNKNOWN,
     val recommendedMaxParams: String = "",
-    val availableRamForAiMb: Long = 0
+    val availableRamForAiMb: Long = 0,
+    val ramUsagePercent: Double = 0.0,
+    val ramHistory: List<Long> = emptyList(),
+    val thermalState: Int = 0,
+    val batteryLevel: Int = -1,
+    val batteryStatus: Int = 0,
+    val gpuRenderer: String = ""
 )
 
 enum class AiCapability(val label: String) {
