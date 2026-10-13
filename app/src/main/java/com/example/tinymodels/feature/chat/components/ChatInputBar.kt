@@ -31,7 +31,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Search
@@ -45,6 +44,7 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -61,6 +61,8 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.example.tinymodels.feature.chat.model.GenerationState
+import com.example.tinymodels.feature.chat.model.PlusMenuItem
+import com.example.tinymodels.feature.chat.model.buildPlusMenuItems
 
 /**
  * Message composer — no background rectangle; just the input interface:
@@ -69,8 +71,10 @@ import com.example.tinymodels.feature.chat.model.GenerationState
  *  - Multi-line text field (up to 5 lines), transparent border.
  *  - Circular [FilledIconButton] for Send (primary) / Stop (error) so the
  *    action is clearly identifiable.
- *  - Photo attach button + thumbnail preview for multimodal models (Gemma):
- *    the photo travels with the message via [onSend]'s Uri parameter.
+ *  - Photo attach entry (inside the "+" menu) + thumbnail preview for
+ *    multimodal models (Gemma): the photo travels with the message via
+ *    [onSend]'s Uri parameter. For text-only models, the entry is shown
+ *    disabled with explanatory text.
  *  - Send/Stop cross-fade via AnimatedContent.
  *  - Keyboard "Send" action triggers [onSend].
  *  - IME insets are handled by the parent (ChatRoomScreen Scaffold).
@@ -87,7 +91,9 @@ fun ChatInputBar(
     /** Per-chat opt-in state for the web_search tool. */
     webSearchEnabled: Boolean = false,
     /** Toggle the per-chat web_search tool. */
-    onToggleWebSearch: (Boolean) -> Unit = {}
+    onToggleWebSearch: (Boolean) -> Unit = {},
+    /** Whether the loaded model has a vision encoder (hides photo entry when false). */
+    supportsVision: Boolean = false
 ) {
     var text by remember { mutableStateOf("") }
     var menuExpanded by remember { mutableStateOf(false) }
@@ -126,7 +132,15 @@ fun ChatInputBar(
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.Bottom
         ) {
-        // "+" menu — per-chat tool toggles (web search for now).
+        // "+" menu — photo attach + per-chat tool toggles (web search).
+        // Contents come from buildPlusMenuItems so the structure and the
+        // switch state stay pinned by unit tests (ChatOptionsMenuTest).
+        val menuItems = buildPlusMenuItems(
+            webSearchAvailable = webSearchAvailable,
+            webSearchEnabled = webSearchEnabled,
+            canAttachPhoto = canSend && !isGenerating,
+            supportsVision = supportsVision
+        )
         Box {
             IconButton(
                 onClick = { menuExpanded = true },
@@ -143,40 +157,58 @@ fun ChatInputBar(
                 expanded = menuExpanded,
                 onDismissRequest = { menuExpanded = false }
             ) {
-                DropdownMenuItem(
-                    text = { Text("Web search") },
-                    onClick = {
-                        onToggleWebSearch(!webSearchEnabled)
-                        menuExpanded = false
-                    },
-                    leadingIcon = {
-                        Icon(Icons.Filled.Search, contentDescription = null)
-                    },
-                    trailingIcon = {
-                        if (webSearchEnabled) {
-                            Icon(
-                                Icons.Filled.Check,
-                                contentDescription = "Enabled",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
+                menuItems.forEach { item ->
+                    when (item) {
+                        is PlusMenuItem.AttachPhoto -> DropdownMenuItem(
+                            text = {
+                                Column {
+                                    Text("Attach photo")
+                                    item.disabledReason?.let { reason ->
+                                        Text(
+                                            reason,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                            maxLines = 2,
+                                            modifier = Modifier.padding(top = 2.dp, start = 8.dp)
+                                        )
+                                    }
+                                }
+                            },
+                            onClick = {
+                                if (item.enabled) {
+                                    pickPhoto.launch("image/*")
+                                    menuExpanded = false
+                                }
+                            },
+                            enabled = item.enabled,
+                            leadingIcon = {
+                                Icon(Icons.Filled.Image, contentDescription = null)
+                            }
+                        )
+                        is PlusMenuItem.WebSearch -> DropdownMenuItem(
+                            text = { Text("Web search") },
+                            onClick = {
+                                onToggleWebSearch(!webSearchEnabled)
+                                menuExpanded = false
+                            },
+                            enabled = item.enabled,
+                            leadingIcon = {
+                                Icon(Icons.Filled.Search, contentDescription = null)
+                            },
+                            trailingIcon = {
+                                Switch(
+                                    checked = item.checked,
+                                    onCheckedChange = {
+                                        onToggleWebSearch(it)
+                                        menuExpanded = false
+                                    },
+                                    enabled = item.enabled
+                                )
+                            }
+                        )
                     }
-                )
+                }
             }
-        }
-        // Photo attach — feeds multimodal models (Gemma). Disabled while
-        // generating so the preview can't change mid-send.
-        IconButton(
-            onClick = { pickPhoto.launch("image/*") },
-            enabled = canSend && !isGenerating,
-            modifier = Modifier.padding(bottom = 4.dp)
-        ) {
-            Icon(
-                Icons.Filled.Image,
-                contentDescription = "Attach photo",
-                tint = if (pickedImageUri != null) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
         Spacer(modifier = Modifier.width(8.dp))
         OutlinedTextField(

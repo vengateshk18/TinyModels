@@ -114,6 +114,8 @@ data class ChatUiState(
     val webSearchEnabled: Boolean = false,
     /** Global availability gate for the web_search tool (from app settings). */
     val webSearchAvailable: Boolean = true,
+    /** True when the loaded model has a vision encoder (photo attach allowed). */
+    val isVisionModel: Boolean = false,
     /** Keep the screen awake while generating (from app settings). */
     val keepScreenOn: Boolean = true,
     /** Show per-message token counts in footers (from app settings). */

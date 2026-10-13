@@ -9,6 +9,7 @@ import com.example.tinymodels.core.inference.ConversationSession
 import com.example.tinymodels.core.inference.InferenceException
 import com.example.tinymodels.core.inference.ModelContextInspector
 import com.example.tinymodels.core.inference.ModelManager
+import com.example.tinymodels.core.inference.ModelVisionSupport
 import com.example.tinymodels.core.inference.tools.WebSearchToolSet
 import com.example.tinymodels.core.network.WebSearchPrompt
 import com.example.tinymodels.core.network.WebSearchQuery
@@ -31,6 +32,7 @@ import com.example.tinymodels.feature.chat.model.ModelChipState
 import com.example.tinymodels.feature.chat.model.ModelLoadProgress
 import com.example.tinymodels.feature.chat.model.UiChatMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
@@ -261,7 +263,13 @@ class ChatViewModel @Inject constructor(
                     is ModelManager.EngineState.Error ->
                         ModelChipState.Error(friendlyError(engineState.error))
                 }
-                _uiState.update { it.copy(model = chip) }
+                _uiState.update {
+                    it.copy(
+                        model = chip,
+                        isVisionModel = (engineState as? ModelManager.EngineState.Ready)
+                            ?.model?.visionEnabled == true
+                    )
+                }
             }
         }
     }
@@ -567,6 +575,22 @@ class ChatViewModel @Inject constructor(
         // off the main thread (viewModelScope defaults to Dispatchers.Main).
         // Hold the native mutex: closing the old session + creating the new
         // one must never race another native call.
+        //
+        // Vision guard: a text-only engine (no TF_LITE_VISION_ENCODER) cannot
+        // hold ImageFile parts — restoring a photo-carrying chat onto it fails
+        // native conversation creation. Strip attachments to their text so the
+        // chat stays usable; photo sends are blocked up-front in sendMessage().
+        val visionEnabled = modelManager.isVisionModelLoaded
+        val hadImages = ModelVisionSupport.historyHasImages(history)
+        if (hadImages && !visionEnabled) {
+            android.util.Log.i(
+                TAG,
+                "JOURNEY: rebuildSession(chat=$chatId) — text-only engine, " +
+                    "stripping photo attachments from ${history.count { it.imagePaths.isNotEmpty() }} turn(s)"
+            )
+        }
+        val effectiveHistory =
+            if (visionEnabled) history else ModelVisionSupport.stripImages(history)
         try {
             withContext(dispatchers.io) {
                 nativeMutex.withLock {
@@ -574,7 +598,7 @@ class ChatViewModel @Inject constructor(
                         session = ConversationSession.create(
                             engine = engine,
                             systemInstruction = effectiveSystem,
-                            history = history,
+                            history = effectiveHistory,
                             sampler = com.example.tinymodels.domain.model.SamplerSettings(
                                 temperature = inference.temperature,
                                 topK = inference.topK,
@@ -589,9 +613,110 @@ class ChatViewModel @Inject constructor(
             }
             sessionModelId = modelManager.loadedModelId
             updateContextUsage()
+            if (hadImages && !visionEnabled) {
+                _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
+            }
         } catch (e: InferenceException) {
             // Engine not loaded yet; session will be built when the model finishes loading.
+        } catch (e: CancellationException) {
+            throw e
+        } catch (throwable: Throwable) {
+            // Native conversation creation failed — this MUST NOT crash the
+            // app (previously a FATAL EXCEPTION for
+            // "TF_LITE_VISION_ENCODER not found in the model" when a
+            // photo-carrying chat was restored onto a text-only model).
+            android.util.Log.e(TAG, "JOURNEY: rebuildSession failed: ${throwable.message}", throwable)
+            if (ModelVisionSupport.isVisionEncoderError(throwable)) {
+                handleVisionEncoderFailure(chatId, history, effectiveSystem, inference, tools, chat)
+            } else {
+                session = null
+                _uiState.update { it.copy(error = ChatError(friendlyConversationError(throwable))) }
+            }
         }
+    }
+
+    /**
+     * Self-healing path for `TF_LITE_VISION_ENCODER not found`: the live
+     * engine was built with vision against a text-only model. Reload the
+     * engine without vision, then rebuild the session with photo attachments
+     * stripped. Falls back to a user-facing error when the reload fails.
+     */
+    private suspend fun handleVisionEncoderFailure(
+        chatId: String,
+        history: List<ChatTurn>,
+        effectiveSystem: String?,
+        inference: InferenceSettings,
+        tools: List<com.google.ai.edge.litertlm.ToolProvider>,
+        chat: com.example.tinymodels.domain.model.Chat?
+    ) {
+        val stripped = ModelVisionSupport.stripImages(history)
+        val reloaded = try {
+            withContext(dispatchers.io) { modelManager.reloadWithoutVision() }
+        } catch (throwable: Throwable) {
+            android.util.Log.w(TAG, "Vision self-heal reload failed: ${throwable.message}")
+            false
+        }
+        if (reloaded) {
+            try {
+                withContext(dispatchers.io) {
+                    nativeMutex.withLock {
+                        modelManager.withEngine { engine, config ->
+                            session = ConversationSession.create(
+                                engine = engine,
+                                systemInstruction = effectiveSystem,
+                                history = stripped,
+                                sampler = com.example.tinymodels.domain.model.SamplerSettings(
+                                    temperature = inference.temperature,
+                                    topK = inference.topK,
+                                    topP = inference.topP
+                                ),
+                                maxContextTokens = config.maxNumTokens,
+                                priorSummary = chat?.compactedSummary,
+                                tools = tools
+                            )
+                        }
+                    }
+                }
+                sessionModelId = modelManager.loadedModelId
+                updateContextUsage()
+                _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
+                return
+            } catch (retryFailure: Throwable) {
+                android.util.Log.e(TAG, "Rebuild after vision reload failed: ${retryFailure.message}", retryFailure)
+            }
+        } else if (ModelVisionSupport.historyHasImages(history)) {
+            // Engine already vision-free but the history still carried photos
+            // (e.g. loaded before this fix): one retry with stripped history.
+            try {
+                withContext(dispatchers.io) {
+                    nativeMutex.withLock {
+                        modelManager.withEngine { engine, config ->
+                            session = ConversationSession.create(
+                                engine = engine,
+                                systemInstruction = effectiveSystem,
+                                history = stripped,
+                                sampler = com.example.tinymodels.domain.model.SamplerSettings(
+                                    temperature = inference.temperature,
+                                    topK = inference.topK,
+                                    topP = inference.topP
+                                ),
+                                maxContextTokens = config.maxNumTokens,
+                                priorSummary = chat?.compactedSummary,
+                                tools = tools
+                            )
+                        }
+                    }
+                }
+                sessionModelId = modelManager.loadedModelId
+                updateContextUsage()
+                _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
+                return
+            } catch (retryFailure: Throwable) {
+                android.util.Log.e(TAG, "Stripped-history rebuild failed: ${retryFailure.message}", retryFailure)
+            }
+        }
+        session = null
+        _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
     }
 
     /**
@@ -807,6 +932,13 @@ class ChatViewModel @Inject constructor(
         if (state.generation == GenerationState.GENERATING) return
         if (state.model !is ModelChipState.Ready) {
             _uiState.update { it.copy(error = ChatError("Model is still loading")) }
+            return
+        }
+        // Block photo sends on text-only engines up-front: the native side has
+        // no vision encoder, so an image part would fail the turn anyway.
+        // Text-only prompts fall through normally.
+        if (imageUri != null && !modelManager.isVisionModelLoaded) {
+            _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
             return
         }
         var chatId = state.activeChatId
@@ -1299,7 +1431,9 @@ class ChatViewModel @Inject constructor(
         // native side reports a null vision executor / unavailable image input.
         if (raw.contains("vision executor", ignoreCase = true) ||
             raw.contains("TryLoadingVisionExecutor") ||
-            raw.contains("image input", ignoreCase = true)
+            raw.contains("image input", ignoreCase = true) ||
+            raw.contains("TF_LITE_VISION_ENCODER") ||
+            raw.contains("vision encoder", ignoreCase = true)
         ) {
             return "This model can't read photos. Load a vision-capable model " +
                 "(e.g. Gemma 3) to analyze images."
@@ -1308,6 +1442,26 @@ class ChatViewModel @Inject constructor(
             "Prompt or chat history is too long for this model's context window. " +
                 "Start a new chat or reduce max context tokens in session settings."
         } else raw
+    }
+
+    /**
+     * Maps native conversation-creation failures (rebuildSession path) to
+     * user-facing text. Vision-encoder failures get the photo guidance; the
+     * generic branch never leaks a native stack trace verbatim.
+     */
+    private fun friendlyConversationError(throwable: Throwable): String {
+        if (ModelVisionSupport.isVisionEncoderError(throwable)) {
+            return ModelVisionSupport.visionUnsupportedMessage()
+        }
+        val raw = throwable.message?.takeIf { it.isNotBlank() } ?: return "Couldn't start the conversation"
+        return if (raw.contains("Status code 13") || raw.contains("large input", ignoreCase = true)) {
+            "Chat history is too long for this model's context window. " +
+                "Start a new chat or compact the conversation."
+        } else if (raw.length > 200) {
+            "Couldn't start the conversation. Try reopening the chat or reloading the model."
+        } else {
+            raw
+        }
     }
 
     private fun friendlyError(error: InferenceError): String = when (error) {

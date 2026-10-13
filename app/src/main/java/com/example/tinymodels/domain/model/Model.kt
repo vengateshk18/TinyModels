@@ -95,5 +95,7 @@ data class DownloadedModelFile(
 data class LoadedModel(
     val modelId: String,
     val backendUsed: BackendPreference,
-    val maxNumTokens: Int
+    val maxNumTokens: Int,
+    /** True when the live engine exposes a vision encoder (photo input works). */
+    val visionEnabled: Boolean = false
 )

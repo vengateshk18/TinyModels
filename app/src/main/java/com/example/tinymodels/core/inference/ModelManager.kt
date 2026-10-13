@@ -90,6 +90,10 @@ class ModelManager @Inject constructor(
     val activeMaxNumTokens: Int?
         get() = (engineState.value as? EngineState.Ready)?.model?.maxNumTokens
 
+    /** True when the live engine was built with a vision backend. */
+    val isVisionModelLoaded: Boolean
+        get() = (engineState.value as? EngineState.Ready)?.model?.visionEnabled == true
+
     /**
      * Load [modelFile] with the given backend preference + token budget.
      *
@@ -124,6 +128,15 @@ class ModelManager @Inject constructor(
         _engineState.value = EngineState.Loading(modelId)
         onProgress?.invoke(0.1f, ModelLoadStage.INITIALIZING)
 
+        // Vision backends are ONLY valid for multimodal models. Enabling them
+        // for a text-only `.litertlm` (no TF_LITE_VISION_ENCODER section) makes
+        // `createConversation()` fail with
+        // "NOT_FOUND: TF_LITE_VISION_ENCODER not found in the model", so detect
+        // support from the file up-front and leave vision off otherwise.
+        // File I/O here: callers invoke loadModel off the main thread.
+        val visionSupported = ModelVisionSupport.supportsVision(modelFile)
+        Log.i(TAG, "Vision support for $modelId: $visionSupported")
+
         val backendsToTry: List<Pair<BackendPreference, Backend>> = when (backend) {
             BackendPreference.CPU -> listOf(BackendPreference.CPU to Backend.CPU())
             BackendPreference.GPU, BackendPreference.AUTO -> listOf(
@@ -135,7 +148,9 @@ class ModelManager @Inject constructor(
         var lastFailure: InferenceError? = null
         for ((preference, backendImpl) in backendsToTry) {
             onProgress?.invoke(0.3f, ModelLoadStage.INITIALIZING)
-            when (val result = initializeEngine(modelFile, backendImpl, maxNumTokens, cacheDir)) {
+            // First attempt uses vision only when the model supports it.
+            val firstTryVision = visionSupported
+            when (val result = initializeEngine(modelFile, backendImpl, maxNumTokens, cacheDir, firstTryVision)) {
                 is AppResult.Success -> {
                     onProgress?.invoke(0.5f, ModelLoadStage.LOADING_WEIGHTS)
                     val newEngine = result.data
@@ -146,19 +161,53 @@ class ModelManager @Inject constructor(
                         modelPath = modelFile.absolutePath,
                         backend = preference,
                         maxNumTokens = maxNumTokens,
-                        cacheDir = cacheDir.absolutePath
+                        cacheDir = cacheDir.absolutePath,
+                        visionEnabled = firstTryVision
                     )
                     old?.closeQuietly()
 
-                    val loaded = LoadedModel(modelId, preference, maxNumTokens)
+                    val loaded = LoadedModel(modelId, preference, maxNumTokens, firstTryVision)
                     _engineState.value = EngineState.Ready(loaded)
                     onProgress?.invoke(1.0f, ModelLoadStage.READY)
-                    Log.i(TAG, "Loaded $modelId on $preference (maxTokens=$maxNumTokens, visionImages=$MAX_IMAGES)")
+                    Log.i(TAG, "Loaded $modelId on $preference (maxTokens=$maxNumTokens, visionImages=${if (firstTryVision) MAX_IMAGES else 0})")
                     return AppResult.Success(loaded)
                 }
                 is AppResult.Error -> {
-                    lastFailure = InferenceError.LoadFailed(result.error.message)
-                    Log.w(TAG, "Load failed on $preference: ${result.error.message}")
+                    // Self-heal a wrong vision guess: if we enabled vision and
+                    // the native side reports a vision problem, retry the same
+                    // backend once without vision before falling through.
+                    if (firstTryVision && isVisionLoadError(result.error.message)) {
+                        Log.w(TAG, "Load with vision failed on $preference, retrying without vision")
+                        when (val retry = initializeEngine(modelFile, backendImpl, maxNumTokens, cacheDir, false)) {
+                            is AppResult.Success -> {
+                                onProgress?.invoke(0.5f, ModelLoadStage.LOADING_WEIGHTS)
+                                val newEngine = retry.data
+                                val old = engine
+                                engine = newEngine
+                                activeConfig = EngineLoadConfig(
+                                    modelPath = modelFile.absolutePath,
+                                    backend = preference,
+                                    maxNumTokens = maxNumTokens,
+                                    cacheDir = cacheDir.absolutePath,
+                                    visionEnabled = false
+                                )
+                                old?.closeQuietly()
+
+                                val loaded = LoadedModel(modelId, preference, maxNumTokens, false)
+                                _engineState.value = EngineState.Ready(loaded)
+                                onProgress?.invoke(1.0f, ModelLoadStage.READY)
+                                Log.i(TAG, "Loaded $modelId on $preference without vision (maxTokens=$maxNumTokens)")
+                                return AppResult.Success(loaded)
+                            }
+                            is AppResult.Error -> {
+                                lastFailure = InferenceError.LoadFailed(retry.error.message)
+                                Log.w(TAG, "Load failed on $preference: ${retry.error.message}")
+                            }
+                        }
+                    } else {
+                        lastFailure = InferenceError.LoadFailed(result.error.message)
+                        Log.w(TAG, "Load failed on $preference: ${result.error.message}")
+                    }
                 }
             }
         }
@@ -174,11 +223,16 @@ class ModelManager @Inject constructor(
         modelFile: File,
         backend: Backend,
         maxNumTokens: Int,
-        cacheDir: File
+        cacheDir: File,
+        enableVision: Boolean = false
     ): AppResult<Engine> = withContext(dispatchers.io) {
         try {
-            // Vision backend + image slots are REQUIRED for photo messages:
-            // without them the native vision executor stays null and any
+            // Vision backend + image slots are REQUIRED for photo messages —
+            // but ONLY for multimodal models. Setting them on a text-only
+            // model (no TF_LITE_VISION_ENCODER section) makes
+            // createConversation() fail with NOT_FOUND, so callers must gate
+            // [enableVision] on ModelVisionSupport.supportsVision().
+            // Without them the native vision executor stays null and any
             // image part fails with "Vision executor should not be null…
             // TryLoadingVisionExecutor() first. Status code 3". The vision
             // backend follows the tried backend so GPU→CPU fallback covers it.
@@ -186,9 +240,9 @@ class ModelManager @Inject constructor(
                 EngineConfig(
                     modelPath = modelFile.absolutePath,
                     backend = backend,
-                    visionBackend = backend,
+                    visionBackend = if (enableVision) backend else null,
                     maxNumTokens = maxNumTokens,
-                    maxNumImages = MAX_IMAGES,
+                    maxNumImages = if (enableVision) MAX_IMAGES else null,
                     cacheDir = cacheDir.absolutePath
                 )
             )
@@ -220,6 +274,59 @@ class ModelManager @Inject constructor(
     fun unloadInBackground() {
         scope.launch { unloadModel() }
     }
+
+    /**
+     * Rebuild the live engine WITHOUT a vision backend, keeping the same
+     * model file + backend + token budget. Self-healing path for
+     * `TF_LITE_VISION_ENCODER not found`: an engine that was built with
+     * vision against a text-only model can never create a conversation, so
+     * drop vision and retry instead of leaving the chat unusable.
+     *
+     * @return true when the engine was rebuilt without vision.
+     */
+    suspend fun reloadWithoutVision(): Boolean = mutex.withLock {
+        val config = activeConfig ?: return false
+        if (!config.visionEnabled) return false
+        val modelId = (engineState.value as? EngineState.Ready)?.model?.modelId
+            ?: return false
+        val modelFile = File(config.modelPath)
+        if (!modelFile.exists()) return false
+        val backendImpl = when (config.backend) {
+            BackendPreference.CPU -> Backend.CPU()
+            BackendPreference.GPU, BackendPreference.AUTO -> try {
+                Backend.GPU()
+            } catch (throwable: Throwable) {
+                Backend.CPU()
+            }
+        }
+        Log.w(TAG, "Reloading $modelId without vision (self-heal for missing vision encoder)")
+        when (val result = initializeEngine(
+            modelFile, backendImpl, config.maxNumTokens, File(config.cacheDir), false
+        )) {
+            is AppResult.Success -> {
+                val old = engine
+                engine = result.data
+                activeConfig = config.copy(visionEnabled = false)
+                old?.closeQuietly()
+                _engineState.value = EngineState.Ready(
+                    LoadedModel(modelId, config.backend, config.maxNumTokens, false)
+                )
+                Log.i(TAG, "Reloaded $modelId without vision")
+                true
+            }
+            is AppResult.Error -> {
+                Log.w(TAG, "Reload without vision failed: ${result.error.message}")
+                false
+            }
+        }
+    }
+
+    private fun isVisionLoadError(message: String?): Boolean =
+        message != null && (
+            message.contains("TF_LITE_VISION_ENCODER") ||
+                message.contains("vision encoder", ignoreCase = true) ||
+                message.contains("vision executor", ignoreCase = true)
+            )
 
     /**
      * Execute [block] with the live engine, holding the mutex so the engine
