@@ -1,14 +1,5 @@
 name: Release APK
 
-# What this does for the app:
-#   - On every version tag (v*, e.g. v1.2.0) it builds the minified release
-#     APK (R8 + resource shrink, ~24 MB, arm64-only) and attaches it to the
-#     GitHub Release, plus the unit-test report for that exact commit.
-#   - Manual runs (workflow_dispatch) are also supported for ad-hoc builds.
-# Note: the repo has no signing config, so the artifact is an unsigned
-# release APK — suitable for sideloading/CI, not the Play Store. When a
-# release keystore is added via secrets, add a signing step before assemble.
-
 on:
   push:
     tags:
@@ -29,14 +20,10 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          api-level: 34
-          build-tools-version: 34.0.0
-          ndk-version: r26c
-          emulator: false
-          platform: 34
+      - name: Accept Android SDK licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses || true
 
       - name: Set up Gradle (caching)
         uses: gradle/actions/setup-gradle@v4
