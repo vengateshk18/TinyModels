@@ -82,7 +82,11 @@ class DeviceViewModel @Inject constructor(
         val availableRamMb = snapshot.availableBytes / (1024 * 1024)
 
         val stat = StatFs(context.filesDir.absolutePath)
-        val freeStorageMb = stat.availableBlocksLong * stat.blockSizeLong / (1024 * 1024)
+        val totalStorageBytes = stat.blockCountLong * stat.blockSizeLong
+        val freeStorageBytes = stat.availableBlocksLong * stat.blockSizeLong
+        val usedStorageBytes = totalStorageBytes - freeStorageBytes
+        val freeStorageMb = freeStorageBytes / (1024 * 1024)
+        val usedStorageMb = usedStorageBytes / (1024 * 1024)
 
         val cpuCores = Runtime.getRuntime().availableProcessors()
         val arch = Build.SUPPORTED_ABIS?.firstOrNull() ?: "unknown"
@@ -101,6 +105,7 @@ class DeviceViewModel @Inject constructor(
             totalRamMb = totalRamMb,
             availableRamMb = availableRamMb,
             freeStorageMb = freeStorageMb,
+            usedStorageMb = usedStorageMb,
             cpuCores = cpuCores,
             arch = arch,
             aiCapabilityLevel = capability,
@@ -120,6 +125,14 @@ class DeviceViewModel @Inject constructor(
 
         // RAM history - store available bytes, capped at 120 samples (60 seconds at 500ms)
         val newRamHistory = (currentState.ramHistory + snapshot.availableBytes).takeLast(120)
+
+        // Storage - update periodically
+        val stat = StatFs(context.filesDir.absolutePath)
+        val totalStorageBytes = stat.blockCountLong * stat.blockSizeLong
+        val freeStorageBytes = stat.availableBlocksLong * stat.blockSizeLong
+        val usedStorageBytes = totalStorageBytes - freeStorageBytes
+        val freeStorageMb = freeStorageBytes / (1024 * 1024)
+        val usedStorageMb = usedStorageBytes / (1024 * 1024)
 
         // Thermal state via PowerManager (API 29+)
         var thermalState = 0
@@ -160,6 +173,8 @@ class DeviceViewModel @Inject constructor(
             availableRamMb = snapshot.availableBytes / (1024 * 1024),
             ramUsagePercent = ramUsagePercent,
             ramHistory = newRamHistory,
+            freeStorageMb = freeStorageMb,
+            usedStorageMb = usedStorageMb,
             thermalState = thermalState,
             batteryLevel = batteryLevel,
             batteryStatus = batteryStatus,

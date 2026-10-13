@@ -92,6 +92,7 @@ fun DeviceInsights(
                 icon = Icons.Filled.Thermostat,
                 label = "Thermal",
                 value = thermalLabel(state.thermalState),
+                sub = "State ${state.thermalState}",
                 tint = when {
                     state.thermalState >= 4 -> Color(0xFFD32F2F)
                     state.thermalState >= 3 -> Color(0xFFF57C00)
@@ -207,7 +208,7 @@ private fun InsightChip(
     label: String,
     value: String,
     sub: String? = null,
-    tint: Color = MaterialTheme.colorScheme.primary,
+    tint: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -237,14 +238,14 @@ private fun InsightChip(
 private fun StorageBar(usedPercent: Float) {
     val clamped = usedPercent.coerceIn(0f, 1f)
     val barColor = when {
-        clamped > 0.9f -> Color(0xFFD32F2F)
-        clamped > 0.75f -> Color(0xFFF57C00)
+        clamped > 0.9f -> androidx.compose.ui.graphics.Color(0xFFD32F2F)
+        clamped > 0.75f -> androidx.compose.ui.graphics.Color(0xFFF57C00)
         else -> MaterialTheme.colorScheme.primary
     }
     Canvas(modifier = Modifier.fillMaxWidth().height(8.dp)) {
         val w = size.width
         val h = size.height
-        drawRoundRect(color = Color(0xFFE0E0E0), size = androidx.compose.ui.geometry.Size(w, h))
+        drawRoundRect(color = androidx.compose.ui.graphics.Color(0xFFE0E0E0), size = androidx.compose.ui.geometry.Size(w, h))
         drawRoundRect(color = barColor, size = androidx.compose.ui.geometry.Size(w * clamped, h))
     }
 }

@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -63,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.tinymodels.core.ui.Formatters
+import com.example.tinymodels.feature.home.components.DeviceInsights
 import com.example.tinymodels.domain.usecase.model.DownloadStatus
 import com.example.tinymodels.feature.home.model.HomeUiState
 import com.example.tinymodels.feature.home.model.RecommendedModel
@@ -597,32 +599,8 @@ private fun DashboardHome(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // ---- Device ----
-        SectionTitle("Device")
-        InfoRow("Device", state.device.deviceName)
-        InfoRow("Total RAM", Formatters.formatMbAsGb(state.device.totalRamMb))
-        InfoRow("Available RAM", Formatters.formatMbAsGb(state.device.availableRamMb))
-        InfoRow("Usable for AI", "~${Formatters.formatMbAsGb(state.device.availableRamForAiMb)}")
-        InfoRow("AI capability", "${state.device.aiCapabilityLevel.label} (up to ${state.device.recommendedMaxParams})")
-        InfoRow("CPU", "${state.device.cpuCores} cores • ${state.device.arch}")
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // ---- Storage ----
-        SectionTitle("Storage")
-        val usedFraction = if (state.storage.modelBytes + state.storage.freeBytes > 0) {
-            state.storage.modelBytes.toFloat() /
-                (state.storage.modelBytes + state.storage.freeBytes)
-        } else 0f
-        LinearProgressIndicator(
-            progress = { usedFraction },
-            modifier = Modifier.fillMaxWidth().height(8.dp),
-            color = MaterialTheme.colorScheme.primary,
-            trackColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        InfoRow("Models use", Formatters.formatBytes(state.storage.modelBytes))
-        InfoRow("Free", Formatters.formatBytes(state.storage.freeBytes))
+        // ---- Device Insights (revamped style) ----
+        DeviceInsights(state = state.device)
 
         Spacer(modifier = Modifier.height(32.dp))
     }
@@ -762,23 +740,40 @@ private fun LastUsedModelCard(
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Button(
                         onClick = { onResumeChat(state.lastChat.id) },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
                     ) {
                         Text("Resume chat")
                     }
                     OutlinedButton(
                         onClick = { onNewChat(state.lastUsedModel?.modelId) },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
                     ) {
                         Text("New chat")
                     }
                 }
             } else {
+                // No prior chat — show New chat prominently with the model name
+                val modelDisplayName = state.lastUsedModel?.modelId?.substringAfterLast('/')
+                    ?: state.lastUsedFileName?.substringAfterLast('/')
+                        ?.removeSuffix(".litertlm")
+                    ?: "this model"
                 Button(
                     onClick = { onNewChat(state.lastUsedModel?.modelId) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 ) {
-                    Text("Start chatting")
+                    Text("New chat with $modelDisplayName")
                 }
             }
         }
