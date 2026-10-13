@@ -1,5 +1,6 @@
 package com.example.tinymodels.feature.home.components
 
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -24,8 +25,10 @@ import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.material3.Text
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -42,16 +45,16 @@ fun RamUsageChart(
     samples: List<Long>,
     totalRam: Long,
     modifier: Modifier = Modifier,
-    height: androidx.compose.ui.unit.Dp = 120.dp
+    height: Dp = 120.dp
 ) {
     val density = LocalDensity.current
     val widthPx = remember { mutableStateOf(0f) }
-    val heightPx = with(density) { height.roundToPx() }
+    val heightPx = remember(height, density) { with(density) { height.roundToPx() } }
 
     // Animate fraction from 0 to 1 over 800ms
     val fraction by animateFloatAsState(
         targetValue = 1f,
-        animationSpec = tween(durationMillis = 800, easing = androidx.compose.animation.core.FastOutSlowInEasing)
+        animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing)
     )
 
     // Current usage percentage (based on latest sample)
@@ -81,7 +84,7 @@ fun RamUsageChart(
 
             if (points.size >= 2) {
                 // Build the full path
-                val fullPath = buildPath(points, w, h)
+                val fullPath = buildPath(points)
 
                 // Calculate animated path (partial path based on fraction)
                 val animatedPath = Path()
@@ -93,9 +96,11 @@ fun RamUsageChart(
                 pathMeasure.getSegment(0f, targetLength, animatedPath, true)
 
                 // Gradient fill under the line (green -> yellow -> red based on usage)
+                // Use the last point's x as the fill endpoint — the path always
+                // ends there, and arc-length fraction maps non-linearly to x.
                 val fillPath = Path().apply {
                     addPath(animatedPath)
-                    lineTo(points.last().x * fraction, h)
+                    lineTo(points.last().x, h)
                     lineTo(points.first().x, h)
                     close()
                 }
@@ -137,7 +142,7 @@ fun RamUsageChart(
             contentAlignment = Alignment.Center
         ) {
             if (samples.isNotEmpty() && totalRam > 0) {
-                androidx.compose.material3.Text(
+                Text(
                     text = "%.1f%%".format(currentUsagePercent),
                     style = TextStyle(
                         fontSize = 36.sp,
@@ -150,7 +155,7 @@ fun RamUsageChart(
                     )
                 )
             } else {
-                androidx.compose.material3.Text(
+                Text(
                     text = "—",
                     style = TextStyle(
                         fontSize = 36.sp,
@@ -188,6 +193,7 @@ fun toPoints(
 
     return samples.mapIndexed { index, available ->
         // y = 0 at top (0% available / 100% used), y = height at bottom (100% available / 0% used)
+        // Clamp to [0, 1] — real data should never hit this, but defensive
         val availableRatio = (available.toFloat() / totalRam).coerceIn(0f, 1f)
         val x = index * stepX
         val y = height * availableRatio
@@ -198,7 +204,7 @@ fun toPoints(
 /**
  * Builds a smooth cubic Bézier path through the given points.
  */
-private fun buildPath(points: List<Offset>, width: Float, height: Float): Path {
+private fun buildPath(points: List<Offset>): Path {
     val path = Path()
     if (points.size < 2) return path
 
