@@ -26,6 +26,7 @@ data class DeviceInfoState(
     val totalRamMb: Long = 0,
     val availableRamMb: Long = 0,
     val freeStorageMb: Long = 0,
+    val usedStorageMb: Long = 0,
     val cpuCores: Int = 0,
     val arch: String = "",
     val aiCapabilityLevel: AiCapability = AiCapability.UNKNOWN,
