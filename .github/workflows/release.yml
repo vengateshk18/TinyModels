@@ -31,6 +31,12 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          api-level: 34
+          build-tools-version: 34.0.0
+          ndk-version: r26c
+          emulator: false
+          platform: 34
 
       - name: Set up Gradle (caching)
         uses: gradle/actions/setup-gradle@v4
