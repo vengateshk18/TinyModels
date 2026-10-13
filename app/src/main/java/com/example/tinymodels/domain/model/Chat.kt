@@ -11,10 +11,12 @@ data class Chat(
     val inferenceSettings: InferenceSettings = InferenceSettings(),
     /** Digest of older turns summarized away to fit the model's context window. */
     val compactedSummary: String? = null,
-    /** Messages strictly BEFORE this createdAt are covered by [compactedSummary]. */
+    /** Messages at or BEFORE this createdAt are covered by [compactedSummary]. */
     val compactedUpToCreatedAt: Long? = null,
     /** How many times compaction has run for this chat (observability metric). */
-    val compactionCount: Int = 0
+    val compactionCount: Int = 0,
+    /** Per-chat opt-in for the model's web_search tool (global setting gates availability). */
+    val webSearchEnabled: Boolean = false
 )
 
 /** A single message within a chat. */
@@ -27,7 +29,9 @@ data class ChatMessage(
     val createdAt: Long,
     val isComplete: Boolean = true,
     /** Wall-clock time when generation finished (assistant messages only). */
-    val completedAt: Long? = null
+    val completedAt: Long? = null,
+    /** Absolute path of an attached photo (user messages, multimodal models). */
+    val imagePath: String? = null
 ) {
     enum class Role { USER, ASSISTANT, SYSTEM }
 }

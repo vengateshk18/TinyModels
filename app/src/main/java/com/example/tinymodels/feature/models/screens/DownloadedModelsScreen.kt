@@ -45,6 +45,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.tinymodels.core.ui.components.EmptyState
 import com.example.tinymodels.domain.model.DownloadedModelFile
 import com.example.tinymodels.feature.models.DownloadedModelsViewModel
+import com.example.tinymodels.feature.models.components.ActiveDownloadsSection
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,6 +56,7 @@ fun DownloadedModelsScreen(
 ) {
     val downloadedFiles by viewModel.downloadedFiles.collectAsStateWithLifecycle()
     val totalSize by viewModel.totalSizeBytes.collectAsStateWithLifecycle()
+    val activeDownloads by viewModel.activeDownloads.collectAsStateWithLifecycle()
 
     // Pushed screen (no bottom nav bar) — consume full safeDrawing so the
     // Scaffold padding includes bottom nav-bar height and display cutout.
@@ -76,7 +78,7 @@ fun DownloadedModelsScreen(
             )
         }
     ) { padding ->
-        if (downloadedFiles.isEmpty()) {
+        if (downloadedFiles.isEmpty() && activeDownloads.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(padding)) {
                 EmptyState(
                     title = "No models downloaded",
@@ -97,6 +99,14 @@ fun DownloadedModelsScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                if (activeDownloads.isNotEmpty()) {
+                    item {
+                        ActiveDownloadsSection(
+                            active = activeDownloads,
+                            onCancel = viewModel::cancelActiveDownload
+                        )
+                    }
+                }
                 item {
                     Text(
                         "Storage used: ${formatBytes(totalSize)}",

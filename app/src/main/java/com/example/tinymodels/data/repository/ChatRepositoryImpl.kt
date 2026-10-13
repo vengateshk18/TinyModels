@@ -47,7 +47,12 @@ class ChatRepositoryImpl @Inject constructor(
     override suspend fun getChat(chatId: String): Chat? =
         withContext(dispatchers.io) { chatDao.getChat(chatId)?.toDomain() }
 
-    override suspend fun createChat(modelId: String, title: String, defaultBackend: BackendPreference): Chat =
+    override suspend fun createChat(
+        modelId: String,
+        title: String,
+        defaultBackend: BackendPreference,
+        webSearchEnabled: Boolean
+    ): Chat =
         withContext(dispatchers.io) {
             val now = System.currentTimeMillis()
             val entity = ChatEntity(
@@ -56,7 +61,8 @@ class ChatRepositoryImpl @Inject constructor(
                 modelId = modelId,
                 createdAt = now,
                 updatedAt = now,
-                backend = defaultBackend.name
+                backend = defaultBackend.name,
+                webSearchEnabled = webSearchEnabled
             )
             chatDao.upsertChat(entity)
             entity.toDomain()
@@ -90,6 +96,11 @@ class ChatRepositoryImpl @Inject constructor(
             chatDao.touchChat(message.chatId, System.currentTimeMillis())
         }
 
+    override suspend fun updateWebSearchEnabled(chatId: String, enabled: Boolean) =
+        withContext(dispatchers.io) {
+            chatDao.updateWebSearchEnabled(chatId, enabled)
+        }
+
     override suspend fun deleteMessage(messageId: String) =
         withContext(dispatchers.io) {
             chatDao.deleteMessage(messageId)
@@ -109,6 +120,21 @@ class ChatRepositoryImpl @Inject constructor(
 
     override suspend fun messageCount(chatId: String): Int =
         withContext(dispatchers.io) { chatDao.messageCount(chatId) }
+
+    override suspend fun totalMessages(): Int =
+        withContext(dispatchers.io) { chatDao.totalMessages() }
+
+    override suspend fun chatsSince(sinceMs: Long): Int =
+        withContext(dispatchers.io) { chatDao.chatsSince(sinceMs) }
+
+    override suspend fun favoriteModelId(): String? =
+        withContext(dispatchers.io) { chatDao.favoriteModelId() }
+
+    override suspend fun totalCompactions(): Int =
+        withContext(dispatchers.io) { chatDao.totalCompactions() }
+
+    override suspend fun webSearchChats(): Int =
+        withContext(dispatchers.io) { chatDao.webSearchChats() }
 
     // ---- Usage stats (Home dashboard) ----
 
@@ -145,6 +171,7 @@ class ChatRepositoryImpl @Inject constructor(
                 compactedSummary = compactedSummary,
                 compactedUpToCreatedAt = compactedUpToCreatedAt,
                 compactionCount = compactionCount,
+                webSearchEnabled = webSearchEnabled,
                 inferenceSettings = InferenceSettings(
             backend = runCatching { BackendPreference.valueOf(backend) }.getOrDefault(BackendPreference.AUTO),
             temperature = temperature,
@@ -163,7 +190,8 @@ class ChatRepositoryImpl @Inject constructor(
         tokenCount = tokenCount,
         createdAt = createdAt,
         isComplete = isComplete,
-        completedAt = completedAt
+        completedAt = completedAt,
+        imagePath = imagePath
     )
 
     private fun ChatMessage.toEntity() = MessageEntity(
@@ -174,6 +202,7 @@ class ChatRepositoryImpl @Inject constructor(
         tokenCount = tokenCount,
         createdAt = createdAt,
         isComplete = isComplete,
-        completedAt = completedAt
+        completedAt = completedAt,
+        imagePath = imagePath
     )
 }

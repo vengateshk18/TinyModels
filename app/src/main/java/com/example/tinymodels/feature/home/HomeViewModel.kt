@@ -170,7 +170,14 @@ class HomeViewModel @Inject constructor(
         val usage = UsageStats(
             totalChats = chatRepository.totalChats(),
             totalTokens = chatRepository.totalTokensGenerated(),
-            modelsTried = chatRepository.modelsTried()
+            modelsTried = chatRepository.modelsTried(),
+            totalMessages = chatRepository.totalMessages(),
+            chatsThisWeek = chatRepository.chatsSince(
+                System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000
+            ),
+            compactionsRun = chatRepository.totalCompactions(),
+            webSearchChats = chatRepository.webSearchChats(),
+            favoriteModel = chatRepository.favoriteModelId()?.substringAfterLast('/')
         )
 
         val storage = StorageBreakdown(

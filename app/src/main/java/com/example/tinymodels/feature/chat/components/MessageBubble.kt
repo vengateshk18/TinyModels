@@ -7,12 +7,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -38,7 +40,8 @@ import java.util.concurrent.TimeUnit
 /**
  * A single chat bubble. User messages are right-aligned with primary-container
  * colors; assistant messages are left-aligned and rendered as Markdown (code
- * blocks, lists, bold). Long-press copies the raw text.
+ * blocks, lists, bold). Copying (footer button or long-press) copies the raw
+ * text and reports via [onCopied] so the screen can confirm with a Snackbar.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -46,10 +49,20 @@ fun MessageBubble(
     message: UiChatMessage,
     modifier: Modifier = Modifier,
     onRegenerate: (() -> Unit)? = null,
-    onEdit: ((String) -> Unit)? = null
+    onEdit: ((String) -> Unit)? = null,
+    onCopied: (() -> Unit)? = null,
+    /** Show the stored per-message token count in the footer (Settings). */
+    showTokenCounts: Boolean = false
 ) {
     val clipboard = LocalClipboardManager.current
     val isUser = message.isUser
+    // Single copy path shared by the footer button and long-press.
+    val copy: () -> Unit = {
+        if (message.text.isNotBlank()) {
+            clipboard.setText(AnnotatedString(message.text))
+            onCopied?.invoke()
+        }
+    }
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -68,11 +81,7 @@ fun MessageBubble(
                                 onEdit(message.text)
                             }
                         },
-                        onLongClick = {
-                            if (message.text.isNotBlank()) {
-                                clipboard.setText(AnnotatedString(message.text))
-                            }
-                        }
+                        onLongClick = { copy() }
                     ),
                 shape = RoundedCornerShape(
                     topStart = 18.dp,
@@ -89,12 +98,20 @@ fun MessageBubble(
                 )
             ) {
                 Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                    message.imagePath?.let { path ->
+                        AttachedPhoto(path = path)
+                        if (message.text.isNotBlank()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
                     if (isUser) {
-                        Text(
-                            text = message.text,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        if (message.text.isNotBlank()) {
+                            Text(
+                                text = message.text,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
                     } else if (message.text.isBlank() && message.isStreaming) {
                         // Awaiting the first token — blinking caret.
                         StreamingCursor()
@@ -125,28 +142,31 @@ fun MessageBubble(
             }
         }
         // Timestamp + action row below the bubble.
-        MessageFooter(message, onRegenerate)
+        MessageFooter(message, onRegenerate, onCopy = copy, showTokenCounts = showTokenCounts)
     }
 }
 
 /**
- * Compact footer below a bubble: timestamp text + optional regenerate button
- * (shown only for complete assistant messages).
- * - User message: "HH:mm"
- * - Assistant (complete): "HH:mm • {duration}" + [regenerate icon]
- * - Assistant (streaming): hidden until done.
+ * Compact footer below a bubble: timestamp text + action buttons.
+ * - User message: "HH:mm" + [copy icon]
+ * - Assistant (complete): "HH:mm • {duration}" + [copy icon] + [regenerate icon]
+ * - Assistant (streaming): hidden until done (copying partial text misleads).
  */
 @Composable
 private fun MessageFooter(
     message: UiChatMessage,
-    onRegenerate: (() -> Unit)?
+    onRegenerate: (() -> Unit)?,
+    onCopy: (() -> Unit)?,
+    showTokenCounts: Boolean
 ) {
     if (message.timestamp <= 0L) return
     val showRegen = !message.isUser && !message.isStreaming && onRegenerate != null
+    val showCopy = !message.isStreaming && message.text.isNotBlank() && onCopy != null
+    val showTokens = showTokenCounts && !message.isStreaming && (message.tokenCount ?: 0) > 0
     val label = remember(message.id, message.completedAt, message.isStreaming) {
         buildTimestampLabel(message)
     }
-    if (label.isBlank() && !showRegen) return
+    if (label.isBlank() && !showRegen && !showCopy && !showTokens) return
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = if (message.isUser) Arrangement.End else Arrangement.Start,
@@ -162,6 +182,32 @@ private fun MessageFooter(
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+        if (showTokens) {
+            if (label.isNotBlank() || showCopy || showRegen) {
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+            Text(
+                text = "• ${message.tokenCount} tok",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        if (showCopy) {
+            if (label.isNotBlank()) {
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+            IconButton(
+                onClick = onCopy!!,
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.ContentCopy,
+                    contentDescription = "Copy",
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
         if (showRegen) {
             if (label.isNotBlank()) {

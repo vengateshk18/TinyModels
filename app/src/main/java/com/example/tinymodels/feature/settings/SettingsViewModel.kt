@@ -39,6 +39,11 @@ class SettingsViewModel @Inject constructor(
     fun setFontChoice(choice: FontChoice) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setFontChoice(choice) }
     fun setFontScale(scale: Float) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setFontScale(scale) }
     fun setDefaultBackend(backend: BackendPreference) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setDefaultBackend(backend) }
+    fun setWebSearchEnabled(enabled: Boolean) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setWebSearchEnabled(enabled) }
+    fun setWifiOnlyDownloads(enabled: Boolean) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setWifiOnlyDownloads(enabled) }
+    fun setAutoLoadLastModel(enabled: Boolean) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setAutoLoadLastModel(enabled) }
+    fun setKeepScreenOn(enabled: Boolean) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setKeepScreenOn(enabled) }
+    fun setShowTokenCounts(enabled: Boolean) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setShowTokenCounts(enabled) }
 
     /** Saves (or removes, when null/blank) the Hugging Face access token. */
     fun setHuggingFaceToken(token: String?) = viewModelScope.launch(Dispatchers.Default) {

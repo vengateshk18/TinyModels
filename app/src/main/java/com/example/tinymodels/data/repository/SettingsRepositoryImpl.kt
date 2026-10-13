@@ -31,6 +31,11 @@ class SettingsRepositoryImpl @Inject constructor(
         val FONT_CHOICE = stringPreferencesKey("font_choice")
         val FONT_SCALE = floatPreferencesKey("font_scale")
         val DEFAULT_BACKEND = stringPreferencesKey("default_backend")
+        val WEB_SEARCH_ENABLED = booleanPreferencesKey("web_search_enabled")
+        val WIFI_ONLY_DOWNLOADS = booleanPreferencesKey("wifi_only_downloads")
+        val AUTO_LOAD_LAST_MODEL = booleanPreferencesKey("auto_load_last_model")
+        val KEEP_SCREEN_ON = booleanPreferencesKey("keep_screen_on")
+        val SHOW_TOKEN_COUNTS = booleanPreferencesKey("show_token_counts")
         val LAST_USED_MODEL_ID = stringPreferencesKey("last_used_model_id")
         val HUGGINGFACE_TOKEN = stringPreferencesKey("hugging_face_token")
     }
@@ -44,7 +49,12 @@ class SettingsRepositoryImpl @Inject constructor(
                 ?: FontChoice.SYSTEM,
             fontScale = prefs[Keys.FONT_SCALE] ?: 1.0f,
             defaultBackend = prefs[Keys.DEFAULT_BACKEND]?.let { runCatching { BackendPreference.valueOf(it) }.getOrNull() }
-                ?: BackendPreference.AUTO
+                ?: BackendPreference.AUTO,
+            webSearchEnabled = prefs[Keys.WEB_SEARCH_ENABLED] ?: true,
+            wifiOnlyDownloads = prefs[Keys.WIFI_ONLY_DOWNLOADS] ?: false,
+            autoLoadLastModel = prefs[Keys.AUTO_LOAD_LAST_MODEL] ?: true,
+            keepScreenOn = prefs[Keys.KEEP_SCREEN_ON] ?: true,
+            showTokenCounts = prefs[Keys.SHOW_TOKEN_COUNTS] ?: false
         )
     }
 
@@ -68,6 +78,26 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun setDefaultBackend(backend: BackendPreference) {
         context.dataStore.edit { it[Keys.DEFAULT_BACKEND] = backend.name }
+    }
+
+    override suspend fun setWebSearchEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.WEB_SEARCH_ENABLED] = enabled }
+    }
+
+    override suspend fun setWifiOnlyDownloads(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.WIFI_ONLY_DOWNLOADS] = enabled }
+    }
+
+    override suspend fun setAutoLoadLastModel(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.AUTO_LOAD_LAST_MODEL] = enabled }
+    }
+
+    override suspend fun setKeepScreenOn(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.KEEP_SCREEN_ON] = enabled }
+    }
+
+    override suspend fun setShowTokenCounts(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.SHOW_TOKEN_COUNTS] = enabled }
     }
 
     override suspend fun getLastUsedModelId(): String? =

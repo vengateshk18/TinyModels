@@ -190,6 +190,15 @@ class BenchmarkViewModel @Inject constructor(
                         completedAt = System.currentTimeMillis()
                     )
                 )
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (throwable: Throwable) {
+                // Never crash the app from a benchmark run (e.g. a native
+                // conversation failure on a text-only model) — report it.
+                android.util.Log.e("Benchmark", "Benchmark failed: ${throwable.message}", throwable)
+                _uiState.value = BenchmarkUiState.Failed(
+                    throwable.message?.takeIf { it.isNotBlank() } ?: "Benchmark failed"
+                )
             } finally {
                 pssMonitor.stop()
             }

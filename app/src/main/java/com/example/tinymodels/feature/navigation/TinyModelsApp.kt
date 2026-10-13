@@ -73,12 +73,17 @@ fun TinyModelsApp(
                         NavigationBarItem(
                             selected = selected,
                             onClick = {
+                                val startDest = navController.graph.findStartDestination().id
                                 navController.navigate(item.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
+                                    // Pop to start destination to avoid building up
+                                    // a deep back stack when switching tabs.
+                                    popUpTo(startDest) {
                                         saveState = true
                                     }
                                     launchSingleTop = true
-                                    restoreState = true
+                                    // Only restore state when switching between
+                                    // sibling tabs — not when returning to start.
+                                    restoreState = item.route != navController.currentBackStackEntry?.destination?.route
                                 }
                             },
                             icon = {

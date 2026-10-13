@@ -38,6 +38,29 @@ object Migrations {
         }
     }
 
+    /**
+     * v7 → v8: adds `webSearchEnabled` to `chats` — the per-chat opt-in for
+     * the model's web_search tool (the global DataStore setting gates
+     * availability; this column is the per-conversation state).
+     */
+    val MIGRATION_7_8 = object : Migration(7, 8) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "ALTER TABLE chats ADD COLUMN webSearchEnabled INTEGER NOT NULL DEFAULT 0"
+            )
+        }
+    }
+
+    /**
+     * v8 → v9: adds `imagePath` to `messages` — absolute path of a photo
+     * attached to a user message for multimodal models (null = text-only).
+     */
+    val MIGRATION_8_9 = object : Migration(8, 9) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE messages ADD COLUMN imagePath TEXT")
+        }
+    }
+
     val MIGRATION_4_5 = object : Migration(4, 5) {
         override fun migrate(db: SupportSQLiteDatabase) {
             // 1. Create the new model_files table.

@@ -76,7 +76,11 @@ object DownloadNotifier {
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setContentIntent(openAppIntent(context))
-            .addAction(0, context.getString(android.R.string.cancel), cancelIntent(context, workId))
+            .addAction(
+                android.R.drawable.ic_menu_close_clear_cancel,
+                context.getString(android.R.string.cancel),
+                cancelIntent(context, workId)
+            )
             .build()
     }
 

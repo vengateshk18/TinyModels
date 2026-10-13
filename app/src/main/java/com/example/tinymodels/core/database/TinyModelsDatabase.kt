@@ -14,6 +14,8 @@ import com.example.tinymodels.core.database.entities.ModelFileEntity
  * original downloaded-models table. Version 5 adds the `model_files` subtable for
  * per-file download tracking ([ModelFileEntity]). Version 6 adds context-compaction
  * columns to `chats` ([ChatEntity.compactedSummary] / `compactedUpToCreatedAt`).
+ * Version 9 adds the photo attachment path to `messages`
+ * ([MessageEntity.imagePath]) for multimodal models.
  */
 @Database(
     entities = [
@@ -22,7 +24,7 @@ import com.example.tinymodels.core.database.entities.ModelFileEntity
         ChatEntity::class,
         MessageEntity::class
     ],
-        version = 7,
+        version = 9,
     exportSchema = false
 )
 abstract class TinyModelsDatabase : RoomDatabase() {

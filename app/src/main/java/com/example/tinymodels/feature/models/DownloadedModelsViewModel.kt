@@ -6,6 +6,8 @@ import com.example.tinymodels.core.inference.ModelManager
 import com.example.tinymodels.domain.model.DownloadedModel
 import com.example.tinymodels.domain.model.DownloadedModelFile
 import com.example.tinymodels.domain.repository.ModelRepository
+import com.example.tinymodels.domain.usecase.model.ActiveDownload
+import com.example.tinymodels.domain.usecase.model.DownloadModelUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,12 +16,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 class DownloadedModelsViewModel @Inject constructor(
     private val modelRepository: ModelRepository,
-    private val modelManager: ModelManager
+    private val modelManager: ModelManager,
+    private val downloadUseCase: DownloadModelUseCase
 ) : ViewModel() {
 
     /** Parent metadata (one row per model) for the downloaded list. */
@@ -31,6 +35,20 @@ class DownloadedModelsViewModel @Inject constructor(
     val downloadedFiles: StateFlow<List<DownloadedModelFile>> =
         modelRepository.observeDownloadedFiles()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /**
+     * Live download jobs (RUNNING/ENQUEUED) straight from WorkManager — the
+     * "Active downloads" section updates from this without any per-screen
+     * binding, and each row cancels its own job.
+     */
+    val activeDownloads: StateFlow<List<ActiveDownload>> =
+        downloadUseCase.observeActiveDownloads()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Cancel one active download (same path the notification uses). */
+    fun cancelActiveDownload(workId: UUID) {
+        downloadUseCase.cancelActive(workId)
+    }
 
     /** Id of the model currently loaded in memory, if any. */
     val activeModelId: String? get() = modelManager.loadedModelId

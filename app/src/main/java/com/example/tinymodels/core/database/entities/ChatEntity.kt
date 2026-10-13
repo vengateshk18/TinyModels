@@ -22,11 +22,14 @@ data class ChatEntity(
     // ---- Context compaction (DB v6) ----
     /** Digest of older turns that were summarized away to fit the context window. */
     val compactedSummary: String? = null,
-    /** createdAt cutoff: messages strictly BEFORE this timestamp are covered by [compactedSummary]. */
+    /** createdAt cutoff: messages at or BEFORE this timestamp are covered by [compactedSummary]. */
     val compactedUpToCreatedAt: Long? = null,
     // ---- Context compaction (DB v7) ----
     /** How many times compaction has run for this chat (observability metric). */
-    val compactionCount: Int = 0
+    val compactionCount: Int = 0,
+    // ---- Web search tool (DB v8) ----
+    /** Per-chat opt-in for the model's web_search tool (global setting gates availability). */
+    val webSearchEnabled: Boolean = false
 )
 
 @Entity(
@@ -42,5 +45,7 @@ data class MessageEntity(
     val createdAt: Long,
     val isComplete: Boolean = true,
     /** Wall-clock time when generation finished (assistant messages only). */
-    val completedAt: Long? = null
+    val completedAt: Long? = null,
+    /** Absolute path of an attached photo (user messages only, DB v9). Null when text-only. */
+    val imagePath: String? = null
 )

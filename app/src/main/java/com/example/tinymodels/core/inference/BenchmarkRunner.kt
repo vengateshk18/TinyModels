@@ -4,6 +4,7 @@ import android.app.ActivityManager
 import android.content.Context
 import android.os.Debug
 import android.os.Process
+import android.util.Log
 import com.example.tinymodels.domain.model.SamplerSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -92,6 +93,11 @@ class BenchmarkRunner @Inject constructor(
             sampler = BENCHMARK_SAMPLER,
             maxContextTokens = config.maxNumTokens
         )
+        Log.i(
+            JOURNEY_TAG,
+            "JOURNEY: benchmark ${prompt.id} run #$runIndex — session created " +
+                "(systemPrompt=<none>, tools=0, history=0), prompt: \"${prompt.text}\""
+        )
         try {
             val startNs = System.nanoTime()
             var firstEmissionNs = -1L
@@ -130,6 +136,10 @@ class BenchmarkRunner @Inject constructor(
     }
 
     companion object {
+        // Same tag as ChatViewModel/WebSearchToolSet so one logcat filter
+        // (adb logcat -s TinyModelsJourney) shows the entire turn.
+        private const val JOURNEY_TAG = "TinyModelsJourney"
+
         /** Fixed sampler so every run/model is measured identically. */
         val BENCHMARK_SAMPLER = SamplerSettings(temperature = 0.7, topK = 40, topP = 0.95)
 

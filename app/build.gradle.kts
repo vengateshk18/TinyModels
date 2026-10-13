@@ -47,6 +47,14 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+        }
+    }
+    tasks.withType<Test> {
+        jvmArgs("--add-opens=java.base/java.lang=ALL-UNNAMED", "-Dnet.bytebuddy.experimental=true")
+    }
 }
 
 dependencies {

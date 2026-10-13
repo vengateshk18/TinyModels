@@ -23,5 +23,7 @@ data class EngineLoadConfig(
     val modelPath: String,
     val backend: BackendPreference,
     val maxNumTokens: Int,
-    val cacheDir: String
+    val cacheDir: String,
+    /** True when the live engine was built with a vision backend + image slots. */
+    val visionEnabled: Boolean = false
 )

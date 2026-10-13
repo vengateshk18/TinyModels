@@ -33,10 +33,17 @@
             android:foregroundServiceType="dataSync"
             tools:node="merge" />
 
-        <!-- Handles the Cancel action on download progress notifications. -->
+        <!-- Handles the Cancel action on download progress notifications.
+             The intent-filter is REQUIRED: the cancel intent is implicit
+             (action + package), and without a matching filter the system
+             resolves zero targets and the tap silently does nothing. -->
         <receiver
             android:name=".data.worker.CancelDownloadReceiver"
-            android:exported="false" />
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.example.tinymodels.action.CANCEL_DOWNLOAD" />
+            </intent-filter>
+        </receiver>
 
         <!-- Use HiltWorkerFactory (via TinyModelsApp) instead of the default initializer. -->
         <provider

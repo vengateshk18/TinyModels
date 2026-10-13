@@ -181,7 +181,7 @@ private fun ChatScreenContent(
                 ChatInputBar(
                     generation = uiState.generation,
                     canSend = uiState.canSend,
-                    onSend = { onEvent(ChatEvent.SendMessage(it)) },
+                    onSend = { text, uri -> onEvent(ChatEvent.SendMessage(text, uri?.toString())) },
                     onStop = { onEvent(ChatEvent.CancelGeneration) }
                 )
             }

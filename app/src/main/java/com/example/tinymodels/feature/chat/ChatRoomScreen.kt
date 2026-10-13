@@ -32,11 +32,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import com.example.tinymodels.core.ui.components.bottomSheetTopSafePadding
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -79,9 +81,20 @@ fun ChatRoomScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val downloadedFiles by viewModel.downloadedFiles.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val copyScope = rememberCoroutineScope()
     var editingMessage by remember { mutableStateOf<Pair<String, String>?>(null) }
     var showModelPicker by remember { mutableStateOf(false) }
     var showContextSheet by remember { mutableStateOf(false) }
+
+    // Keep the screen awake while generating (Settings → Chat). Flag is
+    // cleared on dispose so it never leaks into other screens.
+    val holdAwake = uiState.keepScreenOn &&
+        uiState.generation == com.example.tinymodels.feature.chat.model.GenerationState.GENERATING
+    val view = androidx.compose.ui.platform.LocalView.current
+    androidx.compose.runtime.DisposableEffect(holdAwake) {
+        view.keepScreenOn = holdAwake
+        onDispose { view.keepScreenOn = false }
+    }
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
@@ -173,15 +186,26 @@ fun ChatRoomScreen(
                             title = "Say hello",
                             body = "Your conversation stays on this device."
                         )
-                    else -> MessageListRoom(uiState, viewModel::onEvent) { id, text -> editingMessage = id to text }
+                    else -> MessageListRoom(
+                        uiState = uiState,
+                        onEvent = viewModel::onEvent,
+                        onEditMessage = { id, text -> editingMessage = id to text },
+                        onCopied = {
+                            copyScope.launch { snackbarHostState.showSnackbar("Copied to clipboard") }
+                        }
+                    )
                 }
             }
 
             ChatInputBar(
                 generation = uiState.generation,
                 canSend = uiState.canSend,
-                onSend = { viewModel.onEvent(ChatEvent.SendMessage(it)) },
-                onStop = { viewModel.onEvent(ChatEvent.CancelGeneration) }
+                onSend = { text, uri -> viewModel.onEvent(ChatEvent.SendMessage(text, uri?.toString())) },
+                onStop = { viewModel.onEvent(ChatEvent.CancelGeneration) },
+                webSearchAvailable = uiState.webSearchAvailable,
+                webSearchEnabled = uiState.webSearchEnabled,
+                onToggleWebSearch = { viewModel.onEvent(ChatEvent.ToggleWebSearch(it)) },
+                supportsVision = uiState.isVisionModel
             )
         }
     }
@@ -277,7 +301,8 @@ private fun ChatRoomEmpty(
 private fun MessageListRoom(
     uiState: ChatUiState,
     onEvent: (ChatEvent) -> Unit,
-    onEditMessage: (String, String) -> Unit
+    onEditMessage: (String, String) -> Unit,
+    onCopied: () -> Unit
 ) {
     var showSummary by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
@@ -313,7 +338,9 @@ private fun MessageListRoom(
                 } else null,
                 onEdit = if (message.isUser && !message.isStreaming) {
                     { text -> onEditMessage(message.id, text) }
-                } else null
+                } else null,
+                onCopied = onCopied,
+                showTokenCounts = uiState.showTokenCounts
             )
         }
 
@@ -443,17 +470,22 @@ private fun ContextMetricsSheet(
                     )
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        // Keep the labels clear of the ring's inner edge.
-                        modifier = Modifier.padding(horizontal = 20.dp)
+                        // Inner diameter is ~100dp (120dp ring minus stroke);
+                        // keep side padding small and center multi-line counts
+                        // so "12345 / 8192 tokens" wraps inside the ring
+                        // instead of touching its edge.
+                        modifier = Modifier.padding(horizontal = 12.dp)
                     ) {
                         Text(
                             "${(ratio * 100).toInt()}%",
-                            style = MaterialTheme.typography.headlineSmall
+                            style = MaterialTheme.typography.headlineSmall,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
                         Text(
                             "$usedTokens / $maxTokens tokens",
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
                     }
                 }

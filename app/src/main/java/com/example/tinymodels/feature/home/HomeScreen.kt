@@ -30,7 +30,10 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -63,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.tinymodels.core.ui.Formatters
+import com.example.tinymodels.feature.home.components.DeviceInsights
 import com.example.tinymodels.domain.usecase.model.DownloadStatus
 import com.example.tinymodels.feature.home.model.HomeUiState
 import com.example.tinymodels.feature.home.model.RecommendedModel
@@ -543,8 +547,17 @@ private fun DashboardHome(
 
         // ---- Your models ----
         SectionTitle("Your models")
-        state.models.forEach { model ->
+        val displayModels = state.models.take(5)
+        displayModels.forEach { model ->
             ModelRow(model = model, onNewChat = onNewChat)
+        }
+        if (state.models.size > 5) {
+            TextButton(
+                onClick = onManageModels,
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+            ) {
+                Text("Show ${state.models.size - 5} more models")
+            }
         }
         ManageModelsRow(onManageModels = onManageModels)
 
@@ -560,6 +573,15 @@ private fun DashboardHome(
             StatTile("${state.usage.totalTokens}", "tokens", Modifier.weight(1f))
             StatTile("${state.usage.modelsTried}", "models tried", Modifier.weight(1f))
         }
+        Spacer(modifier = Modifier.height(12.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            StatTile("${state.usage.totalMessages}", "messages", Modifier.weight(1f))
+            StatTile("${state.usage.chatsThisWeek}", "chats this week", Modifier.weight(1f))
+            StatTile("${state.usage.compactionsRun}", "compactions", Modifier.weight(1f))
+        }
         state.tokensPerSecond?.let { tps ->
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -568,35 +590,69 @@ private fun DashboardHome(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+        state.usage.favoriteModel?.let { favorite ->
+            Spacer(modifier = Modifier.height(12.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Filled.Star,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text("Most chatted", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Text(
+                            favorite,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+            }
+        }
+        if (state.usage.webSearchChats > 0) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                )
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Filled.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        "Web search on in ${state.usage.webSearchChats} chat${if (state.usage.webSearchChats == 1) "" else "s"}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // ---- Device ----
-        SectionTitle("Device")
-        InfoRow("Device", state.device.deviceName)
-        InfoRow("Total RAM", Formatters.formatMbAsGb(state.device.totalRamMb))
-        InfoRow("Available RAM", Formatters.formatMbAsGb(state.device.availableRamMb))
-        InfoRow("Usable for AI", "~${Formatters.formatMbAsGb(state.device.availableRamForAiMb)}")
-        InfoRow("AI capability", "${state.device.aiCapabilityLevel.label} (up to ${state.device.recommendedMaxParams})")
-        InfoRow("CPU", "${state.device.cpuCores} cores • ${state.device.arch}")
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // ---- Storage ----
-        SectionTitle("Storage")
-        val usedFraction = if (state.storage.modelBytes + state.storage.freeBytes > 0) {
-            state.storage.modelBytes.toFloat() /
-                (state.storage.modelBytes + state.storage.freeBytes)
-        } else 0f
-        LinearProgressIndicator(
-            progress = { usedFraction },
-            modifier = Modifier.fillMaxWidth().height(8.dp),
-            color = MaterialTheme.colorScheme.primary,
-            trackColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        InfoRow("Models use", Formatters.formatBytes(state.storage.modelBytes))
-        InfoRow("Free", Formatters.formatBytes(state.storage.freeBytes))
+        // ---- Device Insights (revamped style) ----
+        DeviceInsights(state = state.device)
 
         Spacer(modifier = Modifier.height(32.dp))
     }
@@ -736,23 +792,40 @@ private fun LastUsedModelCard(
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Button(
                         onClick = { onResumeChat(state.lastChat.id) },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
                     ) {
                         Text("Resume chat")
                     }
                     OutlinedButton(
                         onClick = { onNewChat(state.lastUsedModel?.modelId) },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
                     ) {
                         Text("New chat")
                     }
                 }
             } else {
+                // No prior chat — show New chat prominently with the model name
+                val modelDisplayName = state.lastUsedModel?.modelId?.substringAfterLast('/')
+                    ?: state.lastUsedFileName?.substringAfterLast('/')
+                        ?.removeSuffix(".litertlm")
+                    ?: "this model"
                 Button(
                     onClick = { onNewChat(state.lastUsedModel?.modelId) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
                 ) {
-                    Text("Start chatting")
+                    Text("New chat with $modelDisplayName")
                 }
             }
         }

@@ -11,10 +11,14 @@ import androidx.work.WorkManager
 import com.example.tinymodels.core.network.HuggingFaceApi
 import com.example.tinymodels.data.worker.ModelDownloadWorker
 import com.example.tinymodels.domain.model.ModelDetails
+import com.example.tinymodels.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
 import javax.inject.Inject
@@ -49,6 +53,19 @@ data class DownloadState(
             status == DownloadStatus.WAITING_FOR_NETWORK
 }
 
+/** One active WorkManager download job, for the global downloads section. */
+data class ActiveDownload(
+    val workId: UUID,
+    val modelId: String,
+    /** File name for single-file jobs; null for whole-model jobs. */
+    val fileName: String?,
+    val status: DownloadStatus,
+    val progress: Float = 0f,
+    val downloadedBytes: Long = 0L,
+    val totalBytes: Long = 0L,
+    val bytesPerSecond: Long = 0L
+)
+
 /**
  * Enqueues + observes model downloads via WorkManager, with a unique-work name per
  * model so re-taps observe the existing job instead of duplicating it.
@@ -56,9 +73,37 @@ data class DownloadState(
 @Singleton
 class DownloadModelUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val api: HuggingFaceApi
+    private val api: HuggingFaceApi,
+    private val settingsRepository: SettingsRepository
 ) {
     private val workManager: WorkManager get() = WorkManager.getInstance(context)
+
+    /**
+     * Cached Wi-Fi-only preference. Read off the main thread at enqueue time —
+     * DataStore has no synchronous read, and blocking the UI thread for it
+     * on every download tap is worse than a briefly-stale flag.
+     */
+    private var wifiOnlyDownloads = false
+
+    init {
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            settingsRepository.settings
+                .map { it.wifiOnlyDownloads }
+                .collect { wifiOnlyDownloads = it }
+        }
+    }
+
+    private fun downloadConstraints() = Constraints.Builder()
+        .setRequiredNetworkType(
+            if (wifiOnlyDownloads) NetworkType.UNMETERED else NetworkType.CONNECTED
+        )
+        .build()
+
+    /** WorkManager tag carrying the model id (see [ActiveDownload]). */
+    internal fun modelTag(modelId: String) = "model:$modelId"
+
+    /** WorkManager tag carrying the file name for single-file jobs. */
+    internal fun fileTag(fileName: String) = "file:$fileName"
 
     private fun uniqueName(modelId: String) = "model_download_$modelId"
 
@@ -74,10 +119,11 @@ class DownloadModelUseCase @Inject constructor(
 
     /** Enqueue a single-file download (or observe the active one) and stream progress. */
     fun executeFile(model: ModelDetails, fileName: String, fileSize: Long): Flow<DownloadState> {
+        // KEEP discards the new request when a job already exists — observe
+        // THAT job instead of the stillborn request id (which would read IDLE).
+        observeExistingFile(model.id, fileName)?.let { return it }
         val request = OneTimeWorkRequestBuilder<ModelDownloadWorker>()
-            .setConstraints(
-                Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
-            )
+            .setConstraints(downloadConstraints())
             .setInputData(
                 Data.Builder()
                     .putString(ModelDownloadWorker.KEY_MODEL_ID, model.id)
@@ -90,6 +136,8 @@ class DownloadModelUseCase @Inject constructor(
                     .build()
             )
             .addTag(ModelDownloadWorker.TAG)
+            .addTag(modelTag(model.id))
+            .addTag(fileTag(fileName))
             .build()
 
         workManager.enqueueUniqueWork(
@@ -124,10 +172,9 @@ class DownloadModelUseCase @Inject constructor(
 
     /** Enqueue a download (or observe the active one) and stream its progress. */
     fun execute(model: ModelDetails, totalBytes: Long): Flow<DownloadState> {
+        observeExisting(model.id)?.let { return it }
         val request = OneTimeWorkRequestBuilder<ModelDownloadWorker>()
-            .setConstraints(
-                Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
-            )
+            .setConstraints(downloadConstraints())
             .setInputData(
                 Data.Builder()
                     .putString(ModelDownloadWorker.KEY_MODEL_ID, model.id)
@@ -140,6 +187,7 @@ class DownloadModelUseCase @Inject constructor(
                     .build()
             )
             .addTag(ModelDownloadWorker.TAG)
+            .addTag(modelTag(model.id))
             .build()
 
         workManager.enqueueUniqueWork(uniqueName(model.id), ExistingWorkPolicy.KEEP, request)
@@ -190,5 +238,47 @@ class DownloadModelUseCase @Inject constructor(
 
     fun cancel(modelId: String) {
         workManager.cancelUniqueWork(uniqueName(modelId))
+    }
+
+    /**
+     * All live download jobs (RUNNING or ENQUEUED) across every model, mapped
+     * from the shared work tag. Backs the "Active downloads" section, which
+     * updates lively from WorkManager progress without any per-screen binding.
+     * Finished jobs (success/cancel/fail) disappear automatically.
+     */
+    fun observeActiveDownloads(): Flow<List<ActiveDownload>> =
+        workManager.getWorkInfosByTagFlow(ModelDownloadWorker.TAG).map { infos ->
+            infos
+                .filter {
+                    it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED
+                }
+                .mapNotNull { info ->
+                    val modelId = info.tags.firstOrNull { it.startsWith("model:") }
+                        ?.removePrefix("model:")
+                        ?: return@mapNotNull null
+                    val fileName = info.tags.firstOrNull { it.startsWith("file:") }
+                        ?.removePrefix("file:")
+                    val status = if (info.state == WorkInfo.State.ENQUEUED) {
+                        DownloadStatus.WAITING_FOR_NETWORK
+                    } else {
+                        DownloadStatus.DOWNLOADING
+                    }
+                    ActiveDownload(
+                        workId = info.id,
+                        modelId = modelId,
+                        fileName = fileName,
+                        status = status,
+                        progress = info.progress.getFloat(ModelDownloadWorker.KEY_PROGRESS, 0f),
+                        downloadedBytes = info.progress.getLong(ModelDownloadWorker.KEY_DOWNLOADED_BYTES, 0L),
+                        totalBytes = info.progress.getLong(ModelDownloadWorker.KEY_TOTAL_BYTES, 0L),
+                        bytesPerSecond = info.progress.getLong(ModelDownloadWorker.KEY_BYTES_PER_SEC, 0L)
+                    )
+                }
+                .sortedBy { it.modelId }
+        }
+
+    /** Cancel one active job by its work id (notification + section share this). */
+    fun cancelActive(workId: UUID) {
+        workManager.cancelWorkById(workId)
     }
 }
