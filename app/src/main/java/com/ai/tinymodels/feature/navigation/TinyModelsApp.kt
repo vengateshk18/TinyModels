@@ -1,6 +1,7 @@
 package com.ai.tinymodels.feature.navigation
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -28,8 +29,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -279,6 +283,20 @@ private fun AnimatedNavIcon(
         ),
         label = "navIconScale"
     )
+    // Unmistakable swing every time a tab is selected: snap tilted, spring back.
+    val wiggle = remember { Animatable(0f) }
+    LaunchedEffect(selected) {
+        if (selected) {
+            wiggle.snapTo(-16f)
+            wiggle.animateTo(
+                0f,
+                spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow
+                )
+            )
+        }
+    }
     AnimatedContent(
         targetState = selected,
         transitionSpec = { fadeIn(tween(150)) togetherWith fadeOut(tween(150)) },
@@ -287,7 +305,9 @@ private fun AnimatedNavIcon(
         Icon(
             imageVector = if (isSelected) selectedIcon else unselectedIcon,
             contentDescription = label,
-            modifier = Modifier.scale(scale)
+            modifier = Modifier
+                .scale(scale)
+                .rotate(wiggle.value)
         )
     }
 }
