@@ -49,4 +49,7 @@ interface ModelFileDao {
 
     @Query("DELETE FROM model_files WHERE modelId = :modelId")
     suspend fun deleteAllForModel(modelId: String)
+
+    @Query("SELECT * FROM model_files WHERE modelId = :modelId")
+    suspend fun getByModelId(modelId: String): List<ModelFileEntity>
 }

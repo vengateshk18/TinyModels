@@ -1,5 +1,9 @@
 package com.example.tinymodels.feature.models.screens
 
+import android.content.Intent
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +31,7 @@ import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SdStorage
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -38,11 +43,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,6 +58,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -70,6 +79,29 @@ fun DownloadedFileDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+
+    // SAF folder picker for per-file export.
+    val exportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri: Uri? ->
+        uri?.let {
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(
+                    it, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+            }
+            viewModel.exportFile(it)
+        }
+    }
+
+    LaunchedEffect(uiState.exportMessage) {
+        uiState.exportMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.consumeExportMessage()
+        }
+    }
 
     val safeDrawing = WindowInsets.systemBars.union(WindowInsets.displayCutout)
 
@@ -87,7 +119,8 @@ fun DownloadedFileDetailScreen(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer
                 )
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Box(
             modifier = Modifier
@@ -112,8 +145,10 @@ fun DownloadedFileDetailScreen(
                         isLoadingModel = uiState.isLoadingModel,
                         loadModelError = uiState.loadModelError,
                         isDeleting = uiState.isDeleting,
+                        isExporting = uiState.isExporting,
                         onStartChat = { modelId -> onStartChat(modelId) },
                         onDelete = { showDeleteDialog = true },
+                        onExport = { exportLauncher.launch(null) },
                         onClearLoadError = viewModel::clearLoadError
                     )
             }
@@ -154,8 +189,10 @@ private fun FileDetailContent(
     isLoadingModel: Boolean,
     loadModelError: String?,
     isDeleting: Boolean,
+    isExporting: Boolean,
     onStartChat: (String) -> Unit,
     onDelete: () -> Unit,
+    onExport: () -> Unit,
     onClearLoadError: () -> Unit
 ) {
     Column(
@@ -234,7 +271,7 @@ private fun FileDetailContent(
         Button(
             onClick = { onStartChat(fileInfo.modelId) },
             modifier = Modifier.fillMaxWidth(),
-            enabled = !isLoadingModel && !isDeleting
+            enabled = !isLoadingModel && !isDeleting && !isExporting
         ) {
             if (isLoadingModel) {
                 CircularProgressIndicator(
@@ -250,9 +287,26 @@ private fun FileDetailContent(
         }
 
         OutlinedButton(
+            onClick = onExport,
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoadingModel && !isDeleting && !isExporting
+        ) {
+            if (isExporting) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(18.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(18.dp))
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(if (isExporting) "Exporting..." else "Export file")
+        }
+
+        OutlinedButton(
             onClick = onDelete,
             modifier = Modifier.fillMaxWidth(),
-            enabled = !isLoadingModel && !isDeleting
+            enabled = !isLoadingModel && !isDeleting && !isExporting
         ) {
             if (isDeleting) {
                 CircularProgressIndicator(

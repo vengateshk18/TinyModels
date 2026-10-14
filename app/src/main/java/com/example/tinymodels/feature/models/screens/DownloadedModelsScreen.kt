@@ -149,12 +149,19 @@ private fun DownloadedFileRow(
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    file.fileName.substringAfterLast("/"),
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        file.fileName.substringAfterLast("/"),
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    if (file.isImported) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        ImportedTag()
+                    }
+                }
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     file.modelId,
@@ -178,8 +185,22 @@ private fun DownloadedFileRow(
     }
 }
 
-private fun formatBytes(bytes: Long): String {
-    if (bytes <= 0) return "0 B"
+@Composable
+private fun ImportedTag() {
+    androidx.compose.material3.Surface(
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)
+    ) {
+        Text(
+            "Imported",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+        )
+    }
+}
+
+private fun formatBytes(bytes: Long): String {    if (bytes <= 0) return "0 B"
     val units = listOf("B", "KB", "MB", "GB")
     var value = bytes.toDouble()
     var index = 0

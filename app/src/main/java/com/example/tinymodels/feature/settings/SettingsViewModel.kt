@@ -1,12 +1,15 @@
 package com.example.tinymodels.feature.settings
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.tinymodels.core.common.AppResult
 import com.example.tinymodels.domain.model.AppSettings
 import com.example.tinymodels.domain.model.BackendPreference
 import com.example.tinymodels.domain.model.FontChoice
 import com.example.tinymodels.domain.model.ThemeMode
 import com.example.tinymodels.domain.repository.ChatRepository
+import com.example.tinymodels.domain.repository.ModelRepository
 import com.example.tinymodels.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -21,7 +24,8 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
-    private val chatRepository: ChatRepository
+    private val chatRepository: ChatRepository,
+    private val modelRepository: ModelRepository
 ) : ViewModel() {
 
     val settings: StateFlow<AppSettings> = settingsRepository.settings
@@ -57,4 +61,18 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun consumeClearResult() { _clearResult.value = null }
+
+    // ---- Model Import ----
+
+    /** Import a .litertlm file from a user-picked document URI. */
+    fun importModel(sourceUri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            when (val result = modelRepository.importModel(sourceUri)) {
+                is AppResult.Success -> _clearResult.value =
+                    "Model imported: ${result.data.modelId}"
+                is AppResult.Error -> _clearResult.value =
+                    "Import failed: ${result.error.message}"
+            }
+        }
+    }
 }

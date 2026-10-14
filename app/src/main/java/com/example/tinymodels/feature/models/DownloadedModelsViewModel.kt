@@ -14,8 +14,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.UUID
 import javax.inject.Inject
 
@@ -31,9 +33,15 @@ class DownloadedModelsViewModel @Inject constructor(
         modelRepository.observeDownloadedModels()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    /** All DOWNLOADED files (children), grouped by model in the UI. */
+    /** All DOWNLOADED files (children), grouped by model in the UI.
+     *
+     * Only files still present on disk are shown: if the underlying
+     * `.litertlm` was deleted outside the app (e.g. via Files), the stale
+     * DB row is hidden instead of offered for chat.
+     */
     val downloadedFiles: StateFlow<List<DownloadedModelFile>> =
         modelRepository.observeDownloadedFiles()
+            .map { files -> files.filter { it.isFileAvailable() } }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /**
@@ -59,6 +67,19 @@ class DownloadedModelsViewModel @Inject constructor(
     init {
         viewModelScope.launch(Dispatchers.Default) {
             downloadedFiles.collect { files -> _totalSizeBytes.value = files.sumOf { it.sizeBytes } }
+        }
+    }
+
+    /**
+     * True when the file's `.litertlm` still exists on disk.
+     * `localPath` is the model directory; the file lives inside it.
+     */
+    private fun DownloadedModelFile.isFileAvailable(): Boolean {
+        val dir = localPath ?: return false
+        return try {
+            File(dir, fileName.substringAfterLast("/")).exists()
+        } catch (_: Exception) {
+            false
         }
     }
 

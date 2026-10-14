@@ -88,7 +88,9 @@ data class DownloadedModelFile(
     val status: FileDownloadStatus,
     val sizeBytes: Long,
     val localPath: String?,
-    val error: String?
+    val error: String?,
+    /** True when this file was imported from an external .litertlm file. */
+    val isImported: Boolean = false
 )
 
 /** Metadata about the currently loaded model + how it was loaded. */
