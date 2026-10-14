@@ -1,0 +1,101 @@
+/* TinyModels static site — plain CSS, no dependencies. */
+:root {
+  --bg: #ffffff;
+  --fg: #1a1c1e;
+  --muted: #5f6368;
+  --accent: #0b57d0;
+  --surface: #f0f4f9;
+  --border: #dde3ea;
+  --radius: 12px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--fg);
+  background: var(--bg);
+  line-height: 1.6;
+}
+
+.wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.site-header {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.site-header .wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.logo { font-weight: 700; font-size: 1.1rem; }
+
+nav a {
+  margin-left: 16px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+nav a.active, nav a:hover { color: var(--accent); }
+
+.hero { padding: 40px 0 8px; }
+
+.hero h1 { font-size: 2rem; line-height: 1.25; margin: 0 0 8px; }
+
+.lede { font-size: 1.15rem; color: var(--muted); }
+
+.cta-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+
+.btn {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+section { margin: 32px 0; }
+
+.facts { padding-left: 20px; }
+.facts li { margin-bottom: 10px; }
+
+.doc h1 { margin-top: 32px; }
+.doc h2 { margin-top: 28px; font-size: 1.25rem; }
+.doc li { margin-bottom: 8px; }
+
+.meta { color: var(--muted); font-size: 0.9rem; }
+
+code {
+  background: var(--surface);
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 0.9em;
+}
+
+a { color: var(--accent); }
+
+.site-footer {
+  border-top: 1px solid var(--border);
+  margin-top: 48px;
+  padding: 16px 0 32px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}

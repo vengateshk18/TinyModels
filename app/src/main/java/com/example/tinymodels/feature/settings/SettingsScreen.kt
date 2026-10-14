@@ -1,5 +1,6 @@
 package com.example.tinymodels.feature.settings
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -147,6 +148,8 @@ fun SettingsScreen(
                 onDeviceInfo = onDeviceInfo,
                 onClearHistory = { showClearDialog = true }
             )
+            SectionDivider()
+            SupportSection()
             // 24dp breathing room after the last item so content is never
             // clipped at the scroll end by the navigation bar.
             Spacer(modifier = Modifier.height(24.dp))
@@ -374,6 +377,47 @@ private fun TokenDialog(
             }
         }
     )
+}
+
+/**
+ * Support section — GitHub star link and bug-report email.
+ */
+@Composable
+private fun SupportSection() {
+    val context = LocalContext.current
+    SectionHeader("Support")
+    NavigationRow(
+        label = "Star on GitHub",
+        subtitle = "Support free, on-device AI for everyone",
+        onClick = { openUrl(context, "https://github.com/vengateshk18/TinyModels") }
+    )
+    NavigationRow(
+        label = "Report a bug",
+        subtitle = "Found something broken? Let us know",
+        onClick = { reportBug(context) }
+    )
+}
+
+private fun openUrl(context: Context, url: String) {
+    runCatching {
+        context.startActivity(
+            Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
+    }
+}
+
+private fun reportBug(context: Context) {
+    runCatching {
+        context.startActivity(
+            Intent(
+                Intent.ACTION_SENDTO,
+                Uri.parse("mailto:vengatesh00014@gamil.com")
+            ).apply {
+                putExtra(Intent.EXTRA_SUBJECT, "TinyModels bug report")
+            }.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
+    }
 }
 
 @Composable
