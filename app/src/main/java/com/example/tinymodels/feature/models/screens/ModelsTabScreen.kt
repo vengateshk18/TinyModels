@@ -90,6 +90,7 @@ fun ModelsTabScreen(
     val uiState by listViewModel.uiState.collectAsStateWithLifecycle()
     val downloadedModels by downloadedViewModel.models.collectAsStateWithLifecycle()
     val downloadedFiles by downloadedViewModel.downloadedFiles.collectAsStateWithLifecycle()
+    val totalSizeBytes by downloadedViewModel.totalSizeBytes.collectAsStateWithLifecycle()
     val activeDownloads by downloadedViewModel.activeDownloads.collectAsStateWithLifecycle()
 
     // Tab screen — outer Scaffold already handled the bottom nav-bar inset.
@@ -136,7 +137,7 @@ fun ModelsTabScreen(
                 )
                 1 -> DownloadedContent(
                     downloadedFiles = downloadedFiles,
-                    totalSizeBytes = downloadedViewModel.totalSizeBytes.value,
+                    totalSizeBytes = totalSizeBytes,
                     activeDownloads = activeDownloads,
                     onCancelActive = downloadedViewModel::cancelActiveDownload,
                     onFileClick = onFileClick

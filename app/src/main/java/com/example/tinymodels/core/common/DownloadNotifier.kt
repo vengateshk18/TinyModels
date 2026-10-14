@@ -1,6 +1,7 @@
 package com.example.tinymodels.core.common
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -84,14 +85,23 @@ object DownloadNotifier {
             .build()
     }
 
-    /** Post a progress update for [workId] (permission-guarded). */
+    /**
+     * Post a progress update for [workId] (permission-guarded).
+     *
+     * Lint-safe: [canNotify] checks POST_NOTIFICATIONS up front and
+     * [safeNotify] swallows a mid-flight [SecurityException]; the suppression
+     * covers lint's inability to see the guard through the helper.
+     */
+    @SuppressLint("MissingPermission")
     fun notifyProgress(context: Context, workId: UUID, title: String, downloaded: Long, total: Long) {
         if (!canNotify(context)) return
-        NotificationManagerCompat.from(context)
-            .notify(notificationIdFor(workId), progressNotification(context, workId, title, downloaded, total))
+        safeNotify(context) {
+            it.notify(notificationIdFor(workId), progressNotification(context, workId, title, downloaded, total))
+        }
     }
 
     /** Post a "Download complete" notification and dismiss the progress one. */
+    @SuppressLint("MissingPermission")
     fun notifyComplete(context: Context, workId: UUID, title: String) {
         if (!canNotify(context)) return
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
@@ -101,13 +111,14 @@ object DownloadNotifier {
             .setAutoCancel(true)
             .setContentIntent(openAppIntent(context))
             .build()
-        NotificationManagerCompat.from(context).apply {
-            cancel(notificationIdFor(workId))
-            notify(terminalIdFor(workId), notification)
+        safeNotify(context) {
+            it.cancel(notificationIdFor(workId))
+            it.notify(terminalIdFor(workId), notification)
         }
     }
 
     /** Post a "Download failed" notification and dismiss the progress one. */
+    @SuppressLint("MissingPermission")
     fun notifyFailed(context: Context, workId: UUID, title: String, error: String?) {
         if (!canNotify(context)) return
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
@@ -117,9 +128,23 @@ object DownloadNotifier {
             .setAutoCancel(true)
             .setContentIntent(openAppIntent(context))
             .build()
-        NotificationManagerCompat.from(context).apply {
-            cancel(notificationIdFor(workId))
-            notify(terminalIdFor(workId), notification)
+        safeNotify(context) {
+            it.cancel(notificationIdFor(workId))
+            it.notify(terminalIdFor(workId), notification)
+        }
+    }
+
+    /**
+     * Runs [block] against [NotificationManagerCompat], swallowing a
+     * [SecurityException] if the notification permission was revoked between
+     * the [canNotify] check and the post (explicit handling, as lint requires
+     * for `MissingPermission`).
+     */
+    private inline fun safeNotify(context: Context, block: (NotificationManagerCompat) -> Unit) {
+        try {
+            block(NotificationManagerCompat.from(context))
+        } catch (_: SecurityException) {
+            // Permission revoked mid-flight — downloads continue silently.
         }
     }
 
