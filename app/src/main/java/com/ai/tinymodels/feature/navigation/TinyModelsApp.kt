@@ -1,5 +1,13 @@
 package com.ai.tinymodels.feature.navigation
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -22,6 +30,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -87,9 +96,11 @@ fun TinyModelsApp(
                                 }
                             },
                             icon = {
-                                Icon(
-                                    imageVector = if (selected) item.selectedIcon else item.icon,
-                                    contentDescription = item.label
+                                AnimatedNavIcon(
+                                    selected = selected,
+                                    selectedIcon = item.selectedIcon,
+                                    unselectedIcon = item.icon,
+                                    label = item.label
                                 )
                             },
                             label = { Text(item.label) }
@@ -247,3 +258,36 @@ private val bottomNavItems = listOf(
     BottomNavItem(Routes.MODELS, "Models", Icons.Outlined.Download, Icons.Filled.Download),
     BottomNavItem(Routes.SETTINGS, "Settings", Icons.Outlined.Settings, Icons.Filled.Settings)
 )
+
+/**
+ * Bottom-bar tab icon with a selection animation: the icon cross-fades between
+ * its outlined and filled variants while doing a small springy pop, so tab
+ * switches feel alive instead of snapping between static glyphs.
+ */
+@Composable
+private fun AnimatedNavIcon(
+    selected: Boolean,
+    selectedIcon: ImageVector,
+    unselectedIcon: ImageVector,
+    label: String
+) {
+    val scale by animateFloatAsState(
+        targetValue = if (selected) 1.18f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "navIconScale"
+    )
+    AnimatedContent(
+        targetState = selected,
+        transitionSpec = { fadeIn(tween(150)) togetherWith fadeOut(tween(150)) },
+        label = "navIconSwap"
+    ) { isSelected ->
+        Icon(
+            imageVector = if (isSelected) selectedIcon else unselectedIcon,
+            contentDescription = label,
+            modifier = Modifier.scale(scale)
+        )
+    }
+}
