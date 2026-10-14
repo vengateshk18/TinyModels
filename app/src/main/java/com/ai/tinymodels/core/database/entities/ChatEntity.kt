@@ -1,0 +1,51 @@
+package com.ai.tinymodels.core.database.entities
+
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "chats")
+data class ChatEntity(
+    @PrimaryKey val chatId: String,
+    val title: String,
+    val modelId: String,
+    val createdAt: Long,
+    val updatedAt: Long,
+    val isArchived: Boolean = false,
+    // Per-session inference settings:
+    val backend: String = "AUTO",
+    val temperature: Double = 0.7,
+    val topK: Int = 40,
+    val topP: Double = 0.95,
+    val maxContextTokens: Int = 2048,
+    val systemInstruction: String = "You are a helpful assistant.",
+    // ---- Context compaction (DB v6) ----
+    /** Digest of older turns that were summarized away to fit the context window. */
+    val compactedSummary: String? = null,
+    /** createdAt cutoff: messages at or BEFORE this timestamp are covered by [compactedSummary]. */
+    val compactedUpToCreatedAt: Long? = null,
+    // ---- Context compaction (DB v7) ----
+    /** How many times compaction has run for this chat (observability metric). */
+    val compactionCount: Int = 0,
+    // ---- Web search tool (DB v8) ----
+    /** Per-chat opt-in for the model's web_search tool (global setting gates availability). */
+    val webSearchEnabled: Boolean = false
+)
+
+@Entity(
+    tableName = "messages",
+    indices = [Index(value = ["chatId", "createdAt"])]
+)
+data class MessageEntity(
+    @PrimaryKey val messageId: String,
+    val chatId: String,
+    val role: String, // USER / ASSISTANT / SYSTEM
+    val content: String,
+    val tokenCount: Int,
+    val createdAt: Long,
+    val isComplete: Boolean = true,
+    /** Wall-clock time when generation finished (assistant messages only). */
+    val completedAt: Long? = null,
+    /** Absolute path of an attached photo (user messages only, DB v9). Null when text-only. */
+    val imagePath: String? = null
+)
