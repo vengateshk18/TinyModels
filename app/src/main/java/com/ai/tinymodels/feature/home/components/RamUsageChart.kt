@@ -4,168 +4,268 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.material3.Text
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.ai.tinymodels.core.ui.Formatters
 
 /**
- * An animated line chart showing RAM usage over time.
+ * Live RAM monitor card: header with a status pill, an animated area chart
+ * with gridlines, and a used/free footer.
+ *
+ * All colors come from [MaterialTheme.colorScheme] (status levels map to
+ * primary / tertiary / error roles) so the card stays readable in both light
+ * and dark themes — no hardcoded neon hues.
  *
  * @param samples List of available RAM bytes (most recent last).
  * @param totalRam Total RAM in bytes.
- * @param modifier Modifier for the chart container.
- * @param height Chart height (default 120.dp).
+ * @param modifier Modifier for the card.
+ * @param height Chart area height (default 140.dp).
  */
 @Composable
 fun RamUsageChart(
     samples: List<Long>,
     totalRam: Long,
     modifier: Modifier = Modifier,
-    height: Dp = 120.dp
+    height: Dp = 140.dp
 ) {
+    val scheme = MaterialTheme.colorScheme
     val density = LocalDensity.current
     val widthPx = remember { mutableStateOf(0f) }
     val heightPx = remember(height, density) { with(density) { height.roundToPx() } }
 
-    // Animate fraction from 0 to 1 over 800ms
+    // Draw-in animation on first composition.
     val fraction by animateFloatAsState(
         targetValue = 1f,
-        animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing)
+        animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
+        label = "ramChartDraw"
     )
 
-    // Current usage percentage (based on latest sample)
-    val currentUsagePercent = remember(samples, totalRam) {
-        if (samples.isNotEmpty() && totalRam > 0) {
-            val available = samples.last().coerceIn(0L, totalRam)
-            ((totalRam - available).toFloat() / totalRam) * 100f
-        } else 0f
+    val usage = remember(samples, totalRam) { usageStats(samples, totalRam) }
+
+    // Status level drives pill + line colors through theme roles.
+    val level = when {
+        usage == null -> 0
+        usage.usedPercent >= 90f -> 2
+        usage.usedPercent >= 75f -> 1
+        else -> 0
+    }
+    val statusColor = when (level) {
+        2 -> scheme.error
+        1 -> scheme.tertiary
+        else -> scheme.primary
+    }
+    val pillContainer = when (level) {
+        2 -> scheme.errorContainer
+        1 -> scheme.tertiaryContainer
+        else -> scheme.secondaryContainer
+    }
+    val pillContent = when (level) {
+        2 -> scheme.onErrorContainer
+        1 -> scheme.onTertiaryContainer
+        else -> scheme.onSecondaryContainer
     }
 
-    // Convert samples to chart coordinates
+    // Convert samples to chart coordinates.
     val points = remember(samples, totalRam, widthPx, heightPx) {
         toPoints(samples, totalRam, widthPx.value, heightPx.toFloat())
     }
 
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(height)
-            .onSizeChanged { size ->
-                widthPx.value = size.width.toFloat()
-            }
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainer)
     ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val w = size.width.toFloat()
-            val h = size.height.toFloat()
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Header: title + status pill.
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Live RAM usage",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f)
+                )
+                Surface(
+                    color = pillContainer,
+                    shape = RoundedCornerShape(999.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .background(color = statusColor, shape = RoundedCornerShape(999.dp))
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            if (usage != null) "%.2f%% used".format(usage.usedPercent) else "—",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = pillContent
+                        )
+                    }
+                }
+            }
 
-            if (points.size >= 2) {
-                // Build the full path
-                val fullPath = buildPath(points)
+            Spacer(modifier = Modifier.height(12.dp))
 
-                // Calculate animated path (partial path based on fraction)
-                val animatedPath = Path()
-                val pathMeasure = PathMeasure()
-                pathMeasure.setPath(fullPath, false)
-                val totalLength = pathMeasure.length
-                val targetLength = totalLength * fraction
+            // Chart area.
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(height)
+                    .onSizeChanged { size -> widthPx.value = size.width.toFloat() }
+            ) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val w = size.width
+                    val h = size.height
+                    val gridColor = scheme.onSurfaceVariant.copy(alpha = 0.25f)
 
-                pathMeasure.getSegment(0f, targetLength, animatedPath, true)
+                    // Dashed gridlines at 25 / 50 / 75 % height.
+                    val dash = PathEffect.dashPathEffect(floatArrayOf(8f, 8f), 0f)
+                    for (f in listOf(0.25f, 0.5f, 0.75f)) {
+                        drawLine(
+                            color = gridColor,
+                            start = Offset(0f, h * f),
+                            end = Offset(w, h * f),
+                            strokeWidth = 1f,
+                            pathEffect = dash
+                        )
+                    }
 
-                // Gradient fill under the line (green -> yellow -> red based on usage)
-                // Use the last point's x as the fill endpoint — the path always
-                // ends there, and arc-length fraction maps non-linearly to x.
-                val fillPath = Path().apply {
-                    addPath(animatedPath)
-                    lineTo(points.last().x, h)
-                    lineTo(points.first().x, h)
-                    close()
+                    if (points.size >= 2) {
+                        val fullPath = buildPath(points)
+                        val animatedPath = Path()
+                        val measure = PathMeasure()
+                        measure.setPath(fullPath, false)
+                        measure.getSegment(0f, measure.length * fraction, animatedPath, true)
+
+                        // Area fill under the animated line.
+                        val fillPath = Path().apply {
+                            addPath(animatedPath)
+                            lineTo(points.last().x, h)
+                            lineTo(points.first().x, h)
+                            close()
+                        }
+                        drawPath(
+                            path = fillPath,
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    statusColor.copy(alpha = 0.35f),
+                                    statusColor.copy(alpha = 0.04f)
+                                )
+                            )
+                        )
+                        // The line itself.
+                        drawPath(
+                            path = animatedPath,
+                            color = statusColor,
+                            style = Stroke(width = 3.dp.toPx())
+                        )
+                        // Latest-sample dot.
+                        drawCircle(
+                            color = statusColor,
+                            radius = 5.dp.toPx(),
+                            center = points.last()
+                        )
+                        drawCircle(
+                            color = scheme.surfaceContainer,
+                            radius = 2.2.dp.toPx(),
+                            center = points.last()
+                        )
+                    }
                 }
 
-                val usageRatio = (currentUsagePercent / 100f).coerceIn(0f, 1f)
-                val fillBrush = Brush.linearGradient(
-                    colors = listOf(
-                        Color.Green.copy(alpha = 0.3f),
-                        Color.Yellow.copy(alpha = 0.3f),
-                        Color.Red.copy(alpha = 0.3f)
-                    ),
-                    start = Offset(0f, h * (1f - usageRatio)),
-                    end = Offset(0f, h)
-                )
-
-                drawPath(
-                    path = fillPath,
-                    brush = fillBrush
-                )
-
-                // Draw the animated line
-                drawPath(
-                    path = animatedPath,
-                    color = when {
-                        usageRatio < 0.5f -> Color.Green
-                        usageRatio < 0.8f -> Color.Yellow
-                        else -> Color.Red
-                    },
-                    style = Stroke(width = 3f)
-                )
+                if (points.size < 2) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "Collecting samples…",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = scheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
-        }
 
-        // Percentage overlay (centered)
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            if (samples.isNotEmpty() && totalRam > 0) {
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Footer: used / free / total.
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 Text(
-                    text = "%.1f%%".format(currentUsagePercent),
-                    style = TextStyle(
-                        fontSize = 36.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = when {
-                            currentUsagePercent < 50f -> Color.Green
-                            currentUsagePercent < 80f -> Color.Yellow
-                            else -> Color.Red
-                        }
-                    )
+                    "Used ${usage?.usedLabel ?: "—"}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = scheme.onSurfaceVariant
                 )
-            } else {
                 Text(
-                    text = "—",
-                    style = TextStyle(
-                        fontSize = 36.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Gray
-                    )
+                    "Free ${usage?.freeLabel ?: "—"} of ${usage?.totalLabel ?: "—"}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = scheme.onSurfaceVariant
                 )
             }
         }
     }
+}
+
+/** Null when there is nothing to show yet. */
+private data class UsageLabels(
+    val usedPercent: Float,
+    val usedLabel: String,
+    val freeLabel: String,
+    val totalLabel: String
+)
+
+private fun usageStats(samples: List<Long>, totalRam: Long): UsageLabels? {
+    if (samples.isEmpty() || totalRam <= 0) return null
+    val available = samples.last().coerceIn(0L, totalRam)
+    val used = totalRam - available
+    return UsageLabels(
+        usedPercent = (used.toFloat() / totalRam) * 100f,
+        usedLabel = Formatters.formatBytes(used),
+        freeLabel = Formatters.formatBytes(available),
+        totalLabel = Formatters.formatBytes(totalRam)
+    )
 }
 
 /**
