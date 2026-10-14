@@ -1,5 +1,14 @@
 name: Android CI
 
+# What this does for the app:
+#   - Debug build check  -> proves the app compiles (all flavors of breakage
+#     from Kotlin, Compose, Hilt, Room show up here).
+#   - Unit tests         -> runs :app:testDebugUnitTest (web-search pipeline,
+#     parsers, DTOs, benchmark math). Results uploaded as artifacts.
+#   - Android Lint       -> catches performance, correctness and security
+#     issues in Android code + Compose. Report uploaded as artifact.
+# Runs on every push to main/worker and every PR targeting main.
+
 on:
   push:
     branches: [main, worker]
@@ -9,7 +18,7 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,11 +37,14 @@ jobs:
       - name: Set up Gradle (caching)
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Assemble debug APK
+        run: ./gradlew :app:assembleDebug --stacktrace
+
       - name: Run unit tests
         run: ./gradlew :app:testDebugUnitTest --stacktrace
 
-      - name: Assemble debug APK
-        run: ./gradlew :app:assembleDebug --stacktrace
+      - name: Run Android Lint
+        run: ./gradlew :app:lintDebug --stacktrace
 
       - name: Upload test reports
         if: always()
@@ -48,4 +60,12 @@ jobs:
         with:
           name: debug-apk
           path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: warn
+
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: app/build/reports/lint-results-debug.*
           if-no-files-found: warn

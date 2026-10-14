@@ -1,5 +1,14 @@
 name: Release AAB
 
+# What this does for the app:
+#   - On every version tag (v*, e.g. v1.2.0) it builds the minified release
+#     AAB (R8 + resource shrink, arm64-only) and attaches it to the
+#     GitHub Release, plus the unit-test report for that exact commit.
+#   - Manual runs (workflow_dispatch) are also supported for ad-hoc builds.
+# Note: the repo has no signing config, so the artifact is an unsigned
+# release bundle — when a release keystore is added via secrets, add a
+# signing step before bundle.
+
 on:
   push:
     tags:
