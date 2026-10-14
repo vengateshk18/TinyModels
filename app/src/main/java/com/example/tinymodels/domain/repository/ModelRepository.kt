@@ -7,6 +7,7 @@ import com.example.tinymodels.domain.model.FileDownloadStatus
 import com.example.tinymodels.domain.model.ModelDetails
 import com.example.tinymodels.domain.model.ModelSummary
 import kotlinx.coroutines.flow.Flow
+import android.net.Uri
 
 interface ModelRepository {
 
@@ -39,4 +40,11 @@ interface ModelRepository {
         error: String? = null
     )
     suspend fun deleteModelFile(modelId: String, fileName: String)
+
+    // ---- Export / Import ----
+    /** Export one downloaded file to a user-selected folder (SAF). */
+    suspend fun exportModelFile(modelId: String, fileName: String, destinationUri: Uri): AppResult<Uri>
+    
+    /** Import a .litertlm file from a user-selected file (SAF). */
+    suspend fun importModel(sourceUri: Uri): AppResult<DownloadedModel>
 }

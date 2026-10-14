@@ -29,7 +29,7 @@ interface ChatDao {
 
     /**
      * Persist a context-compaction digest: [summary] covers all messages
-     * created strictly before [cutoffCreatedAt]. Null summary clears the
+     * created at or before [cutoffCreatedAt]. Null summary clears the
      * compaction (used when the user edits/regenerates inside the region).
      */
     @Query(
@@ -96,6 +96,26 @@ interface ChatDao {
 
     @Query("SELECT COUNT(*) FROM messages WHERE chatId = :chatId")
     suspend fun messageCount(chatId: String): Int
+
+    /** Total messages across all chats (for the Home dashboard). */
+    @Query("SELECT COUNT(*) FROM messages")
+    suspend fun totalMessages(): Int
+
+    /** Chats created since [sinceMs] (Home "this week" metric). */
+    @Query("SELECT COUNT(*) FROM chats WHERE createdAt >= :sinceMs")
+    suspend fun chatsSince(sinceMs: Long): Int
+
+    /** Most-chatted model id, or null when no chats exist. */
+    @Query("SELECT modelId FROM chats GROUP BY modelId ORDER BY COUNT(*) DESC LIMIT 1")
+    suspend fun favoriteModelId(): String?
+
+    /** Total compactions run across all chats (observability metric). */
+    @Query("SELECT COALESCE(SUM(compactionCount), 0) FROM chats")
+    suspend fun totalCompactions(): Int
+
+    /** Chats with web search enabled (feature-adoption metric). */
+    @Query("SELECT COUNT(*) FROM chats WHERE webSearchEnabled = 1")
+    suspend fun webSearchChats(): Int
 
     // ---- Usage stats (Home dashboard) ----
 

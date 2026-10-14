@@ -121,6 +121,21 @@ class ChatRepositoryImpl @Inject constructor(
     override suspend fun messageCount(chatId: String): Int =
         withContext(dispatchers.io) { chatDao.messageCount(chatId) }
 
+    override suspend fun totalMessages(): Int =
+        withContext(dispatchers.io) { chatDao.totalMessages() }
+
+    override suspend fun chatsSince(sinceMs: Long): Int =
+        withContext(dispatchers.io) { chatDao.chatsSince(sinceMs) }
+
+    override suspend fun favoriteModelId(): String? =
+        withContext(dispatchers.io) { chatDao.favoriteModelId() }
+
+    override suspend fun totalCompactions(): Int =
+        withContext(dispatchers.io) { chatDao.totalCompactions() }
+
+    override suspend fun webSearchChats(): Int =
+        withContext(dispatchers.io) { chatDao.webSearchChats() }
+
     // ---- Usage stats (Home dashboard) ----
 
     override suspend fun totalChats(): Int =
@@ -175,7 +190,8 @@ class ChatRepositoryImpl @Inject constructor(
         tokenCount = tokenCount,
         createdAt = createdAt,
         isComplete = isComplete,
-        completedAt = completedAt
+        completedAt = completedAt,
+        imagePath = imagePath
     )
 
     private fun ChatMessage.toEntity() = MessageEntity(
@@ -186,6 +202,7 @@ class ChatRepositoryImpl @Inject constructor(
         tokenCount = tokenCount,
         createdAt = createdAt,
         isComplete = isComplete,
-        completedAt = completedAt
+        completedAt = completedAt,
+        imagePath = imagePath
     )
 }

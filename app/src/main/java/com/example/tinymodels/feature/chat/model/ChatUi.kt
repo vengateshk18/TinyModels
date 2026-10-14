@@ -12,7 +12,11 @@ data class UiChatMessage(
     val isStreaming: Boolean = false,
     val timestamp: Long = 0L,
     /** Wall-clock time when the assistant finished replying (null for user msgs / in-flight). */
-    val completedAt: Long? = null
+    val completedAt: Long? = null,
+    /** Estimated tokens for this message (null for in-flight placeholders). */
+    val tokenCount: Int? = null,
+    /** Absolute path of an attached photo (user messages, multimodal models). */
+    val imagePath: String? = null
 )
 
 /** State of the model chip shown in the top bar. */
@@ -109,17 +113,31 @@ data class ChatUiState(
     /** Per-chat opt-in for the model's web_search tool (global setting gates availability). */
     val webSearchEnabled: Boolean = false,
     /** Global availability gate for the web_search tool (from app settings). */
-    val webSearchAvailable: Boolean = true
+    val webSearchAvailable: Boolean = true,
+    /** True when the loaded model has a vision encoder (photo attach allowed). */
+    val isVisionModel: Boolean = false,
+    /** Keep the screen awake while generating (from app settings). */
+    val keepScreenOn: Boolean = true,
+    /** Show per-message token counts in footers (from app settings). */
+    val showTokenCounts: Boolean = false
 ) {
     val canSend: Boolean
         get() = model is ModelChipState.Ready && generation == GenerationState.IDLE
+
+    /**
+     * True when a model is loaded, regardless of generation. The composer
+     * stays editable while streaming so the next prompt can be typed; sending
+     * still requires stopping the current generation first (see [canSend]).
+     */
+    val isModelReady: Boolean
+        get() = model is ModelChipState.Ready
 }
 
 /** One-way events from the UI into the ViewModel (MVI intents). */
 sealed interface ChatEvent {
     /** Selects a model — and optionally the exact file within it — to load. */
     data class SelectModel(val modelId: String, val fileName: String? = null) : ChatEvent
-    data class SendMessage(val text: String) : ChatEvent
+    data class SendMessage(val text: String, val imageUri: String? = null) : ChatEvent
     data object CancelGeneration : ChatEvent
     data object Regenerate : ChatEvent
     data class EditMessage(val messageId: String, val newText: String) : ChatEvent

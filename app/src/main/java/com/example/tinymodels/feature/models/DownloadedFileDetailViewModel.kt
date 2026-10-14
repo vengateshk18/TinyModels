@@ -3,6 +3,7 @@ package com.example.tinymodels.feature.models
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.tinymodels.core.common.AppResult
 import com.example.tinymodels.core.inference.ModelManager
 import com.example.tinymodels.domain.model.BackendPreference
 import com.example.tinymodels.domain.model.DownloadedModelFile
@@ -36,7 +37,9 @@ class DownloadedFileDetailViewModel @Inject constructor(
         val error: String? = null,
         val isLoadingModel: Boolean = false, // Kept for backward compat — always false now
         val loadModelError: String? = null,
-        val isDeleting: Boolean = false
+        val isDeleting: Boolean = false,
+        val isExporting: Boolean = false,
+        val exportMessage: String? = null
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -123,5 +126,35 @@ class DownloadedFileDetailViewModel @Inject constructor(
 
     fun clearLoadError() {
         _uiState.update { it.copy(loadModelError = null) }
+    }
+
+    /**
+     * Export this file to a user-picked folder (SAF tree URI).
+     * The result is surfaced via [UiState.exportMessage] for a snackbar.
+     */
+    fun exportFile(destinationUri: android.net.Uri) {
+        val fileInfo = _uiState.value.fileInfo ?: return
+        _uiState.update { it.copy(isExporting = true, exportMessage = null) }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            when (val result = modelRepository.exportModelFile(modelId, fileName, destinationUri)) {
+                is AppResult.Success -> _uiState.update {
+                    it.copy(
+                        isExporting = false,
+                        exportMessage = "Exported ${fileName.substringAfterLast("/")}"
+                    )
+                }
+                is AppResult.Error -> _uiState.update {
+                    it.copy(
+                        isExporting = false,
+                        exportMessage = "Export failed: ${result.error.message}"
+                    )
+                }
+            }
+        }
+    }
+
+    fun consumeExportMessage() {
+        _uiState.update { it.copy(exportMessage = null) }
     }
 }

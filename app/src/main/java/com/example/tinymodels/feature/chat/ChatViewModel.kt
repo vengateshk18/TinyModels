@@ -9,6 +9,7 @@ import com.example.tinymodels.core.inference.ConversationSession
 import com.example.tinymodels.core.inference.InferenceException
 import com.example.tinymodels.core.inference.ModelContextInspector
 import com.example.tinymodels.core.inference.ModelManager
+import com.example.tinymodels.core.inference.ModelVisionSupport
 import com.example.tinymodels.core.inference.tools.WebSearchToolSet
 import com.example.tinymodels.core.network.WebSearchPrompt
 import com.example.tinymodels.core.network.WebSearchQuery
@@ -31,6 +32,7 @@ import com.example.tinymodels.feature.chat.model.ModelChipState
 import com.example.tinymodels.feature.chat.model.ModelLoadProgress
 import com.example.tinymodels.feature.chat.model.UiChatMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
@@ -66,6 +68,7 @@ class ChatViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val webSearchToolSet: WebSearchToolSet,
     private val webSearchRepository: WebSearchRepository,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val appContext: android.content.Context,
     private val dispatchers: DispatcherProvider
 ) : ViewModel() {
 
@@ -129,8 +132,13 @@ class ChatViewModel @Inject constructor(
             // Opening a specific existing chat — load its model inside openChatInternal.
             viewModelScope.launch(Dispatchers.Default) { openChatInternal(existingChatId) }
         } else {
-            // New chat or direct entry — auto-load the best available model.
-            viewModelScope.launch(Dispatchers.Default) { autoLoadModel() }
+            // New chat or direct entry — auto-load the best available model,
+            // unless the user disabled it in Settings (manual pick instead).
+            viewModelScope.launch(Dispatchers.Default) {
+                if (settingsRepository.getSettings().autoLoadLastModel) {
+                    autoLoadModel()
+                }
+            }
         }
     }
 
@@ -169,7 +177,7 @@ class ChatViewModel @Inject constructor(
     fun onEvent(event: ChatEvent) {
         when (event) {
             is ChatEvent.SelectModel -> selectModel(event.modelId, event.fileName)
-            is ChatEvent.SendMessage -> sendMessage(event.text)
+            is ChatEvent.SendMessage -> sendMessage(event.text, event.imageUri)
             ChatEvent.CancelGeneration -> cancelGeneration()
             ChatEvent.Regenerate -> regenerate()
             is ChatEvent.EditMessage -> editMessage(event.messageId, event.newText)
@@ -230,7 +238,13 @@ class ChatViewModel @Inject constructor(
     private fun observeWebSearchAvailability() {
         viewModelScope.launch(Dispatchers.Default) {
             settingsRepository.settings.collect { settings ->
-                _uiState.update { it.copy(webSearchAvailable = settings.webSearchEnabled) }
+                _uiState.update {
+                    it.copy(
+                        webSearchAvailable = settings.webSearchEnabled,
+                        keepScreenOn = settings.keepScreenOn,
+                        showTokenCounts = settings.showTokenCounts
+                    )
+                }
             }
         }
     }
@@ -249,7 +263,13 @@ class ChatViewModel @Inject constructor(
                     is ModelManager.EngineState.Error ->
                         ModelChipState.Error(friendlyError(engineState.error))
                 }
-                _uiState.update { it.copy(model = chip) }
+                _uiState.update {
+                    it.copy(
+                        model = chip,
+                        isVisionModel = (engineState as? ModelManager.EngineState.Ready)
+                            ?.model?.visionEnabled == true
+                    )
+                }
             }
         }
     }
@@ -509,11 +529,12 @@ class ChatViewModel @Inject constructor(
         // is carried by the digest instead (folded into the system prompt).
         val cutoff = chat?.compactedUpToCreatedAt
         val history = chatRepository.getMessages(chatId)
-            .filter { it.isComplete && (cutoff == null || it.createdAt > cutoff) }
+            .filter { it.isComplete && !ConversationSession.isCoveredByDigest(it.createdAt, cutoff) }
             .map {
                 ChatTurn(
                     role = if (it.role == ChatMessage.Role.USER) ChatTurn.Role.USER else ChatTurn.Role.ASSISTANT,
-                    text = it.content
+                    text = it.content,
+                    imagePaths = listOfNotNull(it.imagePath)
                 )
             }
         // Tools: register the web_search tool only when the global setting
@@ -554,6 +575,22 @@ class ChatViewModel @Inject constructor(
         // off the main thread (viewModelScope defaults to Dispatchers.Main).
         // Hold the native mutex: closing the old session + creating the new
         // one must never race another native call.
+        //
+        // Vision guard: a text-only engine (no TF_LITE_VISION_ENCODER) cannot
+        // hold ImageFile parts — restoring a photo-carrying chat onto it fails
+        // native conversation creation. Strip attachments to their text so the
+        // chat stays usable; photo sends are blocked up-front in sendMessage().
+        val visionEnabled = modelManager.isVisionModelLoaded
+        val hadImages = ModelVisionSupport.historyHasImages(history)
+        if (hadImages && !visionEnabled) {
+            android.util.Log.i(
+                TAG,
+                "JOURNEY: rebuildSession(chat=$chatId) — text-only engine, " +
+                    "stripping photo attachments from ${history.count { it.imagePaths.isNotEmpty() }} turn(s)"
+            )
+        }
+        val effectiveHistory =
+            if (visionEnabled) history else ModelVisionSupport.stripImages(history)
         try {
             withContext(dispatchers.io) {
                 nativeMutex.withLock {
@@ -561,7 +598,7 @@ class ChatViewModel @Inject constructor(
                         session = ConversationSession.create(
                             engine = engine,
                             systemInstruction = effectiveSystem,
-                            history = history,
+                            history = effectiveHistory,
                             sampler = com.example.tinymodels.domain.model.SamplerSettings(
                                 temperature = inference.temperature,
                                 topK = inference.topK,
@@ -576,9 +613,110 @@ class ChatViewModel @Inject constructor(
             }
             sessionModelId = modelManager.loadedModelId
             updateContextUsage()
+            if (hadImages && !visionEnabled) {
+                _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
+            }
         } catch (e: InferenceException) {
             // Engine not loaded yet; session will be built when the model finishes loading.
+        } catch (e: CancellationException) {
+            throw e
+        } catch (throwable: Throwable) {
+            // Native conversation creation failed — this MUST NOT crash the
+            // app (previously a FATAL EXCEPTION for
+            // "TF_LITE_VISION_ENCODER not found in the model" when a
+            // photo-carrying chat was restored onto a text-only model).
+            android.util.Log.e(TAG, "JOURNEY: rebuildSession failed: ${throwable.message}", throwable)
+            if (ModelVisionSupport.isVisionEncoderError(throwable)) {
+                handleVisionEncoderFailure(chatId, history, effectiveSystem, inference, tools, chat)
+            } else {
+                session = null
+                _uiState.update { it.copy(error = ChatError(friendlyConversationError(throwable))) }
+            }
         }
+    }
+
+    /**
+     * Self-healing path for `TF_LITE_VISION_ENCODER not found`: the live
+     * engine was built with vision against a text-only model. Reload the
+     * engine without vision, then rebuild the session with photo attachments
+     * stripped. Falls back to a user-facing error when the reload fails.
+     */
+    private suspend fun handleVisionEncoderFailure(
+        chatId: String,
+        history: List<ChatTurn>,
+        effectiveSystem: String?,
+        inference: InferenceSettings,
+        tools: List<com.google.ai.edge.litertlm.ToolProvider>,
+        chat: com.example.tinymodels.domain.model.Chat?
+    ) {
+        val stripped = ModelVisionSupport.stripImages(history)
+        val reloaded = try {
+            withContext(dispatchers.io) { modelManager.reloadWithoutVision() }
+        } catch (throwable: Throwable) {
+            android.util.Log.w(TAG, "Vision self-heal reload failed: ${throwable.message}")
+            false
+        }
+        if (reloaded) {
+            try {
+                withContext(dispatchers.io) {
+                    nativeMutex.withLock {
+                        modelManager.withEngine { engine, config ->
+                            session = ConversationSession.create(
+                                engine = engine,
+                                systemInstruction = effectiveSystem,
+                                history = stripped,
+                                sampler = com.example.tinymodels.domain.model.SamplerSettings(
+                                    temperature = inference.temperature,
+                                    topK = inference.topK,
+                                    topP = inference.topP
+                                ),
+                                maxContextTokens = config.maxNumTokens,
+                                priorSummary = chat?.compactedSummary,
+                                tools = tools
+                            )
+                        }
+                    }
+                }
+                sessionModelId = modelManager.loadedModelId
+                updateContextUsage()
+                _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
+                return
+            } catch (retryFailure: Throwable) {
+                android.util.Log.e(TAG, "Rebuild after vision reload failed: ${retryFailure.message}", retryFailure)
+            }
+        } else if (ModelVisionSupport.historyHasImages(history)) {
+            // Engine already vision-free but the history still carried photos
+            // (e.g. loaded before this fix): one retry with stripped history.
+            try {
+                withContext(dispatchers.io) {
+                    nativeMutex.withLock {
+                        modelManager.withEngine { engine, config ->
+                            session = ConversationSession.create(
+                                engine = engine,
+                                systemInstruction = effectiveSystem,
+                                history = stripped,
+                                sampler = com.example.tinymodels.domain.model.SamplerSettings(
+                                    temperature = inference.temperature,
+                                    topK = inference.topK,
+                                    topP = inference.topP
+                                ),
+                                maxContextTokens = config.maxNumTokens,
+                                priorSummary = chat?.compactedSummary,
+                                tools = tools
+                            )
+                        }
+                    }
+                }
+                sessionModelId = modelManager.loadedModelId
+                updateContextUsage()
+                _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
+                return
+            } catch (retryFailure: Throwable) {
+                android.util.Log.e(TAG, "Stripped-history rebuild failed: ${retryFailure.message}", retryFailure)
+            }
+        }
+        session = null
+        _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
     }
 
     /**
@@ -640,7 +778,9 @@ class ChatViewModel @Inject constructor(
         activeSession: ConversationSession,
         chat: com.example.tinymodels.domain.model.Chat
     ) {
-        val budget = (autoContextBudget() * (1 - COMPACTION_HEADROOM)).toInt()
+        // Trigger at 90% of the budget — NOT 10%: (1 - HEADROOM) was an
+        // inversion that compacted after ~1 short turn.
+        val budget = (autoContextBudget() * COMPACTION_HEADROOM).toInt()
         if (activeSession.estimatedTokensInContext < budget) {
             android.util.Log.i(
                 TAG,
@@ -673,21 +813,35 @@ class ChatViewModel @Inject constructor(
     ): String {
         val budget = autoContextBudget()
 
-        val cutoff = chat.compactedUpToCreatedAt
-        val allTurns = chatRepository.getMessages(chatId)
-            .filter { it.isComplete }
-            .map {
-                ChatTurn(
-                    role = if (it.role == ChatMessage.Role.USER) ChatTurn.Role.USER else ChatTurn.Role.ASSISTANT,
-                    text = it.content
-                )
+        // Only live (not yet summarized) turns are eligible. Re-summarizing
+        // the already-compacted prefix would bloat the digest and overstate
+        // the reported savings.
+        val live = chatRepository.getMessages(chatId)
+            .filter {
+                it.isComplete &&
+                    !ConversationSession.isCoveredByDigest(it.createdAt, chat.compactedUpToCreatedAt)
             }
+        val allTurns = live.map {
+            ChatTurn(
+                role = if (it.role == ChatMessage.Role.USER) ChatTurn.Role.USER else ChatTurn.Role.ASSISTANT,
+                text = it.content,
+                imagePaths = listOfNotNull(it.imagePath)
+            )
+        }
         // Keep the most recent turns that fit in half the budget; summarize the rest.
         val keepBudget = budget / 2
         val kept = ConversationSession.trimToBudget(allTurns, keepBudget)
-        val older = allTurns.take(allTurns.size - kept.size)
-        if (older.isEmpty()) {
+        val olderCount = allTurns.size - kept.size
+        if (olderCount <= 0) {
             return "Nothing to compact — the conversation already fits the context window"
+        }
+        val olderEntities = live.take(olderCount)
+        val older = olderEntities.map {
+            ChatTurn(
+                role = if (it.role == ChatMessage.Role.USER) ChatTurn.Role.USER else ChatTurn.Role.ASSISTANT,
+                text = it.content,
+                imagePaths = listOfNotNull(it.imagePath)
+            )
         }
 
         // Include the previous digest in the summarization input (iterative
@@ -710,9 +864,11 @@ class ChatViewModel @Inject constructor(
             }
             return "Summarization failed — history was trimmed to fit the context window"
         }
-        val newCutoff = older.lastOrNull()?.let { last ->
-            chatRepository.getMessages(chatId).lastOrNull { m -> m.content == last.text }?.createdAt
-        } ?: return "Compaction failed — could not locate the cutoff message"
+        // Cutoff by entity identity, never by content match: duplicate texts
+        // ("thanks", "hi") previously resolved the cutoff to the wrong message
+        // and silently dropped live turns from context. Contract: messages at
+        // or before the cutoff are covered by the digest (see isCoveredByDigest).
+        val newCutoff = olderEntities.last().createdAt
         chatRepository.saveCompaction(chatId, digest, newCutoff)
         _uiState.update {
             it.copy(
@@ -735,7 +891,8 @@ class ChatViewModel @Inject constructor(
         val chat = chatRepository.getChat(chatId) ?: return
         val cutoff = chat.compactedUpToCreatedAt ?: return
         val edited = chatRepository.getMessages(chatId).firstOrNull { it.id == messageId } ?: return
-        if (edited.createdAt < cutoff) {
+        // Covered = at or before the cutoff (boundary message IS summarized).
+        if (edited.createdAt <= cutoff) {
             chatRepository.saveCompaction(chatId, null, null)
             _uiState.update { it.copy(compactedSummary = null, compactionCount = 0) }
         }
@@ -768,17 +925,24 @@ class ChatViewModel @Inject constructor(
 
     // ---- Sending / generation ----
 
-    private fun sendMessage(rawText: String) {
+    private fun sendMessage(rawText: String, imageUri: String?) {
         val text = rawText.trim()
-        if (text.isEmpty()) return
+        if (text.isEmpty() && imageUri == null) return
         val state = _uiState.value
         if (state.generation == GenerationState.GENERATING) return
         if (state.model !is ModelChipState.Ready) {
             _uiState.update { it.copy(error = ChatError("Model is still loading")) }
             return
         }
+        // Block photo sends on text-only engines up-front: the native side has
+        // no vision encoder, so an image part would fail the turn anyway.
+        // Text-only prompts fall through normally.
+        if (imageUri != null && !modelManager.isVisionModelLoaded) {
+            _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
+            return
+        }
         var chatId = state.activeChatId
-        android.util.Log.i(TAG, "JOURNEY: user sent prompt (${text.length} chars): \"$text\"")
+        android.util.Log.i(TAG, "JOURNEY: user sent prompt (${text.length} chars, image=${imageUri != null}): \"$text\"")
         viewModelScope.launch(Dispatchers.Default) {
             if (chatId == null) {
                 val modelId = activeModel?.modelId ?: modelManager.loadedModelId ?: return@launch
@@ -807,7 +971,19 @@ class ChatViewModel @Inject constructor(
                     "contextUsage=${state.contextUsage.usedTokens}/${state.contextUsage.maxTokens}"
             )
 
-            // Persist the user message.
+            // Persist the user message (photo is copied into app storage first
+            // so the content-URI permission doesn't expire out from under us).
+            val savedImagePath = imageUri?.let { copyPickedImage(activeChatId, it) }
+            if (imageUri != null && savedImagePath == null) {
+                _uiState.update {
+                    it.copy(
+                        generation = GenerationState.IDLE,
+                        streamingMessageId = null,
+                        error = ChatError("Couldn't read that photo — try another image")
+                    )
+                }
+                return@launch
+            }
             val userMessage = ChatMessage(
                 id = UUID.randomUUID().toString(),
                 chatId = activeChatId,
@@ -815,7 +991,8 @@ class ChatViewModel @Inject constructor(
                 content = text,
                 tokenCount = ConversationSession.estimateTokens(text),
                 createdAt = System.currentTimeMillis(),
-                isComplete = true
+                isComplete = true,
+                imagePath = savedImagePath
             )
             chatRepository.saveMessage(userMessage)
 
@@ -855,9 +1032,47 @@ class ChatViewModel @Inject constructor(
 
             android.util.Log.i(TAG, "JOURNEY: starting generation (assistantId=$assistantId)")
             val prompt = maybeAugmentWithSearch(activeChatId, text)
-            runGeneration(activeChatId, assistantId, prompt)
+                .ifBlank { "What do you see in this image?" }
+            runGeneration(activeChatId, assistantId, prompt, listOfNotNull(savedImagePath))
         }
     }
+
+    /**
+     * Copies a picked photo (content URI) into app-private storage, downscaled
+     * so a 12 MP camera shot doesn't blow the vision encoder's budget.
+     * Returns the absolute file path, or null when the image is unreadable.
+     */
+    private suspend fun copyPickedImage(chatId: String, uriString: String): String? =
+        withContext(Dispatchers.IO) {
+            try {
+                val uri = android.net.Uri.parse(uriString)
+                val dir = java.io.File(appContext.filesDir, "chat_images").apply { mkdirs() }
+                val target = java.io.File(dir, "${chatId}_${java.util.UUID.randomUUID()}.jpg")
+                appContext.contentResolver.openInputStream(uri)?.use { input ->
+                    // Downscale to ≤1568px on the long edge before saving.
+                    val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                    val bytes = input.readBytes()
+                    android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+                    var sample = 1
+                    val longest = maxOf(bounds.outWidth, bounds.outHeight)
+                    while (longest / sample > 1568) sample *= 2
+                    val opts = android.graphics.BitmapFactory.Options().apply { inSampleSize = sample }
+                    val bitmap = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
+                        ?: return@withContext null
+                    target.outputStream().use { out ->
+                        if (!bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out)) {
+                            return@withContext null
+                        }
+                    }
+                    if (!bitmap.isRecycled) bitmap.recycle()
+                } ?: return@withContext null
+                android.util.Log.i(TAG, "JOURNEY: photo saved for vision (${target.length()} bytes): ${target.absolutePath}")
+                target.absolutePath
+            } catch (t: Throwable) {
+                android.util.Log.w(TAG, "Photo copy failed: ${t.message}")
+                null
+            }
+        }
 
     /**
      * App-side auto-search (primary trigger). Tiny on-device models often skip
@@ -922,7 +1137,12 @@ class ChatViewModel @Inject constructor(
         return text
     }
 
-    private fun runGeneration(chatId: String, assistantId: String, prompt: String) {
+    private fun runGeneration(
+        chatId: String,
+        assistantId: String,
+        prompt: String,
+        imagePaths: List<String> = emptyList()
+    ) {
         val activeSession = session
         if (activeSession == null) {
             _uiState.update {
@@ -938,7 +1158,7 @@ class ChatViewModel @Inject constructor(
             // Hold the native mutex for the whole generation so a concurrent
             // compaction summarization can never touch the same conversation.
             nativeMutex.withLock {
-                activeSession.send(prompt)
+                activeSession.send(prompt, imagePaths)
                 .catch { throwable ->
                     // Re-throw cancellation so the cancel handler (cancelGeneration)
                     // owns the cleanup path instead of surfacing a spurious error.
@@ -1063,6 +1283,12 @@ class ChatViewModel @Inject constructor(
             _uiState.update { s ->
                 s.copy(messages = s.messages.filterNot { it.id == lastAssistant.id })
             }
+
+            // Rebuild so the deleted reply leaves the native KV cache AND the
+            // token counter — otherwise the stale reply keeps occupying context
+            // forever and the usage number only ever grows.
+            android.util.Log.i(TAG, "JOURNEY: regenerate — rebuilding session to drop stale reply")
+            rebuildSession(chatId)
 
             // Create a new streaming placeholder.
             val newAssistantId = java.util.UUID.randomUUID().toString()
@@ -1189,7 +1415,9 @@ class ChatViewModel @Inject constructor(
         text = content,
         isStreaming = !isComplete,
         timestamp = createdAt,
-        completedAt = completedAt
+        completedAt = completedAt,
+        tokenCount = tokenCount.takeIf { isComplete },
+        imagePath = imagePath
     )
 
     /**
@@ -1199,10 +1427,41 @@ class ChatViewModel @Inject constructor(
      */
     private fun friendlyGenerationError(throwable: Throwable): String {
         val raw = throwable.message ?: return "Generation failed"
+        // Photo sent to a text-only model (or vision init skipped): the
+        // native side reports a null vision executor / unavailable image input.
+        if (raw.contains("vision executor", ignoreCase = true) ||
+            raw.contains("TryLoadingVisionExecutor") ||
+            raw.contains("image input", ignoreCase = true) ||
+            raw.contains("TF_LITE_VISION_ENCODER") ||
+            raw.contains("vision encoder", ignoreCase = true)
+        ) {
+            return "This model can't read photos. Load a vision-capable model " +
+                "(e.g. Gemma 3) to analyze images."
+        }
         return if (raw.contains("Status code 13") || raw.contains("large input", ignoreCase = true)) {
             "Prompt or chat history is too long for this model's context window. " +
                 "Start a new chat or reduce max context tokens in session settings."
         } else raw
+    }
+
+    /**
+     * Maps native conversation-creation failures (rebuildSession path) to
+     * user-facing text. Vision-encoder failures get the photo guidance; the
+     * generic branch never leaks a native stack trace verbatim.
+     */
+    private fun friendlyConversationError(throwable: Throwable): String {
+        if (ModelVisionSupport.isVisionEncoderError(throwable)) {
+            return ModelVisionSupport.visionUnsupportedMessage()
+        }
+        val raw = throwable.message?.takeIf { it.isNotBlank() } ?: return "Couldn't start the conversation"
+        return if (raw.contains("Status code 13") || raw.contains("large input", ignoreCase = true)) {
+            "Chat history is too long for this model's context window. " +
+                "Start a new chat or compact the conversation."
+        } else if (raw.length > 200) {
+            "Couldn't start the conversation. Try reopening the chat or reloading the model."
+        } else {
+            raw
+        }
     }
 
     private fun friendlyError(error: InferenceError): String = when (error) {

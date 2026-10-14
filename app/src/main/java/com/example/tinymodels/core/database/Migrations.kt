@@ -51,6 +51,27 @@ object Migrations {
         }
     }
 
+    /**
+     * v8 → v9: adds `imagePath` to `messages` — absolute path of a photo
+     * attached to a user message for multimodal models (null = text-only).
+     */
+    val MIGRATION_8_9 = object : Migration(8, 9) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE messages ADD COLUMN imagePath TEXT")
+        }
+    }
+
+    /**
+     * v9 → v10: adds `isImported` to `model_files` — tracks whether a file
+     * was imported from an external .litertlm file vs downloaded via the app.
+     * Defaults to FALSE for existing files (downloaded via app).
+     */
+    val MIGRATION_9_10 = object : Migration(9, 10) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE model_files ADD COLUMN isImported INTEGER NOT NULL DEFAULT 0")
+        }
+    }
+
     val MIGRATION_4_5 = object : Migration(4, 5) {
         override fun migrate(db: SupportSQLiteDatabase) {
             // 1. Create the new model_files table.

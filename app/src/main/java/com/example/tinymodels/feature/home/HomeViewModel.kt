@@ -170,7 +170,14 @@ class HomeViewModel @Inject constructor(
         val usage = UsageStats(
             totalChats = chatRepository.totalChats(),
             totalTokens = chatRepository.totalTokensGenerated(),
-            modelsTried = chatRepository.modelsTried()
+            modelsTried = chatRepository.modelsTried(),
+            totalMessages = chatRepository.totalMessages(),
+            chatsThisWeek = chatRepository.chatsSince(
+                System.currentTimeMillis() - 7L * 24 * 60 * 60 * 1000
+            ),
+            compactionsRun = chatRepository.totalCompactions(),
+            webSearchChats = chatRepository.webSearchChats(),
+            favoriteModel = chatRepository.favoriteModelId()?.substringAfterLast('/')
         )
 
         val storage = StorageBreakdown(
@@ -219,7 +226,7 @@ class HomeViewModel @Inject constructor(
         val freeStorageMb = stat.availableBlocksLong * stat.blockSizeLong / (1024 * 1024)
 
         val cpuCores = Runtime.getRuntime().availableProcessors()
-        val arch = Build.SUPPORTED_ABIS.firstOrNull() ?: "unknown"
+        val arch = Build.SUPPORTED_ABIS?.firstOrNull() ?: "unknown"
         val deviceName = "${Build.MANUFACTURER} ${Build.MODEL}"
         val availableRamForAiMb = (totalRamMb * 0.45).toLong()
 

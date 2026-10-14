@@ -88,12 +88,16 @@ data class DownloadedModelFile(
     val status: FileDownloadStatus,
     val sizeBytes: Long,
     val localPath: String?,
-    val error: String?
+    val error: String?,
+    /** True when this file was imported from an external .litertlm file. */
+    val isImported: Boolean = false
 )
 
 /** Metadata about the currently loaded model + how it was loaded. */
 data class LoadedModel(
     val modelId: String,
     val backendUsed: BackendPreference,
-    val maxNumTokens: Int
+    val maxNumTokens: Int,
+    /** True when the live engine exposes a vision encoder (photo input works). */
+    val visionEnabled: Boolean = false
 )

@@ -1,0 +1,23 @@
+# Keep Gradle dependencies and GitHub Actions fresh automatically.
+# - gradle ecosystem: version-catalog + plugin updates become weekly PRs
+#   (AGP, Kotlin, Compose BOM, Room, Hilt, LiteRT-LM...).
+# - github-actions ecosystem: action pins (checkout, setup-java, ...) stay
+#   current and secure.
+# CI runs on every Dependabot PR, so a bad bump fails safely before merge.
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      android-stack:
+        patterns:
+          - "androidx*"
+          - "com.android*"
+          - "org.jetbrains.kotlin*"
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

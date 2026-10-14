@@ -20,6 +20,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -165,32 +166,51 @@ class ModelDownloadWorker @AssistedInject constructor(
         onProgress: suspend (downloaded: Long, total: Long) -> Unit
     ) = withContext(Dispatchers.IO) {
         val request = auth.authorize(Request.Builder().url(url).get()).build()
-        client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                if (response.code == 401) {
-                    throw java.io.IOException(
-                        "HTTP 401 — this model is gated. Add your Hugging Face access token " +
-                            "in Settings, or accept the model's license on huggingface.co first."
-                    )
+        val call = client.newCall(request)
+        // Abort a stalled socket read the moment this work is cancelled
+        // (notification Cancel, in-app Cancel, or preemption). Without this,
+        // coroutine cancellation cannot preempt the blocking read and the
+        // download lingers up to the 60s socket timeout.
+        coroutineContext.job.invokeOnCompletion { cause ->
+            if (cause is kotlinx.coroutines.CancellationException) call.cancel()
+        }
+        try {
+            call.execute().use { response ->
+                if (!response.isSuccessful) {
+                    if (response.code == 401) {
+                        throw java.io.IOException(
+                            "HTTP 401 — this model is gated. Add your Hugging Face access token " +
+                                "in Settings, or accept the model's license on huggingface.co first."
+                        )
+                    }
+                    throw java.io.IOException("HTTP ${response.code}")
                 }
-                throw java.io.IOException("HTTP ${response.code}")
-            }
-            val body = response.body ?: throw java.io.IOException("Empty body")
-            var total = body.contentLength()
-            response.header("x-linked-size")?.toLongOrNull()?.takeIf { it > 0 }?.let { total = it }
-            target.parentFile?.mkdirs()
-            body.byteStream().use { input ->
-                target.outputStream().use { output ->
-                    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                    var downloadedBytes = 0L
-                    var count: Int
-                    while (input.read(buffer).also { count = it } != -1) {
-                        output.write(buffer, 0, count)
-                        downloadedBytes += count
-                        onProgress(downloadedBytes, if (total > 0) total else -1L)
+                val body = response.body ?: throw java.io.IOException("Empty body")
+                var total = body.contentLength()
+                response.header("x-linked-size")?.toLongOrNull()?.takeIf { it > 0 }?.let { total = it }
+                target.parentFile?.mkdirs()
+                body.byteStream().use { input ->
+                    target.outputStream().use { output ->
+                        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                        var downloadedBytes = 0L
+                        var count: Int
+                        while (input.read(buffer).also { count = it } != -1) {
+                            // Cooperative cancel: aborts promptly even when the
+                            // socket close hasn't propagated yet.
+                            ensureActive()
+                            output.write(buffer, 0, count)
+                            downloadedBytes += count
+                            onProgress(downloadedBytes, if (total > 0) total else -1L)
+                        }
                     }
                 }
             }
+        } catch (e: java.io.IOException) {
+            // A cancelled call surfaces as SocketException("Socket closed"),
+            // NOT CancellationException — convert it so doWork() takes the
+            // cancel path (cleanup, no retry) instead of FAILED+retry.
+            coroutineContext.ensureActive()
+            throw e
         }
     }
 

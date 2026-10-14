@@ -68,8 +68,11 @@ import com.example.tinymodels.core.ui.components.OfflineState
 import com.example.tinymodels.domain.model.DownloadedModelFile
 import com.example.tinymodels.domain.model.ModelFilter
 import com.example.tinymodels.domain.model.ModelSummary
+import com.example.tinymodels.domain.usecase.model.ActiveDownload
 import com.example.tinymodels.feature.models.DownloadedModelsViewModel
 import com.example.tinymodels.feature.models.ModelListViewModel
+import com.example.tinymodels.feature.models.components.ActiveDownloadsSection
+import java.util.UUID
 
 /**
  * Models tab (bottom-nav). Two sub-tabs: Browse (Hugging Face catalog) and
@@ -87,6 +90,8 @@ fun ModelsTabScreen(
     val uiState by listViewModel.uiState.collectAsStateWithLifecycle()
     val downloadedModels by downloadedViewModel.models.collectAsStateWithLifecycle()
     val downloadedFiles by downloadedViewModel.downloadedFiles.collectAsStateWithLifecycle()
+    val totalSizeBytes by downloadedViewModel.totalSizeBytes.collectAsStateWithLifecycle()
+    val activeDownloads by downloadedViewModel.activeDownloads.collectAsStateWithLifecycle()
 
     // Tab screen — outer Scaffold already handled the bottom nav-bar inset.
     // Only top + horizontal needed here.
@@ -132,7 +137,9 @@ fun ModelsTabScreen(
                 )
                 1 -> DownloadedContent(
                     downloadedFiles = downloadedFiles,
-                    totalSizeBytes = downloadedViewModel.totalSizeBytes.value,
+                    totalSizeBytes = totalSizeBytes,
+                    activeDownloads = activeDownloads,
+                    onCancelActive = downloadedViewModel::cancelActiveDownload,
                     onFileClick = onFileClick
                 )
             }
@@ -333,9 +340,11 @@ private fun SmallChip(label: String) {
 private fun DownloadedContent(
     downloadedFiles: List<DownloadedModelFile>,
     totalSizeBytes: Long,
+    activeDownloads: List<ActiveDownload>,
+    onCancelActive: (UUID) -> Unit,
     onFileClick: (modelId: String, fileName: String) -> Unit
 ) {
-    if (downloadedFiles.isEmpty()) {
+    if (downloadedFiles.isEmpty() && activeDownloads.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("No models downloaded", style = MaterialTheme.typography.titleMedium)
@@ -357,6 +366,14 @@ private fun DownloadedContent(
             ),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            if (activeDownloads.isNotEmpty()) {
+                item {
+                    ActiveDownloadsSection(
+                        active = activeDownloads,
+                        onCancel = onCancelActive
+                    )
+                }
+            }
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
