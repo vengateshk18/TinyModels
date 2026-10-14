@@ -41,7 +41,7 @@
             android:name=".data.worker.CancelDownloadReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.example.tinymodels.action.CANCEL_DOWNLOAD" />
+                <action android:name="com.ai.tinymodels.action.CANCEL_DOWNLOAD" />
             </intent-filter>
         </receiver>
 
