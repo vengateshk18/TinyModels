@@ -1,5 +1,10 @@
 package com.example.tinymodels.feature.settings
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -47,6 +52,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -73,6 +79,19 @@ fun SettingsScreen(
     val clearResult by viewModel.clearResult.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showClearDialog by remember { mutableStateOf(false) }
+
+    // Model import launcher (SAF file picker).
+    val context = LocalContext.current
+    val importLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        uri?.let {
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            viewModel.importModel(it)
+        }
+    }
 
     androidx.compose.runtime.LaunchedEffect(clearResult) {
         clearResult?.let {
@@ -120,11 +139,17 @@ fun SettingsScreen(
             SectionDivider()
             HuggingFaceSection(viewModel)
             SectionDivider()
+            ModelManagementSection(
+                onImportClick = { importLauncher.launch(arrayOf("*/*")) }
+            )
+            SectionDivider()
             AboutSection(
                 onBenchmark = onBenchmark,
                 onDeviceInfo = onDeviceInfo,
                 onClearHistory = { showClearDialog = true }
             )
+            SectionDivider()
+            SupportSection()
             // 24dp breathing room after the last item so content is never
             // clipped at the scroll end by the navigation bar.
             Spacer(modifier = Modifier.height(24.dp))
@@ -354,6 +379,47 @@ private fun TokenDialog(
     )
 }
 
+/**
+ * Support section — GitHub star link and bug-report email.
+ */
+@Composable
+private fun SupportSection() {
+    val context = LocalContext.current
+    SectionHeader("Support")
+    NavigationRow(
+        label = "Star on GitHub",
+        subtitle = "Support free, on-device AI for everyone",
+        onClick = { openUrl(context, "https://github.com/vengateshk18/TinyModels") }
+    )
+    NavigationRow(
+        label = "Report a bug",
+        subtitle = "Found something broken? Let us know",
+        onClick = { reportBug(context) }
+    )
+}
+
+private fun openUrl(context: Context, url: String) {
+    runCatching {
+        context.startActivity(
+            Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
+    }
+}
+
+private fun reportBug(context: Context) {
+    runCatching {
+        context.startActivity(
+            Intent(
+                Intent.ACTION_SENDTO,
+                Uri.parse("mailto:vengatesh00014@gamil.com")
+            ).apply {
+                putExtra(Intent.EXTRA_SUBJECT, "TinyModels bug report")
+            }.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
+    }
+}
+
 @Composable
 private fun AboutSection(
     onBenchmark: () -> Unit,
@@ -539,4 +605,30 @@ private fun FontBottomSheet(
             }
         }
     }
+}
+
+/**
+ * Model Management section — import only. Per-file export lives on the
+ * downloaded file's detail screen.
+ */
+@Composable
+private fun ModelManagementSection(
+    onImportClick: () -> Unit
+) {
+    SectionHeader("Model Management")
+
+    // Import Model
+    NavigationRow(
+        label = "Import Model",
+        subtitle = "Add a .litertlm file from external storage",
+        onClick = onImportClick
+    )
+
+    Text(
+        "Imported models appear in your library with an 'Imported' tag. " +
+            "To share a downloaded file, open it and use Export.",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 4.dp)
+    )
 }

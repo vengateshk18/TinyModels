@@ -257,4 +257,12 @@ private class FakeModelRepository : ModelRepository {
         error: String?
     ) {}
     override suspend fun deleteModelFile(modelId: String, fileName: String) {}
+    override suspend fun exportModelFile(
+        modelId: String,
+        fileName: String,
+        destinationUri: android.net.Uri
+    ): AppResult<android.net.Uri> = AppResult.Error(AppError.Unknown("not supported in tests"))
+    override suspend fun importModel(
+        sourceUri: android.net.Uri
+    ): AppResult<DownloadedModel> = AppResult.Error(AppError.Unknown("not supported in tests"))
 }

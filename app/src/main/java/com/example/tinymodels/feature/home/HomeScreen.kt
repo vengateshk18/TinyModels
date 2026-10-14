@@ -493,10 +493,17 @@ private fun DashboardHome(
     onResumeChat: (String) -> Unit,
     onNewChat: (String?) -> Unit,
     onManageModels: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    deviceViewModel: DeviceViewModel = hiltViewModel()
 ) {
     // Thermal advisory — dismissible for this session only.
     var advisoryDismissed by rememberSaveable { mutableStateOf(false) }
+
+    // Live device state (thermal, battery, GPU, storage, RAM history) from the
+    // same source as the Device Information screen. HomeViewModel's snapshot
+    // only carries static fields, so feeding it to DeviceInsights leaves the
+    // storage bar at 0%, battery "Unknown" and thermal stuck on "Normal".
+    val liveDevice by deviceViewModel.state.collectAsStateWithLifecycle()
 
     Column(
         modifier = modifier
@@ -652,7 +659,7 @@ private fun DashboardHome(
         Spacer(modifier = Modifier.height(20.dp))
 
         // ---- Device Insights (revamped style) ----
-        DeviceInsights(state = state.device)
+        DeviceInsights(state = liveDevice)
 
         Spacer(modifier = Modifier.height(32.dp))
     }

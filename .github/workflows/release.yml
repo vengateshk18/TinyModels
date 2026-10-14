@@ -1,13 +1,13 @@
-name: Release APK
+name: Release AAB
 
 # What this does for the app:
 #   - On every version tag (v*, e.g. v1.2.0) it builds the minified release
-#     APK (R8 + resource shrink, ~24 MB, arm64-only) and attaches it to the
+#     AAB (R8 + resource shrink, arm64-only) and attaches it to the
 #     GitHub Release, plus the unit-test report for that exact commit.
 #   - Manual runs (workflow_dispatch) are also supported for ad-hoc builds.
 # Note: the repo has no signing config, so the artifact is an unsigned
-# release APK — suitable for sideloading/CI, not the Play Store. When a
-# release keystore is added via secrets, add a signing step before assemble.
+# release bundle — when a release keystore is added via secrets, add a
+# signing step before bundle.
 
 on:
   push:
@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  release-apk:
+  release-aab:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -29,28 +29,30 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Accept Android SDK licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses || true
 
       - name: Set up Gradle (caching)
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Assemble release APK
-        run: ./gradlew :app:assembleRelease --stacktrace
+      - name: Assemble release AAB
+        run: ./gradlew :app:bundleRelease --stacktrace
 
       - name: Run unit tests (release gate)
         run: ./gradlew :app:testDebugUnitTest --stacktrace
 
-      - name: Upload release APK artifact
+      - name: Upload release AAB artifact
         uses: actions/upload-artifact@v4
         with:
-          name: release-apk
-          path: app/build/outputs/apk/release/*.apk
+          name: release-aab
+          path: app/build/outputs/bundle/release/*.aab
           if-no-files-found: error
 
-      - name: Attach APK to GitHub Release (tags only)
+      - name: Attach AAB to GitHub Release (tags only)
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: app/build/outputs/apk/release/*.apk
+          files: app/build/outputs/bundle/release/*.aab
           generate_release_notes: true

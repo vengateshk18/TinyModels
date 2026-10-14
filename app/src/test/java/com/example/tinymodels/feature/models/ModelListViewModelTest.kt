@@ -141,4 +141,18 @@ private class FakeListModelRepository : ModelRepository {
         error: String?
     ) {}
     override suspend fun deleteModelFile(modelId: String, fileName: String) {}
+    override suspend fun exportModelFile(
+        modelId: String,
+        fileName: String,
+        destinationUri: android.net.Uri
+    ): com.example.tinymodels.core.common.AppResult<android.net.Uri> =
+        com.example.tinymodels.core.common.AppResult.Error(
+            com.example.tinymodels.core.common.AppError.Unknown("not supported in tests")
+        )
+    override suspend fun importModel(
+        sourceUri: android.net.Uri
+    ): com.example.tinymodels.core.common.AppResult<com.example.tinymodels.domain.model.DownloadedModel> =
+        com.example.tinymodels.core.common.AppResult.Error(
+            com.example.tinymodels.core.common.AppError.Unknown("not supported in tests")
+        )
 }

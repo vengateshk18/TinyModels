@@ -200,6 +200,7 @@ fun ChatRoomScreen(
             ChatInputBar(
                 generation = uiState.generation,
                 canSend = uiState.canSend,
+                isModelReady = uiState.isModelReady,
                 onSend = { text, uri -> viewModel.onEvent(ChatEvent.SendMessage(text, uri?.toString())) },
                 onStop = { viewModel.onEvent(ChatEvent.CancelGeneration) },
                 webSearchAvailable = uiState.webSearchAvailable,
@@ -314,11 +315,17 @@ private fun MessageListRoom(
     // gymnastics required. Older messages scroll up out of view naturally.
     val reversedMessages = remember(uiState.messages) { uiState.messages.asReversed() }
 
-    // With reverseLayout, "scroll to newest" is simply index 0. Only needed
-    // when the user has scrolled up and new content arrives.
+    // With reverseLayout, "scroll to newest" is simply index 0. Follow the
+    // stream only while the user is already near the bottom and not actively
+    // dragging: an animated scroll fights the user's fling (each new token
+    // relaunches the effect and yanks the list back down), while an instant
+    // jump applied only near the bottom leaves scrolled-up readers alone.
     LaunchedEffect(uiState.messages.size, uiState.messages.lastOrNull()?.text?.length) {
-        if (reversedMessages.isNotEmpty() && listState.firstVisibleItemIndex <= 2) {
-            listState.animateScrollToItem(0)
+        if (reversedMessages.isNotEmpty() &&
+            !listState.isScrollInProgress &&
+            listState.firstVisibleItemIndex <= 2
+        ) {
+            listState.scrollToItem(0)
         }
     }
 

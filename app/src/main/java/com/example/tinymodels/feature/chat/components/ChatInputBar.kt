@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -86,6 +87,8 @@ fun ChatInputBar(
     onSend: (String, android.net.Uri?) -> Unit,
     onStop: () -> Unit,
     modifier: Modifier = Modifier,
+    /** True when a model is loaded (field stays editable while streaming). */
+    isModelReady: Boolean = true,
     /** Global availability gate for the web_search tool (Settings switch). */
     webSearchAvailable: Boolean = true,
     /** Per-chat opt-in state for the web_search tool. */
@@ -138,7 +141,7 @@ fun ChatInputBar(
         val menuItems = buildPlusMenuItems(
             webSearchAvailable = webSearchAvailable,
             webSearchEnabled = webSearchEnabled,
-            canAttachPhoto = canSend && !isGenerating,
+            canAttachPhoto = isModelReady && !isGenerating,
             supportsVision = supportsVision
         )
         Box {
@@ -157,55 +160,67 @@ fun ChatInputBar(
                 expanded = menuExpanded,
                 onDismissRequest = { menuExpanded = false }
             ) {
-                menuItems.forEach { item ->
+                menuItems.forEachIndexed { index, item ->
                     when (item) {
-                        is PlusMenuItem.AttachPhoto -> DropdownMenuItem(
-                            text = {
-                                Column {
-                                    Text("Attach photo")
-                                    item.disabledReason?.let { reason ->
-                                        Text(
-                                            reason,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                            maxLines = 2,
-                                            modifier = Modifier.padding(top = 2.dp, start = 8.dp)
-                                        )
+                        is PlusMenuItem.AttachPhoto -> {
+                            if (index > 0) HorizontalDivider()
+                            MenuSectionLabel("Media")
+                            DropdownMenuItem(
+                                text = {
+                                    Column {
+                                        Text("Attach photo")
+                                        item.disabledReason?.let { reason ->
+                                            Text(
+                                                reason,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                                maxLines = 2,
+                                                modifier = Modifier.padding(top = 2.dp, start = 8.dp)
+                                            )
+                                        }
+                                    }
+                                },
+                                onClick = {
+                                    if (item.enabled) {
+                                        pickPhoto.launch("image/*")
+                                        menuExpanded = false
+                                    }
+                                },
+                                enabled = item.enabled,
+                                leadingIcon = {
+                                    MenuIconContainer {
+                                        Icon(Icons.Filled.Image, contentDescription = null)
                                     }
                                 }
-                            },
-                            onClick = {
-                                if (item.enabled) {
-                                    pickPhoto.launch("image/*")
+                            )
+                        }
+                        is PlusMenuItem.WebSearch -> {
+                            if (index > 0) HorizontalDivider()
+                            MenuSectionLabel("Tools")
+                            DropdownMenuItem(
+                                text = { Text("Web search") },
+                                onClick = {
+                                    onToggleWebSearch(!webSearchEnabled)
                                     menuExpanded = false
+                                },
+                                enabled = item.enabled,
+                                leadingIcon = {
+                                    MenuIconContainer {
+                                        Icon(Icons.Filled.Search, contentDescription = null)
+                                    }
+                                },
+                                trailingIcon = {
+                                    Switch(
+                                        checked = item.checked,
+                                        onCheckedChange = {
+                                            onToggleWebSearch(it)
+                                            menuExpanded = false
+                                        },
+                                        enabled = item.enabled
+                                    )
                                 }
-                            },
-                            enabled = item.enabled,
-                            leadingIcon = {
-                                Icon(Icons.Filled.Image, contentDescription = null)
-                            }
-                        )
-                        is PlusMenuItem.WebSearch -> DropdownMenuItem(
-                            text = { Text("Web search") },
-                            onClick = {
-                                onToggleWebSearch(!webSearchEnabled)
-                                menuExpanded = false
-                            },
-                            enabled = item.enabled,
-                            leadingIcon = {
-                                Icon(Icons.Filled.Search, contentDescription = null)
-                            },
-                            trailingIcon = {
-                                Switch(
-                                    checked = item.checked,
-                                    onCheckedChange = {
-                                        onToggleWebSearch(it)
-                                        menuExpanded = false
-                                    },
-                                    enabled = item.enabled
-                                )
-                            }
-                        )
+                            )
+                        }
                     }
                 }
             }
@@ -219,13 +234,16 @@ fun ChatInputBar(
                 .heightIn(min = 52.dp, max = 160.dp),
             placeholder = {
                 Text(
-                    if (canSend) "Message\u2026" else "Load a model to chat",
+                    if (isModelReady) "Message\u2026" else "Load a model to chat",
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             shape = RoundedCornerShape(26.dp),
             maxLines = 5,
-            enabled = canSend,
+            // Editable whenever a model is loaded — including while the
+            // assistant streams, so the next prompt can be typed. Sending is
+            // still gated on stopping the generation first (stop button).
+            enabled = isModelReady,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color.Transparent,
                 unfocusedBorderColor = Color.Transparent,
@@ -275,6 +293,41 @@ fun ChatInputBar(
             }
         }
         }
+    }
+}
+
+/**
+ * Small section label inside the "+" menu, separating media actions from tools.
+ */
+@Composable
+private fun MenuSectionLabel(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+    )
+}
+
+/**
+ * Tinted circular container for "+" menu item icons.
+ */
+@Composable
+private fun MenuIconContainer(content: @Composable () -> Unit) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(36.dp)
+            .background(
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                shape = CircleShape
+            )
+    ) {
+        androidx.compose.runtime.CompositionLocalProvider(
+            androidx.compose.material3.LocalContentColor provides
+                MaterialTheme.colorScheme.onSecondaryContainer,
+            content = content
+        )
     }
 }
 

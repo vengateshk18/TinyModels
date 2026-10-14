@@ -123,6 +123,14 @@ data class ChatUiState(
 ) {
     val canSend: Boolean
         get() = model is ModelChipState.Ready && generation == GenerationState.IDLE
+
+    /**
+     * True when a model is loaded, regardless of generation. The composer
+     * stays editable while streaming so the next prompt can be typed; sending
+     * still requires stopping the current generation first (see [canSend]).
+     */
+    val isModelReady: Boolean
+        get() = model is ModelChipState.Ready
 }
 
 /** One-way events from the UI into the ViewModel (MVI intents). */

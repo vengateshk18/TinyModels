@@ -18,5 +18,7 @@ data class ModelFileEntity(
     val status: String,           // NOT_DOWNLOADED | DOWNLOADING | DOWNLOADED | FAILED
     val sizeBytes: Long,          // per-file size (from HEAD or actual)
     val localPath: String?,       // directory path, set when DOWNLOADED
-    val error: String?            // set when FAILED
+    val error: String?,           // set when FAILED
+    /** True when this file was imported from an external .litertlm file. */
+    val isImported: Boolean = false
 )

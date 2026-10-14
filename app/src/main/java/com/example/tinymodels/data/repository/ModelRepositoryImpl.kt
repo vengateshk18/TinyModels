@@ -1,6 +1,9 @@
 package com.example.tinymodels.data.repository
 
 import android.content.Context
+import android.net.Uri
+import android.provider.DocumentsContract
+import android.provider.MediaStore
 import com.example.tinymodels.core.common.AppError
 import com.example.tinymodels.core.common.AppResult
 import com.example.tinymodels.core.common.DispatcherProvider
@@ -151,6 +154,128 @@ class ModelRepositoryImpl @Inject constructor(
             .getOrDefault(FileDownloadStatus.NOT_DOWNLOADED),
         sizeBytes = sizeBytes,
         localPath = localPath,
-        error = error
+        error = error,
+        isImported = isImported
     )
+
+    // ---- Export / Import ----
+
+    override suspend fun exportModelFile(
+        modelId: String,
+        fileName: String,
+        destinationUri: Uri
+    ): AppResult<Uri> =
+        withContext(dispatchers.io) {
+            AppResult.runCatching(
+                errorMapper = { e -> AppError.Unknown(e.message, e) }
+            ) {
+                val baseName = fileName.substringAfterLast("/")
+                val sourceFile = File(
+                    context.filesDir,
+                    "models/${modelId.replace("/", "_")}/$baseName"
+                )
+                if (!sourceFile.exists()) {
+                    throw IllegalStateException("File not found on device: $baseName")
+                }
+
+                val resolver = context.contentResolver
+                // Parent = the user-picked folder (tree URI from OpenDocumentTree).
+                val parentDocUri = DocumentsContract.buildDocumentUriUsingTree(
+                    destinationUri,
+                    DocumentsContract.getTreeDocumentId(destinationUri)
+                )
+                val destUri = DocumentsContract.createDocument(
+                    resolver, parentDocUri, "application/octet-stream", baseName
+                ) ?: throw IllegalStateException("Failed to create destination file: $baseName")
+                resolver.openOutputStream(destUri)?.use { output ->
+                    sourceFile.inputStream().use { input ->
+                        input.copyTo(output)
+                    }
+                } ?: throw IllegalStateException("Cannot write to destination file: $baseName")
+
+                destUri
+            }
+        }
+
+    override suspend fun importModel(sourceUri: Uri): AppResult<DownloadedModel> =
+        withContext(dispatchers.io) {
+            AppResult.runCatching(
+                errorMapper = { e -> AppError.Unknown(e.message, e) }
+            ) {
+                val fileName = getFileNameFromUri(sourceUri)
+                    ?: throw IllegalStateException("Cannot determine file name")
+                
+                if (!fileName.endsWith(".litertlm", ignoreCase = true)) {
+                    throw IllegalArgumentException("Invalid file type. Only .litertlm files are supported.")
+                }
+
+                // Extract modelId from filename (remove .litertlm)
+                val modelId = fileName.removeSuffix(".litertlm").replace("_", "/")
+                
+                // Check if already exists
+                val existingModel = downloadedModelDao.getById(modelId)
+                val existingFiles = modelFileDao.getByModelId(modelId).map { it.fileName }.toSet()
+                
+                if (existingModel != null && existingFiles.contains(fileName)) {
+                    throw IllegalStateException("This model file already exists in your library")
+                }
+
+                // Copy to internal storage
+                val modelDir = File(context.filesDir, "models/${modelId.replace("/", "_")}")
+                modelDir.mkdirs()
+                val targetFile = File(modelDir, fileName)
+
+                context.contentResolver.openInputStream(sourceUri)?.use { input ->
+                    targetFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                } ?: throw IllegalStateException("Cannot open source file")
+
+                val fileSize = targetFile.length()
+                val now = System.currentTimeMillis()
+
+                // Insert or get parent model
+                val modelEntity = downloadedModelDao.getById(modelId) ?: DownloadedModelEntity(
+                    modelId = modelId,
+                    author = "imported",
+                    libraryName = "litertlm",
+                    pipelineTag = "text-generation",
+                    localPath = modelDir.absolutePath,
+                    downloadedAt = now
+                ).also { downloadedModelDao.insertIfAbsent(it) }
+
+                // Insert file record with isImported = true
+                modelFileDao.insert(
+                    ModelFileEntity(
+                        modelId = modelId,
+                        fileName = fileName,
+                        status = FileDownloadStatus.DOWNLOADED.name,
+                        sizeBytes = fileSize,
+                        localPath = modelDir.absolutePath,
+                        error = null,
+                        isImported = true
+                    )
+                )
+
+                existingModel?.toDomain() ?: modelEntity.toDomain()
+            }
+        }
+
+    /**
+     * Extracts file name from a content URI.
+     */
+    private fun getFileNameFromUri(uri: Uri): String? {
+        return try {
+            context.contentResolver.query(uri, arrayOf(MediaStore.MediaColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME))
+                } else {
+                    // Fallback: try last path segment
+                    uri.lastPathSegment?.takeIf { it.endsWith(".litertlm", ignoreCase = true) }
+                }
+            }
+        } catch (e: Exception) {
+            uri.lastPathSegment?.takeIf { it.endsWith(".litertlm", ignoreCase = true) }
+        }
+    }
 }
