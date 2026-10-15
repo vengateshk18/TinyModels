@@ -1,5 +1,6 @@
 package com.ai.tinymodels.core.inference
 
+import com.ai.tinymodels.core.inference.runtime.ChatTurn
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

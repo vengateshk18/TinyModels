@@ -14,6 +14,7 @@ activityKtx = "1.9.2"
 room = "2.7.1"
 work = "2.10.1"
 litertlm = "0.17.1"
+mediapipeGenai = "0.10.35"
 lifecycleViewmodelCompose = "2.11.0"
 hilt = "2.60.1"
 hiltNavCompose = "1.4.0"
@@ -51,6 +52,7 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
 google-litertlm-android = { group = "com.google.ai.edge.litertlm", name = "litertlm-android", version.ref = "litertlm" }
+google-mediapipe-tasks-genai = { group = "com.google.mediapipe", name = "tasks-genai", version.ref = "mediapipeGenai" }
 
 # Hilt (DI)
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }

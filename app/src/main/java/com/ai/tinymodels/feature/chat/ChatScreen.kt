@@ -154,7 +154,7 @@ private fun ChatScreenContent(
                         !uiState.hasDownloadedModels ->
                             EmptyState(
                                 title = "No models yet",
-                                body = "Download a LiteRT-LM model to start chatting offline.",
+                                body = "Download a LiteRT-LM (.litertlm) or MediaPipe (.task) model to start chatting offline.",
                                 actionLabel = "Browse models",
                                 onAction = onNavigateToModels
                             )

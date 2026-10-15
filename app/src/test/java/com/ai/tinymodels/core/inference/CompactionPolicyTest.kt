@@ -1,5 +1,7 @@
 package com.ai.tinymodels.core.inference
 
+import com.ai.tinymodels.core.inference.runtime.ChatTurn
+import com.ai.tinymodels.core.inference.runtime.SessionBudget
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -13,11 +15,11 @@ import org.junit.Test
 class CompactionPolicyTest {
 
     @Test fun `isCoveredByDigest uses at-or-before contract`() {
-        assertFalse(ConversationSession.isCoveredByDigest(1000L, null))
-        assertTrue(ConversationSession.isCoveredByDigest(999L, 1000L))
-        assertTrue(ConversationSession.isCoveredByDigest(1000L, 1000L)) // boundary IS covered
-        assertTrue(ConversationSession.isCoveredByDigest(500L, 1000L))
-        assertFalse(ConversationSession.isCoveredByDigest(1001L, 1000L))
+        assertFalse(SessionBudget.isCoveredByDigest(1000L, null))
+        assertTrue(SessionBudget.isCoveredByDigest(999L, 1000L))
+        assertTrue(SessionBudget.isCoveredByDigest(1000L, 1000L)) // boundary IS covered
+        assertTrue(SessionBudget.isCoveredByDigest(500L, 1000L))
+        assertFalse(SessionBudget.isCoveredByDigest(1001L, 1000L))
     }
 
     @Test fun `trimToBudget keeps most recent turns within budget`() {
@@ -27,7 +29,7 @@ class CompactionPolicyTest {
             ChatTurn(ChatTurn.Role.ASSISTANT, "bbbbbbbbbb"),
             ChatTurn(ChatTurn.Role.USER, "cccccccccc")
         )
-        val kept = ConversationSession.trimToBudget(turns, 5)
+        val kept = SessionBudget.trimToBudget(turns, 5)
         // Most recent turns survive; oldest drops first.
         assertTrue(kept.size < turns.size)
         assertEquals("cccccccccc", kept.last().text)
@@ -35,11 +37,11 @@ class CompactionPolicyTest {
 
     @Test fun `trimToBudget always keeps the last turn`() {
         val turns = listOf(ChatTurn(ChatTurn.Role.USER, "x".repeat(400)))
-        assertEquals(1, ConversationSession.trimToBudget(turns, 1).size)
+        assertEquals(1, SessionBudget.trimToBudget(turns, 1).size)
     }
 
     @Test fun `trimToBudget empty in empty out`() {
-        assertTrue(ConversationSession.trimToBudget(emptyList(), 100).isEmpty())
+        assertTrue(SessionBudget.trimToBudget(emptyList(), 100).isEmpty())
     }
 
     @Test fun `auto trigger fires at 90 percent of budget`() {

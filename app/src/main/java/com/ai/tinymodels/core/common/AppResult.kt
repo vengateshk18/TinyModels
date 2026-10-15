@@ -100,7 +100,7 @@ sealed class InferenceError(open val message: String?) {
         val format: String,
         override val message: String? =
             "$format files aren't supported by the on-device runtime yet. " +
-                "LiteRT-LM (.litertlm) files work today."
+                "LiteRT-LM (.litertlm) and MediaPipe (.task) files work today."
     ) : InferenceError(message)
 
     object NoModelLoaded : InferenceError("No model is loaded")

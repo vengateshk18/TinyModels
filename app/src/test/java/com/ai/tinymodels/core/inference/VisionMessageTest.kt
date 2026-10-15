@@ -1,6 +1,8 @@
 package com.ai.tinymodels.core.inference
 
-import com.ai.tinymodels.core.inference.ConversationSession.Companion.IMAGE_TOKEN_COST
+import com.ai.tinymodels.core.inference.runtime.ChatTurn
+import com.ai.tinymodels.core.inference.runtime.ConversationSession
+import com.ai.tinymodels.core.inference.runtime.SessionBudget
 import com.google.ai.edge.litertlm.Content
 import com.google.ai.edge.litertlm.Role
 import org.junit.Assert.assertEquals
@@ -37,13 +39,13 @@ class VisionMessageTest {
         val photo = ChatTurn(ChatTurn.Role.USER, "see?", listOf("/tmp/a.jpg"))
         val text = ChatTurn(ChatTurn.Role.USER, "hi") // ~1 token
         // Budget fits the text turn but not the 1024-token photo turn.
-        val kept = ConversationSession.trimToBudget(listOf(photo, text), IMAGE_TOKEN_COST - 1)
+        val kept = SessionBudget.trimToBudget(listOf(photo, text), SessionBudget.IMAGE_TOKEN_COST - 1)
         assertEquals(listOf(text), kept)
     }
 
     @Test fun `trimToBudget keeps photo turn when budget allows`() {
         val photo = ChatTurn(ChatTurn.Role.USER, "see?", listOf("/tmp/a.jpg"))
-        val kept = ConversationSession.trimToBudget(listOf(photo), IMAGE_TOKEN_COST + 10)
+        val kept = SessionBudget.trimToBudget(listOf(photo), SessionBudget.IMAGE_TOKEN_COST + 10)
         assertEquals(listOf(photo), kept)
     }
 }

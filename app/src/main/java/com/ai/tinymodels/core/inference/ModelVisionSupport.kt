@@ -1,6 +1,7 @@
 package com.ai.tinymodels.core.inference
 
 import android.util.Log
+import com.ai.tinymodels.core.inference.runtime.ChatTurn
 import java.io.File
 import java.io.FileInputStream
 

@@ -1,4 +1,4 @@
-package com.ai.tinymodels.core.inference
+package com.ai.tinymodels.core.inference.runtime
 
 import android.util.Log
 import com.ai.tinymodels.domain.model.SamplerSettings
@@ -13,54 +13,36 @@ import com.google.ai.edge.litertlm.ToolProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-/** A prior turn, used to restore a conversation's context after reopen. */
-data class ChatTurn(val role: Role, val text: String, val imagePaths: List<String> = emptyList()) {
-    enum class Role { USER, ASSISTANT }
-}
-
 /**
- * Wraps a single LiteRT-LM [Conversation] and manages its context window.
+ * The LiteRT-LM (.litertlm) implementation of [ChatSession]: wraps a single
+ * LiteRT [Conversation] and manages its context window.
  *
  * Responsibilities:
  *  - Build the conversation with the user's sampler settings + prior history
  *    (context restore across app restarts via [ConversationConfig.initialMessages]).
- *  - Track an estimated token budget and report when the context is nearly full.
- *  - Stream assistant replies. Note: LiteRT-LM emits CUMULATIVE text per
- *    emission, so consumers must REPLACE, never append.
+ *  - Track the estimated token budget via [BaseChatSession].
+ *  - Stream assistant replies as CUMULATIVE text. LiteRT-LM emits delta
+ *    chunks per emission, so this class accumulates them internally.
  *  - Release KV-cache memory via [close] without reloading the model.
  */
 class ConversationSession(
     private val conversation: Conversation,
-    private val maxContextTokens: Int
-) {
-    /** Estimated tokens currently occupying the context window. */
-    var estimatedTokensInContext: Int = 0
-        private set
-
-    /** Tracks the last cumulative reply length so we only count new tokens. */
-    private var lastStreamedLength: Int = 0
-
-    /** True when estimated usage exceeds the high-water mark (80% of budget). */
-    val isContextNearFull: Boolean
-        get() = estimatedTokensInContext >= (maxContextTokens * HIGH_WATER_RATIO)
+    maxContextTokens: Int,
+    initialTokens: Int = 0
+) : BaseChatSession(maxContextTokens, initialTokens) {
 
     /**
      * Send [text] (with optional attached photo paths) and stream the
      * assistant's reply as CUMULATIVE text.
      *
-     * LiteRT-LM's `sendMessageAsync` emits **delta chunks** (only the new tokens),
-     * NOT cumulative text. This method accumulates them internally and emits the
-     * full cumulative text on each emission so the caller can simply replace its
-     * display buffer.
-     *
      * Photos ride as [Content.ImageFile] parts in the same user message
      * (multimodal models like Gemma 3). Text-only turns keep the exact
      * previous String path — zero behavior change when no photo is attached.
      */
-    fun send(text: String, imagePaths: List<String> = emptyList()): Flow<String> {
-        Log.i(JOURNEY_TAG, "JOURNEY: prompt sent to model (${text.length} chars, ~${estimateTokens(text)} tokens, ${imagePaths.size} image(s)): \"$text\"")
-        estimatedTokensInContext += estimateTokens(text) + imagePaths.size * IMAGE_TOKEN_COST
-        lastStreamedLength = 0
+    override fun send(text: String, imagePaths: List<String>): Flow<String> {
+        Log.i(JOURNEY_TAG, "JOURNEY: prompt sent to model (${text.length} chars, ~${SessionBudget.estimateTokens(text)} tokens, ${imagePaths.size} image(s)): \"$text\"")
+        countPrompt(text)
+        repeat(imagePaths.size) { countImage() }
         val accumulated = StringBuilder()
         val outgoing = if (imagePaths.isEmpty()) {
             conversation.sendMessageAsync(text)
@@ -73,16 +55,13 @@ class ConversationSession(
                 .filterIsInstance<Content.Text>()
                 .joinToString(separator = "") { it.text }
             accumulated.append(delta)
-            val cumulative = accumulated.toString()
-            val newChars = delta.length
-            lastStreamedLength = cumulative.length
-            estimatedTokensInContext += newChars / CHARS_PER_TOKEN
-            cumulative
+            countResponseDelta(delta.length)
+            accumulated.toString()
         }
     }
 
     /** Release this conversation's KV-cache memory. The engine stays loaded. */
-    fun close() {
+    override fun close() {
         try {
             conversation.close()
         } catch (throwable: Throwable) {
@@ -95,12 +74,9 @@ class ConversationSession(
      * context-compaction flow. Returns null on failure — the caller then
      * falls back to the plain sliding-window trim.
      */
-    suspend fun summarizeOlderTurns(older: List<ChatTurn>): String? {
+    override suspend fun summarizeOlderTurns(older: List<ChatTurn>): String? {
         if (older.isEmpty()) return null
-        val transcript = older.joinToString("\n") {
-            val photo = if (it.imagePaths.isNotEmpty()) " [photo attached]" else ""
-            (if (it.role == ChatTurn.Role.USER) "User: " else "Assistant: ") + it.text + photo
-        }
+        val transcript = summarizeTranscript(older)
         Log.i(
             JOURNEY_TAG,
             "JOURNEY: compaction prompt sent to model — ${older.size} older turns, " +
@@ -108,7 +84,7 @@ class ConversationSession(
         )
         return try {
             val sb = StringBuilder()
-            conversation.sendMessageAsync(SUMMARIZE_PROMPT + transcript)
+            conversation.sendMessageAsync(SessionBudget.SUMMARIZE_PROMPT + transcript)
                 .collect { message ->
                     sb.append(
                         message.contents.contents
@@ -135,32 +111,6 @@ class ConversationSession(
         // (adb logcat -s TinyModelsJourney) shows the entire turn.
         private const val JOURNEY_TAG = "TinyModelsJourney"
 
-        private const val HIGH_WATER_RATIO = 0.8
-        private const val CHARS_PER_TOKEN = 4
-
-        /** Rough per-tool cost (schema JSON the runtime injects into context). */
-        internal const val TOOL_TOKEN_OVERHEAD = 200
-
-        /**
-         * Conservative per-photo cost. Vision encoders turn one image into
-         * hundreds of tokens; over-counting slightly is safer than a
-         * Status-13 overflow because the estimate was short.
-         */
-        const val IMAGE_TOKEN_COST = 1024
-
-        /** Fraction of the context budget reserved for the assistant's reply. */
-        private const val GENERATION_HEADROOM_RATIO = 0.25
-
-        /** Prompt used when asking the model to digest older turns. */
-        private const val SUMMARIZE_PROMPT =
-            "Summarize the following conversation so far in under 200 tokens. " +
-                "Keep: user goals, decisions, constraints, key facts, and any " +
-                "unresolved questions. Drop pleasantries and repetition. " +
-                "Reply with the summary only.\n\n"
-
-        fun estimateTokens(text: String): Int =
-            (text.length / CHARS_PER_TOKEN).coerceAtLeast(1)
-
         /**
          * Build a session from an [Engine], restoring prior [history] and applying
          * [sampler]. History is trimmed to the most recent turns that fit the budget
@@ -182,7 +132,10 @@ class ConversationSession(
             // error) so the prompt + history never overflow the engine's real
             // context window — overflow surfaces as "Status code 13: Task
             // failed with large input" from the native task.
-            val trimmed = trimToBudget(history, (maxContextTokens * (1 - GENERATION_HEADROOM_RATIO)).toInt())
+            val trimmed = SessionBudget.trimToBudget(
+                history,
+                (maxContextTokens * (1 - SessionBudget.GENERATION_HEADROOM_RATIO)).toInt()
+            )
             val initialMessages = trimmed.map { turn ->
                 when (turn.role) {
                     ChatTurn.Role.USER -> turn.toUserMessage()
@@ -191,14 +144,8 @@ class ConversationSession(
             }
             // Fold any prior compaction digest into the system instruction so
             // the model retains the gist of summarized-away older turns.
-            val effectiveSystemInstruction = buildString {
-                systemInstruction?.let { append(it) }
-                priorSummary?.let {
-                    if (isNotEmpty()) append("\n\n")
-                    append("Conversation so far (summary of earlier messages):\n")
-                    append(it)
-                }
-            }.takeIf { it.isNotBlank() }
+            val effectiveSystemInstruction =
+                SessionBudget.foldSystemInstruction(systemInstruction, priorSummary)
             val config = ConversationConfig(
                 systemInstruction = effectiveSystemInstruction?.let { Contents.of(Content.Text(it)) },
                 initialMessages = initialMessages,
@@ -238,44 +185,19 @@ class ConversationSession(
                 )
             }
             val conversation = engine.createConversation(config)
-            val session = ConversationSession(conversation, maxContextTokens)
             // Count everything the engine actually holds: live history PLUS
             // the system instruction and compaction digest folded into it.
             // Omitting those made the gauge drop further than reality after
             // every compaction (and the next overflow arrived as Status 13).
             // Tool schemas cost roughly ~200 tokens each — counted flat.
             // Photos cost IMAGE_TOKEN_COST each (vision encoder output).
-            session.estimatedTokensInContext = trimmed.sumOf {
-                estimateTokens(it.text) + it.imagePaths.size * IMAGE_TOKEN_COST
+            val initialTokens = trimmed.sumOf {
+                SessionBudget.estimateTokens(it.text) +
+                    it.imagePaths.size * SessionBudget.IMAGE_TOKEN_COST
             } +
-                (effectiveSystemInstruction?.let { estimateTokens(it) } ?: 0) +
-                tools.size * TOOL_TOKEN_OVERHEAD
-            return session
-        }
-
-        /**
-         * Whether a message is covered by the compaction digest and must be
-         * excluded from the live session history. Contract: messages created
-         * at or before [cutoffCreatedAt] are covered; null cutoff covers nothing.
-         */
-        fun isCoveredByDigest(createdAt: Long, cutoffCreatedAt: Long?): Boolean =
-            cutoffCreatedAt != null && createdAt <= cutoffCreatedAt
-
-        /**
-         * Sliding-window trim: keep the most recent turns whose combined estimated
-         * tokens fit within [budget]. Always keeps at least the last turn if present.
-         */
-        fun trimToBudget(history: List<ChatTurn>, budget: Int): List<ChatTurn> {
-            if (history.isEmpty()) return emptyList()
-            var tokens = 0
-            val kept = mutableListOf<ChatTurn>()
-            for (turn in history.asReversed()) {
-                val turnTokens = estimateTokens(turn.text) + turn.imagePaths.size * IMAGE_TOKEN_COST
-                if (tokens + turnTokens > budget && kept.isNotEmpty()) break
-                tokens += turnTokens
-                kept.add(0, turn)
-            }
-            return kept
+                (effectiveSystemInstruction?.let { SessionBudget.estimateTokens(it) } ?: 0) +
+                tools.size * SessionBudget.TOOL_TOKEN_OVERHEAD
+            return ConversationSession(conversation, maxContextTokens, initialTokens)
         }
 
         /** A user turn as a runtime message, with photos as image parts. */
@@ -285,6 +207,13 @@ class ConversationSession(
             } else {
                 val parts = imagePaths.map { Content.ImageFile(it) } + Content.Text(text)
                 Message.user(Contents.of(parts))
+            }
+
+        /** Formats older turns for the compaction summarization prompt. */
+        internal fun summarizeTranscript(older: List<ChatTurn>): String =
+            older.joinToString("\n") {
+                val photo = if (it.imagePaths.isNotEmpty()) " [photo attached]" else ""
+                (if (it.role == ChatTurn.Role.USER) "User: " else "Assistant: ") + it.text + photo
             }
     }
 }

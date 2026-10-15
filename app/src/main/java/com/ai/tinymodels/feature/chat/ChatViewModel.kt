@@ -4,12 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ai.tinymodels.core.common.DispatcherProvider
 import com.ai.tinymodels.core.common.InferenceError
-import com.ai.tinymodels.core.inference.ChatTurn
-import com.ai.tinymodels.core.inference.ConversationSession
 import com.ai.tinymodels.core.inference.InferenceException
 import com.ai.tinymodels.core.inference.ModelContextInspector
 import com.ai.tinymodels.core.inference.ModelManager
 import com.ai.tinymodels.core.inference.ModelVisionSupport
+import com.ai.tinymodels.core.inference.runtime.ChatSession
+import com.ai.tinymodels.core.inference.runtime.ChatTurn
+import com.ai.tinymodels.core.inference.runtime.SessionBudget
+import com.ai.tinymodels.core.inference.runtime.SessionRequest
 import com.ai.tinymodels.core.inference.tools.WebSearchToolSet
 import com.ai.tinymodels.core.network.WebSearchPrompt
 import com.ai.tinymodels.core.network.WebSearchQuery
@@ -56,8 +58,9 @@ import javax.inject.Inject
  * MVI ViewModel for the chat feature. Exposes a single immutable [ChatUiState].
  *
  * Memory behavior is delegated to the process-wide [ModelManager]; this ViewModel
- * only orchestrates loading + per-chat [ConversationSession]s. The engine survives
- * configuration changes because it is NOT owned here.
+ * only orchestrates loading + per-chat [ChatSession]s (LiteRT-LM or MediaPipe,
+ * chosen by the loaded file's format). The model survives configuration changes
+ * because it is NOT owned here.
  */
 @HiltViewModel
 class ChatViewModel @Inject constructor(
@@ -85,15 +88,15 @@ class ChatViewModel @Inject constructor(
         modelRepository.observeDownloadedFiles()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    private var session: ConversationSession? = null
+    private var session: ChatSession? = null
     private var generationJob: Job? = null
     private var activeModel: DownloadedModel? = null
 
     /**
-     * Serializes ALL access to the native [ConversationSession] / engine.
-     * LiteRT-LM's native runtime is NOT thread-safe: concurrent use of the
-     * same conversation (e.g. a generation while compaction summarizes, or
-     * two rebuilds racing) segfaults in liblitertlm_jni.so.
+     * Serializes ALL access to the native [ChatSession] / loaded model.
+     * The native runtimes are NOT thread-safe: concurrent use of the same
+     * conversation (e.g. a generation while compaction summarizes, or two
+     * rebuilds racing) segfaults in liblitertlm_jni.so / the MediaPipe task.
      */
     private val nativeMutex = Mutex()
 
@@ -519,7 +522,7 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    /** Build a fresh [ConversationSession] restoring prior turns for [chatId]. */
+    /** Build a fresh [ChatSession] restoring prior turns for [chatId]. */
     private suspend fun rebuildSession(chatId: String) {
         session?.close()
         session = null
@@ -529,7 +532,7 @@ class ChatViewModel @Inject constructor(
         // is carried by the digest instead (folded into the system prompt).
         val cutoff = chat?.compactedUpToCreatedAt
         val history = chatRepository.getMessages(chatId)
-            .filter { it.isComplete && !ConversationSession.isCoveredByDigest(it.createdAt, cutoff) }
+            .filter { it.isComplete && !SessionBudget.isCoveredByDigest(it.createdAt, cutoff) }
             .map {
                 ChatTurn(
                     role = if (it.role == ChatMessage.Role.USER) ChatTurn.Role.USER else ChatTurn.Role.ASSISTANT,
@@ -537,17 +540,21 @@ class ChatViewModel @Inject constructor(
                     imagePaths = listOfNotNull(it.imagePath)
                 )
             }
-        // Tools: register the web_search tool only when the global setting
-        // (availability gate) AND the per-chat flag are both enabled —
-        // otherwise zero tool overhead in the prompt.
-        val tools = if (_uiState.value.webSearchAvailable && chat?.webSearchEnabled == true) {
+        // Tools: register the web_search tool only when the loaded runtime can
+        // execute tools (LiteRT-LM), the global setting (availability gate) AND
+        // the per-chat flag are all enabled — otherwise zero tool overhead in
+        // the prompt. MediaPipe chats rely on the prompt-level search
+        // augmentation (maybeAugmentWithSearch) instead.
+        val toolsSupported = modelManager.activeRuntimeSupportsTools
+        val tools = if (toolsSupported && _uiState.value.webSearchAvailable && chat?.webSearchEnabled == true) {
             android.util.Log.i(TAG, "Registering web_search tool for chat $chatId")
             listOf(com.google.ai.edge.litertlm.tool(webSearchToolSet))
         } else {
             android.util.Log.i(
                 TAG,
                 "web_search tool NOT registered for chat $chatId " +
-                    "(global=${_uiState.value.webSearchAvailable}, perChat=${chat?.webSearchEnabled})"
+                    "(runtime=$toolsSupported, global=${_uiState.value.webSearchAvailable}, " +
+                    "perChat=${chat?.webSearchEnabled})"
             )
             emptyList()
         }
@@ -571,21 +578,22 @@ class ChatViewModel @Inject constructor(
                 "tools=${tools.size}"
         )
 
-        // Engine + conversation construction is native blocking work — run it
-        // off the main thread (viewModelScope defaults to Dispatchers.Main).
-        // Hold the native mutex: closing the old session + creating the new
-        // one must never race another native call.
+        // Session construction is native blocking work — run it off the main
+        // thread (viewModelScope defaults to Dispatchers.Main). Hold the native
+        // mutex: closing the old session + creating the new one must never race
+        // another native call.
         //
-        // Vision guard: a text-only engine (no TF_LITE_VISION_ENCODER) cannot
-        // hold ImageFile parts — restoring a photo-carrying chat onto it fails
-        // native conversation creation. Strip attachments to their text so the
-        // chat stays usable; photo sends are blocked up-front in sendMessage().
+        // Vision guard: a runtime without a vision path (text-only .litertlm or
+        // any MediaPipe model) cannot hold ImageFile parts — restoring a
+        // photo-carrying chat onto it fails native session creation. Strip
+        // attachments to their text so the chat stays usable; photo sends are
+        // blocked up-front in sendMessage().
         val visionEnabled = modelManager.isVisionModelLoaded
         val hadImages = ModelVisionSupport.historyHasImages(history)
         if (hadImages && !visionEnabled) {
             android.util.Log.i(
                 TAG,
-                "JOURNEY: rebuildSession(chat=$chatId) — text-only engine, " +
+                "JOURNEY: rebuildSession(chat=$chatId) — text-only model, " +
                     "stripping photo attachments from ${history.count { it.imagePaths.isNotEmpty() }} turn(s)"
             )
         }
@@ -594,9 +602,10 @@ class ChatViewModel @Inject constructor(
         try {
             withContext(dispatchers.io) {
                 nativeMutex.withLock {
-                    modelManager.withEngine { engine, config ->
-                        session = ConversationSession.create(
-                            engine = engine,
+                    session = modelManager.createSession(
+                        SessionRequest(
+                            maxContextTokens = modelManager.activeMaxNumTokens
+                                ?: ModelManager.DEFAULT_MAX_TOKENS,
                             systemInstruction = effectiveSystem,
                             history = effectiveHistory,
                             sampler = com.ai.tinymodels.domain.model.SamplerSettings(
@@ -604,11 +613,10 @@ class ChatViewModel @Inject constructor(
                                 topK = inference.topK,
                                 topP = inference.topP
                             ),
-                            maxContextTokens = config.maxNumTokens,
                             priorSummary = chat?.compactedSummary,
                             tools = tools
                         )
-                    }
+                    )
                 }
             }
             sessionModelId = modelManager.loadedModelId
@@ -660,9 +668,10 @@ class ChatViewModel @Inject constructor(
             try {
                 withContext(dispatchers.io) {
                     nativeMutex.withLock {
-                        modelManager.withEngine { engine, config ->
-                            session = ConversationSession.create(
-                                engine = engine,
+                        session = modelManager.createSession(
+                            SessionRequest(
+                                maxContextTokens = modelManager.activeMaxNumTokens
+                                    ?: ModelManager.DEFAULT_MAX_TOKENS,
                                 systemInstruction = effectiveSystem,
                                 history = stripped,
                                 sampler = com.ai.tinymodels.domain.model.SamplerSettings(
@@ -670,11 +679,10 @@ class ChatViewModel @Inject constructor(
                                     topK = inference.topK,
                                     topP = inference.topP
                                 ),
-                                maxContextTokens = config.maxNumTokens,
                                 priorSummary = chat?.compactedSummary,
                                 tools = tools
                             )
-                        }
+                        )
                     }
                 }
                 sessionModelId = modelManager.loadedModelId
@@ -690,9 +698,10 @@ class ChatViewModel @Inject constructor(
             try {
                 withContext(dispatchers.io) {
                     nativeMutex.withLock {
-                        modelManager.withEngine { engine, config ->
-                            session = ConversationSession.create(
-                                engine = engine,
+                        session = modelManager.createSession(
+                            SessionRequest(
+                                maxContextTokens = modelManager.activeMaxNumTokens
+                                    ?: ModelManager.DEFAULT_MAX_TOKENS,
                                 systemInstruction = effectiveSystem,
                                 history = stripped,
                                 sampler = com.ai.tinymodels.domain.model.SamplerSettings(
@@ -700,11 +709,10 @@ class ChatViewModel @Inject constructor(
                                     topK = inference.topK,
                                     topP = inference.topP
                                 ),
-                                maxContextTokens = config.maxNumTokens,
                                 priorSummary = chat?.compactedSummary,
                                 tools = tools
                             )
-                        }
+                        )
                     }
                 }
                 sessionModelId = modelManager.loadedModelId
@@ -775,7 +783,7 @@ class ChatViewModel @Inject constructor(
 
     private suspend fun maybeCompactInternal(
         chatId: String,
-        activeSession: ConversationSession,
+        activeSession: ChatSession,
         chat: com.ai.tinymodels.domain.model.Chat
     ) {
         // Trigger at 90% of the budget — NOT 10%: (1 - HEADROOM) was an
@@ -808,7 +816,7 @@ class ChatViewModel @Inject constructor(
      */
     private suspend fun compactInternal(
         chatId: String,
-        activeSession: ConversationSession,
+        activeSession: ChatSession,
         chat: com.ai.tinymodels.domain.model.Chat
     ): String {
         val budget = autoContextBudget()
@@ -819,7 +827,7 @@ class ChatViewModel @Inject constructor(
         val live = chatRepository.getMessages(chatId)
             .filter {
                 it.isComplete &&
-                    !ConversationSession.isCoveredByDigest(it.createdAt, chat.compactedUpToCreatedAt)
+                    !SessionBudget.isCoveredByDigest(it.createdAt, chat.compactedUpToCreatedAt)
             }
         val allTurns = live.map {
             ChatTurn(
@@ -830,7 +838,7 @@ class ChatViewModel @Inject constructor(
         }
         // Keep the most recent turns that fit in half the budget; summarize the rest.
         val keepBudget = budget / 2
-        val kept = ConversationSession.trimToBudget(allTurns, keepBudget)
+        val kept = SessionBudget.trimToBudget(allTurns, keepBudget)
         val olderCount = allTurns.size - kept.size
         if (olderCount <= 0) {
             return "Nothing to compact — the conversation already fits the context window"
@@ -989,7 +997,7 @@ class ChatViewModel @Inject constructor(
                 chatId = activeChatId,
                 role = ChatMessage.Role.USER,
                 content = text,
-                tokenCount = ConversationSession.estimateTokens(text),
+                tokenCount = SessionBudget.estimateTokens(text),
                 createdAt = System.currentTimeMillis(),
                 isComplete = true,
                 imagePath = savedImagePath
@@ -1180,7 +1188,7 @@ class ChatViewModel @Inject constructor(
                     }
                 }
                 .collect { cumulative ->
-                    // ConversationSession.send() accumulates delta chunks internally
+                    // ChatSession.send() accumulates delta chunks internally
                     // and emits cumulative text. Replace the buffer + UI with each emission.
                     emissionCount++
                     buffer.setLength(0)
@@ -1382,7 +1390,7 @@ class ChatViewModel @Inject constructor(
                 chatId = chatId,
                 role = ChatMessage.Role.ASSISTANT,
                 content = text,
-                tokenCount = ConversationSession.estimateTokens(text),
+                tokenCount = SessionBudget.estimateTokens(text),
                 createdAt = System.currentTimeMillis(),
                 isComplete = isComplete,
                 completedAt = completedAt

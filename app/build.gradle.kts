@@ -77,6 +77,9 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.google.litertlm.android)
+
+    // MediaPipe LLM Inference — runs .task model bundles (Gemma-family, etc.)
+    implementation(libs.google.mediapipe.tasks.genai)
     ksp(libs.androidx.room.compiler)
 
     // Hilt (DI)

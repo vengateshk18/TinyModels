@@ -5,6 +5,8 @@ import android.content.Context
 import android.os.Debug
 import android.os.Process
 import android.util.Log
+import com.ai.tinymodels.core.inference.runtime.SessionBudget
+import com.ai.tinymodels.core.inference.runtime.SessionRequest
 import com.ai.tinymodels.domain.model.SamplerSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -60,16 +62,17 @@ data class BenchmarkResult(
 )
 
 /**
- * Executes one benchmark run against the live engine.
+ * Executes one benchmark run against the live model.
  *
  * Methodology (fixed — see ai/BENCHMARK_PLAN.md):
- *  - A fresh [ConversationSession] per run (clean KV cache, no history).
+ *  - A fresh session per run (clean KV cache, no history), created through
+ *    the runtime currently loaded (LiteRT-LM or MediaPipe).
  *  - The prompt is sent and the stream is collected with `System.nanoTime()`
- *    timestamps per emission; LiteRT-LM emits one token per emission, so the
+ *    timestamps per emission; each runtime emits one piece per token, so the
  *    emission count is the token proxy.
  *  - Collection is capped at [MAX_OUTPUT_TOKENS] via [take].
- *  - The whole run executes inside [ModelManager.withEngine], holding the
- *    engine mutex so the model cannot be unloaded mid-run.
+ *  - The whole run executes inside [ModelManager.withSession], holding the
+ *    load mutex so the model cannot be swapped/unloaded mid-run.
  */
 @Singleton
 class BenchmarkRunner @Inject constructor(
@@ -85,54 +88,48 @@ class BenchmarkRunner @Inject constructor(
         runIndex: Int,
         maxOutputTokens: Int = MAX_OUTPUT_TOKENS,
         onToken: (Int) -> Unit = {}
-    ): RunMetrics = modelManager.withEngine { engine, config ->
-        val session = ConversationSession.create(
-            engine = engine,
-            systemInstruction = null,
-            history = emptyList(),
-            sampler = BENCHMARK_SAMPLER,
-            maxContextTokens = config.maxNumTokens
+    ): RunMetrics = modelManager.withSession(
+        SessionRequest(
+            maxContextTokens = modelManager.activeMaxNumTokens ?: ModelManager.DEFAULT_MAX_TOKENS,
+            sampler = BENCHMARK_SAMPLER
         )
+    ) { session ->
         Log.i(
             JOURNEY_TAG,
             "JOURNEY: benchmark ${prompt.id} run #$runIndex — session created " +
                 "(systemPrompt=<none>, tools=0, history=0), prompt: \"${prompt.text}\""
         )
-        try {
-            val startNs = System.nanoTime()
-            var firstEmissionNs = -1L
-            var lastEmissionNs = -1L
-            var tokens = 0
+        val startNs = System.nanoTime()
+        var firstEmissionNs = -1L
+        var lastEmissionNs = -1L
+        var tokens = 0
 
-            session.send(prompt.text)
-                .take(maxOutputTokens)
-                .collect {
-                    val nowNs = System.nanoTime()
-                    if (firstEmissionNs < 0L) firstEmissionNs = nowNs
-                    lastEmissionNs = nowNs
-                    tokens++
-                    onToken(tokens)
-                }
-            val endNs = System.nanoTime()
+        session.send(prompt.text)
+            .take(maxOutputTokens)
+            .collect {
+                val nowNs = System.nanoTime()
+                if (firstEmissionNs < 0L) firstEmissionNs = nowNs
+                lastEmissionNs = nowNs
+                tokens++
+                onToken(tokens)
+            }
+        val endNs = System.nanoTime()
 
-            val ttftMs = BenchmarkMath.ttftMs(startNs, firstEmissionNs, endNs)
-            RunMetrics(
-                promptId = prompt.id,
-                runIndex = runIndex,
-                isWarmUp = runIndex == 0,
-                ttftMs = ttftMs,
-                decodeTokensPerSec = BenchmarkMath.decodeTokensPerSec(
-                    tokens, firstEmissionNs, lastEmissionNs
-                ),
-                prefillTokensPerSec = BenchmarkMath.prefillTokensPerSec(
-                    ConversationSession.estimateTokens(prompt.text), ttftMs
-                ),
-                outputTokens = tokens,
-                durationMs = (endNs - startNs) / 1_000_000.0
-            )
-        } finally {
-            session.close()
-        }
+        val ttftMs = BenchmarkMath.ttftMs(startNs, firstEmissionNs, endNs)
+        RunMetrics(
+            promptId = prompt.id,
+            runIndex = runIndex,
+            isWarmUp = runIndex == 0,
+            ttftMs = ttftMs,
+            decodeTokensPerSec = BenchmarkMath.decodeTokensPerSec(
+                tokens, firstEmissionNs, lastEmissionNs
+            ),
+            prefillTokensPerSec = BenchmarkMath.prefillTokensPerSec(
+                SessionBudget.estimateTokens(prompt.text), ttftMs
+            ),
+            outputTokens = tokens,
+            durationMs = (endNs - startNs) / 1_000_000.0
+        )
     }
 
     companion object {
