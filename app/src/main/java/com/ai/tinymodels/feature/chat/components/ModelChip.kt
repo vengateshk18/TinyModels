@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ai.tinymodels.domain.model.DownloadedModel
+import com.ai.tinymodels.domain.model.modelFileDisplayName
 import com.ai.tinymodels.feature.chat.model.ModelChipState
 
 /** Compact pill in the top bar showing the active model + loading state. */
@@ -75,8 +76,7 @@ fun ModelChip(
                         // Prefer the specific loaded file (extension stripped) — it is
                         // the most precise identifier of what's in memory.
                         text = state.fileName
-                            ?.substringAfterLast('/')
-                            ?.removeSuffix(".litertlm")
+                            ?.modelFileDisplayName()
                             ?: state.modelId.substringAfterLast('/'),
                         style = MaterialTheme.typography.labelMedium,
                         maxLines = 1,

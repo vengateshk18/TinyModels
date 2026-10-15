@@ -45,6 +45,6 @@ interface ModelRepository {
     /** Export one downloaded file to a user-selected folder (SAF). */
     suspend fun exportModelFile(modelId: String, fileName: String, destinationUri: Uri): AppResult<Uri>
     
-    /** Import a .litertlm file from a user-selected file (SAF). */
+    /** Import a model file (.litertlm, .task, .tflite or .gguf) via SAF. */
     suspend fun importModel(sourceUri: Uri): AppResult<DownloadedModel>
 }

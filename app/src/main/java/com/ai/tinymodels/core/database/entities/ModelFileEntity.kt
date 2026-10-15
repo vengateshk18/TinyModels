@@ -1,6 +1,7 @@
 package com.ai.tinymodels.core.database.entities
 
 import androidx.room.Entity
+import com.ai.tinymodels.domain.model.ModelFormat
 
 /**
  * Per-file download tracking row. Parent = [DownloadedModelEntity] (via `modelId`).
@@ -19,6 +20,8 @@ data class ModelFileEntity(
     val sizeBytes: Long,          // per-file size (from HEAD or actual)
     val localPath: String?,       // directory path, set when DOWNLOADED
     val error: String?,           // set when FAILED
-    /** True when this file was imported from an external .litertlm file. */
-    val isImported: Boolean = false
+    /** True when this file was imported from external storage (any supported format). */
+    val isImported: Boolean = false,
+    /** The format of this model file. */
+    val format: ModelFormat = ModelFormat.LITERTLM
 )

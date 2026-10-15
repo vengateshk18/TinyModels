@@ -19,7 +19,9 @@ import com.ai.tinymodels.domain.model.DownloadedModel
 import com.ai.tinymodels.domain.model.DownloadedModelFile
 import com.ai.tinymodels.domain.model.FileDownloadStatus
 import com.ai.tinymodels.domain.model.ModelDetails
+import com.ai.tinymodels.domain.model.ModelFormat
 import com.ai.tinymodels.domain.model.ModelSummary
+import com.ai.tinymodels.domain.model.modelFileDisplayName
 import com.ai.tinymodels.domain.repository.ModelRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -105,9 +107,10 @@ class ModelRepositoryImpl @Inject constructor(
             // Only pre-register file tracking rows — do NOT insert into downloaded_models yet.
             // A DownloadedModelEntity is only inserted by the worker after a successful download.
             // This prevents the model from appearing in the "downloaded" list prematurely.
-            model.runtimeFiles.ifEmpty { model.liteRtFiles }.forEach { fileName ->
+            model.allRunnableFiles.forEach { fileName ->
                 val existing = modelFileDao.getByModelIdAndFile(model.id, fileName)
                 if (existing == null) {
+                    val format = ModelFormat.fromFileName(fileName)
                     modelFileDao.insert(
                         ModelFileEntity(
                             modelId = model.id,
@@ -115,7 +118,8 @@ class ModelRepositoryImpl @Inject constructor(
                             status = FileDownloadStatus.NOT_DOWNLOADED.name,
                             sizeBytes = 0L,
                             localPath = null,
-                            error = null
+                            error = null,
+                            format = format
                         )
                     )
                 }
@@ -155,7 +159,8 @@ class ModelRepositoryImpl @Inject constructor(
         sizeBytes = sizeBytes,
         localPath = localPath,
         error = error,
-        isImported = isImported
+        isImported = isImported,
+        format = format
     )
 
     // ---- Export / Import ----
@@ -204,18 +209,21 @@ class ModelRepositoryImpl @Inject constructor(
             ) {
                 val fileName = getFileNameFromUri(sourceUri)
                     ?: throw IllegalStateException("Cannot determine file name")
-                
-                if (!fileName.endsWith(".litertlm", ignoreCase = true)) {
-                    throw IllegalArgumentException("Invalid file type. Only .litertlm files are supported.")
-                }
 
-                // Extract modelId from filename (remove .litertlm)
-                val modelId = fileName.removeSuffix(".litertlm").replace("_", "/")
-                
+                if (!fileName.isModelFile()) {
+                    throw IllegalArgumentException(
+                        "Unsupported file type. Supported: .litertlm, .task, .tflite, .gguf"
+                    )
+                }
+                val format = ModelFormat.fromFileName(fileName)
+
+                // Extract modelId from filename (remove extension)
+                val modelId = fileName.modelFileDisplayName().replace("_", "/")
+
                 // Check if already exists
                 val existingModel = downloadedModelDao.getById(modelId)
                 val existingFiles = modelFileDao.getByModelId(modelId).map { it.fileName }.toSet()
-                
+
                 if (existingModel != null && existingFiles.contains(fileName)) {
                     throw IllegalStateException("This model file already exists in your library")
                 }
@@ -235,11 +243,18 @@ class ModelRepositoryImpl @Inject constructor(
                 val now = System.currentTimeMillis()
 
                 // Insert or get parent model
+                val libraryName = when (format) {
+                    ModelFormat.TASK -> "mediapipe"
+                    ModelFormat.TFLITE -> "tensorflow-lite"
+                    ModelFormat.GGUF -> "llama.cpp"
+                    else -> "litertlm"
+                }
+                val pipelineTag = "text-generation"
                 val modelEntity = downloadedModelDao.getById(modelId) ?: DownloadedModelEntity(
                     modelId = modelId,
                     author = "imported",
-                    libraryName = "litertlm",
-                    pipelineTag = "text-generation",
+                    libraryName = libraryName,
+                    pipelineTag = pipelineTag,
                     localPath = modelDir.absolutePath,
                     downloadedAt = now
                 ).also { downloadedModelDao.insertIfAbsent(it) }
@@ -253,7 +268,8 @@ class ModelRepositoryImpl @Inject constructor(
                         sizeBytes = fileSize,
                         localPath = modelDir.absolutePath,
                         error = null,
-                        isImported = true
+                        isImported = true,
+                        format = format
                     )
                 )
 
@@ -271,11 +287,21 @@ class ModelRepositoryImpl @Inject constructor(
                     cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME))
                 } else {
                     // Fallback: try last path segment
-                    uri.lastPathSegment?.takeIf { it.endsWith(".litertlm", ignoreCase = true) }
+                    uri.lastPathSegment?.takeIf { it.isModelFile() }
                 }
             }
         } catch (e: Exception) {
-            uri.lastPathSegment?.takeIf { it.endsWith(".litertlm", ignoreCase = true) }
+            uri.lastPathSegment?.takeIf { it.isModelFile() }
         }
+    }
+
+    /**
+     * Checks if a filename has a supported model file extension.
+     */
+    private fun String.isModelFile(): Boolean {
+        return this.endsWith(".litertlm", ignoreCase = true) ||
+            this.endsWith(".task", ignoreCase = true) ||
+            this.endsWith(".tflite", ignoreCase = true) ||
+            this.endsWith(".gguf", ignoreCase = true)
     }
 }

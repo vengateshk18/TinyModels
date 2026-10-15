@@ -16,6 +16,8 @@ import com.ai.tinymodels.core.database.entities.ModelFileEntity
  * columns to `chats` ([ChatEntity.compactedSummary] / `compactedUpToCreatedAt`).
  * Version 9 adds the photo attachment path to `messages`
  * ([MessageEntity.imagePath]) for multimodal models.
+ * Version 10 adds `isImported` to `model_files`.
+ * Version 11 adds `format` to `model_files` for multi-format support.
  */
 @Database(
     entities = [
@@ -24,7 +26,7 @@ import com.ai.tinymodels.core.database.entities.ModelFileEntity
         ChatEntity::class,
         MessageEntity::class
     ],
-        version = 10,
+        version = 11,
     exportSchema = false
 )
 abstract class TinyModelsDatabase : RoomDatabase() {

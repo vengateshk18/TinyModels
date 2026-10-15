@@ -16,6 +16,7 @@ import com.ai.tinymodels.core.database.entities.ModelFileEntity
 import com.ai.tinymodels.core.network.HuggingFaceApi
 import com.ai.tinymodels.core.network.HuggingFaceAuth
 import com.ai.tinymodels.domain.model.FileDownloadStatus
+import com.ai.tinymodels.domain.model.ModelFormat
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +29,7 @@ import java.io.File
 import kotlin.coroutines.coroutineContext
 
 /**
- * Downloads a model's LiteRT files in the foreground with a throttled progress
+ * Downloads a model's files in the foreground with a throttled progress
  * notification, then records the result in Room. Hilt-injected (DAO + API + OkHttp).
  *
  * Progress is posted to the system notification at most every [NOTIFY_INTERVAL_MS]
@@ -110,7 +111,8 @@ class ModelDownloadWorker @AssistedInject constructor(
                         status = FileDownloadStatus.DOWNLOADED.name,
                         sizeBytes = target.length(),
                         localPath = modelDirectory.absolutePath,
-                        error = null
+                        error = null,
+                        format = ModelFormat.fromFileName(fileName)
                     )
                 )
             }

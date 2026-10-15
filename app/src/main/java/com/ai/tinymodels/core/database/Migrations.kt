@@ -72,6 +72,16 @@ object Migrations {
         }
     }
 
+    /**
+     * v10 → v11: adds `format` to `model_files` — tracks the model file format
+     * (LITERTLM, TASK, TFLITE, GGUF). Defaults to LITERTLM for existing files.
+     */
+    val MIGRATION_10_11 = object : Migration(10, 11) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE model_files ADD COLUMN format TEXT NOT NULL DEFAULT 'LITERTLM'")
+        }
+    }
+
     val MIGRATION_4_5 = object : Migration(4, 5) {
         override fun migrate(db: SupportSQLiteDatabase) {
             // 1. Create the new model_files table.

@@ -171,7 +171,7 @@ private fun DownloadedFileRow(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    formatBytes(file.sizeBytes),
+                    "${file.format.displayName} · ${formatBytes(file.sizeBytes)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -76,6 +76,7 @@ import com.ai.tinymodels.core.ui.components.ErrorState
 import com.ai.tinymodels.core.ui.components.OfflineState
 import com.ai.tinymodels.domain.model.FileDownloadStatus
 import com.ai.tinymodels.domain.model.ModelDetails
+import com.ai.tinymodels.domain.model.ModelFormat
 import com.ai.tinymodels.domain.usecase.model.DownloadState
 import com.ai.tinymodels.domain.usecase.model.DownloadStatus
 import com.ai.tinymodels.feature.models.ModelDetailsViewModel
@@ -245,10 +246,10 @@ private fun ModelDetailsContent(
         if (model.widgetPrompts.isNotEmpty()) item { TryItCard(model.widgetPrompts) }
         item { AboutCard(model) }
         if (model.tags.isNotEmpty()) item { TagsCard(model.tags) }
-        if (model.runtimeFiles.ifEmpty { model.liteRtFiles }.isNotEmpty()) {
+        if (model.allRunnableFiles.isNotEmpty()) {
             item {
                 InteractiveFilesCard(
-                    files = model.runtimeFiles.ifEmpty { model.liteRtFiles },
+                    files = model.allRunnableFiles,
                     uiState = uiState,
                     onFileSelected = onFileSelected,
                     onDownloadedFileClick = onDownloadedFileClick
@@ -302,7 +303,7 @@ private fun StatsCard(model: ModelDetails, modelFiles: List<com.ai.tinymodels.do
             StatItem(Icons.Filled.TrendingUp, "Downloads", Formatters.formatCount(model.downloads ?: 0))
             StatItem(Icons.Filled.Favorite, "Likes", Formatters.formatCount((model.likes ?: 0).toLong()))
             StatItem(Icons.Filled.SdStorage, "Repo size", Formatters.formatBytes(model.usedStorage ?: 0))
-            StatItem(Icons.Filled.CheckCircle, "Downloaded", "$downloadedCount/${model.runtimeFiles.ifEmpty { model.liteRtFiles }.size}")
+            StatItem(Icons.Filled.CheckCircle, "Downloaded", "$downloadedCount/${model.allRunnableFiles.size}")
         }
     }
 }
@@ -477,7 +478,8 @@ private fun FileRow(
                         maxLines = 1
                     )
                     Text(
-                        if (fileSize > 0) Formatters.formatBytes(fileSize) else "—",
+                        "${ModelFormat.fromFileName(fileName).displayName} · " +
+                            (if (fileSize > 0) Formatters.formatBytes(fileSize) else "—"),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

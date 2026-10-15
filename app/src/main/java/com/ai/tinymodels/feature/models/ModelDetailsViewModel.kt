@@ -170,7 +170,7 @@ class ModelDetailsViewModel @Inject constructor(
             // Each size is a HEAD request — skip entirely when offline.
             // Rows keep showing "—" until a later successful load fills them in.
             if (!networkMonitor.isOnline.value) return@launch
-            val files = model.runtimeFiles.ifEmpty { model.liteRtFiles }
+            val files = model.allRunnableFiles
             val sizes = mutableMapOf<String, Long>()
             files.forEach { fileName ->
                 try {

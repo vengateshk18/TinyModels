@@ -11,6 +11,7 @@ import com.ai.tinymodels.core.common.MemoryUtils
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.EngineLoadConfig
 import com.ai.tinymodels.domain.model.LoadedModel
+import com.ai.tinymodels.domain.model.ModelFormat
 import com.google.ai.edge.litertlm.Backend
 import com.google.ai.edge.litertlm.Engine
 import com.google.ai.edge.litertlm.EngineConfig
@@ -110,6 +111,17 @@ class ModelManager @Inject constructor(
     ): AppResult<LoadedModel> = mutex.withLock {
         if (!modelFile.exists()) {
             val error = InferenceError.ModelFileMissing("Missing: ${modelFile.absolutePath}")
+            _engineState.value = EngineState.Error(modelId, error)
+            return AppResult.Error(error.asAppError())
+        }
+
+        // Only LiteRT-LM (.litertlm) files can be executed today. Other
+        // downloaded formats (MediaPipe `.task`, `.tflite`, GGUF) would fail
+        // deep inside the native engine with an opaque error — fail fast with
+        // an actionable message instead.
+        val format = ModelFormat.fromFileName(modelFile.name)
+        if (format != ModelFormat.LITERTLM) {
+            val error = InferenceError.UnsupportedFormat(format.displayName)
             _engineState.value = EngineState.Error(modelId, error)
             return AppResult.Error(error.asAppError())
         }

@@ -35,8 +35,8 @@ class DownloadedModelsViewModel @Inject constructor(
 
     /** All DOWNLOADED files (children), grouped by model in the UI.
      *
-     * Only files still present on disk are shown: if the underlying
-     * `.litertlm` was deleted outside the app (e.g. via Files), the stale
+     * Only files still present on disk are shown: if the underlying model
+     * file was deleted outside the app (e.g. via Files), the stale
      * DB row is hidden instead of offered for chat.
      */
     val downloadedFiles: StateFlow<List<DownloadedModelFile>> =
@@ -71,7 +71,7 @@ class DownloadedModelsViewModel @Inject constructor(
     }
 
     /**
-     * True when the file's `.litertlm` still exists on disk.
+     * True when the model file still exists on disk.
      * `localPath` is the model directory; the file lives inside it.
      */
     private fun DownloadedModelFile.isFileAvailable(): Boolean {

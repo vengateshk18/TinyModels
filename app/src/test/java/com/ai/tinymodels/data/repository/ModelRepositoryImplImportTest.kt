@@ -12,24 +12,35 @@ import com.ai.tinymodels.core.database.entities.DownloadedModelEntity
 import com.ai.tinymodels.core.database.entities.ModelFileEntity
 import com.ai.tinymodels.core.network.HuggingFaceApi
 import com.ai.tinymodels.domain.model.FileDownloadStatus
+import com.ai.tinymodels.domain.model.ModelFormat
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
+import java.io.ByteArrayInputStream
 
 /**
- * Validates the SAF import guards in [ModelRepositoryImpl.importModel]:
- * non-`.litertlm` files are rejected and already-registered files are not
- * duplicated.
+ * Validates the SAF import behaviour of [ModelRepositoryImpl.importModel]:
+ * unsupported extensions are rejected, supported formats (`.litertlm`,
+ * `.task`, `.tflite`, `.gguf`) are copied in with the right format, and
+ * already-registered files are not duplicated.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class ModelRepositoryImplImportTest {
+
+    @get:Rule
+    val temp = TemporaryFolder()
 
     private val context = mockk<Context>()
     private val resolver = mockk<ContentResolver>(relaxed = true)
@@ -48,6 +59,7 @@ class ModelRepositoryImplImportTest {
     @Before
     fun setUp() {
         every { context.contentResolver } returns resolver
+        every { context.filesDir } returns temp.root
         repo = ModelRepositoryImpl(context, downloadedModelDao, modelFileDao, api, dispatchers)
     }
 
@@ -61,11 +73,28 @@ class ModelRepositoryImplImportTest {
     }
 
     @Test
-    fun `import rejects non-litertlm files`() = runTest {
+    fun `import rejects unsupported files`() = runTest {
         val result = repo.importModel(sourceUriServing("notes.txt"))
 
         assertTrue(result is AppResult.Error)
-        assertTrue((result as AppResult.Error).error.message?.contains("Invalid file type") == true)
+        assertTrue((result as AppResult.Error).error.message?.contains("Unsupported file type") == true)
+    }
+
+    @Test
+    fun `import accepts gguf files and records their format`() = runTest {
+        every { resolver.openInputStream(any()) } returns ByteArrayInputStream("gguf-bytes".toByteArray())
+        coEvery { downloadedModelDao.getById(any()) } returns null
+        coEvery { modelFileDao.getByModelId(any()) } returns emptyList()
+
+        val result = repo.importModel(sourceUriServing("Qwen3-0.6B-Q4_K_M.gguf"))
+
+        assertTrue(result is AppResult.Success)
+        val slot = slot<ModelFileEntity>()
+        coVerify { modelFileDao.insert(capture(slot)) }
+        val saved = slot.captured
+        assertEquals("Qwen3-0.6B-Q4_K_M.gguf", saved.fileName)
+        assertEquals(ModelFormat.GGUF, saved.format)
+        assertTrue(saved.isImported)
     }
 
     @Test

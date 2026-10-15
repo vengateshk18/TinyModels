@@ -66,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ai.tinymodels.core.ui.Formatters
+import com.ai.tinymodels.domain.model.modelFileDisplayName
 import com.ai.tinymodels.feature.home.components.DeviceInsights
 import com.ai.tinymodels.domain.usecase.model.DownloadStatus
 import com.ai.tinymodels.feature.home.model.HomeUiState
@@ -787,8 +788,7 @@ private fun LastUsedModelCard(
             state.lastUsedFileName?.let { fileName ->
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = fileName.substringAfterLast('/')
-                        .removeSuffix(".litertlm")
+                    text = fileName.modelFileDisplayName()
                         .uppercase() + " • ${state.lastChat?.contextTokens ?: 2048} context",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -821,8 +821,7 @@ private fun LastUsedModelCard(
             } else {
                 // No prior chat — show New chat prominently with the model name
                 val modelDisplayName = state.lastUsedModel?.modelId?.substringAfterLast('/')
-                    ?: state.lastUsedFileName?.substringAfterLast('/')
-                        ?.removeSuffix(".litertlm")
+                    ?: state.lastUsedFileName?.modelFileDisplayName()
                     ?: "this model"
                 Button(
                     onClick = { onNewChat(state.lastUsedModel?.modelId) },

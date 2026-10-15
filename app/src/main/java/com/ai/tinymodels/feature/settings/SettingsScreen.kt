@@ -620,7 +620,7 @@ private fun ModelManagementSection(
     // Import Model
     NavigationRow(
         label = "Import Model",
-        subtitle = "Add a .litertlm file from external storage",
+        subtitle = "Import a .litertlm, .task, .tflite or .gguf file",
         onClick = onImportClick
     )
 

@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ai.tinymodels.core.ui.Formatters
 import com.ai.tinymodels.domain.model.DownloadedModelFile
+import com.ai.tinymodels.domain.model.modelFileDisplayName
 
 /**
  * Bottom sheet listing every downloaded model file as a flat list of models.
@@ -133,10 +134,7 @@ private fun ModelFileRow(
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = file.fileName
-                    .substringAfterLast('/')
-                    .removeSuffix(".litertlm")
-                    .uppercase(),
+                text = file.fileName.modelFileDisplayName().uppercase(),
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

@@ -95,5 +95,13 @@ sealed class InferenceError(open val message: String?) {
     data class GenerationFailed(override val message: String?, val cause: Throwable? = null) :
         InferenceError(message)
 
+    /** Downloaded fine, but the on-device runtime can't execute this format yet. */
+    data class UnsupportedFormat(
+        val format: String,
+        override val message: String? =
+            "$format files aren't supported by the on-device runtime yet. " +
+                "LiteRT-LM (.litertlm) files work today."
+    ) : InferenceError(message)
+
     object NoModelLoaded : InferenceError("No model is loaded")
 }

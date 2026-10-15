@@ -1470,6 +1470,8 @@ class ChatViewModel @Inject constructor(
         is InferenceError.BackendUnavailable -> "No supported backend on this device."
         is InferenceError.LoadFailed -> error.message ?: "Failed to load model"
         is InferenceError.GenerationFailed -> error.message ?: "Generation failed"
+        is InferenceError.UnsupportedFormat ->
+            error.message ?: "${error.format} files aren't supported by the on-device runtime yet."
         InferenceError.NoModelLoaded -> "No model loaded"
     }
 
