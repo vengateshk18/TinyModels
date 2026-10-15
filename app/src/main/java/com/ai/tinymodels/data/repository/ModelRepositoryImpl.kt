@@ -15,14 +15,21 @@ import com.ai.tinymodels.core.network.HuggingFaceApi
 import com.ai.tinymodels.core.network.NetworkErrorMapper
 import com.ai.tinymodels.core.network.dto.ModelDtoParser
 import dagger.hilt.android.qualifiers.ApplicationContext
+import com.ai.tinymodels.domain.model.CatalogPage
 import com.ai.tinymodels.domain.model.DownloadedModel
 import com.ai.tinymodels.domain.model.DownloadedModelFile
 import com.ai.tinymodels.domain.model.FileDownloadStatus
+import com.ai.tinymodels.domain.model.MobileFit
 import com.ai.tinymodels.domain.model.ModelDetails
+import com.ai.tinymodels.domain.model.ModelFilter
 import com.ai.tinymodels.domain.model.ModelFormat
 import com.ai.tinymodels.domain.model.ModelSummary
 import com.ai.tinymodels.domain.model.modelFileDisplayName
 import com.ai.tinymodels.domain.repository.ModelRepository
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -40,22 +47,95 @@ class ModelRepositoryImpl @Inject constructor(
     private val dispatchers: DispatcherProvider
 ) : ModelRepository {
 
+    private val catalogCache = CatalogCache()
+
     // ---- Remote catalog ----
 
-    override suspend fun listModels(): AppResult<List<ModelSummary>> =
-        listModels(null, null)
-
-    override suspend fun listModels(search: String?, pipelineTag: String?): AppResult<List<ModelSummary>> =
+    override suspend fun listModels(search: String?, filter: ModelFilter, limit: Int): AppResult<CatalogPage> =
         withContext(dispatchers.io) {
-            AppResult.runCatching(
-                errorMapper = NetworkErrorMapper::toAppError
-            ) {
-                val models = ModelDtoParser.parseModelList(api.listModels(search, pipelineTag, null))
-                // Client-side filter: only keep models that actually have runnable
-                // LiteRT files — no point showing models we can never run.
-                models.filter { it.hasRuntimeFiles }
+            val query = search?.trim().orEmpty()
+            val cacheKey = "${filter.name}|${query.lowercase()}|$limit"
+            catalogCache.get(cacheKey)?.let { return@withContext AppResult.Success(it) }
+
+            AppResult.runCatching(errorMapper = NetworkErrorMapper::toAppError) {
+                val branches = branchesFor(query, filter)
+
+                // Branches run in parallel; one flaky branch is skipped rather
+                // than failing the whole catalog.
+                val outcomes = coroutineScope {
+                    branches.map { branch ->
+                        async { runCatchingNonCancellable { fetchBranch(branch, limit) } }
+                    }.awaitAll()
+                }
+                val successes = outcomes.mapNotNull { it.getOrNull() }
+                if (successes.isEmpty()) {
+                    throw outcomes.first().exceptionOrNull()
+                        ?: IllegalStateException("Model catalog unavailable")
+                }
+
+                val merged = LinkedHashMap<String, ModelSummary>()
+                successes.flatMap { it.models }.forEach { merged.putIfAbsent(it.modelId, it) }
+
+                val page = CatalogPage(
+                    models = merged.values
+                        .filter { it.hasRuntimeFiles }
+                        .filter { model -> filter.format?.let(model::hasFormat) ?: true }
+                        .filter { !MobileFit.isTooLargeForMobile(it) }
+                        .sortedWith(
+                            compareByDescending<ModelSummary> { MobileFit.isMobileFriendly(it) }
+                                .thenByDescending { it.downloads ?: 0L }
+                        ),
+                    hasMore = successes.any { it.hitLimit }
+                )
+                catalogCache.put(cacheKey, page)
+                page
             }
         }
+
+    /** One API query feeding the catalog — a search keyword or an author feed. */
+    private data class CatalogBranch(val search: String? = null, val author: String? = null)
+
+    /** Result of one branch query, before merging and filtering. */
+    private data class BranchFetch(val models: List<ModelSummary>, val hitLimit: Boolean)
+
+    /**
+     * The HF hub has no single "mobile chat models" feed, so browse merges
+     * several branches (mirroring how models are found on the web):
+     *  - `search=litertlm` — community LiteRT-LM uploads,
+     *  - `author=litert-community` — the main publisher of `.litertlm`,
+     *  - `search=gguf` — quantized models for llama.cpp-style runtimes.
+     * Format chips narrow this down to their own keyword; a typed query
+     * replaces the branches entirely.
+     */
+    private fun branchesFor(query: String, filter: ModelFilter): List<CatalogBranch> {
+        if (query.isNotBlank()) return listOf(CatalogBranch(search = query))
+        return when (filter.format) {
+            null -> listOf(
+                CatalogBranch(search = "litertlm"),
+                LITERT_COMMUNITY_BRANCH,
+                CatalogBranch(search = "gguf")
+            )
+            ModelFormat.GGUF -> listOf(CatalogBranch(search = "gguf"))
+            ModelFormat.LITERTLM -> listOf(CatalogBranch(search = "litertlm"), LITERT_COMMUNITY_BRANCH)
+            ModelFormat.TASK -> listOf(CatalogBranch(search = "mediapipe"), LITERT_COMMUNITY_BRANCH)
+            ModelFormat.TFLITE -> listOf(CatalogBranch(search = "tflite"), LITERT_COMMUNITY_BRANCH)
+        }
+    }
+
+    private fun fetchBranch(branch: CatalogBranch, limit: Int): BranchFetch {
+        val json = api.listModels(branch.search, CATALOG_PIPELINE_TAG, branch.author, limit)
+        val models = ModelDtoParser.parseModelList(json)
+        return BranchFetch(models = models, hitLimit = models.size >= limit)
+    }
+
+    /** Like [Result.runCatching] but lets coroutine cancellation abort the fetch. */
+    private suspend fun <T> runCatchingNonCancellable(block: suspend () -> T): Result<T> = try {
+        Result.success(block())
+    } catch (cancellation: CancellationException) {
+        throw cancellation
+    } catch (throwable: Throwable) {
+        Result.failure(throwable)
+    }
 
     override suspend fun getModelDetails(modelId: String): AppResult<ModelDetails> =
         withContext(dispatchers.io) {
@@ -303,5 +383,13 @@ class ModelRepositoryImpl @Inject constructor(
             this.endsWith(".task", ignoreCase = true) ||
             this.endsWith(".tflite", ignoreCase = true) ||
             this.endsWith(".gguf", ignoreCase = true)
+    }
+
+    private companion object {
+        /** Every catalog branch is limited to chat models — this is a chat app. */
+        const val CATALOG_PIPELINE_TAG = "text-generation"
+
+        /** The main publisher of ready-to-run LiteRT-LM files. */
+        val LITERT_COMMUNITY_BRANCH = CatalogBranch(author = "litert-community")
     }
 }

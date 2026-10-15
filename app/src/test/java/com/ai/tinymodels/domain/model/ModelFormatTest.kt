@@ -61,6 +61,28 @@ class ModelFormatTest {
     }
 
     @Test
+    fun `every format exposes its file extension`() {
+        assertEquals(".litertlm", ModelFormat.LITERTLM.extension)
+        assertEquals(".task", ModelFormat.TASK.extension)
+        assertEquals(".tflite", ModelFormat.TFLITE.extension)
+        assertEquals(".gguf", ModelFormat.GGUF.extension)
+    }
+
+    @Test
+    fun `summary hasFormat matches sibling extensions case-insensitively`() {
+        val summary = ModelSummary(
+            id = "x/y", modelId = "x/y", author = "x", likes = null, downloads = null,
+            tags = emptyList(), libraryName = null, pipelineTag = null, lastModified = null,
+            siblings = listOf("README.md", "weights.Q4_K_M.GGUF")
+        )
+
+        assertTrue(summary.hasFormat(ModelFormat.GGUF))
+        assertFalse(summary.hasFormat(ModelFormat.LITERTLM))
+        assertFalse(summary.hasFormat(ModelFormat.TASK))
+        assertFalse(summary.hasFormat(ModelFormat.TFLITE))
+    }
+
+    @Test
     fun `summary without runtime files is not runnable`() {
         val summary = ModelSummary(
             id = "x/y", modelId = "x/y", author = "x", likes = null, downloads = null,

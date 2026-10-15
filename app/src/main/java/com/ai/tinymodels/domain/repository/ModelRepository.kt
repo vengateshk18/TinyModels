@@ -1,10 +1,13 @@
 package com.ai.tinymodels.domain.repository
 
 import com.ai.tinymodels.core.common.AppResult
+import com.ai.tinymodels.domain.model.CATALOG_PAGE_SIZE
+import com.ai.tinymodels.domain.model.CatalogPage
 import com.ai.tinymodels.domain.model.DownloadedModel
 import com.ai.tinymodels.domain.model.DownloadedModelFile
 import com.ai.tinymodels.domain.model.FileDownloadStatus
 import com.ai.tinymodels.domain.model.ModelDetails
+import com.ai.tinymodels.domain.model.ModelFilter
 import com.ai.tinymodels.domain.model.ModelSummary
 import kotlinx.coroutines.flow.Flow
 import android.net.Uri
@@ -12,8 +15,20 @@ import android.net.Uri
 interface ModelRepository {
 
     // ---- Remote catalog ----
-    suspend fun listModels(): AppResult<List<ModelSummary>>
-    suspend fun listModels(search: String?, pipelineTag: String?): AppResult<List<ModelSummary>>
+
+    /**
+     * Searches/browses the mobile-focused catalog.
+     *
+     * @param search user query; blank browses [filter]'s default branches.
+     * @param filter chip selection — controls default branches + format filtering.
+     * @param limit raw models fetched per branch (grows with "load more").
+     */
+    suspend fun listModels(
+        search: String? = null,
+        filter: ModelFilter = ModelFilter.ALL,
+        limit: Int = CATALOG_PAGE_SIZE
+    ): AppResult<CatalogPage>
+
     suspend fun getModelDetails(modelId: String): AppResult<ModelDetails>
 
     // ---- Local downloads (parents) ----

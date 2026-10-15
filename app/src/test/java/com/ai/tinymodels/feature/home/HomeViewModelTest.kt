@@ -8,7 +8,8 @@ import com.ai.tinymodels.domain.model.DownloadedModel
 import com.ai.tinymodels.domain.model.DownloadedModelFile
 import com.ai.tinymodels.domain.model.FileDownloadStatus
 import com.ai.tinymodels.domain.model.ModelDetails
-import com.ai.tinymodels.domain.model.ModelSummary
+import com.ai.tinymodels.domain.model.CatalogPage
+import com.ai.tinymodels.domain.model.ModelFilter
 import com.ai.tinymodels.domain.repository.ChatRepository
 import com.ai.tinymodels.domain.repository.ModelRepository
 import com.ai.tinymodels.domain.repository.SettingsRepository
@@ -159,9 +160,11 @@ private class FakeHomeModelRepository : ModelRepository {
     override suspend fun getDownloadedFileForModel(modelId: String): DownloadedModelFile? =
         lastUsedFile
 
-    override suspend fun listModels(): AppResult<List<ModelSummary>> = throw NotImplementedError()
-    override suspend fun listModels(search: String?, pipelineTag: String?): AppResult<List<ModelSummary>> =
-        throw NotImplementedError()
+    override suspend fun listModels(
+        search: String?,
+        filter: ModelFilter,
+        limit: Int
+    ): AppResult<CatalogPage> = throw NotImplementedError()
     override suspend fun getModelDetails(modelId: String): AppResult<ModelDetails> =
         throw NotImplementedError()
     override suspend fun deleteDownloadedModel(modelId: String) {}

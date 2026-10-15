@@ -10,7 +10,8 @@ import com.ai.tinymodels.domain.model.DownloadedModelFile
 import com.ai.tinymodels.domain.model.FileDownloadStatus
 import com.ai.tinymodels.domain.model.FontChoice
 import com.ai.tinymodels.domain.model.ModelDetails
-import com.ai.tinymodels.domain.model.ModelSummary
+import com.ai.tinymodels.domain.model.CatalogPage
+import com.ai.tinymodels.domain.model.ModelFilter
 import com.ai.tinymodels.domain.model.ThemeMode
 import com.ai.tinymodels.domain.repository.ChatRepository
 import com.ai.tinymodels.domain.repository.ModelRepository
@@ -164,9 +165,11 @@ private class FakeImportModelRepository : ModelRepository {
     override fun observeDownloadedModels(): Flow<List<DownloadedModel>> =
         MutableStateFlow(emptyList())
 
-    override suspend fun listModels(): AppResult<List<ModelSummary>> = throw NotImplementedError()
-    override suspend fun listModels(search: String?, pipelineTag: String?): AppResult<List<ModelSummary>> =
-        throw NotImplementedError()
+    override suspend fun listModels(
+        search: String?,
+        filter: ModelFilter,
+        limit: Int
+    ): AppResult<CatalogPage> = throw NotImplementedError()
     override suspend fun getModelDetails(modelId: String): AppResult<ModelDetails> =
         throw NotImplementedError()
     override suspend fun getDownloadedModel(modelId: String): DownloadedModel? = null

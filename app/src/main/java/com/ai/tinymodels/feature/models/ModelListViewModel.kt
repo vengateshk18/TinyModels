@@ -6,6 +6,7 @@ import com.ai.tinymodels.core.common.AppError
 import com.ai.tinymodels.core.common.AppResult
 import com.ai.tinymodels.core.network.NetworkErrorMapper
 import com.ai.tinymodels.core.network.NetworkMonitor
+import com.ai.tinymodels.domain.model.CATALOG_PAGE_SIZE
 import com.ai.tinymodels.domain.model.ModelFilter
 import com.ai.tinymodels.domain.model.ModelSummary
 import com.ai.tinymodels.domain.repository.ModelRepository
@@ -34,7 +35,11 @@ class ModelListViewModel @Inject constructor(
         /** Mirrors the device's connectivity (kept fresh by the monitor). */
         val isOffline: Boolean = false,
         val searchQuery: String = "",
-        val selectedFilter: ModelFilter = ModelFilter.ALL
+        val selectedFilter: ModelFilter = ModelFilter.ALL,
+        /** True when the hub may hold more matches — shows the "Load more" footer. */
+        val hasMore: Boolean = false,
+        /** True while "Load more" is fetching; the current list stays visible. */
+        val isLoadingMore: Boolean = false
     ) {
         /** Friendly, user-presentable copy for [error]. */
         val errorMessage: String?
@@ -49,6 +54,10 @@ class ModelListViewModel @Inject constructor(
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     private var searchJob: Job? = null
+    private var fetchJob: Job? = null
+
+    /** Raw models fetched per branch; "Load more" grows this in page steps. */
+    private var pageLimit = CATALOG_PAGE_SIZE
 
     init {
         refresh()
@@ -77,6 +86,7 @@ class ModelListViewModel @Inject constructor(
     /** Debounced search — waits 500ms after the user stops typing. */
     fun search(query: String) {
         _uiState.update { it.copy(searchQuery = query) }
+        pageLimit = CATALOG_PAGE_SIZE
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
             delay(500)
@@ -86,25 +96,46 @@ class ModelListViewModel @Inject constructor(
 
     fun setFilter(filter: ModelFilter) {
         _uiState.update { it.copy(selectedFilter = filter) }
+        pageLimit = CATALOG_PAGE_SIZE
         fetch(_uiState.value.searchQuery, filter)
     }
 
-    private fun fetch(query: String, filter: ModelFilter) {
-        viewModelScope.launch {
+    /** Widens the fetched window by one page; driven by the "Load more" footer. */
+    fun loadMore() {
+        val state = _uiState.value
+        if (state.isLoading || state.isLoadingMore || !state.hasMore) return
+        pageLimit += CATALOG_PAGE_SIZE
+        fetch(state.searchQuery, state.selectedFilter, isLoadMore = true)
+    }
+
+    private fun fetch(query: String, filter: ModelFilter, isLoadMore: Boolean = false) {
+        // Last request wins: cancel any in-flight fetch so a stale response can
+        // never overwrite a newer one (rapid typing, filter taps, load-more).
+        fetchJob?.cancel()
+        fetchJob = viewModelScope.launch {
             // Fail fast when the device is offline — no point hitting the API.
             if (!networkMonitor.isOnline.value) {
                 _uiState.update {
-                    it.copy(isLoading = false, error = AppError.NoConnection())
+                    it.copy(isLoading = false, isLoadingMore = false, error = AppError.NoConnection())
                 }
                 return@launch
             }
-            _uiState.update { it.copy(isLoading = true, error = null) }
-            when (val result = modelRepository.listModels(query, filter.pipelineTag)) {
+            _uiState.update {
+                it.copy(isLoading = !isLoadMore, isLoadingMore = isLoadMore, error = null)
+            }
+            when (val result = modelRepository.listModels(query, filter, pageLimit)) {
                 is AppResult.Success ->
-                    _uiState.update { it.copy(isLoading = false, models = result.data) }
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isLoadingMore = false,
+                            models = result.data.models,
+                            hasMore = result.data.hasMore
+                        )
+                    }
                 is AppResult.Error ->
                     _uiState.update {
-                        it.copy(isLoading = false, error = result.error)
+                        it.copy(isLoading = false, isLoadingMore = false, error = result.error)
                     }
             }
         }

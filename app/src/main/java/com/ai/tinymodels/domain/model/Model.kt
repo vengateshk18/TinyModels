@@ -21,11 +21,28 @@ data class ModelSummary(
     val runtimeFileCount: Int
         get() = siblings.count { it.isRuntimeFile() }
 
+    /** True when any sibling file is of [format] (e.g. a `.gguf` inside the repo). */
+    fun hasFormat(format: ModelFormat): Boolean =
+        siblings.any { it.endsWith(format.extension, ignoreCase = true) }
+
     private fun String.isRuntimeFile() = isRunnableFile()
 }
 
+/** One page of catalog results. */
+data class CatalogPage(
+    val models: List<ModelSummary>,
+    /** True when the hub may hold more matches beyond this page. */
+    val hasMore: Boolean
+)
+
+/**
+ * Raw models fetched per browse branch for the first catalog page.
+ * "Load more" grows this window in [CATALOG_PAGE_SIZE] steps.
+ */
+const val CATALOG_PAGE_SIZE = 60
+
 /** Extensions of every model file the app can download and track. */
-internal val MODEL_FILE_EXTENSIONS = listOf(".litertlm", ".task", ".tflite", ".gguf")
+internal val MODEL_FILE_EXTENSIONS = ModelFormat.entries.map { it.extension }
 
 /**
  * Display name for a model file: strips the directory path and a supported
@@ -38,12 +55,12 @@ fun String.modelFileDisplayName(): String {
         ?: base
 }
 
-/** Supported model file formats. */
-enum class ModelFormat {
-    LITERTLM,
-    TASK,
-    TFLITE,
-    GGUF;
+/** Supported model file formats, each with the extension it ships as. */
+enum class ModelFormat(val extension: String) {
+    LITERTLM(".litertlm"),
+    TASK(".task"),
+    TFLITE(".tflite"),
+    GGUF(".gguf");
 
     /** Short user-facing label for this format (shown on model/file rows). */
     val displayName: String

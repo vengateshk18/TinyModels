@@ -66,6 +66,7 @@ import com.ai.tinymodels.core.ui.components.EmptyState
 import com.ai.tinymodels.core.ui.components.ErrorState
 import com.ai.tinymodels.core.ui.components.OfflineState
 import com.ai.tinymodels.domain.model.DownloadedModelFile
+import com.ai.tinymodels.domain.model.MobileFit
 import com.ai.tinymodels.domain.model.ModelFilter
 import com.ai.tinymodels.domain.model.ModelSummary
 import com.ai.tinymodels.domain.usecase.model.ActiveDownload
@@ -132,6 +133,7 @@ fun ModelsTabScreen(
                     uiState = uiState,
                     onSearch = listViewModel::search,
                     onFilterChange = listViewModel::setFilter,
+                    onLoadMore = listViewModel::loadMore,
                     onRetry = listViewModel::refresh,
                     onModelClick = onModelClick
                 )
@@ -156,6 +158,7 @@ private fun BrowseContent(
     uiState: ModelListViewModel.UiState,
     onSearch: (String) -> Unit,
     onFilterChange: (ModelFilter) -> Unit,
+    onLoadMore: () -> Unit,
     onRetry: () -> Unit,
     onModelClick: (String) -> Unit
 ) {
@@ -220,6 +223,27 @@ private fun BrowseContent(
                 ) {
                     items(uiState.models, key = { it.modelId }) { model ->
                         ModelCard(model = model, onClick = { onModelClick(model.modelId) })
+                    }
+                    if (uiState.hasMore || uiState.isLoadingMore) {
+                        item(key = "load-more") {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (uiState.isLoadingMore) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
+                                    TextButton(onClick = onLoadMore) {
+                                        Text("Load more")
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
         }
@@ -286,6 +310,9 @@ private fun ModelCard(model: ModelSummary, onClick: () -> Unit) {
                 // Pipeline tag — always shown; defaults to text-generation when
                 // the API omits it (common for LiteRT model repos).
                 PipelineChip(model.pipelineTag?.takeIf { it.isNotBlank() } ?: "text-generation")
+                if (MobileFit.isMobileFriendly(model)) {
+                    MobileReadyChip()
+                }
                 model.libraryName?.takeIf { it.isNotBlank() }?.let { lib ->
                     SmallChip(lib)
                 }
@@ -329,6 +356,19 @@ private fun SmallChip(label: String) {
             label,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
+}
+
+/** Badge for models whose size suggests they run comfortably on a phone. */
+@Composable
+private fun MobileReadyChip() {
+    Surface(color = MaterialTheme.colorScheme.tertiaryContainer, shape = MaterialTheme.shapes.small) {
+        Text(
+            "Mobile-ready",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onTertiaryContainer,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
         )
     }
