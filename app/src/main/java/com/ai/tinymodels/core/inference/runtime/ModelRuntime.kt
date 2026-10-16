@@ -76,6 +76,8 @@ data class SessionRequest(
     val history: List<ChatTurn> = emptyList(),
     val sampler: SamplerSettings = SamplerSettings(),
     val priorSummary: String? = null,
+    /** Downloaded model id / file name, used for per-family template detection. */
+    val modelName: String? = null,
     /**
      * LiteRT-LM tool providers (e.g. web search). Runtimes without tool
      * support ignore this; callers only populate it when

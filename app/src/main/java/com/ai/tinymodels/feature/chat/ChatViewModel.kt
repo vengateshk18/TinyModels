@@ -614,6 +614,7 @@ class ChatViewModel @Inject constructor(
                                 topP = inference.topP
                             ),
                             priorSummary = chat?.compactedSummary,
+                            modelName = chat?.modelId,
                             tools = tools
                         )
                     )
@@ -680,6 +681,7 @@ class ChatViewModel @Inject constructor(
                                     topP = inference.topP
                                 ),
                                 priorSummary = chat?.compactedSummary,
+                                modelName = chat?.modelId,
                                 tools = tools
                             )
                         )
@@ -710,6 +712,7 @@ class ChatViewModel @Inject constructor(
                                     topP = inference.topP
                                 ),
                                 priorSummary = chat?.compactedSummary,
+                                modelName = chat?.modelId,
                                 tools = tools
                             )
                         )

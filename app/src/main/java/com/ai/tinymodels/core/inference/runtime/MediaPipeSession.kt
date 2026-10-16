@@ -46,6 +46,9 @@ class MediaPipeSession(
     private val systemInstruction: String? = request.systemInstruction
     private val priorSummary: String? = request.priorSummary
     private val sampler: SamplerSettings = request.sampler
+    private val modelName: String? = request.modelName
+    private val baseTemplate: ChatTemplate = ChatTemplate.fromName(modelName)
+    @Volatile private var winner: ChatTemplate? = null
 
     /** Live transcript: trimmed history + every turn sent/answered since. */
     private val turns = ArrayDeque<ChatTurn>()
@@ -81,7 +84,10 @@ class MediaPipeSession(
         countPrompt(text)
         repeat(imagePaths.size) { countImage() }
 
-        val prompt = MediaPipePromptBuilder.build(systemInstruction, priorSummary, snapshotTurns())
+        val turnsSnapshot = snapshotTurns()
+        val tmpl = ensureWinner(turnsSnapshot)
+        Log.i(TAG, "MP using chat template: $tmpl (base=$baseTemplate, modelName=$modelName)")
+        val prompt = MediaPipePromptBuilder.build(systemInstruction, priorSummary, turnsSnapshot, tmpl)
         val preview = if (prompt.length > 400) prompt.take(400) + "…" else prompt
         Log.i(
             JOURNEY_TAG,
@@ -252,6 +258,33 @@ class MediaPipeSession(
                 delay(LOCK_RETRY_DELAY_MS)
             }
         }
+    }
+
+    private fun ensureWinner(turnsSnapshot: List<ChatTurn>): ChatTemplate {
+        winner?.let { return it }
+        val candidates = listOf(baseTemplate) + ChatTemplate.entries.filter { it != baseTemplate }
+        for (t in candidates) {
+            val p = MediaPipePromptBuilder.build(systemInstruction, priorSummary, turnsSnapshot, t)
+            var out = ""
+            try {
+                val sess = LlmInferenceSession.createFromOptions(llmInference, sessionOptions()).also {
+                    it.addQueryChunk(p)
+                }
+                out = sess.use { it.generateResponse().trim() }
+            } catch (e: Throwable) {
+                android.util.Log.e(TAG, "MP template probe $t failed: ${e.message}")
+                out = ""
+            }
+            android.util.Log.i(TAG, "MP template probe $t -> ${out.length} chars (sample: ${out.take(40)})")
+            if (out.isNotEmpty()) {
+                android.util.Log.i(TAG, "MP template winner = $t")
+                winner = t
+                return t
+            }
+        }
+        android.util.Log.w(TAG, "MP: no template produced output; defaulting to $baseTemplate")
+        winner = baseTemplate
+        return baseTemplate
     }
 
     private fun snapshotTurns(): List<ChatTurn> = synchronized(transcriptLock) { turns.toList() }
