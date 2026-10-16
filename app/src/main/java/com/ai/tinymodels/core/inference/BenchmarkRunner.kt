@@ -4,7 +4,7 @@ import android.app.ActivityManager
 import android.content.Context
 import android.os.Debug
 import android.os.Process
-import android.util.Log
+import com.ai.tinymodels.core.common.TinyLog
 import com.ai.tinymodels.core.inference.runtime.SessionBudget
 import com.ai.tinymodels.core.inference.runtime.SessionRequest
 import com.ai.tinymodels.domain.model.SamplerSettings
@@ -94,7 +94,7 @@ class BenchmarkRunner @Inject constructor(
             sampler = BENCHMARK_SAMPLER
         )
     ) { session ->
-        Log.i(
+        TinyLog.i(
             JOURNEY_TAG,
             "JOURNEY: benchmark ${prompt.id} run #$runIndex — session created " +
                 "(systemPrompt=<none>, tools=0, history=0), prompt: \"${prompt.text}\""

@@ -1,7 +1,7 @@
 package com.ai.tinymodels.core.inference.runtime
 
 import android.content.Context
-import android.util.Log
+import com.ai.tinymodels.core.common.TinyLog
 import com.ai.tinymodels.core.common.DispatcherProvider
 import com.ai.tinymodels.core.common.InferenceError
 import com.ai.tinymodels.core.inference.InferenceException
@@ -59,7 +59,7 @@ class MediaPipeLlmRuntime @Inject constructor(
         val old = llmInference
         llmInference = created
         old?.closeQuietly()
-        Log.i(TAG, "Loaded ${request.modelFile.name} on ${request.backend} (maxTokens=${request.maxNumTokens})")
+        TinyLog.i(TAG, "Loaded ${request.modelFile.name} on ${request.backend} (maxTokens=${request.maxNumTokens})")
     }
 
     override fun createSession(request: SessionRequest): ChatSession {
@@ -84,7 +84,7 @@ class MediaPipeLlmRuntime @Inject constructor(
         try {
             close()
         } catch (throwable: Throwable) {
-            Log.w(TAG, "Error closing LlmInference: ${throwable.message}")
+            TinyLog.w(TAG, "Error closing LlmInference: ${throwable.message}")
         }
     }
 

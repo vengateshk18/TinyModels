@@ -1,6 +1,6 @@
 package com.ai.tinymodels.core.inference
 
-import android.util.Log
+import com.ai.tinymodels.core.common.TinyLog
 import com.ai.tinymodels.core.inference.runtime.ChatTurn
 import java.io.File
 import java.io.FileInputStream
@@ -61,7 +61,7 @@ object ModelVisionSupport {
             // so they must NOT imply vision here.
             return file.name.contains("vision", ignoreCase = true)
         } catch (throwable: Throwable) {
-            Log.w(TAG, "Vision detection failed for ${file.name}: ${throwable.message}")
+            TinyLog.w(TAG, "Vision detection failed for ${file.name}: ${throwable.message}")
             return false
         }
     }

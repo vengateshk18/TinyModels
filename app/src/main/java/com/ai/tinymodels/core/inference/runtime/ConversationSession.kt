@@ -1,6 +1,6 @@
 package com.ai.tinymodels.core.inference.runtime
 
-import android.util.Log
+import com.ai.tinymodels.core.common.TinyLog
 import com.ai.tinymodels.domain.model.SamplerSettings
 import com.google.ai.edge.litertlm.Content
 import com.google.ai.edge.litertlm.Contents
@@ -40,7 +40,7 @@ class ConversationSession(
      * previous String path — zero behavior change when no photo is attached.
      */
     override fun send(text: String, imagePaths: List<String>): Flow<String> {
-        Log.i(JOURNEY_TAG, "JOURNEY: prompt sent to model (${text.length} chars, ~${SessionBudget.estimateTokens(text)} tokens, ${imagePaths.size} image(s)): \"$text\"")
+        TinyLog.i(JOURNEY_TAG, "JOURNEY: prompt sent to model (${text.length} chars, ~${SessionBudget.estimateTokens(text)} tokens, ${imagePaths.size} image(s)): \"$text\"")
         countPrompt(text)
         repeat(imagePaths.size) { countImage() }
         val accumulated = StringBuilder()
@@ -65,7 +65,7 @@ class ConversationSession(
         try {
             conversation.close()
         } catch (throwable: Throwable) {
-            Log.w(TAG, "Error closing conversation: ${throwable.message}")
+            TinyLog.w(TAG, "Error closing conversation: ${throwable.message}")
         }
     }
 
@@ -77,7 +77,7 @@ class ConversationSession(
     override suspend fun summarizeOlderTurns(older: List<ChatTurn>): String? {
         if (older.isEmpty()) return null
         val transcript = summarizeTranscript(older)
-        Log.i(
+        TinyLog.i(
             JOURNEY_TAG,
             "JOURNEY: compaction prompt sent to model — ${older.size} older turns, " +
                 "transcript ${transcript.length} chars:\n$transcript"
@@ -93,13 +93,13 @@ class ConversationSession(
                     )
                 }
             val summary = sb.toString().trim().takeIf { it.isNotBlank() }
-            Log.i(
+            TinyLog.i(
                 JOURNEY_TAG,
                 "JOURNEY: compaction summary received (${summary?.length ?: 0} chars): \"${summary ?: ""}\""
             )
             summary
         } catch (throwable: Throwable) {
-            Log.w(TAG, "Compaction summarization failed: ${throwable.message}")
+            TinyLog.w(TAG, "Compaction summarization failed: ${throwable.message}")
             null
         }
     }
@@ -164,7 +164,7 @@ class ConversationSession(
             // everything the model is given (incl. whether tools are sent).
             val toolNames = tools.joinToString { it.javaClass.simpleName }
             val priorSummaryLabel = priorSummary?.let { "${it.length} chars" } ?: "none"
-            Log.i(
+            TinyLog.i(
                 JOURNEY_TAG,
                 "JOURNEY: conversation handed to engine — " +
                     "systemPrompt=\"${effectiveSystemInstruction ?: "<none>"}\", " +
@@ -177,7 +177,7 @@ class ConversationSession(
             )
             trimmed.forEachIndexed { index, turn ->
                 val preview = if (turn.text.length > 200) turn.text.take(200) + "…" else turn.text
-                Log.i(
+                TinyLog.i(
                     JOURNEY_TAG,
                     "JOURNEY: history[$index] " +
                         "${if (turn.role == ChatTurn.Role.USER) "USER" else "ASSISTANT"} " +

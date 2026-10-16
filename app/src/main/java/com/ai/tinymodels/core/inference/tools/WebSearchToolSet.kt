@@ -1,6 +1,6 @@
 package com.ai.tinymodels.core.inference.tools
 
-import android.util.Log
+import com.ai.tinymodels.core.common.TinyLog
 import com.ai.tinymodels.domain.repository.WebSearchException
 import com.ai.tinymodels.domain.repository.WebSearchRepository
 import com.google.ai.edge.litertlm.Tool
@@ -35,9 +35,9 @@ class WebSearchToolSet @Inject constructor(
     )
     fun webSearch(query: String): String {
         val startedAt = System.currentTimeMillis()
-        Log.i(TAG, "Model called web_search: query=\"$query\"")
+        TinyLog.i(TAG, "Model called web_search: query=\"$query\"")
         if (query.isBlank()) {
-            Log.w(TAG, "web_search called with an empty query")
+            TinyLog.w(TAG, "web_search called with an empty query")
             return "Search query was empty."
         }
         return try {
@@ -50,14 +50,14 @@ class WebSearchToolSet @Inject constructor(
             val results = search.results
             if (results.isEmpty()) {
                 if (search.blocked) {
-                    Log.w(TAG, "web_search blocked for \"$query\" in ${elapsedMs}ms")
+                    TinyLog.w(TAG, "web_search blocked for \"$query\" in ${elapsedMs}ms")
                     "Web search was blocked by the search engines for \"$query\". Answer from your own knowledge and say the live search was blocked."
                 } else {
-                    Log.w(TAG, "web_search returned 0 results for \"$query\" in ${elapsedMs}ms")
+                    TinyLog.w(TAG, "web_search returned 0 results for \"$query\" in ${elapsedMs}ms")
                     "No results found for \"$query\". Answer from your own knowledge and say you could not verify with a web search."
                 }
             } else {
-                Log.i(
+                TinyLog.i(
                     TAG,
                     "web_search returned ${results.size} results for \"$query\" in ${elapsedMs}ms: " +
                         results.joinToString(" | ") { it.url }
@@ -76,14 +76,14 @@ class WebSearchToolSet @Inject constructor(
                 // The exact tool payload the runtime feeds back into the
                 // generation loop — logged so the journey filter shows what
                 // the model actually receives from the tool.
-                Log.i(TAG, "JOURNEY: web_search tool result fed back to model (${toolText.length} chars):\n$toolText")
+                TinyLog.i(TAG, "JOURNEY: web_search tool result fed back to model (${toolText.length} chars):\n$toolText")
                 toolText
             }
         } catch (e: WebSearchException) {
-            Log.e(TAG, "web_search failed for \"$query\": ${e.message}", e)
+            TinyLog.e(TAG, "web_search failed for \"$query\": ${e.message}", e)
             "Search unavailable (${e.message}). Answer from your own knowledge and say you could not verify with a web search."
         } catch (e: Exception) {
-            Log.e(TAG, "web_search failed unexpectedly for \"$query\"", e)
+            TinyLog.e(TAG, "web_search failed unexpectedly for \"$query\"", e)
             "Search unavailable. Answer from your own knowledge and say you could not verify with a web search."
         }
     }

@@ -1,6 +1,6 @@
 package com.ai.tinymodels.core.inference.runtime
 
-import android.util.Log
+import com.ai.tinymodels.core.common.TinyLog
 import com.ai.tinymodels.domain.model.SamplerSettings
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.mediapipe.tasks.genai.llminference.LlmInference
@@ -62,7 +62,7 @@ class MediaPipeSession(
     init {
         val trimmed = trimmedHistoryFor(request)
         turns.addAll(trimmed)
-        Log.i(
+        TinyLog.i(
             JOURNEY_TAG,
             "JOURNEY: MediaPipe session created — history=${trimmed.size}/${request.history.size} turns, " +
                 "systemPrompt=${if (systemInstruction.isNullOrBlank()) "<none>" else "${systemInstruction.length} chars"}, " +
@@ -86,10 +86,10 @@ class MediaPipeSession(
 
         val turnsSnapshot = snapshotTurns()
         val tmpl = ensureWinner(turnsSnapshot)
-        Log.i(TAG, "MP using chat template: $tmpl (base=$baseTemplate, modelName=$modelName)")
+        TinyLog.i(TAG, "MP using chat template: $tmpl (base=$baseTemplate, modelName=$modelName)")
         val prompt = MediaPipePromptBuilder.build(systemInstruction, priorSummary, turnsSnapshot, tmpl)
         val preview = if (prompt.length > 400) prompt.take(400) + "…" else prompt
-        Log.i(
+        TinyLog.i(
             JOURNEY_TAG,
             "JOURNEY: MediaPipe prompt handed to model (${prompt.length} chars, " +
                 "~${SessionBudget.estimateTokens(prompt)} tokens, ${turnsSnapshotSize()} turns): \"$preview\""
@@ -100,7 +100,7 @@ class MediaPipeSession(
                 it.addQueryChunk(prompt)
             }
         } catch (throwable: Throwable) {
-            Log.e(TAG, "Failed to start MediaPipe generation: ${throwable.message}", throwable)
+            TinyLog.e(TAG, "Failed to start MediaPipe generation: ${throwable.message}", throwable)
             close(throwable)
             return@callbackFlow
         }
@@ -127,7 +127,7 @@ class MediaPipeSession(
                     if (reply.isEmpty()) {
                         android.util.Log.w(TAG, "MP generation completed but produced ZERO chars (model likely hit EOS immediately; check chat template / model)")
                     }
-                    Log.i(
+                    TinyLog.i(
                         JOURNEY_TAG,
                         "JOURNEY: MediaPipe reply complete (${reply.length} chars, ~${SessionBudget.estimateTokens(reply)} tokens)"
                     )
@@ -169,10 +169,10 @@ class MediaPipeSession(
             try {
                 session.cancelGenerateResponseAsync()
             } catch (throwable: Throwable) {
-                Log.w(TAG, "cancelGenerateResponseAsync failed: ${throwable.message}")
+                TinyLog.w(TAG, "cancelGenerateResponseAsync failed: ${throwable.message}")
             }
             if (!settled.await(CANCEL_SETTLE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-                Log.w(TAG, "Generation did not settle in ${CANCEL_SETTLE_TIMEOUT_MS}ms — closing session anyway")
+                TinyLog.w(TAG, "Generation did not settle in ${CANCEL_SETTLE_TIMEOUT_MS}ms — closing session anyway")
             }
             session.closeQuietly()
         }
@@ -181,7 +181,7 @@ class MediaPipeSession(
     /** Nothing native persists per session — each turn owns its own session. */
     override fun close() {
         closed = true
-        Log.i(TAG, "Session closed (model stays loaded)")
+        TinyLog.i(TAG, "Session closed (model stays loaded)")
     }
 
     /**
@@ -192,7 +192,7 @@ class MediaPipeSession(
     override suspend fun summarizeOlderTurns(older: List<ChatTurn>): String? {
         if (older.isEmpty()) return null
         val transcript = ConversationSession.summarizeTranscript(older)
-        Log.i(
+        TinyLog.i(
             JOURNEY_TAG,
             "JOURNEY: compaction prompt sent to model — ${older.size} older turns, " +
                 "transcript ${transcript.length} chars:\n$transcript"
@@ -210,13 +210,13 @@ class MediaPipeSession(
             } finally {
                 session.closeQuietly()
             }
-            Log.i(
+            TinyLog.i(
                 JOURNEY_TAG,
                 "JOURNEY: compaction summary received (${summary?.length ?: 0} chars): \"${summary ?: ""}\""
             )
             summary
         } catch (throwable: Throwable) {
-            Log.w(TAG, "Compaction summarization failed: ${throwable.message}")
+            TinyLog.w(TAG, "Compaction summarization failed: ${throwable.message}")
             null
         }
     }
@@ -278,7 +278,7 @@ class MediaPipeSession(
         try {
             close()
         } catch (throwable: Throwable) {
-            Log.w(TAG, "Error closing MediaPipe session: ${throwable.message}")
+            TinyLog.w(TAG, "Error closing MediaPipe session: ${throwable.message}")
         }
     }
 

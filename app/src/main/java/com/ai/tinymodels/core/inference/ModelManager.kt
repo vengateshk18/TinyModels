@@ -2,7 +2,7 @@ package com.ai.tinymodels.core.inference
 
 import android.content.ComponentCallbacks2
 import android.content.Context
-import android.util.Log
+import com.ai.tinymodels.core.common.TinyLog
 import com.ai.tinymodels.core.common.AppError
 import com.ai.tinymodels.core.common.AppResult
 import com.ai.tinymodels.core.common.DispatcherProvider
@@ -154,7 +154,7 @@ class ModelManager @Inject constructor(
         // ship an encoder can back it (file inspection happens off the main
         // thread — callers invoke loadModel off the main thread).
         val visionSupported = target.detectVisionSupport(modelFile)
-        Log.i(
+        TinyLog.i(
             TAG,
             "Runtime ${target.format.displayName} selected for $modelId " +
                 "(vision=$visionSupported, tools=${target.supportsToolCalling})"
@@ -203,7 +203,7 @@ class ModelManager @Inject constructor(
                     val loaded = LoadedModel(modelId, preference, maxNumTokens, visionThisTry)
                     _engineState.value = EngineState.Ready(loaded)
                     onProgress?.invoke(1.0f, ModelLoadStage.READY)
-                    Log.i(
+                    TinyLog.i(
                         TAG,
                         "Loaded $modelId on $preference via ${target.format.displayName} " +
                             "(maxTokens=$maxNumTokens, vision=$visionThisTry)"
@@ -216,12 +216,12 @@ class ModelManager @Inject constructor(
                     // the native side reports a vision problem, retry the same
                     // backend once without vision before falling through.
                     if (visionThisTry && isVisionLoadError(throwable.message)) {
-                        Log.w(TAG, "Load with vision failed on $preference, retrying without vision")
+                        TinyLog.w(TAG, "Load with vision failed on $preference, retrying without vision")
                         visionThisTry = false
                         continue
                     }
                     lastFailure = InferenceError.LoadFailed(throwable.message, throwable)
-                    Log.w(TAG, "Load failed on $preference: ${throwable.message}")
+                    TinyLog.w(TAG, "Load failed on $preference: ${throwable.message}")
                     break
                 }
             }
@@ -272,7 +272,7 @@ class ModelManager @Inject constructor(
             runtime = null
             activeConfig = null
             _engineState.value = EngineState.Idle
-            Log.i(TAG, "Model unloaded")
+            TinyLog.i(TAG, "Model unloaded")
         }
     }
 
@@ -305,7 +305,7 @@ class ModelManager @Inject constructor(
             _engineState.value = EngineState.Ready(
                 LoadedModel(modelId, config.backend, config.maxNumTokens, false)
             )
-            Log.i(TAG, "Reloaded $modelId without vision")
+            TinyLog.i(TAG, "Reloaded $modelId without vision")
         }
         reloaded
     }
@@ -320,7 +320,7 @@ class ModelManager @Inject constructor(
     /** Called by the app's ComponentCallbacks2 under memory pressure. */
     fun onTrimMemory(level: Int) {
         if (level >= ComponentCallbacks2.TRIM_MEMORY_MODERATE && runtime != null) {
-            Log.w(TAG, "onTrimMemory($level): unloading model to relieve pressure")
+            TinyLog.w(TAG, "onTrimMemory($level): unloading model to relieve pressure")
             scope.launch { unloadModel() }
         }
     }

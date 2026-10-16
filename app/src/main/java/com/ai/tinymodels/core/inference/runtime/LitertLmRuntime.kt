@@ -1,6 +1,6 @@
 package com.ai.tinymodels.core.inference.runtime
 
-import android.util.Log
+import com.ai.tinymodels.core.common.TinyLog
 import com.ai.tinymodels.core.common.DispatcherProvider
 import com.ai.tinymodels.core.common.InferenceError
 import com.ai.tinymodels.core.inference.InferenceException
@@ -71,11 +71,11 @@ class LitertLmRuntime @Inject constructor(
         val config = activeRequest ?: return false
         if (!config.enableVision) return false
         return try {
-            Log.w(TAG, "Reloading ${config.modelFile.name} without vision (self-heal)")
+            TinyLog.w(TAG, "Reloading ${config.modelFile.name} without vision (self-heal)")
             initialize(config.copy(enableVision = false))
             true
         } catch (throwable: Throwable) {
-            Log.w(TAG, "Reload without vision failed: ${throwable.message}")
+            TinyLog.w(TAG, "Reload without vision failed: ${throwable.message}")
             false
         }
     }
@@ -128,7 +128,7 @@ class LitertLmRuntime @Inject constructor(
         try {
             close()
         } catch (throwable: Throwable) {
-            Log.w(TAG, "Error closing engine: ${throwable.message}")
+            TinyLog.w(TAG, "Error closing engine: ${throwable.message}")
         }
     }
 

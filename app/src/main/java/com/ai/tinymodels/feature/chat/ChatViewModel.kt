@@ -3,6 +3,7 @@ package com.ai.tinymodels.feature.chat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ai.tinymodels.core.common.DispatcherProvider
+import com.ai.tinymodels.core.common.TinyLog
 import com.ai.tinymodels.core.common.InferenceError
 import com.ai.tinymodels.core.inference.InferenceException
 import com.ai.tinymodels.core.inference.ModelContextInspector
@@ -198,7 +199,7 @@ class ChatViewModel @Inject constructor(
 
     /** Per-chat web_search opt-in (the + menu in the input bar). */
     private fun toggleWebSearch(enabled: Boolean) {
-        android.util.Log.i(TAG, "JOURNEY: web search toggled enabled=$enabled — rebuilding session to (un)register the tool")
+        TinyLog.i(TAG, "JOURNEY: web search toggled enabled=$enabled — rebuilding session to (un)register the tool")
         _uiState.update { it.copy(webSearchEnabled = enabled) }
         val chatId = _uiState.value.activeChatId ?: return
         viewModelScope.launch(Dispatchers.Default) {
@@ -463,7 +464,7 @@ class ChatViewModel @Inject constructor(
         // Do NOT write to the DB here. Just reset the active chat state so the
         // user sees a blank canvas. The actual DB row is created in sendMessage()
         // when the user actually sends their first message.
-        android.util.Log.i(TAG, "JOURNEY: newChat — closing session and resetting active chat state")
+        TinyLog.i(TAG, "JOURNEY: newChat — closing session and resetting active chat state")
         session?.close()
         session = null
         _uiState.update {
@@ -486,7 +487,7 @@ class ChatViewModel @Inject constructor(
 
     private suspend fun openChatInternal(chatId: String) {
         val chat = chatRepository.getChat(chatId) ?: return
-        android.util.Log.i(
+        TinyLog.i(
             TAG,
             "JOURNEY: openChat(chatId=$chatId, model=${chat.modelId}, " +
                 "webSearchEnabled=${chat.webSearchEnabled}, compactionCount=${chat.compactionCount})"
@@ -512,7 +513,7 @@ class ChatViewModel @Inject constructor(
 
     private fun deleteChat(chatId: String) {
         viewModelScope.launch(Dispatchers.Default) {
-            android.util.Log.i(TAG, "JOURNEY: deleteChat(chatId=$chatId)")
+            TinyLog.i(TAG, "JOURNEY: deleteChat(chatId=$chatId)")
             chatRepository.deleteChat(chatId)
             if (_uiState.value.activeChatId == chatId) {
                 session?.close()
@@ -547,10 +548,10 @@ class ChatViewModel @Inject constructor(
         // augmentation (maybeAugmentWithSearch) instead.
         val toolsSupported = modelManager.activeRuntimeSupportsTools
         val tools = if (toolsSupported && _uiState.value.webSearchAvailable && chat?.webSearchEnabled == true) {
-            android.util.Log.i(TAG, "Registering web_search tool for chat $chatId")
+            TinyLog.i(TAG, "Registering web_search tool for chat $chatId")
             listOf(com.google.ai.edge.litertlm.tool(webSearchToolSet))
         } else {
-            android.util.Log.i(
+            TinyLog.i(
                 TAG,
                 "web_search tool NOT registered for chat $chatId " +
                     "(runtime=$toolsSupported, global=${_uiState.value.webSearchAvailable}, " +
@@ -569,7 +570,7 @@ class ChatViewModel @Inject constructor(
         } else {
             inference.systemInstruction
         }
-        android.util.Log.i(
+        TinyLog.i(
             TAG,
             "JOURNEY: rebuildSession(chat=$chatId) — " +
                 "systemInstruction=\"${inference.systemInstruction}\", " +
@@ -591,7 +592,7 @@ class ChatViewModel @Inject constructor(
         val visionEnabled = modelManager.isVisionModelLoaded
         val hadImages = ModelVisionSupport.historyHasImages(history)
         if (hadImages && !visionEnabled) {
-            android.util.Log.i(
+            TinyLog.i(
                 TAG,
                 "JOURNEY: rebuildSession(chat=$chatId) — text-only model, " +
                     "stripping photo attachments from ${history.count { it.imagePaths.isNotEmpty() }} turn(s)"
@@ -634,7 +635,7 @@ class ChatViewModel @Inject constructor(
             // app (previously a FATAL EXCEPTION for
             // "TF_LITE_VISION_ENCODER not found in the model" when a
             // photo-carrying chat was restored onto a text-only model).
-            android.util.Log.e(TAG, "JOURNEY: rebuildSession failed: ${throwable.message}", throwable)
+            TinyLog.e(TAG, "JOURNEY: rebuildSession failed: ${throwable.message}", throwable)
             if (ModelVisionSupport.isVisionEncoderError(throwable)) {
                 handleVisionEncoderFailure(chatId, history, effectiveSystem, inference, tools, chat)
             } else {
@@ -662,7 +663,7 @@ class ChatViewModel @Inject constructor(
         val reloaded = try {
             withContext(dispatchers.io) { modelManager.reloadWithoutVision() }
         } catch (throwable: Throwable) {
-            android.util.Log.w(TAG, "Vision self-heal reload failed: ${throwable.message}")
+            TinyLog.w(TAG, "Vision self-heal reload failed: ${throwable.message}")
             false
         }
         if (reloaded) {
@@ -692,7 +693,7 @@ class ChatViewModel @Inject constructor(
                 _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
                 return
             } catch (retryFailure: Throwable) {
-                android.util.Log.e(TAG, "Rebuild after vision reload failed: ${retryFailure.message}", retryFailure)
+                TinyLog.e(TAG, "Rebuild after vision reload failed: ${retryFailure.message}", retryFailure)
             }
         } else if (ModelVisionSupport.historyHasImages(history)) {
             // Engine already vision-free but the history still carried photos
@@ -723,7 +724,7 @@ class ChatViewModel @Inject constructor(
                 _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
                 return
             } catch (retryFailure: Throwable) {
-                android.util.Log.e(TAG, "Stripped-history rebuild failed: ${retryFailure.message}", retryFailure)
+                TinyLog.e(TAG, "Stripped-history rebuild failed: ${retryFailure.message}", retryFailure)
             }
         }
         session = null
@@ -758,7 +759,7 @@ class ChatViewModel @Inject constructor(
     private fun compactNow() {
         val chatId = _uiState.value.activeChatId ?: return
         val activeSession = session ?: return
-        android.util.Log.i(TAG, "JOURNEY: manual compaction requested for chat $chatId")
+        TinyLog.i(TAG, "JOURNEY: manual compaction requested for chat $chatId")
         _uiState.update { it.copy(isCompacting = true, compactionMessage = null) }
         viewModelScope.launch(Dispatchers.Default) {
             val chat = chatRepository.getChat(chatId)
@@ -793,14 +794,14 @@ class ChatViewModel @Inject constructor(
         // inversion that compacted after ~1 short turn.
         val budget = (autoContextBudget() * COMPACTION_HEADROOM).toInt()
         if (activeSession.estimatedTokensInContext < budget) {
-            android.util.Log.i(
+            TinyLog.i(
                 TAG,
                 "JOURNEY: auto-compaction skipped — " +
                     "${activeSession.estimatedTokensInContext} tokens < trigger $budget"
             )
             return
         }
-        android.util.Log.i(
+        TinyLog.i(
             TAG,
             "JOURNEY: auto-compaction triggered — " +
                 "${activeSession.estimatedTokensInContext} tokens >= trigger $budget"
@@ -953,11 +954,11 @@ class ChatViewModel @Inject constructor(
             return
         }
         var chatId = state.activeChatId
-        android.util.Log.i(TAG, "JOURNEY: user sent prompt (${text.length} chars, image=${imageUri != null}): \"$text\"")
+        TinyLog.i(TAG, "JOURNEY: user sent prompt (${text.length} chars, image=${imageUri != null}): \"$text\"")
         viewModelScope.launch(Dispatchers.Default) {
             if (chatId == null) {
                 val modelId = activeModel?.modelId ?: modelManager.loadedModelId ?: return@launch
-                android.util.Log.i(TAG, "JOURNEY: no active chat — creating one for model $modelId")
+                TinyLog.i(TAG, "JOURNEY: no active chat — creating one for model $modelId")
                 // Carry the pre-first-message UI toggle into the chat row —
                 // otherwise the entity default (false) silently drops the
                 // tool the user already enabled before sending.
@@ -967,7 +968,7 @@ class ChatViewModel @Inject constructor(
                     title = text.take(40),
                     webSearchEnabled = webSearchEnabled
                 ).id
-                android.util.Log.i(
+                TinyLog.i(
                     TAG,
                     "JOURNEY: chat created (id=$chatId) with webSearchEnabled=$webSearchEnabled"
                 )
@@ -975,7 +976,7 @@ class ChatViewModel @Inject constructor(
                 rebuildSession(chatId!!)
             }
             val activeChatId = chatId!!
-            android.util.Log.i(
+            TinyLog.i(
                 TAG,
                 "JOURNEY: chat=$activeChatId session=${if (session != null) "live" else "null"} " +
                     "webSearch(global=${state.webSearchAvailable}, chat=${state.webSearchEnabled}) " +
@@ -1037,11 +1038,11 @@ class ChatViewModel @Inject constructor(
             // built (e.g. a benchmark loaded another model) — rebuild before
             // generating so we never stream through a dead engine.
             if (sessionModelId != modelManager.loadedModelId) {
-                android.util.Log.i(TAG, "JOURNEY: engine swapped since session build — rebuilding session")
+                TinyLog.i(TAG, "JOURNEY: engine swapped since session build — rebuilding session")
                 rebuildSession(activeChatId)
             }
 
-            android.util.Log.i(TAG, "JOURNEY: starting generation (assistantId=$assistantId)")
+            TinyLog.i(TAG, "JOURNEY: starting generation (assistantId=$assistantId)")
             val prompt = maybeAugmentWithSearch(activeChatId, text)
                 .ifBlank { "What do you see in this image?" }
             runGeneration(activeChatId, assistantId, prompt, listOfNotNull(savedImagePath))
@@ -1077,10 +1078,10 @@ class ChatViewModel @Inject constructor(
                     }
                     if (!bitmap.isRecycled) bitmap.recycle()
                 } ?: return@withContext null
-                android.util.Log.i(TAG, "JOURNEY: photo saved for vision (${target.length()} bytes): ${target.absolutePath}")
+                TinyLog.i(TAG, "JOURNEY: photo saved for vision (${target.length()} bytes): ${target.absolutePath}")
                 target.absolutePath
             } catch (t: Throwable) {
-                android.util.Log.w(TAG, "Photo copy failed: ${t.message}")
+                TinyLog.w(TAG, "Photo copy failed: ${t.message}")
                 null
             }
         }
@@ -1112,13 +1113,13 @@ class ChatViewModel @Inject constructor(
                 val ms = System.currentTimeMillis() - started
                 if (results.isNotEmpty) {
                     lastSearchSources[chatId] = results.results
-                    android.util.Log.i(
+                    TinyLog.i(
                         TAG,
                         "JOURNEY: web_search auto (${results.results.size} results, lead=${results.leadText.length} chars) in ${ms}ms for \"$sent\""
                     )
                     WebSearchPrompt.webSearchPrompt(results, text)
                 } else {
-                    android.util.Log.w(
+                    TinyLog.w(
                         TAG,
                         "JOURNEY: web_search auto empty (blocked=${results.blocked}) in ${ms}ms for \"$sent\""
                     )
@@ -1131,10 +1132,10 @@ class ChatViewModel @Inject constructor(
                     }
                 }
             } catch (e: WebSearchException) {
-                android.util.Log.w(TAG, "JOURNEY: web_search auto failed: ${e.message}")
+                TinyLog.w(TAG, "JOURNEY: web_search auto failed: ${e.message}")
                 text
             } catch (e: Exception) {
-                android.util.Log.w(TAG, "JOURNEY: web_search auto failed unexpectedly: ${e.message}")
+                TinyLog.w(TAG, "JOURNEY: web_search auto failed unexpectedly: ${e.message}")
                 text
             }
         }
@@ -1142,7 +1143,7 @@ class ChatViewModel @Inject constructor(
         // does not invent or refuse ("what is the model name" after an answer).
         val prior = lastSearchSources[chatId].orEmpty()
         if (prior.isNotEmpty() && WebSearchQuery.readsAsFollowUp(text)) {
-            android.util.Log.i(TAG, "JOURNEY: web_search recall (${prior.size} sources) for follow-up \"$text\"")
+            TinyLog.i(TAG, "JOURNEY: web_search recall (${prior.size} sources) for follow-up \"$text\"")
             return WebSearchPrompt.webRecallPrompt(prior, text)
         }
         return text
@@ -1174,7 +1175,7 @@ class ChatViewModel @Inject constructor(
                     // Re-throw cancellation so the cancel handler (cancelGeneration)
                     // owns the cleanup path instead of surfacing a spurious error.
                     if (throwable is kotlinx.coroutines.CancellationException) throw throwable
-                    android.util.Log.e(
+                    TinyLog.e(
                         TAG,
                         "JOURNEY: generation FAILED after $emissionCount emissions " +
                             "(${buffer.length} chars): ${throwable.message}",
@@ -1200,7 +1201,7 @@ class ChatViewModel @Inject constructor(
                     // generations are traceable without flooding logcat.
                     val now = System.currentTimeMillis()
                     if (now - lastLogAt >= 2_000) {
-                        android.util.Log.i(
+                        TinyLog.i(
                             TAG,
                             "JOURNEY: streaming… emission #$emissionCount, ${buffer.length} chars so far"
                         )
@@ -1217,7 +1218,7 @@ class ChatViewModel @Inject constructor(
             if (_uiState.value.generation == GenerationState.GENERATING) {
                 val finishedAt = System.currentTimeMillis()
                 val totalMs = finishedAt - generationStart
-                android.util.Log.i(
+                TinyLog.i(
                     TAG,
                     "JOURNEY: generation complete in ${totalMs}ms — $emissionCount emissions, " +
                         "${buffer.length} chars, ~${buffer.length / 4} tokens " +
@@ -1237,7 +1238,7 @@ class ChatViewModel @Inject constructor(
                 maybeCompact(chatId)
             }
             updateContextUsage()
-            android.util.Log.i(
+            TinyLog.i(
                 TAG,
                 "JOURNEY: turn done — context usage now " +
                     "${_uiState.value.contextUsage.usedTokens}/${_uiState.value.contextUsage.maxTokens} tokens"
@@ -1246,7 +1247,7 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun cancelGeneration() {
-        android.util.Log.i(TAG, "JOURNEY: generation cancelled by user")
+        TinyLog.i(TAG, "JOURNEY: generation cancelled by user")
         generationJob?.cancel()
         generationJob = null
         // Mark the in-flight assistant message as stopped (keep partial text).
@@ -1287,7 +1288,7 @@ class ChatViewModel @Inject constructor(
         }
 
         viewModelScope.launch(Dispatchers.Default) {
-            android.util.Log.i(TAG, "JOURNEY: regenerate — deleting old reply, re-sending prompt: \"${lastUser.text}\"")
+            TinyLog.i(TAG, "JOURNEY: regenerate — deleting old reply, re-sending prompt: \"${lastUser.text}\"")
             // Delete the old assistant message from Room.
             chatRepository.deleteMessage(lastAssistant.id)
             // Remove it from the UI immediately.
@@ -1298,7 +1299,7 @@ class ChatViewModel @Inject constructor(
             // Rebuild so the deleted reply leaves the native KV cache AND the
             // token counter — otherwise the stale reply keeps occupying context
             // forever and the usage number only ever grows.
-            android.util.Log.i(TAG, "JOURNEY: regenerate — rebuilding session to drop stale reply")
+            TinyLog.i(TAG, "JOURNEY: regenerate — rebuilding session to drop stale reply")
             rebuildSession(chatId)
 
             // Create a new streaming placeholder.
@@ -1335,7 +1336,7 @@ class ChatViewModel @Inject constructor(
         }
 
         viewModelScope.launch(Dispatchers.Default) {
-            android.util.Log.i(TAG, "JOURNEY: editMessage — edited prompt now: \"$text\"; rebuilding session and re-generating")
+            TinyLog.i(TAG, "JOURNEY: editMessage — edited prompt now: \"$text\"; rebuilding session and re-generating")
             val allMessages = chatRepository.getMessages(chatId)
             val targetIndex = allMessages.indexOfFirst { it.id == messageId }
             if (targetIndex < 0) return@launch
@@ -1487,7 +1488,7 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun updateInferenceSettings(settings: InferenceSettings) {
-        android.util.Log.i(
+        TinyLog.i(
             TAG,
             "JOURNEY: inference settings updated — temp=${settings.temperature}, topK=${settings.topK}, " +
                 "topP=${settings.topP}, systemInstruction=\"${settings.systemInstruction}\" — rebuilding session"
