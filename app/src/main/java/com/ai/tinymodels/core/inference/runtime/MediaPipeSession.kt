@@ -261,29 +261,12 @@ class MediaPipeSession(
     }
 
     private fun ensureWinner(turnsSnapshot: List<ChatTurn>): ChatTemplate {
-        winner?.let { return it }
-        val candidates = listOf(baseTemplate) + ChatTemplate.entries.filter { it != baseTemplate }
-        for (t in candidates) {
-            val p = MediaPipePromptBuilder.build(systemInstruction, priorSummary, turnsSnapshot, t)
-            var out = ""
-            try {
-                val sess = LlmInferenceSession.createFromOptions(llmInference, sessionOptions()).also {
-                    it.addQueryChunk(p)
-                }
-                out = sess.use { it.generateResponse().trim() }
-            } catch (e: Throwable) {
-                android.util.Log.e(TAG, "MP template probe $t failed: ${e.message}")
-                out = ""
-            }
-            android.util.Log.i(TAG, "MP template probe $t -> ${out.length} chars (sample: ${out.take(40)})")
-            if (out.isNotEmpty()) {
-                android.util.Log.i(TAG, "MP template winner = $t")
-                winner = t
-                return t
-            }
-        }
-        android.util.Log.w(TAG, "MP: no template produced output; defaulting to $baseTemplate")
-        winner = baseTemplate
+        // NOTE: Previously we probed each candidate template via the sync
+        // `generateResponse()`. That path calls nativePredictSync() which
+        // aborts the whole process if the prefill runner fails (JNI
+        // NewByteArray-with-pending-exception), unrelated to correctness.
+        // Deterministically use the template chosen from the model name. Async
+        // generation below will surface any remaining failure cleanly.
         return baseTemplate
     }
 
