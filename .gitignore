@@ -9,3 +9,5 @@ local.properties
 *.apk
 *.ap_
 *.aab
+.DS_Store
+app/.DS_Store
