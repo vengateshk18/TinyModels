@@ -7,11 +7,19 @@ package com.ai.tinymodels.core.inference.runtime
  * full transcript itself. Each architecture family ships with its own markers;
  * picking the wrong ones makes the model hit EOS immediately (the symptom the user
  * saw: zero tokens, then done).
+ *
+ * Every marker string below was transcribed from that model's real `chat_template`
+ * in its HuggingFace `tokenizer_config.json`. Do NOT hand-write these: an invented
+ * special token is not an unknown word to the model, it is a garbled byte sequence
+ * that derails generation (that is how a `<|im_start<|channel|>>` prefix ended up
+ * in front of SmolLM's assistant cue and made every reply come back empty).
  */
 enum class ChatTemplate {
     /** Gemma 2/3 instruction models. */
     GEMMA,
-    /** ChatML — SmolLM, Qwen, DeepSeek, MiniCPM, Phi-3. */
+    /** Plain `role\ncontent\n` — SmolLM, Qwen2.5. */
+    PLAIN,
+    /** ChatML `<|im_start|>` / `<|im_end|>` — Qwen3, DeepSeek, MiniCPM. */
     CHATML,
     /** Llama 3 / 3.1 instruction models. */
     LLAMA3,
@@ -19,25 +27,32 @@ enum class ChatTemplate {
     LLAMA2;
 
     companion object {
-        /** Guess from the downloaded file name / model id. Falls back to [CHATML]. */
+        /**
+         * Guess from the downloaded file name / model id. Falls back to [PLAIN].
+         *
+         * Verified templates:
+         *  - SmolLM / SmolLM2-Instruct, Qwen2.5-Instruct → [PLAIN]
+         *  - Gemma-it → [GEMMA], Llama-3-Instruct → [LLAMA3], Llama-2-chat → [LLAMA2]
+         *
+         * Phi-3 is deliberately absent: it uses `<|user|>` / `<|end|>` / `<|assistant|>`,
+         * which is neither [PLAIN] nor [CHATML], so it needs its own template before
+         * it can be listed rather than a silent guess here.
+         */
         fun fromName(name: String?): ChatTemplate {
-            val n = name?.lowercase() ?: return CHATML
+            val n = name?.lowercase() ?: return PLAIN
             return when {
                 n.contains("gemma") -> GEMMA
-                n.contains("smol") -> CHATML
-                n.contains("qwen") -> CHATML
-                n.contains("phi") -> CHATML
-                n.contains("deepseek") -> CHATML
-                n.contains("minicpm") -> CHATML
                 n.contains("llama-3") || n.contains("llama3") -> LLAMA3
-                n.contains("llama2") || n.contains("llama-2") -> LLAMA2
-                n.contains("mistral") -> LLAMA2
-                else -> CHATML  // most open-weights .task conversions use ChatML
+                n.contains("llama2") || n.contains("llama-2") || n.contains("mistral") -> LLAMA2
+                n.contains("deepseek") || n.contains("minicpm") -> CHATML
+                // SmolLM, Qwen2.5 and most open-weights .task conversions use the
+                // plain role/content layout, which is also the safest default.
+                else -> PLAIN
             }
         }
 
         /** Candidate order for probing (best-guess first, the rest as fallback). */
-        val ALL_FOR_PROBE = listOf(GEMMA, CHATML, LLAMA3, LLAMA2)
+        val ALL_FOR_PROBE = listOf(PLAIN, GEMMA, CHATML, LLAMA3, LLAMA2)
     }
 }
 
@@ -62,14 +77,21 @@ object MediaPipePromptBuilder {
             systemOpen = null,  // system folded into the first user turn
             wrapSystem = true
         )
+        // {{ role }}\n{{ content }}\n per message, then {{ 'assistant\n' }}.
+        ChatTemplate.PLAIN -> Markers(
+            userOpen = "user\n", turnClose = "\n",
+            assistantOpen = "assistant\n",
+            systemOpen = "system\n", wrapSystem = false
+        )
         ChatTemplate.CHATML -> Markers(
             userOpen = "<|im_start|>user\n", turnClose = "<|im_end|>\n",
-            assistantOpen = "<|im_start<|channel|>>assistant\n",
+            assistantOpen = "<|im_start|>assistant\n",
             systemOpen = "<|im_start|>system\n", wrapSystem = false
         )
+        // Llama 3 puts no newline after <|eot_id|> — the next header follows directly.
         ChatTemplate.LLAMA3 -> Markers(
             userOpen = "<|start_header_id|>user<|end_header_id|>\n\n",
-            turnClose = "<|eot_id<|message|>>",
+            turnClose = "<|eot_id|>",
             assistantOpen = "<|start_header_id|>assistant<|end_header_id|>\n\n",
             systemOpen = "<|start_header_id|>system<|end_header_id|>\n\n",
             wrapSystem = false
@@ -96,7 +118,7 @@ object MediaPipePromptBuilder {
         val sb = StringBuilder()
 
         if (system != null && !m.wrapSystem && m.systemOpen != null) {
-            sb.append(m.systemOpen).append(system).append(m.turnClose).append("\n")
+            sb.append(m.systemOpen).append(system).append(m.turnClose)
         }
 
         var systemPending = system != null && m.wrapSystem

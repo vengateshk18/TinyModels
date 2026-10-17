@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ai.tinymodels.core.common.AppResult
 import com.ai.tinymodels.core.common.MemoryUtils
+import com.ai.tinymodels.core.common.TinyLog
 import com.ai.tinymodels.core.inference.BenchmarkMath
 import com.ai.tinymodels.core.inference.BenchmarkResult
 import com.ai.tinymodels.core.inference.BenchmarkRunner
@@ -195,7 +196,7 @@ class BenchmarkViewModel @Inject constructor(
             } catch (throwable: Throwable) {
                 // Never crash the app from a benchmark run (e.g. a native
                 // conversation failure on a text-only model) — report it.
-                android.util.Log.e("Benchmark", "Benchmark failed: ${throwable.message}", throwable)
+                TinyLog.e("Benchmark", "Benchmark failed: ${throwable.message}", throwable)
                 _uiState.value = BenchmarkUiState.Failed(
                     throwable.message?.takeIf { it.isNotBlank() } ?: "Benchmark failed"
                 )

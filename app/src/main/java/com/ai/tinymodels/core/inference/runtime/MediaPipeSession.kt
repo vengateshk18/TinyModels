@@ -111,7 +111,7 @@ class MediaPipeSession(
         val listener = object : ProgressListener<String> {
             override fun run(partialResult: String?, done: Boolean) {
                 val piece = partialResult.orEmpty()
-                android.util.Log.i(TAG, "MP listener: piece=${piece.length} done=$done acc=${accumulated.length}")
+                TinyLog.i(TAG, "MP listener: piece=${piece.length} done=$done acc=${accumulated.length}")
                 if (piece.isNotEmpty()) {
                     accumulated.append(piece)
                     countResponseDelta(piece.length)
@@ -125,7 +125,7 @@ class MediaPipeSession(
                         }
                     }
                     if (reply.isEmpty()) {
-                        android.util.Log.w(TAG, "MP generation completed but produced ZERO chars (model likely hit EOS immediately; check chat template / model)")
+                        TinyLog.w(TAG, "MP generation completed but produced ZERO chars (model likely hit EOS immediately; check chat template / model)")
                     }
                     TinyLog.i(
                         JOURNEY_TAG,
@@ -152,9 +152,9 @@ class MediaPipeSession(
             {
                 try {
                     val r = started.get()
-                    android.util.Log.i(TAG, "MP future complete, chars=${r?.length ?: -1}")
+                    TinyLog.i(TAG, "MP future complete, chars=${r?.length ?: -1}")
                 } catch (throwable: Throwable) {
-                    android.util.Log.e(TAG, "MP future error: ${throwable.message}", throwable)
+                    TinyLog.e(TAG, "MP future error: ${throwable.message}", throwable)
                     settled.countDown()
                     close(throwable.cause ?: throwable)
                 }
