@@ -776,6 +776,9 @@ private fun LastUsedModelCard(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = state.lastUsedModel?.modelId?.substringAfterLast('/')
+                        // Defensive only: HomeViewModel defaults the launch
+                        // card to the newest downloaded model, so this fallback
+                        // should never show once a model exists.
                         ?: "Your model",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
@@ -832,7 +835,7 @@ private fun LastUsedModelCard(
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 ) {
-                    Text("New chat with $modelDisplayName")
+                    Text("Create a chat with $modelDisplayName")
                 }
             }
         }

@@ -25,7 +25,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -56,8 +59,22 @@ class HomeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.Default) {
-            modelRepository.observeDownloadedModels().collect { models ->
-                refreshState(models.isNotEmpty())
+            // Two refresh triggers, because the dashboard shows BOTH kinds of data:
+            //  - model downloads (the FirstTime ↔ Dashboard branch),
+            //  - chat activity (last chat card, usage stats, compactions…).
+            // Without the chat trigger the dashboard kept stale numbers after
+            // the user created chats in the Chat tab and came back to Home.
+            val chatActivitySignature = chatRepository.observeChatSummaries()
+                .map { summaries -> summaries.size.toLong() * 1_000_000_000L + summaries.sumOf { it.updatedAt } }
+                .distinctUntilChanged()
+
+            combine(
+                modelRepository.observeDownloadedModels(),
+                chatActivitySignature
+            ) { models, _ ->
+                models.isNotEmpty()
+            }.collect { hasModels ->
+                refreshState(hasModels)
             }
         }
     }
@@ -149,8 +166,31 @@ class HomeViewModel @Inject constructor(
         }
 
         // ---- Dashboard ----
+        // "Your models", newest first — needed both for the launch card and
+        // the model list, so it is assembled before the launch card.
         val lastUsedModelId = settingsRepository.getLastUsedModelId()
-        val lastUsedModel = lastUsedModelId?.let { modelRepository.getDownloadedModel(it) }
+        val filesByModel = modelRepository.observeDownloadedFiles().first()
+            .groupBy { it.modelId }
+        val models = modelRepository.observeDownloadedModels().first()
+            .sortedByDescending { it.downloadedAt }
+            .map { m ->
+                val files = filesByModel[m.modelId].orEmpty()
+                DownloadedModelInfo(
+                    modelId = m.modelId,
+                    displayName = m.modelId.substringAfterLast('/'),
+                    sizeBytes = files.sumOf { it.sizeBytes },
+                    fileCount = files.size,
+                    downloadedAt = m.downloadedAt,
+                    isLastUsed = m.modelId == lastUsedModelId
+                )
+            }
+
+        // Fresh-install flow: no chat has been opened yet, so nothing is
+        // "last used". Point the launchpad at the newest downloaded model —
+        // that is what the first card must offer to start a chat with.
+        val lastUsedModel =
+            lastUsedModelId?.let { modelRepository.getDownloadedModel(it) }
+                ?: models.firstOrNull()?.let { modelRepository.getDownloadedModel(it.modelId) }
         val lastUsedFileName = lastUsedModel?.let {
             modelRepository.getDownloadedFileForModel(it.modelId)?.fileName
         }
@@ -186,23 +226,6 @@ class HomeViewModel @Inject constructor(
             freeBytes = freeStorageBytes()
         )
 
-        // All downloaded models with their total sizes, newest first.
-        val filesByModel = modelRepository.observeDownloadedFiles().first()
-            .groupBy { it.modelId }
-        val models = modelRepository.observeDownloadedModels().first()
-            .sortedByDescending { it.downloadedAt }
-            .map { m ->
-                val files = filesByModel[m.modelId].orEmpty()
-                DownloadedModelInfo(
-                    modelId = m.modelId,
-                    displayName = m.modelId.substringAfterLast('/'),
-                    sizeBytes = files.sumOf { it.sizeBytes },
-                    fileCount = files.size,
-                    downloadedAt = m.downloadedAt,
-                    isLastUsed = m.modelId == lastUsedModelId
-                )
-            }
-
         _uiState.value = HomeUiState.Dashboard(
             device = device,
             lastUsedModel = lastUsedModel,
@@ -230,12 +253,7 @@ class HomeViewModel @Inject constructor(
         val deviceName = "${Build.MANUFACTURER} ${Build.MODEL}"
         val availableRamForAiMb = (totalRamMb * 0.45).toLong()
 
-        val (capability, maxParams) = when {
-            totalRamMb >= 12000 -> AiCapability.EXCELLENT to "8B"
-            totalRamMb >= 8000 -> AiCapability.GOOD to "3B"
-            totalRamMb >= 4000 -> AiCapability.LIMITED to "1B"
-            else -> AiCapability.UNKNOWN to "-"
-        }
+        val (capability, maxParams) = AiCapabilityClassifier.classify(totalRamMb)
 
         return DeviceInfoState(
             deviceName = deviceName,
