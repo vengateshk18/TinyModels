@@ -63,6 +63,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.ai.tinymodels.R
+import com.ai.tinymodels.core.common.TinyConstants
 import com.ai.tinymodels.feature.chat.model.GenerationState
 import com.ai.tinymodels.feature.chat.model.PlusMenuItem
 import com.ai.tinymodels.feature.chat.model.buildPlusMenuItems
@@ -184,7 +185,7 @@ fun ChatInputBar(
                                 },
                                 onClick = {
                                     if (item.enabled) {
-                                        pickPhoto.launch("image/*")
+                                        pickPhoto.launch(TinyConstants.MIME_TYPE_IMAGE_ANY)
                                         menuExpanded = false
                                     }
                                 },

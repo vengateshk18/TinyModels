@@ -4,9 +4,11 @@ import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.MediaStore
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.AppError
 import com.ai.tinymodels.core.common.AppResult
 import com.ai.tinymodels.core.common.DispatcherProvider
+import com.ai.tinymodels.core.common.TinyConstants
 import com.ai.tinymodels.core.database.DownloadedModelDao
 import com.ai.tinymodels.core.database.ModelFileDao
 import com.ai.tinymodels.core.database.entities.DownloadedModelEntity
@@ -172,10 +174,10 @@ class ModelRepositoryImpl @Inject constructor(
                 val baseName = fileName.substringAfterLast("/")
                 val sourceFile = File(
                     context.filesDir,
-                    "models/${modelId.replace("/", "_")}/$baseName"
+                    "${TinyConstants.MODEL_DOWNLOAD_PATH_PREFIX}${modelId.replace("/", "_")}/$baseName"
                 )
                 if (!sourceFile.exists()) {
-                    throw IllegalStateException("File not found on device: $baseName")
+                    throw IllegalStateException(context.getString(R.string.model_import_file_not_found, baseName))
                 }
 
                 val resolver = context.contentResolver
@@ -185,13 +187,13 @@ class ModelRepositoryImpl @Inject constructor(
                     DocumentsContract.getTreeDocumentId(destinationUri)
                 )
                 val destUri = DocumentsContract.createDocument(
-                    resolver, parentDocUri, "application/octet-stream", baseName
-                ) ?: throw IllegalStateException("Failed to create destination file: $baseName")
+                    resolver, parentDocUri, TinyConstants.MIME_TYPE_OCTET_STREAM, baseName
+                ) ?: throw IllegalStateException(context.getString(R.string.model_import_create_failed, baseName))
                 resolver.openOutputStream(destUri)?.use { output ->
                     sourceFile.inputStream().use { input ->
                         input.copyTo(output)
                     }
-                } ?: throw IllegalStateException("Cannot write to destination file: $baseName")
+                } ?: throw IllegalStateException(context.getString(R.string.model_import_write_failed, baseName))
 
                 destUri
             }
@@ -203,25 +205,25 @@ class ModelRepositoryImpl @Inject constructor(
                 errorMapper = { e -> AppError.Unknown(e.message, e) }
             ) {
                 val fileName = getFileNameFromUri(sourceUri)
-                    ?: throw IllegalStateException("Cannot determine file name")
+                    ?: throw IllegalStateException(context.getString(R.string.model_import_no_file_name))
                 
-                if (!fileName.endsWith(".litertlm", ignoreCase = true)) {
-                    throw IllegalArgumentException("Invalid file type. Only .litertlm files are supported.")
+                if (!fileName.endsWith(TinyConstants.MODEL_FILE_EXTENSION, ignoreCase = true)) {
+                    throw IllegalArgumentException(context.getString(R.string.model_import_invalid_file_type))
                 }
 
                 // Extract modelId from filename (remove .litertlm)
-                val modelId = fileName.removeSuffix(".litertlm").replace("_", "/")
+                val modelId = fileName.removeSuffix(TinyConstants.MODEL_FILE_EXTENSION).replace("_", "/")
                 
                 // Check if already exists
                 val existingModel = downloadedModelDao.getById(modelId)
                 val existingFiles = modelFileDao.getByModelId(modelId).map { it.fileName }.toSet()
                 
                 if (existingModel != null && existingFiles.contains(fileName)) {
-                    throw IllegalStateException("This model file already exists in your library")
+                    throw IllegalStateException(context.getString(R.string.model_import_already_exists))
                 }
 
                 // Copy to internal storage
-                val modelDir = File(context.filesDir, "models/${modelId.replace("/", "_")}")
+                val modelDir = File(context.filesDir, "${TinyConstants.MODEL_DIRECTORY_NAME}/${modelId.replace("/", "_")}")
                 modelDir.mkdirs()
                 val targetFile = File(modelDir, fileName)
 
@@ -229,7 +231,7 @@ class ModelRepositoryImpl @Inject constructor(
                     targetFile.outputStream().use { output ->
                         input.copyTo(output)
                     }
-                } ?: throw IllegalStateException("Cannot open source file")
+                } ?: throw IllegalStateException(context.getString(R.string.model_import_open_failed))
 
                 val fileSize = targetFile.length()
                 val now = System.currentTimeMillis()
@@ -237,7 +239,7 @@ class ModelRepositoryImpl @Inject constructor(
                 // Insert or get parent model
                 val modelEntity = downloadedModelDao.getById(modelId) ?: DownloadedModelEntity(
                     modelId = modelId,
-                    author = "imported",
+                    author = "imported",  // library tag for user-imported models
                     libraryName = "litertlm",
                     pipelineTag = "text-generation",
                     localPath = modelDir.absolutePath,
@@ -271,11 +273,11 @@ class ModelRepositoryImpl @Inject constructor(
                     cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME))
                 } else {
                     // Fallback: try last path segment
-                    uri.lastPathSegment?.takeIf { it.endsWith(".litertlm", ignoreCase = true) }
+                    uri.lastPathSegment?.takeIf { it.endsWith(TinyConstants.MODEL_FILE_EXTENSION, ignoreCase = true) }
                 }
             }
         } catch (e: Exception) {
-            uri.lastPathSegment?.takeIf { it.endsWith(".litertlm", ignoreCase = true) }
+            uri.lastPathSegment?.takeIf { it.endsWith(TinyConstants.MODEL_FILE_EXTENSION, ignoreCase = true) }
         }
     }
 }

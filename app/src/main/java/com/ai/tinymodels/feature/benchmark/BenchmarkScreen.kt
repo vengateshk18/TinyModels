@@ -53,11 +53,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ai.tinymodels.R
+import com.ai.tinymodels.core.common.TinyConstants
 import com.ai.tinymodels.core.inference.BenchmarkResult
 import com.ai.tinymodels.core.ui.Formatters
 import com.ai.tinymodels.core.ui.components.ErrorState
@@ -91,12 +94,12 @@ fun BenchmarkScreen(
         contentWindowInsets = WindowInsets.systemBars.union(WindowInsets.displayCutout),
         topBar = {
             TopAppBar(
-                title = { Text("Benchmark") },
+                title = { Text(stringResource(R.string.benchmark_title)) },
                 navigationIcon = {
                     IconButton(onClick = {
                         if (running) showCancelDialog = true else onBack()
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -121,8 +124,8 @@ fun BenchmarkScreen(
             )
 
             is BenchmarkUiState.LoadingModel -> StageContent(
-                title = "Loading model…",
-                subtitle = "Cold load — this is being timed.",
+                title = stringResource(R.string.benchmark_loading_title),
+                subtitle = stringResource(R.string.benchmark_loading_subtitle),
                 modifier = Modifier.fillMaxSize().padding(padding)
             )
 
@@ -144,10 +147,10 @@ fun BenchmarkScreen(
             )
 
             is BenchmarkUiState.Failed -> ErrorState(
-                title = "Benchmark failed",
+                title = stringResource(R.string.benchmark_failed_title),
                 message = s.message,
                 onRetry = viewModel::backToPicker,
-                retryLabel = "Back to models",
+                retryLabel = stringResource(R.string.benchmark_back_to_models),
                 modifier = Modifier.fillMaxSize().padding(padding)
             )
         }
@@ -156,16 +159,16 @@ fun BenchmarkScreen(
     if (showCancelDialog) {
         AlertDialog(
             onDismissRequest = { showCancelDialog = false },
-            title = { Text("Stop benchmark?") },
-            text = { Text("The run will be cancelled and results discarded.") },
+            title = { Text(stringResource(R.string.benchmark_stop_title)) },
+            text = { Text(stringResource(R.string.benchmark_stop_body)) },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.cancel()
                     showCancelDialog = false
-                }) { Text("Stop") }
+                }) { Text(stringResource(R.string.benchmark_stop)) }
             },
             dismissButton = {
-                TextButton(onClick = { showCancelDialog = false }) { Text("Continue") }
+                TextButton(onClick = { showCancelDialog = false }) { Text(stringResource(R.string.benchmark_continue)) }
             }
         )
     }
@@ -191,7 +194,7 @@ private fun PickerContent(
 
         if (state.files.isEmpty()) {
             Text(
-                "No downloaded models. Download a model first, then come back to benchmark it.",
+                stringResource(R.string.benchmark_no_models),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -200,7 +203,7 @@ private fun PickerContent(
         }
 
         Text(
-            "Choose a model",
+            stringResource(R.string.benchmark_choose_model),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
@@ -263,19 +266,19 @@ private fun PickerContent(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    "How this works",
+                    stringResource(R.string.benchmark_how_it_works),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                BulletPoint("2 fixed prompts (short + medium), 3 runs each")
-                BulletPoint("Output capped at 256 tokens per run")
-                BulletPoint("First run is a warm-up and is discarded")
-                BulletPoint("Median of the remaining runs is reported")
-                BulletPoint("Fixed sampler: temp 0.7 / top-k 40 / top-p 0.95")
-                BulletPoint("Load time = one cold load of the model")
-                BulletPoint("Peak memory sampled every 250 ms during the run")
+                BulletPoint(stringResource(R.string.benchmark_bullet_prompts))
+                BulletPoint(stringResource(R.string.benchmark_bullet_output_cap))
+                BulletPoint(stringResource(R.string.benchmark_bullet_warmup))
+                BulletPoint(stringResource(R.string.benchmark_bullet_median))
+                BulletPoint(stringResource(R.string.benchmark_bullet_sampler))
+                BulletPoint(stringResource(R.string.benchmark_bullet_load_time))
+                BulletPoint(stringResource(R.string.benchmark_bullet_memory))
             }
         }
 
@@ -288,7 +291,7 @@ private fun PickerContent(
         ) {
             Icon(Icons.Filled.Speed, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(6.dp))
-            Text("Run benchmark")
+            Text(stringResource(R.string.benchmark_run))
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -341,7 +344,7 @@ private fun RunningContent(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            "Running benchmark",
+            stringResource(R.string.benchmark_running),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
@@ -349,9 +352,9 @@ private fun RunningContent(
 
         // Current stage chip
         val stageLabel = buildString {
-            append("${progress.promptLabel} prompt")
-            append(" • run ${progress.runIndex + 1} of ${progress.runTotal}")
-            if (progress.isWarmUp) append(" • warm-up")
+            append(stringResource(R.string.benchmark_progress_prompt, progress.promptLabel))
+            append(stringResource(R.string.benchmark_progress_run, progress.runIndex + 1, progress.runTotal))
+            if (progress.isWarmUp) append(stringResource(R.string.benchmark_progress_warmup))
         }
         Surface(
             color = MaterialTheme.colorScheme.secondaryContainer,
@@ -386,12 +389,12 @@ private fun RunningContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "Overall progress",
+                        stringResource(R.string.benchmark_overall_progress),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        "${(fraction * 100).toInt()}%",
+                        stringResource(R.string.common_percent, (fraction * 100).toInt()),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
@@ -408,9 +411,9 @@ private fun RunningContent(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    ProgressStat("Prompt", "${progress.promptIndex + 1}/${progress.promptTotal}", Modifier.weight(1f))
-                    ProgressStat("Run", "${progress.runIndex + 1}/${progress.runTotal}", Modifier.weight(1f))
-                    ProgressStat("Tokens", "${progress.tokensSoFar}", Modifier.weight(1f))
+                    ProgressStat(stringResource(R.string.benchmark_stat_prompt), "${progress.promptIndex + 1}/${progress.promptTotal}", Modifier.weight(1f))
+                    ProgressStat(stringResource(R.string.benchmark_stat_run), "${progress.runIndex + 1}/${progress.runTotal}", Modifier.weight(1f))
+                    ProgressStat(stringResource(R.string.benchmark_stat_tokens), "${progress.tokensSoFar}", Modifier.weight(1f))
                 }
             }
         }
@@ -419,7 +422,7 @@ private fun RunningContent(
 
         // Cancel pinned to the bottom.
         OutlinedButton(onClick = onCancel, modifier = Modifier.fillMaxWidth()) {
-            Text("Cancel")
+            Text(stringResource(R.string.benchmark_cancel))
         }
         Spacer(modifier = Modifier.height(32.dp))
     }
@@ -490,14 +493,14 @@ private fun ResultContent(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    "Decode speed",
+                    stringResource(R.string.benchmark_decode_speed),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    "%.1f tok/s".format(result.overallDecodeTokensPerSec),
+                    stringResource(R.string.benchmark_format_tok_per_sec, result.overallDecodeTokensPerSec),
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -506,8 +509,10 @@ private fun ResultContent(
                     .flatMap { it.measuredRuns.mapNotNull { m -> m.decodeTokensPerSec } }
                 if (spread.size >= 2) {
                     Text(
-                        "%.1f – %.1f across runs".format(
-                            spread.minOrNull() ?: 0.0, spread.maxOrNull() ?: 0.0
+                        stringResource(
+                            R.string.benchmark_decode_speed_range,
+                            spread.minOrNull() ?: 0.0,
+                            spread.maxOrNull() ?: 0.0
                         ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -520,28 +525,42 @@ private fun ResultContent(
 
         // ---- Per-prompt metrics ----
         result.promptResults.forEach { pr ->
-            SectionTitle("${pr.prompt.label} prompt")
-            InfoRow("Time to first token", "%.0f ms".format(pr.medianTtftMs))
-            InfoRow("Decode speed", "%.1f tok/s".format(pr.medianDecodeTokensPerSec))
+            SectionTitle(stringResource(R.string.benchmark_progress_prompt, pr.prompt.label))
             InfoRow(
-                "Prefill speed",
-                "%.0f tok/s".format(pr.medianPrefillTokensPerSec)
+                stringResource(R.string.benchmark_stat_time_to_first_token),
+                stringResource(R.string.benchmark_format_ms, pr.medianTtftMs)
+            )
+            InfoRow(
+                stringResource(R.string.benchmark_decode_speed),
+                stringResource(R.string.benchmark_format_tok_per_sec, pr.medianDecodeTokensPerSec)
+            )
+            InfoRow(
+                stringResource(R.string.benchmark_stat_prefill_speed),
+                stringResource(R.string.benchmark_format_tok_per_sec, pr.medianPrefillTokensPerSec)
             )
             Spacer(modifier = Modifier.height(12.dp))
         }
 
         // ---- Load + memory ----
-        SectionTitle("Model")
-        InfoRow("Load time (cold)", "%.1f s".format(result.loadTimeMs / 1000.0))
-        InfoRow("Peak memory (PSS)", Formatters.formatBytes(result.peakPssBytes, LocalContext.current.resources))
-        InfoRow("Baseline before load", Formatters.formatBytes(result.baselinePssBytes, LocalContext.current.resources))
-        InfoRow("Backend", result.backendUsed)
-        InfoRow("Device", result.deviceName)
+        SectionTitle(stringResource(R.string.benchmark_section_model))
+        InfoRow(
+            stringResource(R.string.benchmark_stat_load_time),
+            stringResource(R.string.benchmark_format_seconds, result.loadTimeMs / 1000.0)
+        )
+        InfoRow(
+            stringResource(R.string.benchmark_stat_peak_memory),
+            Formatters.formatBytes(result.peakPssBytes, LocalContext.current.resources)
+        )
+        InfoRow(
+            stringResource(R.string.benchmark_stat_baseline_load),
+            Formatters.formatBytes(result.baselinePssBytes, LocalContext.current.resources)
+        )
+        InfoRow(stringResource(R.string.benchmark_stat_backend), result.backendUsed)
+        InfoRow(stringResource(R.string.benchmark_stat_device), result.deviceName)
 
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            "Tokens are counted from stream emissions (one token per emission). " +
-                "Prefill speed is prompt tokens / TTFT and includes the first decode step.",
+            stringResource(R.string.benchmark_token_note),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -552,15 +571,15 @@ private fun ResultContent(
                 onClick = { copySummary(context, result) },
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Copy summary")
+                Text(stringResource(R.string.benchmark_copy_summary))
             }
             Button(onClick = onRerun, modifier = Modifier.weight(1f)) {
-                Text("Re-run")
+                Text(stringResource(R.string.benchmark_rerun))
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
         TextButton(onClick = onBackToPicker, modifier = Modifier.fillMaxWidth()) {
-            Text("Back to models")
+            Text(stringResource(R.string.benchmark_back_to_models))
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -597,26 +616,37 @@ private fun InfoRow(label: String, value: String) {
 private fun copySummary(context: Context, result: BenchmarkResult) {
     val sb = StringBuilder()
     sb.append(
-        "TinyModels benchmark — ${result.modelId.substringAfterLast('/')} " +
-            "(${result.fileName.substringAfterLast('/')}, ${result.backendUsed})\n"
+        context.getString(
+            R.string.benchmark_summary_header,
+            result.modelId.substringAfterLast('/'),
+            result.fileName.substringAfterLast('/'),
+            result.backendUsed
+        ) + "\n"
     )
-    sb.append("Load: %.1fs".format(result.loadTimeMs / 1000.0))
+    sb.append(context.getString(R.string.benchmark_summary_load, result.loadTimeMs / 1000.0))
     result.promptResults.forEach { pr ->
         sb.append(
-            " · ${pr.prompt.label}: TTFT %.0fms, decode %.1f tok/s, prefill %.0f tok/s".format(
-                pr.medianTtftMs, pr.medianDecodeTokensPerSec, pr.medianPrefillTokensPerSec
+            context.getString(
+                R.string.benchmark_summary_prompt,
+                pr.prompt.label,
+                pr.medianTtftMs,
+                pr.medianDecodeTokensPerSec,
+                pr.medianPrefillTokensPerSec
             )
         )
     }
     sb.append("\n")
     sb.append(
-        "Peak PSS: ${Formatters.formatBytes(result.peakPssBytes, context.resources)} " +
-            "(baseline ${Formatters.formatBytes(result.baselinePssBytes, context.resources)})\n"
+        context.getString(
+            R.string.benchmark_summary_peak,
+            Formatters.formatBytes(result.peakPssBytes, context.resources),
+            Formatters.formatBytes(result.baselinePssBytes, context.resources)
+        ) + "\n"
     )
-    sb.append("Device: ${result.deviceName}")
+    sb.append(context.getString(R.string.benchmark_summary_device, result.deviceName))
 
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    clipboard.setPrimaryClip(ClipData.newPlainText("benchmark", sb.toString()))
+    clipboard.setPrimaryClip(ClipData.newPlainText(TinyConstants.CLIP_LABEL_BENCHMARK, sb.toString()))
 }
 
 /** Clickable without ripple — used for the compact file rows inside a card. */

@@ -28,11 +28,13 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.Column
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -45,6 +47,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.network.NetworkMonitor
 import com.ai.tinymodels.feature.benchmark.BenchmarkScreen
 import com.ai.tinymodels.feature.chat.ChatListViewModel
@@ -104,10 +107,10 @@ fun TinyModelsApp(
                                     selected = selected,
                                     selectedIcon = item.selectedIcon,
                                     unselectedIcon = item.icon,
-                                    label = item.label
+                                    label = stringResource(item.labelRes)
                                 )
                             },
-                            label = { Text(item.label) }
+                            label = { Text(stringResource(item.labelRes)) }
                         )
                     }
                 }
@@ -251,16 +254,16 @@ fun TinyModelsApp(
 
 private data class BottomNavItem(
     val route: String,
-    val label: String,
+    @StringRes val labelRes: Int,
     val icon: ImageVector,
     val selectedIcon: ImageVector
 )
 
 private val bottomNavItems = listOf(
-    BottomNavItem(Routes.HOME, "Home", Icons.Outlined.Home, Icons.Filled.Home),
-    BottomNavItem(Routes.CHAT, "Chat", Icons.Outlined.Chat, Icons.Filled.Chat),
-    BottomNavItem(Routes.MODELS, "Models", Icons.Outlined.Download, Icons.Filled.Download),
-    BottomNavItem(Routes.SETTINGS, "Settings", Icons.Outlined.Settings, Icons.Filled.Settings)
+    BottomNavItem(Routes.HOME, R.string.nav_home, Icons.Outlined.Home, Icons.Filled.Home),
+    BottomNavItem(Routes.CHAT, R.string.nav_chat, Icons.Outlined.Chat, Icons.Filled.Chat),
+    BottomNavItem(Routes.MODELS, R.string.nav_models, Icons.Outlined.Download, Icons.Filled.Download),
+    BottomNavItem(Routes.SETTINGS, R.string.nav_settings, Icons.Outlined.Settings, Icons.Filled.Settings)
 )
 
 /**

@@ -1,0 +1,161 @@
+<resources>
+    <!-- ================= Settings ================= -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_dynamic_color">Dynamic color</string>
+    <string name="settings_dynamic_color_subtitle">Use wallpaper-based colors (Android 12+)</string>
+    <string name="settings_font_size">Font size</string>
+    <string name="settings_font">Font</string>
+    <string name="settings_change_font_content_description">Change font</string>
+    <string name="settings_font_sheet_title">Choose font</string>
+    <string name="settings_font_default">Default</string>
+    <string name="settings_font_google">Google Font</string>
+
+    <string name="settings_section_inference">Inference</string>
+    <string name="settings_default_backend">Default backend</string>
+    <string name="settings_web_search">Web search</string>
+    <string name="settings_web_search_subtitle">Let chats enable the model’s web search tool. Search queries leave the device.</string>
+    <string name="settings_web_search_note">When enabled for a chat (via the + menu in the chat), the model may search the web when it needs current information.</string>
+
+    <string name="settings_section_downloads">Downloads</string>
+    <string name="settings_wifi_only_downloads">Wi-Fi only downloads</string>
+    <string name="settings_wifi_only_downloads_subtitle">Wait for an unmetered connection before downloading models</string>
+    <string name="settings_downloads_note">Model files are gigabytes — this guards your mobile data plan.</string>
+
+    <string name="settings_section_chat">Chat</string>
+    <string name="settings_auto_load_last_model">Auto-load last model</string>
+    <string name="settings_auto_load_last_model_subtitle">Load the previously used model when opening chat</string>
+    <string name="settings_keep_screen_on">Keep screen on</string>
+    <string name="settings_keep_screen_on_subtitle">Prevent sleep while the model is generating</string>
+    <string name="settings_show_token_counts">Show token counts</string>
+    <string name="settings_show_token_counts_subtitle">Show per-message token counts under each bubble</string>
+
+    <string name="settings_section_hugging_face">Hugging Face</string>
+    <string name="settings_access_token">Access token</string>
+    <string name="settings_token_not_set">Not set — optional; only gated models need one</string>
+    <string name="settings_token_set">Set — %1$s••••••••%2$s</string>
+    <string name="settings_token_help">Gated models (e.g. Gemma) need a free access token to download. Create one at huggingface.co/settings/tokens, then accept the model’s license on its page.</string>
+    <string name="settings_token_dialog_title">Hugging Face access token</string>
+    <string name="settings_token_dialog_body">Paste a token with read access. Create one at huggingface.co/settings/tokens.</string>
+    <string name="settings_token_placeholder" translatable="false">hf_xxxxxxxxxxxxxxxx</string>
+    <string name="settings_token_save">Save</string>
+    <string name="settings_token_remove">Remove</string>
+
+    <string name="settings_section_support">Support</string>
+    <string name="settings_star_on_github">Star on GitHub</string>
+    <string name="settings_star_on_github_subtitle">Support free, on-device AI for everyone</string>
+    <string name="settings_report_bug">Report a bug</string>
+    <string name="settings_report_bug_subtitle">Found something broken? Let us know</string>
+
+    <string name="settings_section_about">About</string>
+    <string name="settings_benchmark">Benchmark</string>
+    <string name="settings_benchmark_subtitle">Measure load time, TTFT, and tokens/sec</string>
+    <string name="settings_device_information">Device information</string>
+    <string name="settings_device_information_subtitle">See your device’s AI capability</string>
+    <string name="settings_clear_chat_history">Clear chat history</string>
+    <string name="settings_clear_chat_history_subtitle">Delete all conversations</string>
+    <string name="settings_clear_chat_history_title">Clear chat history</string>
+    <string name="settings_clear_chat_history_body">Delete all chat conversations? This cannot be undone.</string>
+
+    <string name="settings_section_model_management">Model Management</string>
+    <string name="settings_token_removed">Access token removed</string>
+    <string name="settings_token_saved">Access token saved</string>
+    <string name="settings_chat_history_cleared">Chat history cleared</string>
+    <string name="settings_model_imported">Model imported: %1$s</string>
+    <string name="settings_import_failed">Import failed: %1$s</string>
+    <string name="model_import_invalid_file_type">Invalid file type. Only .litertlm files are supported.</string>
+    <string name="model_import_file_not_found">File not found on device: %1$s</string>
+    <string name="model_import_create_failed">Failed to create destination file: %1$s</string>
+    <string name="model_import_write_failed">Cannot write to destination file: %1$s</string>
+    <string name="model_import_no_file_name">Cannot determine file name</string>
+    <string name="model_import_already_exists">This model file already exists in your library</string>
+    <string name="model_import_open_failed">Cannot open source file</string>
+    <string name="benchmark_error_model_file_missing">Model file missing on device</string>
+    <string name="benchmark_error_not_enough_ram">Not enough free RAM to load this model (need ~%1$d MB, have %2$d MB). Close other apps and try again.</string>
+    <string name="benchmark_error_failed_to_load">Failed to load model</string>
+    <string name="settings_import_model">Import Model</string>
+    <string name="settings_import_model_subtitle">Add a .litertlm file from external storage</string>
+    <string name="settings_import_model_note">Imported models appear in your library with an ‘Imported’ tag. To share a downloaded file, open it and use Export.</string>
+
+    <!-- ================= Theme / backend choices ================= -->
+    <string name="theme_mode_system">System</string>
+    <string name="theme_mode_light">Light</string>
+    <string name="theme_mode_dark">Dark</string>
+    <string name="backend_auto">Auto</string>
+    <string name="backend_gpu">GPU</string>
+    <string name="backend_cpu">CPU</string>
+
+    <!-- ================= Fonts ================= -->    <string name="font_system">System</string>
+    <string name="font_abel" translatable="false">Abel</string>
+    <string name="font_inter" translatable="false">Inter</string>
+    <string name="font_roboto" translatable="false">Roboto</string>
+    <string name="font_pacifico" translatable="false">Pacifico</string>
+    <string name="font_abril_fatface" translatable="false">Abril Fatface</string>
+
+    <!-- ================= Bottom navigation ================= -->
+    <string name="nav_home">Home</string>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_models">Models</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- ================= Benchmark ================= -->
+    <string name="benchmark_title">Benchmark</string>
+    <string name="benchmark_loading_title">Loading model…</string>
+    <string name="benchmark_loading_subtitle">Cold load — this is being timed.</string>
+    <string name="benchmark_failed_title">Benchmark failed</string>
+    <string name="benchmark_back_to_models">Back to models</string>
+    <string name="benchmark_stop_title">Stop benchmark?</string>
+    <string name="benchmark_stop_body">The run will be cancelled and results discarded.</string>
+    <string name="benchmark_stop">Stop</string>
+    <string name="benchmark_continue">Continue</string>
+    <string name="benchmark_no_models">No downloaded models. Download a model first, then come back to benchmark it.</string>
+    <string name="benchmark_choose_model">Choose a model</string>
+    <string name="benchmark_how_it_works">How this works</string>
+    <string name="benchmark_bullet_prompts">2 fixed prompts (short + medium), 3 runs each</string>
+    <string name="benchmark_bullet_output_cap">Output capped at 256 tokens per run</string>
+    <string name="benchmark_bullet_warmup">First run is a warm-up and is discarded</string>
+    <string name="benchmark_bullet_median">Median of the remaining runs is reported</string>
+    <string name="benchmark_bullet_sampler">Fixed sampler: temp 0.7 / top-k 40 / top-p 0.95</string>
+    <string name="benchmark_bullet_load_time">Load time = one cold load of the model</string>
+    <string name="benchmark_bullet_memory">Peak memory sampled every 250 ms during the run</string>
+    <string name="benchmark_run">Run benchmark</string>
+    <string name="benchmark_running">Running benchmark</string>
+    <string name="benchmark_progress_prompt">%1$s prompt</string>
+    <string name="benchmark_progress_run"> • run %1$d of %2$d</string>
+    <string name="benchmark_progress_warmup"> • warm-up</string>
+    <string name="benchmark_overall_progress">Overall progress</string>
+    <string name="benchmark_stat_prompt">Prompt</string>
+    <string name="benchmark_stat_run">Run</string>
+    <string name="benchmark_stat_tokens">Tokens</string>
+    <string name="benchmark_cancel">Cancel</string>
+    <string name="benchmark_decode_speed">Decode speed</string>
+    <string name="benchmark_decode_speed_range">%1$.1f – %2$.1f across runs</string>
+    <string name="benchmark_stat_time_to_first_token">Time to first token</string>
+    <string name="benchmark_stat_prefill_speed">Prefill speed</string>
+    <string name="benchmark_section_model">Model</string>
+    <string name="benchmark_stat_load_time">Load time (cold)</string>
+    <string name="benchmark_stat_peak_memory">Peak memory (PSS)</string>
+    <string name="benchmark_stat_baseline_load">Baseline before load</string>
+    <string name="benchmark_stat_backend">Backend</string>
+    <string name="benchmark_stat_device">Device</string>
+    <string name="benchmark_token_note">Tokens are counted from stream emissions (one token per emission). Prefill speed is prompt tokens / TTFT and includes the first decode step.</string>
+    <string name="benchmark_copy_summary">Copy summary</string>
+    <string name="benchmark_rerun">Re-run</string>
+    <string name="benchmark_format_ms">%1$.0f ms</string>
+    <string name="benchmark_format_tok_per_sec">%1$.1f tok/s</string>
+    <string name="benchmark_format_seconds">%1$.1f s</string>
+    <string name="benchmark_summary_header">TinyModels benchmark — %1$s (%2$s, %3$s)</string>
+    <string name="benchmark_summary_load">Load: %1$.1fs</string>
+    <string name="benchmark_summary_prompt"> · %1$s: TTFT %2$.0fms, decode %3$.1f tok/s, prefill %4$.0f tok/s</string>
+    <string name="benchmark_summary_peak">Peak PSS: %1$s (baseline %2$s)</string>
+    <string name="benchmark_summary_device">Device: %1$s</string>
+
+    <!-- ================= Download notifications ================= -->
+    <string name="notification_channel_downloads">Model downloads</string>
+    <string name="notification_downloading_title">Downloading model</string>
+    <string name="notification_download_complete">Download complete</string>
+    <string name="notification_download_failed">Download failed</string>
+    <string name="notification_failed_with_reason">%1$s — %2$s</string>
+    <string name="download_error_gated">HTTP 401 — this model is gated. Add your Hugging Face access token in Settings, or accept the model’s license on huggingface.co first.</string>
+</resources>

@@ -39,6 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ai.tinymodels.R
+import com.ai.tinymodels.core.common.TinyConstants
 import com.ai.tinymodels.domain.model.DownloadedModel
 import com.ai.tinymodels.feature.chat.model.ModelChipState
 
@@ -78,7 +79,7 @@ fun ModelChip(
                         // the most precise identifier of what's in memory.
                         text = state.fileName
                             ?.substringAfterLast('/')
-                            ?.removeSuffix(".litertlm")
+                            ?.removeSuffix(TinyConstants.MODEL_FILE_EXTENSION)
                             ?: state.modelId.substringAfterLast('/'),
                         style = MaterialTheme.typography.labelMedium,
                         maxLines = 1,

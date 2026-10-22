@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import androidx.work.WorkManager
-import com.ai.tinymodels.core.common.DownloadNotifier
+import com.ai.tinymodels.core.common.TinyConstants
 import java.util.UUID
 
 /**
@@ -17,8 +17,8 @@ import java.util.UUID
 class CancelDownloadReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != DownloadNotifier.ACTION_CANCEL) return
-        val workId = intent.getStringExtra(DownloadNotifier.EXTRA_WORK_ID)
+        if (intent.action != TinyConstants.NOTIFICATION_ACTION_CANCEL_DOWNLOAD) return
+        val workId = intent.getStringExtra(TinyConstants.NOTIFICATION_EXTRA_WORK_ID)
             ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
             ?: return
         WorkManager.getInstance(context).cancelWorkById(workId)

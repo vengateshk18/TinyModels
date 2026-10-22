@@ -12,7 +12,6 @@
         <item quantity="other">%1$d messages</item>
     </plurals>
     <string name="chat_delete_content_description">Delete chat</string>
-    <string name="chat_time_just_now">Just now</string>
 
     <!-- ================= Chat room ================= -->
     <string name="chat_room_back_content_description">Back</string>

@@ -1,8 +1,10 @@
 package com.ai.tinymodels.feature.settings
 
+import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.AppResult
 import com.ai.tinymodels.domain.model.AppSettings
 import com.ai.tinymodels.domain.model.BackendPreference
@@ -12,6 +14,7 @@ import com.ai.tinymodels.domain.repository.ChatRepository
 import com.ai.tinymodels.domain.repository.ModelRepository
 import com.ai.tinymodels.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,6 +26,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
     private val chatRepository: ChatRepository,
     private val modelRepository: ModelRepository
@@ -52,12 +56,16 @@ class SettingsViewModel @Inject constructor(
     /** Saves (or removes, when null/blank) the Hugging Face access token. */
     fun setHuggingFaceToken(token: String?) = viewModelScope.launch(Dispatchers.Default) {
         settingsRepository.setHuggingFaceToken(token)
-        _clearResult.value = if (token.isNullOrBlank()) "Access token removed" else "Access token saved"
+        _clearResult.value = if (token.isNullOrBlank()) {
+            context.getString(R.string.settings_token_removed)
+        } else {
+            context.getString(R.string.settings_token_saved)
+        }
     }
 
     fun clearChatHistory() = viewModelScope.launch(Dispatchers.Default) {
         chatRepository.clearAllChats()
-        _clearResult.value = "Chat history cleared"
+        _clearResult.value = context.getString(R.string.settings_chat_history_cleared)
     }
 
     fun consumeClearResult() { _clearResult.value = null }
@@ -69,9 +77,9 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             when (val result = modelRepository.importModel(sourceUri)) {
                 is AppResult.Success -> _clearResult.value =
-                    "Model imported: ${result.data.modelId}"
+                    context.getString(R.string.settings_model_imported, result.data.modelId)
                 is AppResult.Error -> _clearResult.value =
-                    "Import failed: ${result.error.message}"
+                    context.getString(R.string.settings_import_failed, result.error.message ?: "")
             }
         }
     }

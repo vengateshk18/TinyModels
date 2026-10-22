@@ -1,5 +1,6 @@
 package com.ai.tinymodels.core.network
 
+import com.ai.tinymodels.core.common.TinyConstants
 import com.ai.tinymodels.domain.model.WebSearchResult
 import java.net.URI
 import java.util.Base64
@@ -136,7 +137,7 @@ object WebSearchParser {
         var href = decodeHtmlEntities(rawHref.trim())
         if (href.isEmpty()) return null
         if (href.startsWith("//")) href = "https:$href"
-        if (href.startsWith("/")) href = "https://duckduckgo.com$href"
+        if (href.startsWith("/")) href = "${TinyConstants.DUCKDUCKGO_BASE_URL}$href"
         val uri = parseUri(href) ?: return null
         val host = uri.host ?: return null
 

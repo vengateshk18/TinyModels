@@ -35,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ai.tinymodels.R
+import com.ai.tinymodels.core.common.TinyConstants
 import com.ai.tinymodels.core.ui.Formatters
 import com.ai.tinymodels.domain.model.DownloadedModelFile
 
@@ -138,7 +139,7 @@ private fun ModelFileRow(
             Text(
                 text = file.fileName
                     .substringAfterLast('/')
-                    .removeSuffix(".litertlm")
+                    .removeSuffix(TinyConstants.MODEL_FILE_EXTENSION)
                     .uppercase(),
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1,

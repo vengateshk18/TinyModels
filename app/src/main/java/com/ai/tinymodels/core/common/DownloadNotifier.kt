@@ -31,31 +31,23 @@ import java.util.UUID
  */
 object DownloadNotifier {
 
-    /** Matches the channel already created by `ModelDownloadWorker`. */
-    const val CHANNEL_ID = "model_downloads"
-
-    /** Fallback id used by the worker's foreground-service requirement. */
-    const val NOTIFICATION_ID = 1001
-
-    /** Extra carrying the WorkManager workId for the Cancel action. */
-    const val EXTRA_WORK_ID = "com.ai.tinymodels.extra.DOWNLOAD_WORK_ID"
-
-    /** Action broadcast to `CancelDownloadReceiver` when the user taps Cancel. */
-    const val ACTION_CANCEL = "com.ai.tinymodels.action.CANCEL_DOWNLOAD"
-
     /** Creates the (low-importance, silent) download channel. Idempotent no-op if present. */
     fun createChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(
-                NotificationChannel(CHANNEL_ID, "Model downloads", NotificationManager.IMPORTANCE_LOW)
+                NotificationChannel(
+                    TinyConstants.NOTIFICATION_CHANNEL_DOWNLOADS,
+                    context.getString(R.string.notification_channel_downloads),
+                    NotificationManager.IMPORTANCE_LOW
+                )
             )
         }
     }
 
     /** Stable notification id per work, so concurrent downloads don't clobber each other. */
-    fun notificationIdFor(workId: UUID): Int = NOTIFICATION_ID + (workId.hashCode() and 0x0FFF)
+    fun notificationIdFor(workId: UUID): Int = TinyConstants.NOTIFICATION_ID_DOWNLOADS + (workId.hashCode() and 0x0FFF)
 
     /** Distinct id for the terminal (complete/failed) notification of a given work. */
     private fun terminalIdFor(workId: UUID): Int = notificationIdFor(workId) + 0x1000
@@ -69,7 +61,7 @@ object DownloadNotifier {
         total: Long
     ): Notification {
         val percent = if (total > 0) (downloaded * 100 / total).toInt().coerceIn(0, 100) else 0
-        return NotificationCompat.Builder(context, CHANNEL_ID)
+        return NotificationCompat.Builder(context, TinyConstants.NOTIFICATION_CHANNEL_DOWNLOADS)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(title)
             .setContentText("${Formatters.formatBytes(downloaded, context.resources)} / ${Formatters.formatBytes(total, context.resources)}")
@@ -104,9 +96,9 @@ object DownloadNotifier {
     @SuppressLint("MissingPermission")
     fun notifyComplete(context: Context, workId: UUID, title: String) {
         if (!canNotify(context)) return
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+        val notification = NotificationCompat.Builder(context, TinyConstants.NOTIFICATION_CHANNEL_DOWNLOADS)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Download complete")
+            .setContentTitle(context.getString(R.string.notification_download_complete))
             .setContentText(title)
             .setAutoCancel(true)
             .setContentIntent(openAppIntent(context))
@@ -121,10 +113,13 @@ object DownloadNotifier {
     @SuppressLint("MissingPermission")
     fun notifyFailed(context: Context, workId: UUID, title: String, error: String?) {
         if (!canNotify(context)) return
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+        val notification = NotificationCompat.Builder(context, TinyConstants.NOTIFICATION_CHANNEL_DOWNLOADS)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Download failed")
-            .setContentText(if (error.isNullOrBlank()) title else "$title — $error")
+            .setContentTitle(context.getString(R.string.notification_download_failed))
+            .setContentText(
+                if (error.isNullOrBlank()) title
+                else context.getString(R.string.notification_failed_with_reason, title, error)
+            )
             .setAutoCancel(true)
             .setContentIntent(openAppIntent(context))
             .build()
@@ -172,9 +167,9 @@ object DownloadNotifier {
 
     /** Broadcast intent for the Cancel action, carrying the workId. */
     private fun cancelIntent(context: Context, workId: UUID): PendingIntent {
-        val intent = Intent(ACTION_CANCEL)
+        val intent = Intent(TinyConstants.NOTIFICATION_ACTION_CANCEL_DOWNLOAD)
             .setPackage(context.packageName)
-            .putExtra(EXTRA_WORK_ID, workId.toString())
+            .putExtra(TinyConstants.NOTIFICATION_EXTRA_WORK_ID, workId.toString())
         return PendingIntent.getBroadcast(
             context, workId.hashCode(), intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE

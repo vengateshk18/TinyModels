@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.ai.tinymodels.core.common.TinyConstants
 import com.ai.tinymodels.domain.model.AppSettings
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.FontChoice
@@ -26,18 +27,18 @@ class SettingsRepositoryImpl @Inject constructor(
 ) : SettingsRepository {
 
     private object Keys {
-        val THEME_MODE = stringPreferencesKey("theme_mode")
-        val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
-        val FONT_CHOICE = stringPreferencesKey("font_choice")
-        val FONT_SCALE = floatPreferencesKey("font_scale")
-        val DEFAULT_BACKEND = stringPreferencesKey("default_backend")
-        val WEB_SEARCH_ENABLED = booleanPreferencesKey("web_search_enabled")
-        val WIFI_ONLY_DOWNLOADS = booleanPreferencesKey("wifi_only_downloads")
-        val AUTO_LOAD_LAST_MODEL = booleanPreferencesKey("auto_load_last_model")
-        val KEEP_SCREEN_ON = booleanPreferencesKey("keep_screen_on")
-        val SHOW_TOKEN_COUNTS = booleanPreferencesKey("show_token_counts")
-        val LAST_USED_MODEL_ID = stringPreferencesKey("last_used_model_id")
-        val HUGGINGFACE_TOKEN = stringPreferencesKey("hugging_face_token")
+        val THEME_MODE = stringPreferencesKey(TinyConstants.PREFS_THEME_MODE)
+        val DYNAMIC_COLOR = booleanPreferencesKey(TinyConstants.PREFS_DYNAMIC_COLOR)
+        val FONT_CHOICE = stringPreferencesKey(TinyConstants.PREFS_FONT_CHOICE)
+        val FONT_SCALE = floatPreferencesKey(TinyConstants.PREFS_FONT_SCALE)
+        val DEFAULT_BACKEND = stringPreferencesKey(TinyConstants.PREFS_DEFAULT_BACKEND)
+        val WEB_SEARCH_ENABLED = booleanPreferencesKey(TinyConstants.PREFS_WEB_SEARCH_ENABLED)
+        val WIFI_ONLY_DOWNLOADS = booleanPreferencesKey(TinyConstants.PREFS_WIFI_ONLY_DOWNLOADS)
+        val AUTO_LOAD_LAST_MODEL = booleanPreferencesKey(TinyConstants.PREFS_AUTO_LOAD_LAST_MODEL)
+        val KEEP_SCREEN_ON = booleanPreferencesKey(TinyConstants.PREFS_KEEP_SCREEN_ON)
+        val SHOW_TOKEN_COUNTS = booleanPreferencesKey(TinyConstants.PREFS_SHOW_TOKEN_COUNTS)
+        val LAST_USED_MODEL_ID = stringPreferencesKey(TinyConstants.PREFS_LAST_USED_MODEL_ID)
+        val HUGGINGFACE_TOKEN = stringPreferencesKey(TinyConstants.PREFS_HUGGING_FACE_TOKEN)
     }
 
     override val settings: Flow<AppSettings> = context.dataStore.data.map { prefs ->

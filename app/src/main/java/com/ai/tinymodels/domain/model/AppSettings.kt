@@ -1,5 +1,8 @@
 package com.ai.tinymodels.domain.model
 
+import androidx.annotation.StringRes
+import com.ai.tinymodels.R
+
 /** Visual theme preference. */
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
@@ -8,13 +11,13 @@ enum class ThemeMode { SYSTEM, LIGHT, DARK }
  * the rest are downloaded on-demand via Google Fonts (requires network
  * on first use, then cached by GMS).
  */
-enum class FontChoice(val displayName: String, val googleFontName: String?) {
-    SYSTEM("System", null),
-    ABEL("Abel", "Abel"),
-    INTER("Inter", "Inter"),
-    ROBOTO("Roboto", "Roboto"),
-    PACIFICO("Pacifico", "Pacifico"),
-    ABRIL_FATFACE("Abril Fatface", "Abril Fatface")
+enum class FontChoice(@StringRes val labelRes: Int, val googleFontName: String?) {
+    SYSTEM(R.string.font_system, null),
+    ABEL(R.string.font_abel, "Abel"),
+    INTER(R.string.font_inter, "Inter"),
+    ROBOTO(R.string.font_roboto, "Roboto"),
+    PACIFICO(R.string.font_pacifico, "Pacifico"),
+    ABRIL_FATFACE(R.string.font_abril_fatface, "Abril Fatface")
 }
 
 /**

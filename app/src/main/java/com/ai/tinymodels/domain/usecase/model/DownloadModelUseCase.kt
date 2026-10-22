@@ -8,6 +8,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.network.HuggingFaceApi
 import com.ai.tinymodels.data.worker.ModelDownloadWorker
 import com.ai.tinymodels.domain.model.ModelDetails
@@ -218,7 +219,7 @@ class DownloadModelUseCase @Inject constructor(
                 WorkInfo.State.FAILED -> DownloadState(
                     status = DownloadStatus.FAILED,
                     error = info.outputData.getString(ModelDownloadWorker.KEY_ERROR)
-                        ?: "Download failed. Check your connection and retry."
+                        ?: context.getString(R.string.home_download_failed)
                 )
                 WorkInfo.State.CANCELLED -> DownloadState(status = DownloadStatus.IDLE)
                 // ENQUEUED = waiting on a constraint (network) — show an honest

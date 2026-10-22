@@ -8,7 +8,9 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.DownloadNotifier
+import com.ai.tinymodels.core.common.TinyConstants
 import com.ai.tinymodels.core.database.DownloadedModelDao
 import com.ai.tinymodels.core.database.ModelFileDao
 import com.ai.tinymodels.core.database.entities.DownloadedModelEntity
@@ -56,8 +58,12 @@ class ModelDownloadWorker @AssistedInject constructor(
         val modelId = inputData.getString(KEY_MODEL_ID) ?: return Result.failure()
         val files = inputData.getStringArray(KEY_FILES)?.toList().orEmpty()
         val total = inputData.getLong(KEY_TOTAL_BYTES, 0L)
-        val title = inputData.getString(KEY_MODEL_NAME) ?: DEFAULT_TITLE
-        val modelDirectory = File(applicationContext.filesDir, "models/${modelId.replace("/", "_")}")
+        val title = inputData.getString(KEY_MODEL_NAME)
+            ?: applicationContext.getString(R.string.notification_downloading_title)
+        val modelDirectory = File(
+            applicationContext.filesDir,
+            "${TinyConstants.MODEL_DIRECTORY_NAME}/${modelId.replace("/", "_")}"
+        )
         var downloaded = 0L
 
         DownloadNotifier.createChannel(applicationContext)
@@ -136,7 +142,7 @@ class ModelDownloadWorker @AssistedInject constructor(
             }
             modelDirectory.deleteRecursively()
             DownloadNotifier.notifyFailed(applicationContext, id, title, exception.message)
-            val message = exception.message ?: "Download failed"
+            val message = exception.message ?: applicationContext.getString(R.string.notification_download_failed)
             // 401/403 (gated repo, missing/invalid token or unaccepted license)
             // will never succeed on retry — fail fast with the reason.
             val authError = message.contains("HTTP 401") || message.contains("HTTP 403")
@@ -179,8 +185,7 @@ class ModelDownloadWorker @AssistedInject constructor(
                 if (!response.isSuccessful) {
                     if (response.code == 401) {
                         throw java.io.IOException(
-                            "HTTP 401 — this model is gated. Add your Hugging Face access token " +
-                                "in Settings, or accept the model's license on huggingface.co first."
+                            applicationContext.getString(R.string.download_error_gated)
                         )
                     }
                     throw java.io.IOException("HTTP ${response.code}")
@@ -229,19 +234,18 @@ class ModelDownloadWorker @AssistedInject constructor(
 
     companion object {
         const val TAG = "model_download"
-        const val KEY_MODEL_ID = "model_id"
-        const val KEY_MODEL_NAME = "model_name"
-        const val KEY_FILES = "files"
-        const val KEY_AUTHOR = "author"
-        const val KEY_LIBRARY = "library"
-        const val KEY_PIPELINE = "pipeline"
-        const val KEY_TOTAL_BYTES = "total_bytes"
-        const val KEY_DOWNLOADED_BYTES = "downloaded_bytes"
-        const val KEY_PROGRESS = "progress"
-        const val KEY_BYTES_PER_SEC = "bytes_per_sec"
-        const val KEY_ERROR = "error"
+        const val KEY_MODEL_ID = TinyConstants.WORK_KEY_MODEL_ID
+        const val KEY_MODEL_NAME = TinyConstants.WORK_KEY_MODEL_NAME
+        const val KEY_FILES = TinyConstants.WORK_KEY_FILES
+        const val KEY_AUTHOR = TinyConstants.WORK_KEY_AUTHOR
+        const val KEY_LIBRARY = TinyConstants.WORK_KEY_LIBRARY
+        const val KEY_PIPELINE = TinyConstants.WORK_KEY_PIPELINE
+        const val KEY_TOTAL_BYTES = TinyConstants.WORK_KEY_TOTAL_BYTES
+        const val KEY_DOWNLOADED_BYTES = TinyConstants.WORK_KEY_DOWNLOADED_BYTES
+        const val KEY_PROGRESS = TinyConstants.WORK_KEY_PROGRESS
+        const val KEY_BYTES_PER_SEC = TinyConstants.WORK_KEY_BYTES_PER_SEC
+        const val KEY_ERROR = TinyConstants.WORK_KEY_ERROR
 
-        private const val DEFAULT_TITLE = "Downloading model"
         private const val NOTIFY_INTERVAL_MS = 400L
     }
 }

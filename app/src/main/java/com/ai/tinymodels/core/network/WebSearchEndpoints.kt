@@ -1,5 +1,6 @@
 package com.ai.tinymodels.core.network
 
+import com.ai.tinymodels.core.common.TinyConstants
 import com.ai.tinymodels.domain.model.WebSearchResult
 
 /**
@@ -17,13 +18,9 @@ data class SearchEndpoint(
 
 object WebSearchEndpoints {
 
-    const val MOBILE_UA =
-        "Mozilla/5.0 (Linux; Android 13; Pixel 7) " +
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36"
+    const val MOBILE_UA = TinyConstants.USER_AGENT_MOBILE
 
-    const val DESKTOP_UA =
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
-            "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+    const val DESKTOP_UA = TinyConstants.USER_AGENT_DESKTOP
 
     /**
      * Lite first (same index, fraction of markup), then full HTML, then a
@@ -31,17 +28,17 @@ object WebSearchEndpoints {
      */
     val DEFAULT: List<SearchEndpoint> = listOf(
         SearchEndpoint(
-            url = "https://lite.duckduckgo.com/lite/",
+            url = TinyConstants.DUCKDUCKGO_LITE_URL,
             post = true,
             parse = { WebSearchParser.parseDuckDuckGoHtml(it) }
         ),
         SearchEndpoint(
-            url = "https://html.duckduckgo.com/html/",
+            url = TinyConstants.DUCKDUCKGO_HTML_URL,
             post = true,
             parse = { WebSearchParser.parseDuckDuckGoHtml(it) }
         ),
         SearchEndpoint(
-            url = "https://www.bing.com/search",
+            url = TinyConstants.BING_SEARCH_URL,
             keywords = true,
             userAgent = DESKTOP_UA,
             parse = { WebSearchParser.parseHeadingResults(it) }
@@ -50,9 +47,9 @@ object WebSearchEndpoints {
 
     fun headersFor(endpoint: SearchEndpoint): Map<String, String> {
         val headers = mutableMapOf(
-            "User-Agent" to (endpoint.userAgent ?: MOBILE_UA),
-            "Accept" to "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language" to "en-US,en;q=0.9"
+            TinyConstants.HTTP_HEADER_USER_AGENT to (endpoint.userAgent ?: MOBILE_UA),
+            TinyConstants.HTTP_HEADER_ACCEPT to TinyConstants.HTTP_ACCEPT_HTML,
+            TinyConstants.HTTP_HEADER_ACCEPT_LANGUAGE to TinyConstants.HTTP_ACCEPT_LANGUAGE_EN
         )
         val host = try {
             java.net.URI(endpoint.url).host ?: ""
@@ -60,7 +57,7 @@ object WebSearchEndpoints {
             ""
         }
         if (host == "duckduckgo.com" || host.endsWith(".duckduckgo.com")) {
-            headers["Referer"] = "https://duckduckgo.com/"
+            headers[TinyConstants.HTTP_HEADER_REFERER] = "${TinyConstants.DUCKDUCKGO_BASE_URL}/"
         }
         return headers
     }

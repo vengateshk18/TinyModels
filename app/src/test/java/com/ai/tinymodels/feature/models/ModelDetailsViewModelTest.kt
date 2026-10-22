@@ -51,7 +51,14 @@ class ModelDetailsViewModelTest {
     private val networkMonitor = FakeNetworkMonitor()
 
     /** Mocked app context — MemoryUtils.totalRamBytes is stubbed to a fixed value. */
-    private val appContext = mockk<android.content.Context>()
+    private val appContext = mockk<android.content.Context>().also { ctx ->
+        every { ctx.getString(any()) } answers { firstArg<Int>().toString() }
+        every { ctx.getString(any(), *anyVararg()) } answers {
+            firstArg<Int>().toString() + "(" + invocation.args.drop(1)
+                .flatMap { arg -> if (arg is Array<*>) arg.toList() else listOf(arg) }
+                .joinToString(",") + ")"
+        }
+    }
 
     /** In-memory monitor so tests can toggle connectivity. */
     private class FakeNetworkMonitor : NetworkMonitor {
