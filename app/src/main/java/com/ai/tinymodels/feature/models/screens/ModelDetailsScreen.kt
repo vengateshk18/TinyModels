@@ -66,10 +66,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.AppError
 import com.ai.tinymodels.core.ui.Formatters
 import com.ai.tinymodels.core.ui.components.ErrorState
@@ -97,10 +101,10 @@ fun ModelDetailsScreen(
         contentWindowInsets = safeDrawing,
         topBar = {
             TopAppBar(
-                title = { Text("Model details", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                title = { Text(stringResource(R.string.model_details_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -167,30 +171,30 @@ fun ModelDetailsScreen(
             AlertDialog(
                 onDismissRequest = { showOversizedFileDialog = false },
                 icon = { Icon(Icons.Filled.Warning, contentDescription = null) },
-                title = { Text("File too large for this device") },
+                title = { Text(stringResource(R.string.model_details_file_too_large_title)) },
                 text = {
                     Text(
                         if (fileName != null && uiState.getFileSize(fileName) > 0)
-                            "This file (${Formatters.formatBytes(uiState.getFileSize(fileName))}) " +
-                                "needs more RAM than your device has " +
-                                "(${Formatters.formatBytes(uiState.deviceRamBytes)}). " +
-                                "You can download it, but it cannot be used for chat or " +
-                                "benchmark on this device."
+                            stringResource(
+                                R.string.model_details_file_too_large_body,
+                                Formatters.formatBytes(uiState.getFileSize(fileName), LocalContext.current.resources),
+                                Formatters.formatBytes(uiState.deviceRamBytes, LocalContext.current.resources)
+                            )
                         else
-                            "This file needs more RAM than your device has " +
-                                "(${Formatters.formatBytes(uiState.deviceRamBytes)}). " +
-                                "You can download it, but it cannot be used for chat or " +
-                                "benchmark on this device."
+                            stringResource(
+                                R.string.model_details_file_too_large_body_unknown_size,
+                                Formatters.formatBytes(uiState.deviceRamBytes, LocalContext.current.resources)
+                            )
                     )
                 },
                 confirmButton = {
                     TextButton(onClick = {
                         showOversizedFileDialog = false
                         viewModel.onDownloadFileClick()
-                    }) { Text("Download anyway") }
+                    }) { Text(stringResource(R.string.model_details_download_anyway)) }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showOversizedFileDialog = false }) { Text("Cancel") }
+                    TextButton(onClick = { showOversizedFileDialog = false }) { Text(stringResource(R.string.common_cancel)) }
                 }
             )
         }
@@ -208,11 +212,11 @@ fun ModelDetailsScreen(
                 uiState.isOfflineError ->
                     OfflineState(onRetry = viewModel::load)
                 uiState.error != null -> ErrorState(
-                    message = uiState.errorMessage ?: "Failed to load details",
+                    message = uiState.errorMessage ?: stringResource(R.string.model_details_error_failed_to_load),
                     onRetry = viewModel::load,
                     // Gated model — offer a direct path to add a token.
                     secondaryActionLabel = if (uiState.error is AppError.Auth)
-                        "Add Hugging Face token" else null,
+                        stringResource(R.string.model_details_add_hf_token) else null,
                     onSecondaryAction = if (uiState.error is AppError.Auth)
                         onOpenSettings else null
                 )
@@ -283,7 +287,7 @@ private fun HeaderCard(model: ModelDetails) {
                 model.pipelineTag?.takeIf { it.isNotBlank() }?.let { Chip(it) }
                 model.libraryName?.takeIf { it.isNotBlank() }?.let { Chip(it) }
                 if (model.isGated) {
-                    Chip("gated", leading = {
+                    Chip(stringResource(R.string.model_details_gated), leading = {
                         Icon(Icons.Filled.Lock, contentDescription = null, modifier = Modifier.size(12.dp))
                     })
                 }
@@ -299,10 +303,10 @@ private fun StatsCard(model: ModelDetails, modelFiles: List<com.ai.tinymodels.do
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Row(modifier = Modifier.fillMaxWidth().padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween) {
-            StatItem(Icons.Filled.TrendingUp, "Downloads", Formatters.formatCount(model.downloads ?: 0))
-            StatItem(Icons.Filled.Favorite, "Likes", Formatters.formatCount((model.likes ?: 0).toLong()))
-            StatItem(Icons.Filled.SdStorage, "Repo size", Formatters.formatBytes(model.usedStorage ?: 0))
-            StatItem(Icons.Filled.CheckCircle, "Downloaded", "$downloadedCount/${model.runtimeFiles.ifEmpty { model.liteRtFiles }.size}")
+            StatItem(Icons.Filled.TrendingUp, stringResource(R.string.model_details_stat_downloads), Formatters.formatCount(model.downloads ?: 0))
+            StatItem(Icons.Filled.Favorite, stringResource(R.string.model_details_stat_likes), Formatters.formatCount((model.likes ?: 0).toLong()))
+            StatItem(Icons.Filled.SdStorage, stringResource(R.string.model_details_stat_repo_size), Formatters.formatBytes(model.usedStorage ?: 0, LocalContext.current.resources))
+            StatItem(Icons.Filled.CheckCircle, stringResource(R.string.model_details_stat_downloaded), "$downloadedCount/${model.runtimeFiles.ifEmpty { model.liteRtFiles }.size}")
         }
     }
 }
@@ -324,8 +328,8 @@ private fun TryItCard(prompts: List<String>) {
     Card(modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Try it", style = MaterialTheme.typography.titleMedium)
-            Text("Sample prompts for this model",
+            Text(stringResource(R.string.model_details_try_it), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.model_details_sample_prompts),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.height(10.dp))
@@ -342,12 +346,12 @@ private fun AboutCard(model: ModelDetails) {
     Card(modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("About", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.model_details_about), style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(10.dp))
-            InfoRow("Updated", Formatters.formatDate(model.lastModified))
-            InfoRow("Created", Formatters.formatDate(model.createdAt))
-            model.baseModel?.takeIf { it.isNotBlank() }?.let { InfoRow("Base model", it) }
-            model.sha?.takeIf { it.isNotBlank() }?.let { InfoRow("Revision", it.take(10)) }
+            InfoRow(stringResource(R.string.model_details_updated), Formatters.formatDate(model.lastModified, LocalContext.current.resources))
+            InfoRow(stringResource(R.string.model_details_created), Formatters.formatDate(model.createdAt, LocalContext.current.resources))
+            model.baseModel?.takeIf { it.isNotBlank() }?.let { InfoRow(stringResource(R.string.model_details_base_model), it) }
+            model.sha?.takeIf { it.isNotBlank() }?.let { InfoRow(stringResource(R.string.model_details_revision), it.take(10)) }
         }
     }
 }
@@ -368,7 +372,7 @@ private fun TagsCard(tags: List<String>) {
     Card(modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Tags", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.model_details_tags), style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(10.dp))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -388,8 +392,8 @@ private fun InteractiveFilesCard(
     Card(modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Files", style = MaterialTheme.typography.titleMedium)
-            Text("Tap a file to download it individually.",
+            Text(stringResource(R.string.model_details_files), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.model_details_files_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.height(10.dp))
@@ -477,15 +481,15 @@ private fun FileRow(
                         maxLines = 1
                     )
                     Text(
-                        if (fileSize > 0) Formatters.formatBytes(fileSize) else "—",
+                        if (fileSize > 0) Formatters.formatBytes(fileSize, LocalContext.current.resources) else "—",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     // Capacity indicator — only meaningful once the size is known.
                     if (fileSize > 0) {
                         Text(
-                            if (isLoadable) "✓ Fits your device"
-                            else "⚠ Too large for this device",
+                            if (isLoadable) stringResource(R.string.model_details_fits_device)
+                            else stringResource(R.string.model_details_too_large_short),
                             style = MaterialTheme.typography.labelSmall,
                             color = if (isLoadable) MaterialTheme.colorScheme.primary
                             else MaterialTheme.colorScheme.error
@@ -501,7 +505,7 @@ private fun FileRow(
                             shape = MaterialTheme.shapes.small
                         ) {
                             Text(
-                                "Downloaded",
+                                stringResource(R.string.model_details_status_downloaded),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -511,7 +515,7 @@ private fun FileRow(
                     FileDownloadStatus.DOWNLOADING -> {
                         download?.let {
                             Text(
-                                "${(it.progress * 100).toInt()}%",
+                                stringResource(R.string.common_percent, (it.progress * 100).toInt()),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -523,7 +527,7 @@ private fun FileRow(
                             shape = MaterialTheme.shapes.small
                         ) {
                             Text(
-                                "Failed",
+                                stringResource(R.string.model_details_status_failed),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onErrorContainer,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -605,10 +609,11 @@ private fun FileDownloadBar(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        "Too large for this device " +
-                            "(${Formatters.formatBytes(fileSize)} vs " +
-                            "${Formatters.formatBytes(deviceRamBytes)} RAM). " +
-                            "It can be downloaded but not used here.",
+                        stringResource(
+                            R.string.model_details_too_large_banner,
+                            Formatters.formatBytes(fileSize, LocalContext.current.resources),
+                            Formatters.formatBytes(deviceRamBytes, LocalContext.current.resources)
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error
                     )
@@ -649,7 +654,7 @@ private fun FileDownloadIdle(
                 )
                 if (fileSize > 0) {
                     Text(
-                        Formatters.formatBytes(fileSize),
+                        Formatters.formatBytes(fileSize, LocalContext.current.resources),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -660,7 +665,7 @@ private fun FileDownloadIdle(
         Button(onClick = onDownload, modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Filled.CloudDownload, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Download file")
+            Text(stringResource(R.string.model_details_download_file))
         }
         
         // Error display
@@ -699,9 +704,9 @@ private fun FileDownloadInProgress(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 when {
-                    isWaitingForNetwork -> "Waiting for connection\u2026"
-                    isPreparing -> "Preparing download\u2026"
-                    else -> "Downloading\u2026"
+                    isWaitingForNetwork -> stringResource(R.string.downloads_waiting_for_connection)
+                    isPreparing -> stringResource(R.string.downloads_preparing)
+                    else -> stringResource(R.string.downloads_downloading)
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -721,15 +726,23 @@ private fun FileDownloadInProgress(
                     val pct = (download.progress * 100).toInt()
                     Text(
                         if (total > 0)
-                            "${Formatters.formatBytes(download.downloadedBytes)} / ${Formatters.formatBytes(total)} \u00b7 $pct%"
-                        else "$pct%",
+                            stringResource(
+                                R.string.downloads_progress_with_pct,
+                                Formatters.formatBytes(download.downloadedBytes, LocalContext.current.resources),
+                                Formatters.formatBytes(total, LocalContext.current.resources),
+                                pct
+                            )
+                        else stringResource(R.string.common_percent, pct),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.weight(1f)
                     )
                     if (download.bytesPerSecond > 0) {
                         Text(
-                            "${Formatters.formatBytes(download.bytesPerSecond)}/s",
+                            stringResource(
+                                R.string.downloads_speed_only,
+                                Formatters.formatBytes(download.bytesPerSecond, LocalContext.current.resources)
+                            ),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -741,7 +754,7 @@ private fun FileDownloadInProgress(
         OutlinedButton(onClick = onCancel) {
             Icon(Icons.Filled.Cancel, contentDescription = null, modifier = Modifier.size(16.dp))
             Spacer(modifier = Modifier.width(4.dp))
-            Text("Cancel")
+            Text(stringResource(R.string.common_cancel))
         }
     }
 }
@@ -775,15 +788,15 @@ private fun DownloadBar(
                     Icon(Icons.Filled.CheckCircle, contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Downloaded", color = MaterialTheme.colorScheme.primary,
+                    Text(stringResource(R.string.model_details_status_downloaded), color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
                 }
             } else {
-                val sizeLabel = if (totalSizeBytes > 0) Formatters.formatBytes(totalSizeBytes) else null
+                val sizeLabel = if (totalSizeBytes > 0) Formatters.formatBytes(totalSizeBytes, LocalContext.current.resources) else null
                 Button(onClick = onAction, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(if (sizeLabel != null) "Download \u00b7 $sizeLabel" else "Download")
+                    Text(if (sizeLabel != null) stringResource(R.string.downloads_button_with_size, sizeLabel) else stringResource(R.string.downloads_button))
                 }
 
                 // Error (e.g. failed / not enough storage) with a subtle retry hint.

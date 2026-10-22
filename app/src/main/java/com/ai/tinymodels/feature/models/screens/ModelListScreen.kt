@@ -33,10 +33,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.ui.components.EmptyState
 import com.ai.tinymodels.core.ui.components.ErrorState
 import com.ai.tinymodels.core.ui.components.OfflineState
@@ -59,10 +63,10 @@ fun ModelListScreen(
         contentWindowInsets = safeDrawing,
         topBar = {
             TopAppBar(
-                title = { Text("Models") },
+                title = { Text(stringResource(R.string.models_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -85,13 +89,13 @@ fun ModelListScreen(
                     OfflineState(onRetry = viewModel::refresh)
                 uiState.error != null ->
                     ErrorState(
-                        message = uiState.errorMessage ?: "Failed to load models",
+                        message = uiState.errorMessage ?: stringResource(R.string.models_error_failed_to_load),
                         onRetry = viewModel::refresh
                     )
                 uiState.models.isEmpty() ->
                     EmptyState(
-                        title = "No models found",
-                        message = "Try a different search or filter."
+                        title = stringResource(R.string.models_empty_title),
+                        message = stringResource(R.string.models_empty_message)
                     )
                 else ->
                     LazyColumn(
@@ -128,7 +132,7 @@ private fun ModelListItem(model: ModelSummary, onClick: () -> Unit) {
             )
             if (model.author.isNotBlank()) {
                 Text(
-                    text = "by ${model.author}",
+                    text = stringResource(R.string.models_by_author, model.author),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -136,12 +140,12 @@ private fun ModelListItem(model: ModelSummary, onClick: () -> Unit) {
             Spacer(modifier = Modifier.height(6.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text(
-                    "⬇ ${model.downloads ?: 0}",
+                    stringResource(R.string.models_downloads_count, model.downloads ?: 0),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    "♥ ${model.likes ?: 0}",
+                    stringResource(R.string.models_likes_count, model.likes ?: 0),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

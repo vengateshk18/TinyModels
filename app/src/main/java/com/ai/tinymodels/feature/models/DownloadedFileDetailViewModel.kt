@@ -1,8 +1,10 @@
 package com.ai.tinymodels.feature.models
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.AppResult
 import com.ai.tinymodels.core.inference.ModelManager
 import com.ai.tinymodels.domain.model.BackendPreference
@@ -10,6 +12,7 @@ import com.ai.tinymodels.domain.model.DownloadedModelFile
 import com.ai.tinymodels.domain.repository.ModelRepository
 import com.ai.tinymodels.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,6 +25,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DownloadedFileDetailViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     savedStateHandle: SavedStateHandle,
     private val modelRepository: ModelRepository,
     private val settingsRepository: SettingsRepository,
@@ -56,7 +60,7 @@ class DownloadedFileDetailViewModel @Inject constructor(
             if (fileInfo != null) {
                 _uiState.update { it.copy(isLoading = false, fileInfo = fileInfo) }
             } else {
-                _uiState.update { it.copy(isLoading = false, error = "File not found") }
+                _uiState.update { it.copy(isLoading = false, error = context.getString(R.string.downloaded_file_error_not_found)) }
             }
         }
     }
@@ -75,7 +79,7 @@ class DownloadedFileDetailViewModel @Inject constructor(
             val file = File(localPath, fileName.substringAfterLast("/"))
             if (!file.exists()) {
                 _uiState.update {
-                    it.copy(loadModelError = "File not found on disk. Please re-download.")
+                    it.copy(loadModelError = context.getString(R.string.downloaded_file_error_not_on_disk))
                 }
                 return
             }
@@ -119,7 +123,7 @@ class DownloadedFileDetailViewModel @Inject constructor(
 
                 onSuccess()
             } catch (e: Exception) {
-                _uiState.update { it.copy(isDeleting = false, error = e.message ?: "Failed to delete file") }
+                _uiState.update { it.copy(isDeleting = false, error = e.message ?: context.getString(R.string.downloaded_file_error_delete_failed)) }
             }
         }
     }
@@ -141,13 +145,13 @@ class DownloadedFileDetailViewModel @Inject constructor(
                 is AppResult.Success -> _uiState.update {
                     it.copy(
                         isExporting = false,
-                        exportMessage = "Exported ${fileName.substringAfterLast("/")}"
+                        exportMessage = context.getString(R.string.downloaded_file_exported, fileName.substringAfterLast("/"))
                     )
                 }
                 is AppResult.Error -> _uiState.update {
                     it.copy(
                         isExporting = false,
-                        exportMessage = "Export failed: ${result.error.message}"
+                        exportMessage = context.getString(R.string.downloaded_file_export_failed, result.error.message ?: "")
                     )
                 }
             }

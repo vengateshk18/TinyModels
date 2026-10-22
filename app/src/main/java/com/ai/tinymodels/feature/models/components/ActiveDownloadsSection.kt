@@ -22,8 +22,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.ui.Formatters
 import com.ai.tinymodels.domain.usecase.model.ActiveDownload
 import com.ai.tinymodels.domain.usecase.model.DownloadStatus
@@ -46,7 +50,7 @@ fun ActiveDownloadsSection(
     if (active.isEmpty()) return
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
-            "Active downloads (${active.size})",
+            stringResource(R.string.downloads_active_title, active.size),
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary
         )
@@ -101,7 +105,7 @@ private fun ActiveDownloadRow(
                     Spacer(modifier = Modifier.height(4.dp))
                 }
                 Text(
-                    downloadStatusLine(download),
+                    downloadStatusLine(download, LocalContext.current.resources),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -109,7 +113,7 @@ private fun ActiveDownloadRow(
             IconButton(onClick = onCancel) {
                 Icon(
                     Icons.Filled.Close,
-                    contentDescription = "Cancel download",
+                    contentDescription = stringResource(R.string.downloads_cancel_content_description),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -117,18 +121,28 @@ private fun ActiveDownloadRow(
     }
 }
 
-private fun downloadStatusLine(download: ActiveDownload): String {
+private fun downloadStatusLine(
+    download: ActiveDownload,
+    res: android.content.res.Resources
+): String {
     if (download.status == DownloadStatus.WAITING_FOR_NETWORK) {
-        return "Waiting for network…"
+        return res.getString(R.string.downloads_waiting_for_network)
     }
     val bytes = if (download.totalBytes > 0) {
-        "${Formatters.formatBytes(download.downloadedBytes)} / ${Formatters.formatBytes(download.totalBytes)}"
+        res.getString(
+            R.string.downloads_progress_bytes,
+            Formatters.formatBytes(download.downloadedBytes, res),
+            Formatters.formatBytes(download.totalBytes, res)
+        )
     } else {
-        Formatters.formatBytes(download.downloadedBytes)
+        Formatters.formatBytes(download.downloadedBytes, res)
     }
-    val pct = "(${(download.progress * 100).toInt().coerceIn(0, 100)}%)"
+    val pct = res.getString(
+        R.string.downloads_progress_percent,
+        (download.progress * 100).toInt().coerceIn(0, 100)
+    )
     val speed = if (download.bytesPerSecond > 0) {
-        " • ${Formatters.formatBytes(download.bytesPerSecond)}/s"
+        res.getString(R.string.downloads_progress_speed, Formatters.formatBytes(download.bytesPerSecond, res))
     } else ""
     return "$bytes $pct$speed"
 }

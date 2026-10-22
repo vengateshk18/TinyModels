@@ -59,10 +59,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.ui.Formatters
 import com.ai.tinymodels.core.ui.components.ErrorState
 import com.ai.tinymodels.feature.models.DownloadedFileDetailViewModel
@@ -109,10 +112,10 @@ fun DownloadedFileDetailScreen(
         contentWindowInsets = safeDrawing,
         topBar = {
             TopAppBar(
-                title = { Text("Downloaded file", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                title = { Text(stringResource(R.string.downloaded_file_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -135,9 +138,9 @@ fun DownloadedFileDetailScreen(
                 uiState.error != null ->
                     ErrorState(
                         message = uiState.error!!,
-                        title = "File not found",
+                        title = stringResource(R.string.downloaded_file_not_found_title),
                         onRetry = onBack,
-                        retryLabel = "Go back"
+                        retryLabel = stringResource(R.string.downloaded_file_go_back)
                     )
                 uiState.fileInfo != null ->
                     FileDetailContent(
@@ -160,9 +163,9 @@ fun DownloadedFileDetailScreen(
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             icon = { Icon(Icons.Filled.Delete, contentDescription = null) },
-            title = { Text("Delete file?") },
+            title = { Text(stringResource(R.string.downloaded_file_delete_title)) },
             text = {
-                Text("This will permanently delete the file from your device. This action cannot be undone.")
+                Text(stringResource(R.string.downloaded_file_delete_body))
             },
             confirmButton = {
                 TextButton(
@@ -171,12 +174,12 @@ fun DownloadedFileDetailScreen(
                         viewModel.onDelete(onBack)
                     }
                 ) {
-                    Text("Delete")
+                    Text(stringResource(R.string.common_delete))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
         )
@@ -216,10 +219,10 @@ private fun FileDetailContent(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                InfoRow(Icons.Filled.InsertDriveFile, "Model ID", fileInfo.modelId)
-                InfoRow(Icons.Filled.SdStorage, "Size", Formatters.formatBytes(fileInfo.sizeBytes))
+                InfoRow(Icons.Filled.InsertDriveFile, stringResource(R.string.downloaded_file_model_id), fileInfo.modelId)
+                InfoRow(Icons.Filled.SdStorage, stringResource(R.string.downloaded_file_size), Formatters.formatBytes(fileInfo.sizeBytes, LocalContext.current.resources))
                 fileInfo.localPath?.let {
-                    InfoRow(Icons.Filled.Folder, "Location", it)
+                    InfoRow(Icons.Filled.Folder, stringResource(R.string.downloaded_file_location), it)
                 }
                 
                 // Show downloaded date if we can get it from somewhere
@@ -246,7 +249,7 @@ private fun FileDetailContent(
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            "Failed to load model",
+                            stringResource(R.string.downloaded_file_error_failed_to_load),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
@@ -259,7 +262,7 @@ private fun FileDetailContent(
                     IconButton(onClick = onClearLoadError) {
                         Icon(
                             Icons.Filled.Delete,
-                            contentDescription = "Dismiss",
+                            contentDescription = stringResource(R.string.common_dismiss),
                             tint = MaterialTheme.colorScheme.onErrorContainer
                         )
                     }
@@ -283,7 +286,7 @@ private fun FileDetailContent(
                 Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null, modifier = Modifier.size(18.dp))
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Text(if (isLoadingModel) "Loading model..." else "Start chat")
+            Text(if (isLoadingModel) stringResource(R.string.downloaded_file_loading_model) else stringResource(R.string.downloaded_file_start_chat))
         }
 
         OutlinedButton(
@@ -300,7 +303,7 @@ private fun FileDetailContent(
                 Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(18.dp))
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Text(if (isExporting) "Exporting..." else "Export file")
+            Text(if (isExporting) stringResource(R.string.downloaded_file_exporting) else stringResource(R.string.downloaded_file_export))
         }
 
         OutlinedButton(
@@ -317,7 +320,7 @@ private fun FileDetailContent(
                 Icon(Icons.Filled.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Text(if (isDeleting) "Deleting..." else "Delete file")
+            Text(if (isDeleting) stringResource(R.string.downloaded_file_deleting) else stringResource(R.string.downloaded_file_delete))
         }
     }
 }

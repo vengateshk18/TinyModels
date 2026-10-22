@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.content.Context
 import com.ai.tinymodels.core.common.AppError
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.AppResult
 import com.ai.tinymodels.core.common.MemoryUtils
 import com.ai.tinymodels.core.common.StorageUtils
@@ -244,7 +245,7 @@ class ModelDetailsViewModel @Inject constructor(
                 it.copy(
                     fileDownload = DownloadState(
                         status = DownloadStatus.FAILED,
-                        error = "Not enough free storage for this file."
+                        error = appContext.getString(R.string.model_details_error_not_enough_storage_file)
                     )
                 )
             }
@@ -335,7 +336,7 @@ class ModelDetailsViewModel @Inject constructor(
                 it.copy(
                     download = DownloadState(
                         status = DownloadStatus.FAILED,
-                        error = "Not enough free storage for this model."
+                        error = appContext.getString(R.string.model_details_error_not_enough_storage_model)
                     )
                 )
             }
