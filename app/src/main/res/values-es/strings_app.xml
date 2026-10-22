@@ -16,9 +16,7 @@
     <string name="settings_language">Idioma</string>
     <string name="settings_language_sheet_title">Elige un idioma</string>
     <string name="language_system">Predeterminado del sistema</string>
-    <string name="language_spanish">Español</string>
-    <string name="language_tamil">Tamil</string>
-    <string name="language_hindi">Hindi</string>
+    <string name="language_option_format">%1$s (%2$s)</string>
 
     <string name="settings_section_inference">Inferencia</string>
     <string name="settings_default_backend">Backend predeterminado</string>

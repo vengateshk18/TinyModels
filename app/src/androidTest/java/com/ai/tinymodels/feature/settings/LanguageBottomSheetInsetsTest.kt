@@ -4,11 +4,14 @@ import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.view.WindowInsets
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.ai.tinymodels.R
 import com.ai.tinymodels.domain.model.AppLanguage
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -68,6 +71,45 @@ class LanguageBottomSheetInsetsTest {
     }
 
     /**
+     * Every option shows the language's name in its own script plus its English
+     * name in parentheses, e.g. "தமிழ் (Tamil)" — so the option is readable
+     * even for users who cannot read that script.
+     */
+    @Test
+    fun everyLanguageOptionShowsNativeNameWithEnglishHint() {
+        composeRule.setContent {
+            LanguageBottomSheet(
+                selected = AppLanguage.SYSTEM,
+                onSelect = {},
+                onDismiss = {}
+            )
+        }
+        composeRule.waitForIdle()
+
+        val activity = composeRule.activity
+        AppLanguage.entries.filter { it != AppLanguage.SYSTEM }.forEach { language ->
+            val native = activity.getString(language.nativeLabelRes)
+            val english = language.englishLabelRes?.let { activity.getString(it) }
+            val expected = if (english == null) {
+                native
+            } else {
+                activity.getString(R.string.language_option_format, native, english)
+            }
+            composeRule.onNodeWithText(expected).assertIsDisplayed()
+        }
+
+        // Spot-check the exact rendering: native script first, English hint after.
+        composeRule.onNodeWithText("Español (Spanish)").assertIsDisplayed()
+
+        // The checks above derive their expectation from the same resources the
+        // UI reads, so they cannot catch a wrong script (e.g. Tamil escaped with
+        // Devanagari codepoints). These literals are the independent source of truth.
+        assertEquals("Español", activity.getString(R.string.language_native_spanish))
+        assertEquals("தமிழ்", activity.getString(R.string.language_native_tamil))
+        assertEquals("हिन्दी", activity.getString(R.string.language_native_hindi))
+    }
+
+    /**
      * The sheet content must stay clear of the union of the system bars and the
      * display cutout on every side that has an inset.
      */
@@ -92,8 +134,8 @@ class LanguageBottomSheetInsetsTest {
             .fetchSemanticsNode()
             .boundsInRoot
 
-        val firstLabel = activity.getString(AppLanguage.entries.first().labelRes)
-        val lastLabel = activity.getString(AppLanguage.entries.last().labelRes)
+        val firstLabel = AppLanguage.entries.first().displayLabel(activity)
+        val lastLabel = AppLanguage.entries.last().displayLabel(activity)
         val firstText = composeRule.onNodeWithText(firstLabel).fetchSemanticsNode().boundsInRoot
         val lastText = composeRule.onNodeWithText(lastLabel).fetchSemanticsNode().boundsInRoot
 

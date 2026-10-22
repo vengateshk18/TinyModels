@@ -239,7 +239,7 @@ private fun AppearanceSection(settings: AppSettings, viewModel: SettingsViewMode
     }
     NavigationRow(
         label = stringResource(R.string.settings_language),
-        subtitle = stringResource(selectedLanguage.labelRes),
+        subtitle = selectedLanguage.displayLabel(),
         onClick = { showLanguageSheet = true }
     )
     if (showLanguageSheet) {
@@ -717,7 +717,7 @@ internal fun LanguageBottomSheet(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = stringResource(language.labelRes),
+                        text = language.displayLabel(),
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.weight(1f)
                     )
