@@ -20,6 +20,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.runBlocking
+import com.ai.tinymodels.core.common.AppLocale
+import com.ai.tinymodels.core.common.AppLocaleStore
 import com.ai.tinymodels.core.network.NetworkMonitor
 import com.ai.tinymodels.core.ui.theme.TinyModelsTheme
 import com.ai.tinymodels.core.ui.theme.resolveColorScheme
@@ -47,6 +49,23 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var networkMonitor: NetworkMonitor
+
+    /**
+     * Applies the user's chosen app language before any resource is resolved.
+     *
+     * On API 33+ the platform owns per-app locales (set via [AppLocale.apply]),
+     * so we must not override the configuration here or we would fight the
+     * system-level per-app language setting. Below API 33 there is no such
+     * API, so the stored locale is applied to the base context instead.
+     */
+    override fun attachBaseContext(newBase: android.content.Context) {
+        val tag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ""
+        } else {
+            AppLocaleStore.currentTag(newBase)
+        }
+        super.attachBaseContext(AppLocale.wrapContext(newBase, tag))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -5,7 +5,9 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ai.tinymodels.R
+import com.ai.tinymodels.core.common.AppLocaleStore
 import com.ai.tinymodels.core.common.AppResult
+import com.ai.tinymodels.domain.model.AppLanguage
 import com.ai.tinymodels.domain.model.AppSettings
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.FontChoice
@@ -27,10 +29,19 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val appLocaleStore: AppLocaleStore,
     private val settingsRepository: SettingsRepository,
     private val chatRepository: ChatRepository,
     private val modelRepository: ModelRepository
 ) : ViewModel() {
+
+    /** Currently selected app language (drives the Appearance → Language row). */
+    val language: StateFlow<AppLanguage> = appLocaleStore.language
+
+    /** Stores the chosen language; the caller applies it to the running app. */
+    fun setLanguage(language: AppLanguage) {
+        appLocaleStore.set(language)
+    }
 
     val settings: StateFlow<AppSettings> = settingsRepository.settings
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppSettings())

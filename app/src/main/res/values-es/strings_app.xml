@@ -1,0 +1,164 @@
+<resources>
+    <!-- ================= Settings ================= -->
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_section_appearance">Apariencia</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_dynamic_color">Color dinámico</string>
+    <string name="settings_dynamic_color_subtitle">Usa los colores del fondo de pantalla (Android 12+)</string>
+    <string name="settings_font_size">Tamaño de letra</string>
+    <string name="settings_font">Fuente</string>
+    <string name="settings_change_font_content_description">Cambiar la fuente</string>
+    <string name="settings_font_sheet_title">Elige una fuente</string>
+    <string name="settings_font_default">Predeterminada</string>
+    <string name="settings_font_google">Fuente de Google</string>
+
+    <!-- Language picker -->
+    <string name="settings_language">Idioma</string>
+    <string name="settings_language_sheet_title">Elige un idioma</string>
+    <string name="language_system">Predeterminado del sistema</string>
+    <string name="language_spanish">Español</string>
+    <string name="language_tamil">Tamil</string>
+    <string name="language_hindi">Hindi</string>
+
+    <string name="settings_section_inference">Inferencia</string>
+    <string name="settings_default_backend">Backend predeterminado</string>
+    <string name="settings_web_search">Búsqueda web</string>
+    <string name="settings_web_search_subtitle">Permite que los chats activen la herramienta de búsqueda web del modelo. Las consultas salen del dispositivo.</string>
+    <string name="settings_web_search_note">Si se activa para un chat (con el menú + del chat), el modelo puede buscar en la web cuando necesite información actual.</string>
+
+    <string name="settings_section_downloads">Descargas</string>
+    <string name="settings_wifi_only_downloads">Solo descargas con wifi</string>
+    <string name="settings_wifi_only_downloads_subtitle">Espera una conexión sin límite antes de descargar modelos</string>
+    <string name="settings_downloads_note">Los archivos de modelo pesan gigabytes: esto cuida tu tarifa de datos móviles.</string>
+
+    <string name="settings_section_chat">Chat</string>
+    <string name="settings_auto_load_last_model">Cargar el último modelo automáticamente</string>
+    <string name="settings_auto_load_last_model_subtitle">Carga el modelo usado la última vez al abrir el chat</string>
+    <string name="settings_keep_screen_on">Mantener la pantalla encendida</string>
+    <string name="settings_keep_screen_on_subtitle">Evita que el dispositivo se suspenda mientras el modelo genera</string>
+    <string name="settings_show_token_counts">Mostrar el recuento de tokens</string>
+    <string name="settings_show_token_counts_subtitle">Muestra los tokens de cada mensaje debajo de la burbuja</string>
+
+    <string name="settings_section_hugging_face">Hugging Face</string>
+    <string name="settings_access_token">Token de acceso</string>
+    <string name="settings_token_not_set">Sin definir: es opcional y solo lo necesitan los modelos con licencia</string>
+    <string name="settings_token_set">Definido: %1$s••••••••%2$s</string>
+    <string name="settings_token_help">Los modelos con licencia (como Gemma) necesitan un token de acceso gratuito para descargarse. Créalo en huggingface.co/settings/tokens y luego acepta la licencia del modelo en su página.</string>
+    <string name="settings_token_dialog_title">Token de acceso de Hugging Face</string>
+    <string name="settings_token_dialog_body">Pega un token con permisos de lectura. Créalo en huggingface.co/settings/tokens.</string>
+    <string name="settings_token_save">Guardar</string>
+    <string name="settings_token_remove">Quitar</string>
+
+    <string name="settings_section_support">Soporte</string>
+    <string name="settings_star_on_github">Dame una estrella en GitHub</string>
+    <string name="settings_star_on_github_subtitle">Apoya la IA gratuitita y en el dispositivo para todo el mundo</string>
+    <string name="settings_report_bug">Informar de un error</string>
+    <string name="settings_report_bug_subtitle">¿Has encontrado algo roto? Cuéntanoslo</string>
+
+    <string name="settings_section_about">Acerca de</string>
+    <string name="settings_benchmark">Benchmark</string>
+    <string name="settings_benchmark_subtitle">Mide el tiempo de carga, el TTFT y los tokens/s</string>
+    <string name="settings_device_information">Información del dispositivo</string>
+    <string name="settings_device_information_subtitle">Consulta la capacidad de IA de tu dispositivo</string>
+    <string name="settings_clear_chat_history">Borrar el historial de chats</string>
+    <string name="settings_clear_chat_history_subtitle">Elimina todas las conversaciones</string>
+    <string name="settings_clear_chat_history_title">Borrar el historial de chats</string>
+    <string name="settings_clear_chat_history_body">¿Eliminar todas las conversaciones? Esta acción no se puede deshacer.</string>
+
+    <string name="settings_section_model_management">Gestión de modelos</string>
+    <string name="settings_token_removed">Token de acceso eliminado</string>
+    <string name="settings_token_saved">Token de acceso guardado</string>
+    <string name="settings_chat_history_cleared">Historial de chats borrado</string>
+    <string name="settings_model_imported">Modelo importado: %1$s</string>
+    <string name="settings_import_failed">Error al importar: %1$s</string>
+    <string name="model_import_invalid_file_type">Tipo de archivo no válido. Solo se admiten archivos .litertlm.</string>
+    <string name="model_import_file_not_found">Archivo no encontrado en el dispositivo: %1$s</string>
+    <string name="model_import_create_failed">No se pudo crear el archivo de destino: %1$s</string>
+    <string name="model_import_write_failed">No se puede escribir en el archivo de destino: %1$s</string>
+    <string name="model_import_no_file_name">No se puede determinar el nombre del archivo</string>
+    <string name="model_import_already_exists">Este archivo de modelo ya está en tu biblioteca</string>
+    <string name="model_import_open_failed">No se puede abrir el archivo de origen</string>
+    <string name="benchmark_error_model_file_missing">Falta el archivo del modelo en el dispositivo</string>
+    <string name="benchmark_error_not_enough_ram">No hay suficiente RAM libre para cargar este modelo (hacen falta ~%1$d MB y hay %2$d MB). Cierra otras apps e inténtalo de nuevo.</string>
+    <string name="benchmark_error_failed_to_load">No se pudo cargar el modelo</string>
+    <string name="settings_import_model">Importar modelo</string>
+    <string name="settings_import_model_subtitle">Añade un archivo .litertlm desde el almacenamiento externo</string>
+    <string name="settings_import_model_note">Los modelos importados aparecen en tu biblioteca con la etiqueta «Importado». Para compartir un archivo descargado, ábrelo y usa Exportar.</string>
+
+    <!-- ================= Theme / backend choices ================= -->
+    <string name="theme_mode_system">Sistema</string>
+    <string name="theme_mode_light">Claro</string>
+    <string name="theme_mode_dark">Oscuro</string>
+    <string name="backend_auto">Automático</string>
+    <string name="backend_gpu">GPU</string>
+    <string name="backend_cpu">CPU</string>
+
+    <!-- ================= Fonts ================= -->
+    <string name="font_system">Sistema</string>
+
+    <!-- ================= Bottom navigation ================= -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_models">Modelos</string>
+    <string name="nav_settings">Ajustes</string>
+
+    <!-- ================= Benchmark ================= -->
+    <string name="benchmark_title">Benchmark</string>
+    <string name="benchmark_loading_title">Cargando modelo…</string>
+    <string name="benchmark_loading_subtitle">Carga en frío: esto es lo que se cronometra.</string>
+    <string name="benchmark_failed_title">El benchmark ha fallado</string>
+    <string name="benchmark_back_to_models">Volver a los modelos</string>
+    <string name="benchmark_stop_title">¿Detener el benchmark?</string>
+    <string name="benchmark_stop_body">La ejecución se cancelará y se descartarán los resultados.</string>
+    <string name="benchmark_stop">Detener</string>
+    <string name="benchmark_continue">Continuar</string>
+    <string name="benchmark_no_models">No hay modelos descargados. Descarga un modelo primero y vuelve para benchmarkearlo.</string>
+    <string name="benchmark_choose_model">Elige un modelo</string>
+    <string name="benchmark_how_it_works">Cómo funciona</string>
+    <string name="benchmark_bullet_prompts">2 mensajes fijos (corto + medio), 3 ejecuciones cada uno</string>
+    <string name="benchmark_bullet_output_cap">La salida se limita a 256 tokens por ejecución</string>
+    <string name="benchmark_bullet_warmup">La primera ejecución es de calentamiento y se descarta</string>
+    <string name="benchmark_bullet_median">Se informa de la mediana de las ejecuciones restantes</string>
+    <string name="benchmark_bullet_sampler">Muestreo fijo: temp 0.7 / top-k 40 / top-p 0.95</string>
+    <string name="benchmark_bullet_load_time">Tiempo de carga = una carga en frío del modelo</string>
+    <string name="benchmark_bullet_memory">La memoria máxima se muestrea cada 250 ms durante la ejecución</string>
+    <string name="benchmark_run">Ejecutar el benchmark</string>
+    <string name="benchmark_running">Ejecutando el benchmark</string>
+    <string name="benchmark_progress_prompt">Mensaje %1$s</string>
+    <string name="benchmark_progress_run"> • ejecución %1$d de %2$d</string>
+    <string name="benchmark_progress_warmup"> • calentamiento</string>
+    <string name="benchmark_overall_progress">Progreso total</string>
+    <string name="benchmark_stat_prompt">Mensaje</string>
+    <string name="benchmark_stat_run">Ejecución</string>
+    <string name="benchmark_stat_tokens">Tokens</string>
+    <string name="benchmark_cancel">Cancelar</string>
+    <string name="benchmark_decode_speed">Velocidad de decodificación</string>
+    <string name="benchmark_decode_speed_range">%1$.1f – %2$.1f entre ejecuciones</string>
+    <string name="benchmark_stat_time_to_first_token">Tiempo hasta el primer token</string>
+    <string name="benchmark_stat_prefill_speed">Velocidad de prellenado</string>
+    <string name="benchmark_section_model">Modelo</string>
+    <string name="benchmark_stat_load_time">Tiempo de carga (en frío)</string>
+    <string name="benchmark_stat_peak_memory">Memoria máxima (PSS)</string>
+    <string name="benchmark_stat_baseline_load">Línea base antes de cargar</string>
+    <string name="benchmark_stat_backend">Backend</string>
+    <string name="benchmark_stat_device">Dispositivo</string>
+    <string name="benchmark_token_note">Los tokens se cuentan a partir de las emisiones del stream (un token por emisión). La velocidad de prellenado es tokens del mensaje / TTFT e incluye el primer paso de decodificación.</string>
+    <string name="benchmark_copy_summary">Copiar el resumen</string>
+    <string name="benchmark_rerun">Volver a ejecutar</string>
+    <string name="benchmark_summary_header">Benchmark de TinyModels: %1$s (%2$s, %3$s)</string>
+    <string name="benchmark_summary_load">Carga: %1$.1fs</string>
+    <string name="benchmark_summary_peak">PSS máximo: %1$s (línea base %2$s)</string>
+    <string name="benchmark_summary_device">Dispositivo: %1$s</string>
+
+    <!-- ================= Download notifications ================= -->
+    <string name="notification_channel_downloads">Descargas de modelos</string>
+    <string name="notification_downloading_title">Descargando modelo</string>
+    <string name="notification_download_complete">Descarga completada</string>
+    <string name="notification_download_failed">Error en la descarga</string>
+    <string name="notification_failed_with_reason">%1$s — %2$s</string>
+    <string name="download_error_gated">HTTP 401: este modelo tiene licencia. Añade tu token de acceso de Hugging Face en Ajustes o acepta antes la licencia del modelo en huggingface.co.</string>
+    <string name="benchmark_format_ms">%1$.0f ms</string>
+    <string name="benchmark_format_tok_per_sec">%1$.1f tok/s</string>
+    <string name="benchmark_format_seconds">%1$.1f s</string>
+    <string name="benchmark_summary_prompt"> · %1$s: TTFT %2$.0fms, decode %3$.1f tok/s, prefill %4$.0f tok/s</string>
+</resources>

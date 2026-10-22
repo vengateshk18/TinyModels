@@ -1,0 +1,105 @@
+<resources>
+    <!-- ================= Model catalog (browse) ================= -->
+    <string name="models_title">Modelos</string>
+    <string name="models_browse_tab">Explorar</string>
+    <string name="models_downloaded_tab">Descargados (%1$d)</string>
+    <string name="models_search_content_description">Buscar</string>
+    <string name="models_search_placeholder">Buscar modelos…</string>
+    <string name="models_error_failed_to_load">No se pudieron cargar los modelos</string>
+    <string name="models_empty_title">No se encontraron modelos</string>
+    <string name="models_empty_message">Prueba con otra búsqueda o filtro.</string>
+    <string name="models_by_author">de %1$s</string>
+    <string name="models_downloads_count">⬇ %1$s</string>
+    <string name="models_likes_count">♥ %1$s</string>
+    <plurals name="models_file_count">
+        <item quantity="one">%1$d archivo</item>
+        <item quantity="other">%1$d archivos</item>
+            <item quantity="many">%1$d archivos</item>
+    </plurals>
+
+    <!-- ================= Downloaded models ================= -->
+    <string name="downloaded_models_title">Modelos descargados</string>
+    <string name="downloaded_models_empty_title">No hay modelos descargados</string>
+    <string name="downloaded_models_empty_message">Los modelos que descargues aparecerán aquí para usarlos sin conexión.</string>
+    <string name="downloaded_models_storage_used">Almacenamiento usado: %1$s</string>
+    <string name="downloaded_models_imported_badge">Importado</string>
+
+    <!-- ================= Model details ================= -->
+    <string name="model_details_title">Detalles del modelo</string>
+    <string name="model_details_file_too_large_title">El archivo es demasiado grande para este dispositivo</string>
+    <string name="model_details_file_too_large_body">Este archivo (%1$s) necesita más RAM de la que tiene tu dispositivo (%2$s). Puedes descargarlo, pero no se podrá usar para chatear ni para el benchmark en este dispositivo.</string>
+    <string name="model_details_file_too_large_body_unknown_size">Este archivo necesita más RAM de la que tiene tu dispositivo (%1$s). Puedes descargarlo, pero no se podrá usar para chatear ni para el benchmark en este dispositivo.</string>
+    <string name="model_details_download_anyway">Descargar de todos modos</string>
+    <string name="model_details_error_failed_to_load">No se pudieron cargar los detalles</string>
+    <string name="model_details_add_hf_token">Añadir token de Hugging Face</string>
+    <string name="model_details_stat_downloads">Descargas</string>
+    <string name="model_details_stat_likes">Me gusta</string>
+    <string name="model_details_stat_repo_size">Tamaño del repositorio</string>
+    <string name="model_details_stat_downloaded">Descargados</string>
+    <string name="model_details_try_it">Pruébalo</string>
+    <string name="model_details_sample_prompts">Ejemplos de mensajes para este modelo</string>
+    <string name="model_details_about">Acerca de</string>
+    <string name="model_details_base_model">Modelo base</string>
+    <string name="model_details_revision">Revisión</string>
+    <string name="model_details_tags">Etiquetas</string>
+    <string name="model_details_files">Archivos</string>
+    <string name="model_details_files_hint">Toca un archivo para descargarlo por separado.</string>
+    <string name="model_details_fits_device">✓ Cabe en tu dispositivo</string>
+    <string name="model_details_too_large_short">⚠ Demasiado grande para este dispositivo</string>
+    <string name="model_details_status_downloaded">Descargado</string>
+    <string name="model_details_status_failed">Falló</string>
+    <string name="model_details_too_large_banner">Demasiado grande para este dispositivo (%1$s frente a %2$s de RAM). Se puede descargar, pero no se podrá usar aquí.</string>
+    <string name="model_details_updated">Actualizado</string>
+    <string name="model_details_created">Creado</string>
+    <string name="model_details_download_file">Descargar archivo</string>
+    <string name="model_details_error_not_enough_storage_file">No hay suficiente espacio libre para este archivo.</string>
+    <string name="model_details_error_not_enough_storage_model">No hay suficiente espacio libre para este modelo.</string>
+
+    <!-- ================= Downloaded file detail ================= -->
+    <string name="downloaded_file_title">Archivo descargado</string>
+    <string name="downloaded_file_not_found_title">Archivo no encontrado</string>
+    <string name="downloaded_file_go_back">Volver</string>
+    <string name="downloaded_file_delete_title">¿Eliminar archivo?</string>
+    <string name="downloaded_file_delete_body">Esto eliminará permanentemente el archivo de tu dispositivo. Esta acción no se puede deshacer.</string>
+    <string name="downloaded_file_model_id">ID del modelo</string>
+    <string name="downloaded_file_size">Tamaño</string>
+    <string name="downloaded_file_location">Ubicación</string>
+    <string name="downloaded_file_error_failed_to_load">No se pudo cargar el modelo</string>
+    <string name="downloaded_file_loading_model">Cargando modelo…</string>
+    <string name="downloaded_file_start_chat">Empezar a chatear</string>
+    <string name="downloaded_file_export">Exportar archivo</string>
+    <string name="downloaded_file_exporting">Exportando…</string>
+    <string name="downloaded_file_delete">Eliminar archivo</string>
+    <string name="downloaded_file_deleting">Eliminando…</string>
+    <string name="downloaded_file_error_not_found">Archivo no encontrado</string>
+    <string name="downloaded_file_error_not_on_disk">Archivo no encontrado en el disco. Vuelve a descargarlo.</string>
+    <string name="downloaded_file_error_delete_failed">No se pudo eliminar el archivo</string>
+    <string name="downloaded_file_exported">%1$s exportado</string>
+    <string name="downloaded_file_export_failed">Error al exportar: %1$s</string>
+
+    <!-- ================= Active downloads ================= -->
+    <string name="downloads_active_title">Descargas en curso (%1$d)</string>
+    <string name="downloads_cancel_content_description">Cancelar la descarga</string>
+    <string name="downloads_waiting_for_network">Esperando red…</string>
+    <string name="downloads_waiting_for_connection">Esperando conexión…</string>
+    <string name="downloads_preparing">Preparando la descarga…</string>
+    <string name="downloads_downloading">Descargando…</string>
+    <string name="downloads_progress_with_pct">%1$s / %2$s · %3$d%%</string>
+    <string name="downloads_speed_only">%1$s/s</string>
+    <string name="downloads_button_with_size">Descargar · %1$s</string>
+    <string name="downloads_button">Descargar</string>
+
+    <!-- ================= Filters ================= -->
+    <string name="model_filter_all">Todos</string>
+    <string name="model_filter_text_generation">Generación de texto</string>
+    <string name="model_filter_image_generation">Generación de imágenes</string>
+
+    <!-- ================= Shared state views ================= -->
+    <string name="state_error_title">Algo ha salido mal</string>
+    <string name="state_error_retry">Reintentar</string>
+    <string name="state_offline_title">Estás sin conexión</string>
+    <string name="state_offline_message">Comprueba tu conexión a internet e inténtalo de nuevo.</string>
+    <string name="downloads_progress_bytes">%1$s / %2$s</string>
+    <string name="downloads_progress_percent">(%1$d%%)</string>
+    <string name="downloads_progress_speed"> • %1$s/s</string>
+</resources>

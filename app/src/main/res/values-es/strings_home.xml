@@ -1,0 +1,151 @@
+<resources>
+    <!-- ================= Home: onboarding (first-time) ================= -->
+    <string name="home_hero_title">Ejecuta modelos de IA por completo en tu teléfono.</string>
+    <string name="home_hero_subtitle">Sin internet. Sin nube. Ningún dato sale de tu dispositivo.</string>
+    <string name="home_storage_note">Los modelos van de 600 MB a 2 GB. Tienes %1$s libres.</string>
+    <string name="home_browse_all_models">Ver todos los modelos</string>
+
+    <!-- ================= Home: device capability card ================= -->
+    <string name="home_device_card_title">Tu dispositivo</string>
+    <string name="home_device_capability_value">%1$s —</string>
+    <string name="home_device_can_run_models">puede ejecutar cómodamente hasta %1$s modelos</string>
+
+    <!-- ================= Home: three-step strip ================= -->
+    <string name="home_step_download_title">Descargar</string>
+    <string name="home_step_download_caption">Tarda unos minutos</string>
+    <string name="home_step_load_title">Cargar</string>
+    <string name="home_step_load_caption">La primera carga puede ser lenta</string>
+    <string name="home_step_chat_title">Chatear sin conexión</string>
+    <string name="home_step_chat_caption">Se queda en tu dispositivo</string>
+
+    <!-- ================= Home: recommended model card ================= -->
+    <string name="home_recommended_title">Recomendado para tu dispositivo</string>
+    <string name="home_recommended_meta">Nivel %1$s • %2$s • %3$s</string>
+    <string name="home_download_button">Descargar (%1$s)</string>
+    <string name="home_downloaded_opening">¡Descargado! Abriendo tu panel…</string>
+    <string name="home_download_failed">Falló la descarga. Comprueba tu conexión e inténtalo de nuevo.</string>
+    <string name="home_add_token">Añadir token</string>
+    <string name="home_model_page">Página del modelo</string>
+    <string name="home_waiting_for_connection">Esperando conexión… la descarga se iniciará automáticamente.</string>
+    <string name="home_download_progress_with_speed">%1$d%% • %2$s/s</string>
+
+    <!-- ================= Home: dashboard ================= -->
+    <string name="home_thermal_advisory">Los modelos grandes pueden calentar tu dispositivo y consumir más batería.</string>
+    <string name="home_section_your_models">Tus modelos</string>
+    <plurals name="home_show_more_models">
+        <item quantity="one">Mostrar %1$d modelo más</item>
+        <item quantity="other">Mostrar %1$d modelos más</item>
+            <item quantity="many">Mostrar %1$d modelos más</item>
+    </plurals>
+    <string name="home_manage_models">Gestionar modelos</string>
+    <string name="home_section_your_usage">Tu uso</string>
+    <string name="home_stat_chats">chats</string>
+    <string name="home_stat_tokens">tokens</string>
+    <string name="home_stat_models_tried">modelos probados</string>
+    <string name="home_stat_messages">mensajes</string>
+    <string name="home_stat_chats_this_week">chats esta semana</string>
+    <string name="home_stat_compactions">compactaciones</string>
+    <string name="home_last_session_tps">Última sesión: ~%1$s tok/s</string>
+    <string name="home_most_chatted">Más usado</string>
+    <plurals name="home_web_search_chats">
+        <item quantity="one">Búsqueda web activada en %1$d chat</item>
+        <item quantity="other">Búsqueda web activada en %1$d chats</item>
+            <item quantity="many">Búsqueda web activada en %1$d chats</item>
+    </plurals>
+    <plurals name="home_model_files_relative">
+        <item quantity="one">%1$s • %2$d archivo • %3$s</item>
+        <item quantity="other">%1$s • %2$d archivos • %3$s</item>
+            <item quantity="many">%1$s • %2$d archivos • %3$s</item>
+    </plurals>
+    <plurals name="home_model_files_last_used">
+        <item quantity="one">%1$s • %2$d archivo • último uso</item>
+        <item quantity="other">%1$s • %2$d archivos • último uso</item>
+            <item quantity="many">%1$s • %2$d archivos • último uso</item>
+    </plurals>
+    <string name="home_chat_with_model">Chatear con %1$s</string>
+
+    <!-- ================= Home: last-used model card ================= -->
+    <string name="home_ready_to_chat">Listo para chatear</string>
+    <string name="home_your_model">Tu modelo</string>
+    <string name="home_this_model">este modelo</string>
+    <string name="home_model_context">%1$s • %2$d de contexto</string>
+    <string name="home_resume_chat">Reanudar chat</string>
+    <string name="home_new_chat">Nuevo chat</string>
+    <string name="home_new_chat_with_model">Nuevo chat con %1$s</string>
+
+    <!-- ================= Model tiers ================= -->
+    <string name="model_tier_small">Pequeño</string>
+    <string name="model_tier_medium">Mediano</string>
+    <string name="model_tier_high">Grande</string>
+
+    <!-- ================= Device information screen ================= -->
+    <string name="device_info_title">Información del dispositivo</string>
+    <string name="device_info_ready_title">Listo para IA en el dispositivo</string>
+    <string name="device_info_ai_capability">Capacidad de IA</string>
+    <string name="device_info_recommended_up_to">Recomendado hasta %1$s modelos</string>
+    <string name="device_info_memory_section">Memoria</string>
+    <string name="device_info_available">Disponible</string>
+    <string name="device_info_recommended_for_ai">Recomendado para IA</string>
+    <string name="device_info_live_ram_usage">Uso de RAM en vivo</string>
+    <string name="device_info_browse_models">Ver modelos</string>
+
+    <!-- ================= AI capability levels ================= -->
+    <string name="device_capability_excellent">Excelente</string>
+    <string name="device_capability_good">Buena</string>
+    <string name="device_capability_limited">Limitada</string>
+    <string name="device_capability_unknown">Desconocida</string>
+
+    <!-- ================= Device insights card ================= -->
+    <string name="device_insights_title">Información del dispositivo</string>
+    <string name="device_insights_thermal">Temperatura</string>
+    <string name="device_insights_thermal_state">Estado %1$d</string>
+    <string name="device_insights_battery">Batería</string>
+    <string name="device_insights_gpu_renderer">GPU</string>
+    <string name="device_insights_storage">Almacenamiento</string>
+    <string name="device_insights_storage_used">Usado %1$s</string>
+    <string name="device_insights_storage_free">Libre %1$s</string>
+    <string name="device_insights_processor">Procesador</string>
+    <string name="device_insights_cores">Núcleos</string>
+    <string name="device_insights_architecture">Arquitectura</string>
+    <string name="device_insights_64bit">64 bits</string>
+
+    <!-- Thermal status labels -->
+    <string name="device_thermal_normal">Normal</string>
+    <string name="device_thermal_light">Ligera</string>
+    <string name="device_thermal_moderate">Moderada</string>
+    <string name="device_thermal_severe">Severa</string>
+    <string name="device_thermal_critical">Crítica</string>
+    <string name="device_thermal_emergency">Emergencia</string>
+    <string name="device_thermal_shutdown">Apagado</string>
+    <string name="device_thermal_unknown">Desconocido</string>
+
+    <!-- Battery status labels -->
+    <string name="device_battery_unknown">Desconocido</string>
+    <string name="device_battery_charging">Cargando</string>
+    <string name="device_battery_discharging">Descargando</string>
+    <string name="device_battery_not_charging">Sin cargar</string>
+    <string name="device_battery_full">Completa</string>
+
+    <!-- ================= RAM usage chart ================= -->
+    <string name="device_ram_usage_live_title">Uso de RAM en vivo</string>
+    <string name="device_ram_usage_percent_used">%1$.2f%% usado</string>
+    <string name="device_ram_usage_collecting">Recopilando muestras…</string>
+    <string name="device_ram_usage_used">Usado %1$s</string>
+    <string name="device_ram_usage_free_of">Libre %1$s de %2$s</string>
+
+    <!-- ================= RAM recommendations ================= -->
+    <string name="ram_recommendations_title">Recomendaciones</string>
+    <string name="ram_rec_plenty_capacity">Puedes cargar cómodamente modelos de 3B–7B</string>
+    <string name="ram_rec_plenty_context">Ideal para conversaciones largas con contextos grandes</string>
+    <string name="ram_rec_moderate_capacity">Espacio moderado: prefiere modelos de 1B–3B</string>
+    <string name="ram_rec_moderate_compaction">Los chats largos necesitarán compactación antes</string>
+    <string name="ram_rec_limited_capacity">Limitado: solo caben modelos muy pequeños (&lt;1B)</string>
+    <string name="ram_rec_limited_close_apps">Cierra otras apps para liberar RAM</string>
+    <string name="ram_rec_critical_close_apps">Crítico: cierra otras apps antes de cargar cualquier modelo</string>
+    <string name="ram_rec_critical_no_models">Ahora mismo no se puede cargar ningún modelo</string>
+    <string name="ram_rec_thermal_throttling">El dispositivo se está calentando: el rendimiento bajará</string>
+    <string name="ram_rec_battery_low">Batería baja: ten el cargador cerca para cargas grandes</string>
+    <string name="home_download_progress">%1$d%%</string>
+    <string name="home_device_model_tier">%1$s: %2$s (%3$s)</string>
+    <string name="device_insights_battery_percent">%1$d%%</string>
+</resources>

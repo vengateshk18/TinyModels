@@ -1,5 +1,6 @@
 package com.ai.tinymodels.feature.settings
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -59,8 +60,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ai.tinymodels.core.common.AppLocale
 import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.TinyConstants
+import com.ai.tinymodels.domain.model.AppLanguage
 import com.ai.tinymodels.domain.model.AppSettings
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.FontChoice
@@ -223,6 +226,31 @@ private fun AppearanceSection(settings: AppSettings, viewModel: SettingsViewMode
                 showFontSheet = false
             },
             onDismiss = { showFontSheet = false }
+        )
+    }
+    Spacer(modifier = Modifier.height(12.dp))
+    var showLanguageSheet by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val storedLanguage by viewModel.language.collectAsStateWithLifecycle()
+    val selectedLanguage = remember(storedLanguage, context) {
+        AppLocale.currentLanguage(context, storedLanguage)
+    }
+    NavigationRow(
+        label = stringResource(R.string.settings_language),
+        subtitle = stringResource(selectedLanguage.labelRes),
+        onClick = { showLanguageSheet = true }
+    )
+    if (showLanguageSheet) {
+        LanguageBottomSheet(
+            selected = selectedLanguage,
+            onSelect = { language ->
+                viewModel.setLanguage(language)
+                showLanguageSheet = false
+                // Applies the locale and recreates the activity so every
+                // string (and the system bars) pick up the new language.
+                (context as? Activity)?.let { AppLocale.apply(it, language) }
+            },
+            onDismiss = { showLanguageSheet = false }
         )
     }
     Spacer(modifier = Modifier.height(4.dp))
@@ -621,6 +649,58 @@ private fun FontBottomSheet(
                         },
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Bottom sheet listing the languages the app is translated into.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LanguageBottomSheet(
+    selected: AppLanguage,
+    onSelect: (AppLanguage) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        contentWindowInsets = { WindowInsets(0) },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 16.dp)
+        ) {
+            Text(
+                stringResource(R.string.settings_language_sheet_title),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+            AppLanguage.entries.forEach { language ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelect(language) }
+                        .padding(vertical = 12.dp, horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = language == selected,
+                        onClick = { onSelect(language) }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(language.labelRes),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }

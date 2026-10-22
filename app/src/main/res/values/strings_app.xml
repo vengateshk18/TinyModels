@@ -12,6 +12,15 @@
     <string name="settings_font_default">Default</string>
     <string name="settings_font_google">Google Font</string>
 
+    <!-- Language picker -->
+    <string name="settings_language">Language</string>
+    <string name="settings_language_sheet_title">Choose language</string>
+    <string name="language_system">System default</string>
+    <string name="language_english" translatable="false">English</string>
+    <string name="language_spanish">Spanish</string>
+    <string name="language_tamil">Tamil</string>
+    <string name="language_hindi">Hindi</string>
+
     <string name="settings_section_inference">Inference</string>
     <string name="settings_default_backend">Default backend</string>
     <string name="settings_web_search">Web search</string>

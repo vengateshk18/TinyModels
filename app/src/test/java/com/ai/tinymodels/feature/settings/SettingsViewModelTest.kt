@@ -4,6 +4,7 @@ import android.net.Uri
 import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.AppError
 import com.ai.tinymodels.core.common.AppResult
+import com.ai.tinymodels.core.common.AppLocaleStore
 import com.ai.tinymodels.core.common.fakeStringContext
 import com.ai.tinymodels.domain.model.AppSettings
 import com.ai.tinymodels.domain.model.BackendPreference
@@ -58,7 +59,10 @@ class SettingsViewModelTest {
 
     private val context = fakeStringContext()
 
-    private fun vm() = SettingsViewModel(context, settingsRepo, chatRepo, modelRepo)
+    /** Real store over a mocked Context — the language preference has no bearing here. */
+    private val appLocaleStore = AppLocaleStore(context)
+
+    private fun vm() = SettingsViewModel(context, appLocaleStore, settingsRepo, chatRepo, modelRepo)
 
     private suspend fun awaitResult(viewModel: SettingsViewModel): String {
         val start = System.currentTimeMillis()

@@ -1,0 +1,23 @@
+<resources>
+    <!-- Shared UI actions and labels -->
+    <string name="common_cancel">Cancelar</string>
+    <string name="common_retry">Reintentar</string>
+    <string name="common_back">Atrás</string>
+    <string name="common_dismiss">Descartar</string>
+    <string name="common_delete">Eliminar</string>
+    <string name="common_close">Cerrar</string>
+    <string name="common_yes">Sí</string>
+    <string name="common_no">No</string>
+    <string name="common_unknown">Desconocido</string>
+
+    <!-- Shared relative-time wording -->
+    <string name="common_time_just_now">ahora mismo</string>
+    <string name="common_time_minutes_ago">hace %1$d min</string>
+    <string name="common_time_hours_ago">hace %1$d h</string>
+    <string name="common_time_days_ago">hace %1$d d</string>
+    <string name="common_time_now">ahora</string>
+    <string name="common_time_minutes_short">%1$d min</string>
+    <string name="common_time_hours_short">%1$d h</string>
+    <string name="common_time_days_short">%1$d d</string>
+    <string name="common_percent">%1$d%%</string>
+</resources>
