@@ -1,17 +1,20 @@
 package com.ai.tinymodels.feature.home.model
 
 import androidx.compose.runtime.Immutable
+import androidx.annotation.StringRes
 import com.ai.tinymodels.domain.model.DownloadedModel
 import com.ai.tinymodels.feature.home.DeviceInfoState
 
 /** A model from the curated recommendation catalog (see [RecommendedModels]). */
 @Immutable
 data class RecommendedModel(
-    val tier: String,
+    /** Localized tier label (Small / Medium / High). */
+    @StringRes val tierRes: Int,
     val modelId: String,
     val fileName: String,
     val sizeBytes: Long,
-    val displayName: String,
+    /** Localized model display name. */
+    @StringRes val displayNameRes: Int,
     /** Hugging Face page URL — used for the gated-license "open model page" action. */
     val hfUrl: String
 )

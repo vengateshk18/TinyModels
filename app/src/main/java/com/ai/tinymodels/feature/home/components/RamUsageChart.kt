@@ -36,8 +36,10 @@ import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import com.ai.tinymodels.R
 import androidx.compose.ui.unit.dp
 import com.ai.tinymodels.core.ui.Formatters
 
@@ -114,7 +116,7 @@ fun RamUsageChart(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "Live RAM usage",
+                    stringResource(R.string.device_ram_usage_live_title),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f)
@@ -134,7 +136,11 @@ fun RamUsageChart(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            if (usage != null) "%.2f%% used".format(usage.usedPercent) else "—",
+                            if (usage != null) {
+                                stringResource(R.string.device_ram_usage_percent_used, usage.usedPercent)
+                            } else {
+                                "—"
+                            },
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = pillContent
@@ -218,7 +224,7 @@ fun RamUsageChart(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            "Collecting samples…",
+                            stringResource(R.string.device_ram_usage_collecting),
                             style = MaterialTheme.typography.bodySmall,
                             color = scheme.onSurfaceVariant
                         )
@@ -234,12 +240,16 @@ fun RamUsageChart(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    "Used ${usage?.usedLabel ?: "—"}",
+                    stringResource(R.string.device_ram_usage_used, usage?.usedLabel ?: "—"),
                     style = MaterialTheme.typography.bodySmall,
                     color = scheme.onSurfaceVariant
                 )
                 Text(
-                    "Free ${usage?.freeLabel ?: "—"} of ${usage?.totalLabel ?: "—"}",
+                    stringResource(
+                        R.string.device_ram_usage_free_of,
+                        usage?.freeLabel ?: "—",
+                        usage?.totalLabel ?: "—"
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = scheme.onSurfaceVariant
                 )

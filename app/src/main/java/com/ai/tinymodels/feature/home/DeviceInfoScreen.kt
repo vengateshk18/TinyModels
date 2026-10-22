@@ -30,10 +30,12 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.ui.Formatters
 import com.ai.tinymodels.feature.home.components.DeviceInsights
 import com.ai.tinymodels.feature.home.components.RamRecommendations
@@ -59,10 +61,10 @@ fun DeviceInfoScreen(
         contentWindowInsets = safeDrawing,
         topBar = {
             TopAppBar(
-                title = { Text("Device Information") },
+                title = { Text(stringResource(R.string.device_info_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -81,7 +83,7 @@ fun DeviceInfoScreen(
             Spacer(modifier = Modifier.height(8.dp))
             Text(device.deviceName, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
             Text(
-                "Ready for on-device AI",
+                stringResource(R.string.device_info_ready_title),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -93,17 +95,17 @@ fun DeviceInfoScreen(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
-                    Text("AI Capability", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.device_info_ai_capability), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        device.aiCapabilityLevel.label,
+                        stringResource(device.aiCapabilityLevel.labelRes),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "Recommended up to ${device.recommendedMaxParams} models",
+                        stringResource(R.string.device_info_recommended_up_to, device.recommendedMaxParams),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
@@ -111,13 +113,13 @@ fun DeviceInfoScreen(
             }
 
             Spacer(modifier = Modifier.height(20.dp))
-            SectionTitle("Memory")
-            InfoRow("RAM", Formatters.formatMbAsGb(device.totalRamMb))
-            InfoRow("Available", Formatters.formatMbAsGb(device.availableRamMb))
-            InfoRow("Recommended for AI", "~${Formatters.formatMbAsGb(device.availableRamForAiMb)}")
+            SectionTitle(stringResource(R.string.device_info_memory_section))
+            InfoRow(stringResource(R.string.device_info_ram), Formatters.formatMbAsGb(device.totalRamMb))
+            InfoRow(stringResource(R.string.device_info_available), Formatters.formatMbAsGb(device.availableRamMb))
+            InfoRow(stringResource(R.string.device_info_recommended_for_ai), "~${Formatters.formatMbAsGb(device.availableRamForAiMb)}")
 
             Spacer(modifier = Modifier.height(16.dp))
-            SectionTitle("Live RAM Usage")
+            SectionTitle(stringResource(R.string.device_info_live_ram_usage))
             RamUsageChart(
                 samples = device.ramHistory,
                 totalRam = device.totalRamMb * 1024 * 1024
@@ -135,7 +137,7 @@ fun DeviceInfoScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
             Button(onClick = onBrowseModels, modifier = Modifier.fillMaxWidth()) {
-                Text("Browse Models")
+                Text(stringResource(R.string.device_info_browse_models))
             }
             Spacer(modifier = Modifier.height(32.dp))
         }

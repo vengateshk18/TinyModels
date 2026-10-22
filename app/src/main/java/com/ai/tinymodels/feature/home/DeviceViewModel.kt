@@ -7,8 +7,10 @@ import android.os.BatteryManager
 import android.os.Build
 import android.os.PowerManager
 import android.os.StatFs
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.MemoryUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -40,11 +42,12 @@ data class DeviceInfoState(
     val gpuRenderer: String = ""
 )
 
-enum class AiCapability(val label: String) {
-    EXCELLENT("Excellent"),
-    GOOD("Good"),
-    LIMITED("Limited"),
-    UNKNOWN("Unknown")
+/** How well the device can run on-device models. Labels live in strings.xml. */
+enum class AiCapability(@StringRes val labelRes: Int) {
+    EXCELLENT(R.string.device_capability_excellent),
+    GOOD(R.string.device_capability_good),
+    LIMITED(R.string.device_capability_limited),
+    UNKNOWN(R.string.device_capability_unknown)
 }
 
 @HiltViewModel

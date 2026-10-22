@@ -1,3 +1,24 @@
-<resources>
-    <string name="app_name">TinyModels</string>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- App -->
+    <string name="app_name" translatable="false">TinyModels</string>
+
+    <!-- Shared UI actions and labels (usable from any feature) -->
+    <string name="common_cancel">Cancel</string>
+    <string name="common_retry">Retry</string>
+    <string name="common_back">Back</string>
+    <string name="common_dismiss">Dismiss</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_ok">OK</string>
+    <string name="common_close">Close</string>
+    <string name="common_yes">Yes</string>
+    <string name="common_no">No</string>
+    <string name="common_unknown">Unknown</string>
+    <string name="common_loading">Loading…</string>
+    <string name="common_download">Download</string>
+    <string name="common_save">Save</string>
+    <string name="common_search">Search</string>
+    <string name="common_share">Share</string>
+    <string name="common_edit">Edit</string>
+    <string name="common_done">Done</string>
+    <string name="common_percent">%1$d%%</string>
 </resources>

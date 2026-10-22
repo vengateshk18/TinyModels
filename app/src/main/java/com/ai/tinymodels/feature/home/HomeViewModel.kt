@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.StatFs
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ai.tinymodels.R
 import com.ai.tinymodels.domain.model.ModelDetails
 import com.ai.tinymodels.domain.repository.ChatRepository
 import com.ai.tinymodels.domain.repository.ModelRepository
@@ -120,13 +121,13 @@ class HomeViewModel @Inject constructor(
      */
     private fun friendlyDownloadError(raw: String?): String {
         if (raw.isNullOrBlank()) {
-            return "Download failed. Check your connection and retry."
+            return context.getString(R.string.home_download_failed)
         }
         // Keep actionable auth/storage messages as-is.
         if (raw.contains("401") || raw.contains("403") || raw.contains("storage", ignoreCase = true)) {
             return raw
         }
-        return "Download failed. Check your connection and retry."
+        return context.getString(R.string.home_download_failed)
     }
 
     // ---- State assembly ----
