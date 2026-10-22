@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.ai.tinymodels.core.common.DispatcherProvider
 import com.ai.tinymodels.core.common.InferenceError
 import com.ai.tinymodels.core.inference.ChatTurn
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.inference.ConversationSession
 import com.ai.tinymodels.core.inference.InferenceException
 import com.ai.tinymodels.core.inference.ModelContextInspector
@@ -282,7 +283,7 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.Default) {
             val downloaded = modelRepository.getDownloadedModel(modelId)
             if (downloaded == null) {
-                _uiState.update { it.copy(error = ChatError("Model $modelId is not downloaded")) }
+                _uiState.update { it.copy(error = ChatError(appContext.getString(R.string.chat_error_model_not_downloaded, modelId))) }
                 return@launch
             }
             // Resolve the exact file record to load — the user's pick, or the
@@ -294,14 +295,20 @@ class ChatViewModel @Inject constructor(
             }
             if (fileRecord == null) {
                 _uiState.update {
-                    it.copy(error = ChatError("Model file missing on device", "Re-download"))
+                    it.copy(error = ChatError(
+                        appContext.getString(R.string.chat_error_model_file_missing),
+                        appContext.getString(R.string.chat_error_re_download)
+                    ))
                 }
                 return@launch
             }
             val modelFile = File(File(downloaded.localPath), fileRecord.fileName.substringAfterLast("/"))
             if (!modelFile.exists()) {
                 _uiState.update {
-                    it.copy(error = ChatError("Model file missing on device", "Re-download"))
+                    it.copy(error = ChatError(
+                        appContext.getString(R.string.chat_error_model_file_missing),
+                        appContext.getString(R.string.chat_error_re_download)
+                    ))
                 }
                 return@launch
             }
@@ -392,7 +399,7 @@ class ChatViewModel @Inject constructor(
                 is com.ai.tinymodels.core.common.AppResult.Error -> {
                     _uiState.update {
                         it.copy(
-                            error = ChatError(result.error.message ?: "Failed to load model"),
+                            error = ChatError(result.error.message ?: appContext.getString(R.string.chat_error_failed_to_load)),
                             modelLoadProgress = null
                         )
                     }
@@ -614,7 +621,7 @@ class ChatViewModel @Inject constructor(
             sessionModelId = modelManager.loadedModelId
             updateContextUsage()
             if (hadImages && !visionEnabled) {
-                _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
+                _uiState.update { it.copy(error = ChatError(appContext.getString(ModelVisionSupport.visionUnsupportedMessageRes()))) }
             }
         } catch (e: InferenceException) {
             // Engine not loaded yet; session will be built when the model finishes loading.
@@ -679,7 +686,7 @@ class ChatViewModel @Inject constructor(
                 }
                 sessionModelId = modelManager.loadedModelId
                 updateContextUsage()
-                _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
+                _uiState.update { it.copy(error = ChatError(appContext.getString(ModelVisionSupport.visionUnsupportedMessageRes()))) }
                 return
             } catch (retryFailure: Throwable) {
                 android.util.Log.e(TAG, "Rebuild after vision reload failed: ${retryFailure.message}", retryFailure)
@@ -709,14 +716,14 @@ class ChatViewModel @Inject constructor(
                 }
                 sessionModelId = modelManager.loadedModelId
                 updateContextUsage()
-                _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
+                _uiState.update { it.copy(error = ChatError(appContext.getString(ModelVisionSupport.visionUnsupportedMessageRes()))) }
                 return
             } catch (retryFailure: Throwable) {
                 android.util.Log.e(TAG, "Stripped-history rebuild failed: ${retryFailure.message}", retryFailure)
             }
         }
         session = null
-        _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
+        _uiState.update { it.copy(error = ChatError(appContext.getString(ModelVisionSupport.visionUnsupportedMessageRes()))) }
     }
 
     /**
@@ -833,7 +840,7 @@ class ChatViewModel @Inject constructor(
         val kept = ConversationSession.trimToBudget(allTurns, keepBudget)
         val olderCount = allTurns.size - kept.size
         if (olderCount <= 0) {
-            return "Nothing to compact — the conversation already fits the context window"
+            return appContext.getString(R.string.chat_error_nothing_to_compact)
         }
         val olderEntities = live.take(olderCount)
         val older = olderEntities.map {
@@ -862,7 +869,7 @@ class ChatViewModel @Inject constructor(
             } finally {
                 nativeMutex.lock()
             }
-            return "Summarization failed — history was trimmed to fit the context window"
+            return appContext.getString(R.string.chat_error_summarization_failed)
         }
         // Cutoff by entity identity, never by content match: duplicate texts
         // ("thanks", "hi") previously resolved the cutoff to the wrong message
@@ -883,7 +890,11 @@ class ChatViewModel @Inject constructor(
         } finally {
             nativeMutex.lock()
         }
-        return "Compacted ${older.size} older message${if (older.size == 1) "" else "s"} into a summary"
+        return appContext.resources.getQuantityString(
+            R.plurals.chat_error_compacted_messages,
+            older.size,
+            older.size
+        )
     }
 
     /** Invalidate the compaction digest when the user edits a summarized turn. */
@@ -931,14 +942,14 @@ class ChatViewModel @Inject constructor(
         val state = _uiState.value
         if (state.generation == GenerationState.GENERATING) return
         if (state.model !is ModelChipState.Ready) {
-            _uiState.update { it.copy(error = ChatError("Model is still loading")) }
+            _uiState.update { it.copy(error = ChatError(appContext.getString(R.string.chat_error_model_still_loading))) }
             return
         }
         // Block photo sends on text-only engines up-front: the native side has
         // no vision encoder, so an image part would fail the turn anyway.
         // Text-only prompts fall through normally.
         if (imageUri != null && !modelManager.isVisionModelLoaded) {
-            _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
+            _uiState.update { it.copy(error = ChatError(appContext.getString(ModelVisionSupport.visionUnsupportedMessageRes()))) }
             return
         }
         var chatId = state.activeChatId
@@ -979,7 +990,7 @@ class ChatViewModel @Inject constructor(
                     it.copy(
                         generation = GenerationState.IDLE,
                         streamingMessageId = null,
-                        error = ChatError("Couldn't read that photo — try another image")
+                        error = ChatError(appContext.getString(R.string.chat_error_photo_unreadable))
                     )
                 }
                 return@launch
@@ -1146,7 +1157,7 @@ class ChatViewModel @Inject constructor(
         val activeSession = session
         if (activeSession == null) {
             _uiState.update {
-                it.copy(generation = GenerationState.IDLE, error = ChatError("No active conversation"))
+                it.copy(generation = GenerationState.IDLE, error = ChatError(appContext.getString(R.string.chat_error_no_active_conversation)))
             }
             return
         }
@@ -1271,7 +1282,7 @@ class ChatViewModel @Inject constructor(
         val lastUser = messages.lastOrNull { it.isUser } ?: return
         val activeSession = session
         if (state.model !is ModelChipState.Ready || activeSession == null) {
-            _uiState.update { it.copy(error = ChatError("Model is not ready")) }
+            _uiState.update { it.copy(error = ChatError(appContext.getString(R.string.chat_error_model_not_ready))) }
             return
         }
 
@@ -1319,7 +1330,7 @@ class ChatViewModel @Inject constructor(
         val chatId = state.activeChatId ?: return
         val activeSession = session
         if (state.model !is ModelChipState.Ready || activeSession == null) {
-            _uiState.update { it.copy(error = ChatError("Model is not ready")) }
+            _uiState.update { it.copy(error = ChatError(appContext.getString(R.string.chat_error_model_not_ready))) }
             return
         }
 
@@ -1426,7 +1437,7 @@ class ChatViewModel @Inject constructor(
      * large input Id" — translate that into actionable guidance.
      */
     private fun friendlyGenerationError(throwable: Throwable): String {
-        val raw = throwable.message ?: return "Generation failed"
+        val raw = throwable.message ?: return appContext.getString(R.string.chat_error_generation_failed)
         // Photo sent to a text-only model (or vision init skipped): the
         // native side reports a null vision executor / unavailable image input.
         if (raw.contains("vision executor", ignoreCase = true) ||
@@ -1435,12 +1446,10 @@ class ChatViewModel @Inject constructor(
             raw.contains("TF_LITE_VISION_ENCODER") ||
             raw.contains("vision encoder", ignoreCase = true)
         ) {
-            return "This model can't read photos. Load a vision-capable model " +
-                "(e.g. Gemma 3) to analyze images."
+            return appContext.getString(R.string.chat_error_vision_photos)
         }
         return if (raw.contains("Status code 13") || raw.contains("large input", ignoreCase = true)) {
-            "Prompt or chat history is too long for this model's context window. " +
-                "Start a new chat or reduce max context tokens in session settings."
+            appContext.getString(R.string.chat_error_context_too_long)
         } else raw
     }
 
@@ -1451,26 +1460,26 @@ class ChatViewModel @Inject constructor(
      */
     private fun friendlyConversationError(throwable: Throwable): String {
         if (ModelVisionSupport.isVisionEncoderError(throwable)) {
-            return ModelVisionSupport.visionUnsupportedMessage()
+            return appContext.getString(ModelVisionSupport.visionUnsupportedMessageRes())
         }
-        val raw = throwable.message?.takeIf { it.isNotBlank() } ?: return "Couldn't start the conversation"
+        val raw = throwable.message?.takeIf { it.isNotBlank() }
+            ?: return appContext.getString(R.string.chat_error_couldnt_start_conversation)
         return if (raw.contains("Status code 13") || raw.contains("large input", ignoreCase = true)) {
-            "Chat history is too long for this model's context window. " +
-                "Start a new chat or compact the conversation."
+            appContext.getString(R.string.chat_error_history_too_long)
         } else if (raw.length > 200) {
-            "Couldn't start the conversation. Try reopening the chat or reloading the model."
+            appContext.getString(R.string.chat_error_couldnt_start_conversation_retry)
         } else {
             raw
         }
     }
 
     private fun friendlyError(error: InferenceError): String = when (error) {
-        is InferenceError.OutOfMemory -> "Not enough free memory. Close other apps and retry."
-        is InferenceError.ModelFileMissing -> "Model file missing. Re-download the model."
-        is InferenceError.BackendUnavailable -> "No supported backend on this device."
-        is InferenceError.LoadFailed -> error.message ?: "Failed to load model"
-        is InferenceError.GenerationFailed -> error.message ?: "Generation failed"
-        InferenceError.NoModelLoaded -> "No model loaded"
+        is InferenceError.OutOfMemory -> appContext.getString(R.string.chat_error_out_of_memory)
+        is InferenceError.ModelFileMissing -> appContext.getString(R.string.chat_error_model_file_missing_short)
+        is InferenceError.BackendUnavailable -> appContext.getString(R.string.chat_error_no_backend)
+        is InferenceError.LoadFailed -> error.message ?: appContext.getString(R.string.chat_error_failed_to_load)
+        is InferenceError.GenerationFailed -> error.message ?: appContext.getString(R.string.chat_error_generation_failed)
+        InferenceError.NoModelLoaded -> appContext.getString(R.string.chat_error_no_model_loaded)
     }
 
     private fun updateInferenceSettings(settings: InferenceSettings) {

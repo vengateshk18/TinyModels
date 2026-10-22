@@ -30,8 +30,11 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.ui.Formatters
 import com.ai.tinymodels.domain.model.DownloadedModelFile
 
@@ -69,13 +72,13 @@ fun ModelFilePickerSheet(
                 )
         ) {
             Text(
-                text = "Choose a model",
+                text = stringResource(R.string.chat_model_files_title),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(horizontal = 24.dp)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "All downloaded model files on this device.",
+                text = stringResource(R.string.chat_model_files_subtitle),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 24.dp)
@@ -84,7 +87,7 @@ fun ModelFilePickerSheet(
 
             if (files.isEmpty()) {
                 Text(
-                    text = "No downloaded model files yet.",
+                    text = stringResource(R.string.chat_model_files_empty),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp)
@@ -144,7 +147,7 @@ private fun ModelFileRow(
                 else MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = Formatters.formatBytes(file.sizeBytes),
+                text = Formatters.formatBytes(file.sizeBytes, LocalContext.current.resources),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -153,7 +156,7 @@ private fun ModelFileRow(
             Spacer(modifier = Modifier.width(8.dp))
             Icon(
                 Icons.Filled.CheckCircle,
-                contentDescription = "Active",
+                contentDescription = stringResource(R.string.chat_model_active_content_description),
                 tint = MaterialTheme.colorScheme.primary
             )
         }

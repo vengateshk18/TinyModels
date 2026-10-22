@@ -35,8 +35,10 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.ai.tinymodels.R
 import com.ai.tinymodels.domain.model.DownloadedModel
 import com.ai.tinymodels.feature.chat.model.ModelChipState
 
@@ -61,7 +63,7 @@ fun ModelChip(
                 is ModelChipState.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Loading…", style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(R.string.chat_model_loading), style = MaterialTheme.typography.labelMedium)
                 }
                 is ModelChipState.Ready -> {
                     Icon(
@@ -84,16 +86,16 @@ fun ModelChip(
                     )
                 }
                 is ModelChipState.Error -> {
-                    Text("Model error", style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(R.string.chat_model_error), style = MaterialTheme.typography.labelMedium)
                 }
                 ModelChipState.NotSelected -> {
-                    Text("Select model", style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(R.string.chat_model_select), style = MaterialTheme.typography.labelMedium)
                 }
             }
             // Dropdown affordance — signals the chip opens the model picker.
             Icon(
                 Icons.Filled.ArrowDropDown,
-                contentDescription = "Choose model",
+                contentDescription = stringResource(R.string.chat_model_choose_content_description),
                 modifier = Modifier.size(18.dp),
                 tint = MaterialTheme.colorScheme.onSecondaryContainer
             )
@@ -127,7 +129,7 @@ fun ModelPickerSheet(
                         .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
                 )
         ) {
-            Text("Choose a model", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.chat_model_choose_title), style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
             LazyColumn {
                 items(models, key = { it.modelId }) { model ->
@@ -181,7 +183,7 @@ private fun ModelPickerRow(
             if (isActive) {
                 Icon(
                     Icons.Filled.CheckCircle,
-                    contentDescription = "Active",
+                    contentDescription = stringResource(R.string.chat_model_active_content_description),
                     tint = MaterialTheme.colorScheme.primary
                 )
             }

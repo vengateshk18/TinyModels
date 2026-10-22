@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -75,7 +76,8 @@ fun RamUsageChart(
         label = "ramChartDraw"
     )
 
-    val usage = remember(samples, totalRam) { usageStats(samples, totalRam) }
+    val res = LocalContext.current.resources
+    val usage = remember(samples, totalRam, res) { usageStats(samples, totalRam, res) }
 
     // Status level drives pill + line colors through theme roles.
     val level = when {
@@ -266,15 +268,15 @@ private data class UsageLabels(
     val totalLabel: String
 )
 
-private fun usageStats(samples: List<Long>, totalRam: Long): UsageLabels? {
+private fun usageStats(samples: List<Long>, totalRam: Long, res: android.content.res.Resources): UsageLabels? {
     if (samples.isEmpty() || totalRam <= 0) return null
     val available = samples.last().coerceIn(0L, totalRam)
     val used = totalRam - available
     return UsageLabels(
         usedPercent = (used.toFloat() / totalRam) * 100f,
-        usedLabel = Formatters.formatBytes(used),
-        freeLabel = Formatters.formatBytes(available),
-        totalLabel = Formatters.formatBytes(totalRam)
+        usedLabel = Formatters.formatBytes(used, res),
+        freeLabel = Formatters.formatBytes(available, res),
+        totalLabel = Formatters.formatBytes(totalRam, res)
     )
 }
 

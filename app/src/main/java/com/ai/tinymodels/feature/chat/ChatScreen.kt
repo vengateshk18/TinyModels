@@ -35,10 +35,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ai.tinymodels.feature.chat.components.ChatHistoryDrawer
+import com.ai.tinymodels.R
 import com.ai.tinymodels.feature.chat.components.ChatInputBar
 import com.ai.tinymodels.feature.chat.components.EditMessageDialog
 import com.ai.tinymodels.feature.chat.components.InferenceSettingsSheet
@@ -124,18 +126,18 @@ private fun ChatScreenContent(
                     },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Filled.Menu, contentDescription = "Open chats")
+                            Icon(Icons.Filled.Menu, contentDescription = stringResource(R.string.chat_open_chats_content_description))
                         }
                     },
                     actions = {
                         // Inference settings — only available when a model is ready.
                         if (uiState.model is ModelChipState.Ready) {
                             IconButton(onClick = { onEvent(ChatEvent.OpenInferenceSettings) }) {
-                                Icon(Icons.Filled.Tune, contentDescription = "Session settings")
+                                Icon(Icons.Filled.Tune, contentDescription = stringResource(R.string.chat_room_session_settings_content_description))
                             }
                         }
                         IconButton(onClick = onNavigateToSettings) {
-                            Icon(Icons.Filled.Settings, contentDescription = "Settings")
+                            Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.chat_settings_content_description))
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -153,22 +155,22 @@ private fun ChatScreenContent(
                     when {
                         !uiState.hasDownloadedModels ->
                             EmptyState(
-                                title = "No models yet",
-                                body = "Download a LiteRT-LM model to start chatting offline.",
-                                actionLabel = "Browse models",
+                                title = stringResource(R.string.chat_no_models_title),
+                                body = stringResource(R.string.chat_no_models_body),
+                                actionLabel = stringResource(R.string.chat_browse_models),
                                 onAction = onNavigateToModels
                             )
                         uiState.model is ModelChipState.NotSelected ->
                             EmptyState(
-                                title = "Pick a model",
-                                body = "Choose a downloaded model above to begin.",
-                                actionLabel = "Choose",
+                                title = stringResource(R.string.chat_pick_model_title),
+                                body = stringResource(R.string.chat_choose_downloaded_model_body),
+                                actionLabel = stringResource(R.string.chat_room_choose),
                                 onAction = { showModelPicker = true }
                             )
                         uiState.messages.isEmpty() ->
                             EmptyState(
-                                title = "Say hello",
-                                body = "Your conversation stays on this device."
+                                title = stringResource(R.string.chat_room_say_hello_title),
+                                body = stringResource(R.string.chat_room_say_hello_body)
                             )
                                                 else -> MessageList(
                             uiState,

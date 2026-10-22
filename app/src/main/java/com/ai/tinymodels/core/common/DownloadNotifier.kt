@@ -72,7 +72,7 @@ object DownloadNotifier {
         return NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(title)
-            .setContentText("${Formatters.formatBytes(downloaded)} / ${Formatters.formatBytes(total)}")
+            .setContentText("${Formatters.formatBytes(downloaded, context.resources)} / ${Formatters.formatBytes(total, context.resources)}")
             .setProgress(100, percent, total <= 0)
             .setOngoing(true)
             .setOnlyAlertOnce(true)

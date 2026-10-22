@@ -46,10 +46,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.ui.components.EmptyState
 import com.ai.tinymodels.feature.chat.model.ChatListItem
 import java.text.SimpleDateFormat
@@ -89,7 +93,7 @@ fun ChatTabScreen(
         contentWindowInsets = safeTopHorizontal,
         topBar = {
             TopAppBar(
-                title = { Text("Chats") },
+                title = { Text(stringResource(R.string.chat_tab_title)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer
                 )
@@ -106,7 +110,7 @@ fun ChatTabScreen(
                     )
                 }
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "New chat")
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.chat_new_chat))
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -120,8 +124,8 @@ fun ChatTabScreen(
                     .padding(padding)
             ) {
                 EmptyState(
-                    title = "No conversations yet",
-                    message = "Tap + to start a new chat"
+                    title = stringResource(R.string.chat_no_conversations),
+                    message = stringResource(R.string.chat_tap_plus_to_start)
                 )
             }
         } else {
@@ -154,21 +158,23 @@ fun ChatTabScreen(
     pendingDelete?.let { chat ->
         AlertDialog(
             onDismissRequest = { pendingDelete = null },
-            title = { Text("Delete chat?") },
+            title = { Text(stringResource(R.string.chat_delete_title)) },
             text = {
                 Text(
-                    "\"${chat.title.ifBlank { "Untitled" }}\" will be permanently deleted. " +
-                        "This action cannot be undone."
+                    stringResource(
+                        R.string.chat_delete_body,
+                        chat.title.ifBlank { stringResource(R.string.chat_untitled) }
+                    )
                 )
             },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteChat(chat.id)
                     pendingDelete = null
-                }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
+                }) { Text(stringResource(R.string.common_delete), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(onClick = { pendingDelete = null }) { Text("Cancel") }
+                TextButton(onClick = { pendingDelete = null }) { Text(stringResource(R.string.common_cancel)) }
             }
         )
     }
@@ -180,6 +186,7 @@ private fun ChatSessionRow(
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val res = LocalContext.current.resources
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -217,13 +224,17 @@ private fun ChatSessionRow(
                 modifier = Modifier.padding(top = 4.dp)
             ) {
                 Text(
-                    text = formatRelativeTime(chat.updatedAt),
+                    text = formatRelativeTime(chat.updatedAt, res),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 if (chat.messageCount > 0) {
                     Text(
-                        text = "${chat.messageCount} messages",
+                        text = pluralStringResource(
+                            R.plurals.chat_message_count,
+                            chat.messageCount,
+                            chat.messageCount
+                        ),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -249,21 +260,21 @@ private fun ChatSessionRow(
         IconButton(onClick = onDelete) {
             Icon(
                 Icons.Filled.DeleteOutline,
-                contentDescription = "Delete chat",
+                contentDescription = stringResource(R.string.chat_delete_content_description),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
 }
 
-private fun formatRelativeTime(epochMillis: Long): String {
+private fun formatRelativeTime(epochMillis: Long, res: android.content.res.Resources): String {
     val now = System.currentTimeMillis()
     val diff = now - epochMillis
     return when {
-        diff < 60_000 -> "now"
-        diff < 3_600_000 -> "${diff / 60_000}m"
-        diff < 86_400_000 -> "${diff / 3_600_000}h"
-        diff < 604_800_000 -> "${diff / 86_400_000}d"
+        diff < 60_000 -> res.getString(R.string.common_time_now)
+        diff < 3_600_000 -> res.getString(R.string.common_time_minutes_short, diff / 60_000)
+        diff < 86_400_000 -> res.getString(R.string.common_time_hours_short, diff / 3_600_000)
+        diff < 604_800_000 -> res.getString(R.string.common_time_days_short, diff / 86_400_000)
         else -> SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(epochMillis))
     }
 }

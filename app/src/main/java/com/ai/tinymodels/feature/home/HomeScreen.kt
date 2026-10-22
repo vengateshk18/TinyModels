@@ -170,6 +170,7 @@ private fun FirstTimeHome(
     onBrowseModels: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val res = LocalContext.current.resources
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
@@ -204,7 +205,7 @@ private fun FirstTimeHome(
 
         // ---- Storage note ----
         Text(
-            stringResource(R.string.home_storage_note, Formatters.formatBytes(state.freeStorageBytes)),
+            stringResource(R.string.home_storage_note, Formatters.formatBytes(state.freeStorageBytes, res)),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -236,6 +237,7 @@ private fun FirstTimeHome(
 
 @Composable
 private fun CapabilityVerdictCard(state: HomeUiState.FirstTime) {
+    val res = LocalContext.current.resources
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -298,7 +300,7 @@ private fun CapabilityVerdictCard(state: HomeUiState.FirstTime) {
                             R.string.home_device_model_tier,
                             stringResource(model.tierRes),
                             stringResource(model.displayNameRes),
-                            Formatters.formatBytes(model.sizeBytes)
+                            Formatters.formatBytes(model.sizeBytes, res)
                         ),
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = if (isPick) FontWeight.Bold else FontWeight.Normal,
@@ -357,6 +359,7 @@ private fun RecommendedModelCard(
     onOpenModelPage: (String) -> Unit,
     onOpenSettings: () -> Unit
 ) {
+    val res = LocalContext.current.resources
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -391,7 +394,7 @@ private fun RecommendedModelCard(
                 stringResource(
                     R.string.home_recommended_meta,
                     stringResource(recommended.tierRes),
-                    Formatters.formatBytes(recommended.sizeBytes),
+                    Formatters.formatBytes(recommended.sizeBytes, res),
                     recommended.fileName
                 ),
                 style = MaterialTheme.typography.bodySmall,
@@ -407,7 +410,7 @@ private fun RecommendedModelCard(
                     ) {
                         Icon(Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text(stringResource(R.string.home_download_button, Formatters.formatBytes(recommended.sizeBytes)))
+                        Text(stringResource(R.string.home_download_button, Formatters.formatBytes(recommended.sizeBytes, res)))
                     }
                 }
                 download.status == DownloadStatus.COMPLETED -> {
@@ -486,7 +489,7 @@ private fun RecommendedModelCard(
                                 stringResource(
                                     R.string.home_download_progress_with_speed,
                                     (download.progress * 100).toInt(),
-                                    Formatters.formatBytes(download.bytesPerSecond)
+                                    Formatters.formatBytes(download.bytesPerSecond, res)
                                 )
                             } else {
                                 stringResource(R.string.home_download_progress, (download.progress * 100).toInt())
@@ -702,6 +705,7 @@ private fun ModelRow(
     model: com.ai.tinymodels.feature.home.model.DownloadedModelInfo,
     onNewChat: (String?) -> Unit
 ) {
+    val res = LocalContext.current.resources
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -739,16 +743,16 @@ private fun ModelRow(
                         pluralStringResource(
                             R.plurals.home_model_files_last_used,
                             model.fileCount,
-                            Formatters.formatBytes(model.sizeBytes),
+                            Formatters.formatBytes(model.sizeBytes, res),
                             model.fileCount
                         )
                     } else {
                         pluralStringResource(
                             R.plurals.home_model_files_relative,
                             model.fileCount,
-                            Formatters.formatBytes(model.sizeBytes),
+                            Formatters.formatBytes(model.sizeBytes, res),
                             model.fileCount,
-                            Formatters.formatRelativeTime(model.downloadedAt)
+                            Formatters.formatRelativeTime(model.downloadedAt, res)
                         )
                     },
                     style = MaterialTheme.typography.bodySmall,

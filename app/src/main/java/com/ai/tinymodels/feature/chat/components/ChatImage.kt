@@ -12,7 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.ai.tinymodels.R
 import java.io.File
 
 /**
@@ -48,7 +50,7 @@ fun AttachedPhoto(
     if (bitmap != null) {
         Image(
             bitmap = bitmap.asImageBitmap(),
-            contentDescription = "Attached photo",
+            contentDescription = stringResource(R.string.chat_photo_to_send_content_description),
             modifier = modifier
                 .fillMaxWidth()
                 .heightIn(max = 240.dp)

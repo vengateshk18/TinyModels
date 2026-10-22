@@ -239,7 +239,7 @@ private fun PickerContent(
                                 else MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                "${file.modelId} • ${Formatters.formatBytes(file.sizeBytes)}",
+                                "${file.modelId} • ${Formatters.formatBytes(file.sizeBytes, LocalContext.current.resources)}",
                                 style = MaterialTheme.typography.bodySmall,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -533,8 +533,8 @@ private fun ResultContent(
         // ---- Load + memory ----
         SectionTitle("Model")
         InfoRow("Load time (cold)", "%.1f s".format(result.loadTimeMs / 1000.0))
-        InfoRow("Peak memory (PSS)", Formatters.formatBytes(result.peakPssBytes))
-        InfoRow("Baseline before load", Formatters.formatBytes(result.baselinePssBytes))
+        InfoRow("Peak memory (PSS)", Formatters.formatBytes(result.peakPssBytes, LocalContext.current.resources))
+        InfoRow("Baseline before load", Formatters.formatBytes(result.baselinePssBytes, LocalContext.current.resources))
         InfoRow("Backend", result.backendUsed)
         InfoRow("Device", result.deviceName)
 
@@ -610,8 +610,8 @@ private fun copySummary(context: Context, result: BenchmarkResult) {
     }
     sb.append("\n")
     sb.append(
-        "Peak PSS: ${Formatters.formatBytes(result.peakPssBytes)} " +
-            "(baseline ${Formatters.formatBytes(result.baselinePssBytes)})\n"
+        "Peak PSS: ${Formatters.formatBytes(result.peakPssBytes, context.resources)} " +
+            "(baseline ${Formatters.formatBytes(result.baselinePssBytes, context.resources)})\n"
     )
     sb.append("Device: ${result.deviceName}")
 

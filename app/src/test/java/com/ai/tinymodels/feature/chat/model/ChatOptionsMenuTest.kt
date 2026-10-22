@@ -1,5 +1,6 @@
 package com.ai.tinymodels.feature.chat.model
 
+import com.ai.tinymodels.R
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -19,7 +20,7 @@ class ChatOptionsMenuTest {
         )
         assertEquals(
             listOf(
-                PlusMenuItem.AttachPhoto(enabled = true, disabledReason = null),
+                PlusMenuItem.AttachPhoto(enabled = true, disabledReasonRes = null),
                 PlusMenuItem.WebSearch(checked = false, enabled = true)
             ),
             items
@@ -55,7 +56,7 @@ class ChatOptionsMenuTest {
             canAttachPhoto = false,
             supportsVision = true
         )
-        assertEquals(PlusMenuItem.AttachPhoto(enabled = false, disabledReason = null), items[0])
+        assertEquals(PlusMenuItem.AttachPhoto(enabled = false, disabledReasonRes = null), items[0])
     }
 
     @Test fun `text-only model shows disabled attach-photo with explanatory text`() {
@@ -67,10 +68,7 @@ class ChatOptionsMenuTest {
         )
         val photoItem = items[0] as PlusMenuItem.AttachPhoto
         assertEquals(false, photoItem.enabled)
-        assertEquals(
-            "This model can't read photos. Load a vision-capable model (e.g. Gemma 3) to analyze images.",
-            photoItem.disabledReason
-        )
+        assertEquals(R.string.chat_attach_photo_unavailable, photoItem.disabledReasonRes)
         // Web search still present
         assertEquals(PlusMenuItem.WebSearch(checked = false, enabled = true), items[1])
     }
@@ -84,10 +82,7 @@ class ChatOptionsMenuTest {
         )
         val photoItem = items[0] as PlusMenuItem.AttachPhoto
         assertEquals(false, photoItem.enabled)
-        assertEquals(
-            "This model can't read photos. Load a vision-capable model (e.g. Gemma 3) to analyze images.",
-            photoItem.disabledReason
-        )
+        assertEquals(R.string.chat_attach_photo_unavailable, photoItem.disabledReasonRes)
         assertEquals(PlusMenuItem.WebSearch(checked = true, enabled = true), items[1])
     }
 }

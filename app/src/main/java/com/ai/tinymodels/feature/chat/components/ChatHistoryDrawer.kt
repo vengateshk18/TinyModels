@@ -29,12 +29,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.ai.tinymodels.R
+import com.ai.tinymodels.core.ui.Formatters
 import com.ai.tinymodels.feature.chat.model.ChatListItem
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 /** Drawer content listing prior chats, with new-chat + swipe/delete. */
 @Composable
@@ -54,7 +55,7 @@ fun ChatHistoryDrawer(
                 .padding(horizontal = 12.dp, vertical = 16.dp)
         ) {
             Text(
-                text = "Chats",
+                text = stringResource(R.string.chat_tab_title),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
@@ -62,7 +63,7 @@ fun ChatHistoryDrawer(
             TextButton(onClick = onNewChat) {
                 Icon(Icons.Filled.Add, contentDescription = null)
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("New chat")
+                Text(stringResource(R.string.chat_new_chat))
             }
             Spacer(modifier = Modifier.height(4.dp))
             HorizontalDivider()
@@ -70,7 +71,7 @@ fun ChatHistoryDrawer(
 
             if (chats.isEmpty()) {
                 Text(
-                    text = "No conversations yet",
+                    text = stringResource(R.string.chat_no_conversations),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(16.dp)
@@ -94,21 +95,23 @@ fun ChatHistoryDrawer(
     pendingDelete?.let { chat ->
         AlertDialog(
             onDismissRequest = { pendingDelete = null },
-            title = { Text("Delete chat?") },
+            title = { Text(stringResource(R.string.chat_delete_title)) },
             text = {
                 Text(
-                    "\"${chat.title.ifBlank { "Untitled" }}\" will be permanently deleted. " +
-                        "This action cannot be undone."
+                    stringResource(
+                        R.string.chat_delete_body,
+                        chat.title.ifBlank { stringResource(R.string.chat_untitled) }
+                    )
                 )
             },
             confirmButton = {
                 TextButton(onClick = {
                     onDeleteChat(chat.id)
                     pendingDelete = null
-                }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
+                }) { Text(stringResource(R.string.common_delete), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(onClick = { pendingDelete = null }) { Text("Cancel") }
+                TextButton(onClick = { pendingDelete = null }) { Text(stringResource(R.string.common_cancel)) }
             }
         )
     }
@@ -121,6 +124,7 @@ private fun ChatHistoryRow(
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val res = LocalContext.current.resources
     val container = if (isActive) {
         MaterialTheme.colorScheme.secondaryContainer
     } else {
@@ -140,7 +144,7 @@ private fun ChatHistoryRow(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = chat.title.ifBlank { "Untitled" },
+                    text = chat.title.ifBlank { stringResource(R.string.chat_untitled) },
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -155,7 +159,7 @@ private fun ChatHistoryRow(
                     )
                 }
                 Text(
-                    text = formatRelative(chat.updatedAt),
+                    text = Formatters.formatRelativeTime(chat.updatedAt, res),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -163,26 +167,10 @@ private fun ChatHistoryRow(
             IconButton(onClick = onDelete) {
                 Icon(
                     Icons.Filled.DeleteOutline,
-                    contentDescription = "Delete chat",
+                    contentDescription = stringResource(R.string.chat_delete_content_description),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
-    }
-}
-
-private fun formatRelative(timestamp: Long): String {
-    if (timestamp <= 0) return ""
-    val now = System.currentTimeMillis()
-    val diff = now - timestamp
-    val minutes = diff / 60_000
-    val hours = diff / 3_600_000
-    val days = diff / 86_400_000
-    return when {
-        minutes < 1 -> "Just now"
-        minutes < 60 -> "${minutes}m ago"
-        hours < 24 -> "${hours}h ago"
-        days < 7 -> "${days}d ago"
-        else -> SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(timestamp))
     }
 }

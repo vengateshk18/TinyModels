@@ -28,13 +28,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import com.ai.tinymodels.R
 import com.ai.tinymodels.feature.chat.model.UiChatMessage
 import com.mikepenz.markdown.m3.Markdown
-import java.text.SimpleDateFormat
+import android.content.Context
+import android.content.res.Resources
+import android.text.format.DateFormat
 import java.util.Date
-import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 /**
@@ -160,11 +164,12 @@ private fun MessageFooter(
     showTokenCounts: Boolean
 ) {
     if (message.timestamp <= 0L) return
+    val context = LocalContext.current
     val showRegen = !message.isUser && !message.isStreaming && onRegenerate != null
     val showCopy = !message.isStreaming && message.text.isNotBlank() && onCopy != null
     val showTokens = showTokenCounts && !message.isStreaming && (message.tokenCount ?: 0) > 0
     val label = remember(message.id, message.completedAt, message.isStreaming) {
-        buildTimestampLabel(message)
+        buildTimestampLabel(message, context)
     }
     if (label.isBlank() && !showRegen && !showCopy && !showTokens) return
     Row(
@@ -188,7 +193,7 @@ private fun MessageFooter(
                 Spacer(modifier = Modifier.width(4.dp))
             }
             Text(
-                text = "• ${message.tokenCount} tok",
+                text = stringResource(R.string.chat_message_token_count, message.tokenCount ?: 0),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -203,7 +208,7 @@ private fun MessageFooter(
             ) {
                 Icon(
                     imageVector = Icons.Filled.ContentCopy,
-                    contentDescription = "Copy",
+                    contentDescription = stringResource(R.string.chat_message_copy_content_description),
                     modifier = Modifier.size(16.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -219,7 +224,7 @@ private fun MessageFooter(
             ) {
                 Icon(
                                         imageVector = Icons.Filled.Refresh,
-                    contentDescription = "Regenerate",
+                    contentDescription = stringResource(R.string.chat_message_regenerate_content_description),
                     modifier = Modifier.size(16.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -229,30 +234,31 @@ private fun MessageFooter(
 }
 
 /** Pure helper — formats sent/completed timestamps into a compact line. */
-private fun buildTimestampLabel(message: UiChatMessage): String {
-    val sent = formatTime(message.timestamp)
+private fun buildTimestampLabel(message: UiChatMessage, context: Context): String {
+    val sent = formatTime(message.timestamp, context)
     if (message.isUser) return sent
     if (message.isStreaming) return ""
     val completed = message.completedAt
     return if (completed != null && completed > message.timestamp) {
-        "$sent \u2022 ${formatDuration(completed - message.timestamp)}"
+        "$sent \u2022 ${formatDuration(completed - message.timestamp, context.resources)}"
     } else {
         sent
     }
 }
 
-private fun formatTime(epochMillis: Long): String =
-    SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(epochMillis))
+/** Localized time-of-day, e.g. "14:05" or "2:05 PM". */
+private fun formatTime(epochMillis: Long, context: Context): String =
+    DateFormat.getTimeFormat(context).format(Date(epochMillis))
 
 /** Human-friendly duration: "1.2s", "12s", "1m 05s". */
-private fun formatDuration(millis: Long): String {
+private fun formatDuration(millis: Long, res: Resources): String {
     val seconds = TimeUnit.MILLISECONDS.toSeconds(millis)
     return if (seconds < 60) {
-        String.format(Locale.US, "%.1fs", millis / 1000.0)
+        res.getString(R.string.chat_duration_seconds, millis / 1000.0)
     } else {
         val m = seconds / 60
         val s = seconds % 60
-        String.format(Locale.US, "%dm %02ds", m, s)
+        res.getString(R.string.chat_duration_minutes_seconds, m, s)
     }
 }
 

@@ -1,0 +1,145 @@
+<resources>
+    <!-- ================= Chat list / history ================= -->
+    <string name="chat_tab_title">Chats</string>
+    <string name="chat_new_chat">New chat</string>
+    <string name="chat_no_conversations">No conversations yet</string>
+    <string name="chat_tap_plus_to_start">Tap + to start a new chat</string>
+    <string name="chat_untitled">Untitled</string>
+    <string name="chat_delete_title">Delete chat?</string>
+    <string name="chat_delete_body">"%1$s" will be permanently deleted. This action cannot be undone.</string>
+    <plurals name="chat_message_count">
+        <item quantity="one">%1$d message</item>
+        <item quantity="other">%1$d messages</item>
+    </plurals>
+    <string name="chat_delete_content_description">Delete chat</string>
+    <string name="chat_time_just_now">Just now</string>
+
+    <!-- ================= Chat room ================= -->
+    <string name="chat_room_back_content_description">Back</string>
+    <string name="chat_room_session_settings_content_description">Session settings</string>
+    <string name="chat_room_no_models_title">No models yet</string>
+    <string name="chat_room_no_models_body">Download a model to start chatting.</string>
+    <string name="chat_room_pick_model_title">Pick a model</string>
+    <string name="chat_pick_model_title">Pick a model</string>
+    <string name="chat_room_pick_model_body">Choose a downloaded model to begin.</string>
+    <string name="chat_room_choose">Choose</string>
+    <string name="chat_room_say_hello_title">Say hello</string>
+    <string name="chat_room_say_hello_body">Your conversation stays on this device.</string>
+    <string name="chat_room_copied_to_clipboard">Copied to clipboard</string>
+    <string name="chat_room_summarized_conversation">Summarized conversation</string>
+    <string name="chat_room_context_usage_title">Context usage</string>
+    <string name="chat_room_tokens_in_context">Tokens in context</string>
+    <string name="chat_room_context_budget">Context budget</string>
+    <string name="chat_room_compactions_run">Compactions run</string>
+    <plurals name="chat_room_compactions_count">
+        <item quantity="one">%1$d time</item>
+        <item quantity="other">%1$d times</item>
+    </plurals>
+    <string name="chat_room_compacted_summary">Compacted summary</string>
+    <string name="chat_room_summary_present">Present (%1$d chars)</string>
+    <string name="chat_room_summary_none">None yet</string>
+    <string name="chat_room_tokens_used_of_total">%1$d / %2$d tokens</string>
+    <string name="chat_room_context_explainer">Older messages are summarized automatically when usage reaches %1$d%% of the budget.</string>
+    <string name="chat_room_tokens_label">%1$d tokens</string>
+    <string name="chat_room_compact_hint">Summarizes older messages into a digest to free context space.</string>
+    <string name="chat_room_compacting">Compacting…</string>
+    <string name="chat_room_compact_conversation">Compact conversation</string>
+
+    <!-- ================= Chat screen (empty states) ================= -->
+    <string name="chat_open_chats_content_description">Open chats</string>
+    <string name="chat_settings_content_description">Settings</string>
+    <string name="chat_no_models_title">No models yet</string>
+    <string name="chat_no_models_body">Download a LiteRT-LM model to start chatting offline.</string>
+    <string name="chat_browse_models">Browse models</string>
+    <string name="chat_choose_downloaded_model_body">Choose a downloaded model above to begin.</string>
+
+    <!-- ================= Chat input bar ================= -->
+    <string name="chat_options_content_description">Chat options</string>
+    <string name="chat_options_media_section">Media</string>
+    <string name="chat_options_attach_photo">Attach photo</string>
+    <string name="chat_options_tools_section">Tools</string>
+    <string name="chat_options_web_search">Web search</string>
+    <string name="chat_input_hint_ready">Message…</string>
+    <string name="chat_input_hint_load_model">Load a model to chat</string>
+    <string name="chat_stop_generating_content_description">Stop generating</string>
+    <string name="chat_send_content_description">Send</string>
+    <string name="chat_photo_to_send_content_description">Photo to send</string>
+    <string name="chat_photo_attached">Photo attached</string>
+    <string name="chat_remove_photo_content_description">Remove photo</string>
+
+    <!-- ================= Edit message dialog ================= -->
+    <string name="chat_edit_title">Edit message</string>
+    <string name="chat_edit_body">Editing will replace this message and regenerate the reply.</string>
+    <string name="chat_edit_placeholder">Message</string>
+    <string name="chat_edit_save_send">Save &amp; Send</string>
+
+    <!-- ================= Inference settings sheet ================= -->
+    <string name="chat_settings_title">Session settings</string>
+    <string name="chat_settings_subtitle">Changes apply to this chat only.</string>
+    <string name="chat_settings_temperature">Temperature</string>
+    <string name="chat_settings_top_p">Top-P</string>
+    <string name="chat_settings_top_k">Top-K</string>
+    <string name="chat_settings_system_instruction">System instruction</string>
+    <string name="chat_settings_default_system_instruction">You are a helpful assistant.</string>
+    <string name="chat_settings_discard">Discard</string>
+    <string name="chat_settings_save">Save</string>
+    <string name="chat_settings_context_window_note">Context window is managed automatically — older messages are summarized when the conversation outgrows it.</string>
+    <string name="chat_settings_backend">Backend</string>
+
+    <!-- ================= Message bubble ================= -->
+    <string name="chat_message_token_count">• %1$d tok</string>
+    <string name="chat_duration_seconds">%1$.1fs</string>
+    <string name="chat_duration_minutes_seconds">%1$dm %2$02ds</string>
+    <string name="chat_message_copy_content_description">Copy</string>
+    <string name="chat_message_regenerate_content_description">Regenerate</string>
+
+    <!-- ================= Model chip / pickers ================= -->
+    <string name="chat_model_loading">Loading…</string>
+    <string name="chat_model_error">Model error</string>
+    <string name="chat_model_select">Select model</string>
+    <string name="chat_model_choose_content_description">Choose model</string>
+    <string name="chat_model_choose_title">Choose a model</string>
+    <string name="chat_model_active_content_description">Active</string>
+    <string name="chat_model_files_title">Choose a model</string>
+    <string name="chat_model_files_subtitle">All downloaded model files on this device.</string>
+    <string name="chat_model_files_empty">No downloaded model files yet.</string>
+
+    <!-- ================= Model loading dialog ================= -->
+    <string name="chat_loading_title">Loading model</string>
+    <string name="chat_loading_stage_initializing">Initializing engine…</string>
+    <string name="chat_loading_stage_weights">Loading weights…</string>
+    <string name="chat_loading_stage_ready">Ready!</string>
+
+    <!-- ================= Chat options menu ================= -->
+    <string name="chat_attach_photo_unavailable">This model can’t read photos. Load a vision-capable model (e.g. Gemma 3) to analyze images.</string>
+
+    <!-- ================= Vision support ================= -->
+    <string name="chat_vision_unsupported">This model doesn’t include a vision encoder, so it can’t read photos. Load a vision-capable model (e.g. Gemma 3) to analyze images — your text was kept and photo attachments were skipped.</string>
+
+    <!-- ================= Chat errors ================= -->
+    <string name="chat_error_model_not_downloaded">Model %1$s is not downloaded</string>
+    <string name="chat_error_model_file_missing">Model file missing on device</string>
+    <string name="chat_error_re_download">Re-download</string>
+    <string name="chat_error_failed_to_load">Failed to load model</string>
+    <string name="chat_error_model_still_loading">Model is still loading</string>
+    <string name="chat_error_download_model_first">Download a model first to start chatting.</string>
+    <string name="chat_error_nothing_to_compact">Nothing to compact — the conversation already fits the context window</string>
+    <string name="chat_error_summarization_failed">Summarization failed — history was trimmed to fit the context window</string>
+    <plurals name="chat_error_compacted_messages">
+        <item quantity="one">Compacted %1$d older message into a summary</item>
+        <item quantity="other">Compacted %1$d older messages into a summary</item>
+    </plurals>
+    <string name="chat_error_photo_unreadable">Couldn’t read that photo — try another image</string>
+    <string name="chat_error_no_active_conversation">No active conversation</string>
+    <string name="chat_error_model_not_ready">Model is not ready</string>
+    <string name="chat_error_generation_failed">Generation failed</string>
+    <string name="chat_error_vision_photos">This model can’t read photos. Load a vision-capable model (e.g. Gemma 3) to analyze images.</string>
+    <string name="chat_error_context_too_long">Prompt or chat history is too long for this model’s context window. Start a new chat or reduce max context tokens in session settings.</string>
+    <string name="chat_error_couldnt_start_conversation">Couldn’t start the conversation</string>
+    <string name="chat_error_couldnt_start_conversation_retry">Couldn’t start the conversation. Try reopening the chat or reloading the model.</string>
+    <string name="chat_error_history_too_long">Chat history is too long for this model’s context window. Start a new chat or compact the conversation.</string>
+    <string name="chat_error_out_of_memory">Not enough free memory. Close other apps and retry.</string>
+    <string name="chat_error_model_file_missing_short">Model file missing. Re-download the model.</string>
+    <string name="chat_error_no_backend">No supported backend on this device.</string>
+    <string name="chat_error_no_model_loaded">No model loaded</string>
+</resources>

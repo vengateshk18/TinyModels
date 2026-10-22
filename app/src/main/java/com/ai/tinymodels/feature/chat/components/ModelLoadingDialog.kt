@@ -18,7 +18,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.ai.tinymodels.R
 import com.ai.tinymodels.feature.chat.model.ModelLoadProgress
 
 /**
@@ -72,7 +74,7 @@ fun ModelLoadingDialog(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
-                    text = "Loading model",
+                    text = stringResource(R.string.chat_loading_title),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -107,9 +109,12 @@ fun ModelLoadingDialog(
                 ) {
                     Text(
                         text = when (progress.stage) {
-                            ModelLoadProgress.LoadStage.INITIALIZING -> "Initializing engine…"
-                            ModelLoadProgress.LoadStage.LOADING_WEIGHTS -> "Loading weights…"
-                            ModelLoadProgress.LoadStage.READY -> "Ready!"
+                            ModelLoadProgress.LoadStage.INITIALIZING ->
+                                stringResource(R.string.chat_loading_stage_initializing)
+                            ModelLoadProgress.LoadStage.LOADING_WEIGHTS ->
+                                stringResource(R.string.chat_loading_stage_weights)
+                            ModelLoadProgress.LoadStage.READY ->
+                                stringResource(R.string.chat_loading_stage_ready)
                         },
                         style = MaterialTheme.typography.labelSmall,
                         color = if (progress.stage == ModelLoadProgress.LoadStage.READY)
@@ -118,7 +123,7 @@ fun ModelLoadingDialog(
                             MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "${(progress.progress * 100).toInt()}%",
+                        text = stringResource(R.string.common_percent, (progress.progress * 100).toInt()),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
