@@ -54,6 +54,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.Modifier
@@ -68,6 +69,7 @@ import com.ai.tinymodels.domain.model.AppSettings
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.FontChoice
 import com.ai.tinymodels.domain.model.ThemeMode
+import com.ai.tinymodels.core.ui.components.bottomSheetTopSafePadding
 import com.ai.tinymodels.core.ui.theme.fontFamilyFor
 import kotlin.math.roundToInt
 
@@ -657,11 +659,17 @@ private fun FontBottomSheet(
 }
 
 /**
+ * Test tag for the language sheet's content column, so the instrumented inset
+ * test can measure the content's laid-out rect against the window insets.
+ */
+internal const val LANGUAGE_SHEET_CONTENT_TAG = "language_sheet_content"
+
+/**
  * Bottom sheet listing the languages the app is translated into.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LanguageBottomSheet(
+internal fun LanguageBottomSheet(
     selected: AppLanguage,
     onSelect: (AppLanguage) -> Unit,
     onDismiss: () -> Unit
@@ -670,13 +678,24 @@ private fun LanguageBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        // Suppress the sheet's built-in inset handling so we control it precisely.
         contentWindowInsets = { WindowInsets(0) },
-        modifier = Modifier.fillMaxWidth()
+        // Keep the sheet surface below the status bar when it grows tall
+        // (short screens in landscape).
+        modifier = Modifier
+            .fillMaxWidth()
+            .bottomSheetTopSafePadding()
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .testTag(LANGUAGE_SHEET_CONTENT_TAG)
                 .padding(horizontal = 24.dp)
+                .windowInsetsPadding(
+                    WindowInsets.systemBars
+                        .union(WindowInsets.displayCutout)
+                        .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+                )
                 .padding(bottom = 16.dp)
         ) {
             Text(
