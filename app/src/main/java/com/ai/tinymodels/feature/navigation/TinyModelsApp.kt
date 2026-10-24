@@ -86,17 +86,23 @@ fun TinyModelsApp(
                         NavigationBarItem(
                             selected = selected,
                             onClick = {
-                                val startDest = navController.graph.findStartDestination().id
-                                navController.navigate(item.route) {
-                                    // Pop to start destination to avoid building up
-                                    // a deep back stack when switching tabs.
-                                    popUpTo(startDest) {
-                                        saveState = true
+                                // Tapping the tab you are already on must be a
+                                // no-op: without this guard, popUpTo popped the
+                                // current entry before launchSingleTop could
+                                // dedupe the tap, rebuilding the screen.
+                                if (TabNavigator.shouldNavigate(currentRoute, item.route)) {
+                                    val startDest = navController.graph.findStartDestination().id
+                                    navController.navigate(item.route) {
+                                        // Pop to start destination to avoid building up
+                                        // a deep back stack when switching tabs.
+                                        popUpTo(startDest) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        // Sibling tabs restore their preserved state
+                                        // (ViewModels survive the save/restore round trip).
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
-                                    // Only restore state when switching between
-                                    // sibling tabs — not when returning to start.
-                                    restoreState = item.route != navController.currentBackStackEntry?.destination?.route
                                 }
                             },
                             icon = {

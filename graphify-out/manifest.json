@@ -1,0 +1,896 @@
+{
+  "app/build.gradle.kts": {
+    "mtime": 1792419835.182957,
+    "seen": 1792565592.540204,
+    "ast_hash": "ee4ab2f1eca58e66621bc9b2fd0877dd",
+    "semantic_hash": "ee4ab2f1eca58e66621bc9b2fd0877dd"
+  },
+  "app/src/androidTest/java/com/ai/tinymodels/ExampleInstrumentedTest.kt": {
+    "mtime": 1791984474.5570807,
+    "seen": 1792565592.540208,
+    "ast_hash": "665e30cf1dacb10f7861076ecf6dec4e",
+    "semantic_hash": "665e30cf1dacb10f7861076ecf6dec4e"
+  },
+  "app/src/main/java/com/ai/tinymodels/MainActivity.kt": {
+    "mtime": 1791984474.5791888,
+    "seen": 1792565592.5402088,
+    "ast_hash": "35f3a0a1f3349a722051c148082e1705",
+    "semantic_hash": "35f3a0a1f3349a722051c148082e1705"
+  },
+  "app/src/main/java/com/ai/tinymodels/TinyModelsApp.kt": {
+    "mtime": 1791984474.612786,
+    "seen": 1792565592.54021,
+    "ast_hash": "8dd3a8c869114aade9001e06366d2563",
+    "semantic_hash": "8dd3a8c869114aade9001e06366d2563"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/common/AppResult.kt": {
+    "mtime": 1792419835.184582,
+    "seen": 1792565592.540211,
+    "ast_hash": "c53aeb389d0b851419fdce1b0563d0e0",
+    "semantic_hash": "c53aeb389d0b851419fdce1b0563d0e0"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/common/DispatcherProvider.kt": {
+    "mtime": 1791984474.6037166,
+    "seen": 1792565592.540211,
+    "ast_hash": "1241e99755844622a30c4835ad8e787b",
+    "semantic_hash": "1241e99755844622a30c4835ad8e787b"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/common/DownloadNotifier.kt": {
+    "mtime": 1791984474.6050107,
+    "seen": 1792565592.540212,
+    "ast_hash": "7bc1baaad5dd7e2fabf25bd80551065a",
+    "semantic_hash": "7bc1baaad5dd7e2fabf25bd80551065a"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/common/MemoryUtils.kt": {
+    "mtime": 1791984474.603202,
+    "seen": 1792565592.540212,
+    "ast_hash": "73efafb7c17bfa0f195e104307367dd2",
+    "semantic_hash": "73efafb7c17bfa0f195e104307367dd2"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/common/SnackbarManager.kt": {
+    "mtime": 1791984474.6058402,
+    "seen": 1792565592.540213,
+    "ast_hash": "4247f64a4cbddd1cb431fdf4e2103caa",
+    "semantic_hash": "4247f64a4cbddd1cb431fdf4e2103caa"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/common/StorageUtils.kt": {
+    "mtime": 1791984474.602792,
+    "seen": 1792565592.540213,
+    "ast_hash": "671b6392cc5d16508579b03c1cb2b976",
+    "semantic_hash": "671b6392cc5d16508579b03c1cb2b976"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/database/ChatDao.kt": {
+    "mtime": 1791984474.5892594,
+    "seen": 1792565592.540214,
+    "ast_hash": "722c72d40aca5dc7ec933a6b2e806d0b",
+    "semantic_hash": "722c72d40aca5dc7ec933a6b2e806d0b"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/database/DownloadedModelDao.kt": {
+    "mtime": 1791984474.5896919,
+    "seen": 1792565592.540215,
+    "ast_hash": "eabb53b305a20a9fb8e79d8ec30acec5",
+    "semantic_hash": "eabb53b305a20a9fb8e79d8ec30acec5"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/database/Migrations.kt": {
+    "mtime": 1792419835.1851168,
+    "seen": 1792565592.540216,
+    "ast_hash": "ba7abc968c3b2fe4f0a6c774dfb72de6",
+    "semantic_hash": "ba7abc968c3b2fe4f0a6c774dfb72de6"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/database/ModelFileDao.kt": {
+    "mtime": 1791984474.5906553,
+    "seen": 1792565592.540216,
+    "ast_hash": "4d7bf1d07900d5c07d651d2e2a43880f",
+    "semantic_hash": "4d7bf1d07900d5c07d651d2e2a43880f"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/database/TinyModelsDatabase.kt": {
+    "mtime": 1792419835.1852734,
+    "seen": 1792565592.5402172,
+    "ast_hash": "296bdff7f62955db51d0e92bb5fbc3b0",
+    "semantic_hash": "296bdff7f62955db51d0e92bb5fbc3b0"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/database/entities/ChatEntity.kt": {
+    "mtime": 1791984474.5914047,
+    "seen": 1792565592.540218,
+    "ast_hash": "13408754942e15a022e4bc93c57665d6",
+    "semantic_hash": "13408754942e15a022e4bc93c57665d6"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/database/entities/DownloadedModelEntity.kt": {
+    "mtime": 1791984474.5909536,
+    "seen": 1792565592.540218,
+    "ast_hash": "ffdd2585e86dc0e4398746045320ed24",
+    "semantic_hash": "ffdd2585e86dc0e4398746045320ed24"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/database/entities/ModelFileEntity.kt": {
+    "mtime": 1792419835.185557,
+    "seen": 1792565592.5402188,
+    "ast_hash": "3a6b133fc39adc80462758573f806121",
+    "semantic_hash": "3a6b133fc39adc80462758573f806121"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/inference/BenchmarkMath.kt": {
+    "mtime": 1791984474.6110067,
+    "seen": 1792565592.5402188,
+    "ast_hash": "432f51919c4553661723fed70f1620c9",
+    "semantic_hash": "432f51919c4553661723fed70f1620c9"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/inference/BenchmarkRunner.kt": {
+    "mtime": 1792419835.1860144,
+    "seen": 1792565592.54022,
+    "ast_hash": "47c448a874a653680dc2dcfd0601ef7d",
+    "semantic_hash": "47c448a874a653680dc2dcfd0601ef7d"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/inference/ConversationSession.kt": {
+    "mtime": 1792419835.1861787,
+    "seen": 1792565592.54022,
+    "ast_hash": "15b815fb45413cf0f82e7e79e0098ff0",
+    "semantic_hash": "15b815fb45413cf0f82e7e79e0098ff0"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/inference/ModelContextInspector.kt": {
+    "mtime": 1792419835.1864083,
+    "seen": 1792565592.540221,
+    "ast_hash": "1e0ff66604dbd1fac1edf28fb5d23851",
+    "semantic_hash": "1e0ff66604dbd1fac1edf28fb5d23851"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/inference/ModelManager.kt": {
+    "mtime": 1792419835.1866362,
+    "seen": 1792565592.540221,
+    "ast_hash": "121ec585eb8d7d8d0a514c66e085a8e8",
+    "semantic_hash": "121ec585eb8d7d8d0a514c66e085a8e8"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/inference/ModelVisionSupport.kt": {
+    "mtime": 1792419835.1869466,
+    "seen": 1792565592.540222,
+    "ast_hash": "4552a966e0f5a715565d7d38da1cc2a4",
+    "semantic_hash": "4552a966e0f5a715565d7d38da1cc2a4"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/inference/tools/WebSearchToolSet.kt": {
+    "mtime": 1792419835.187157,
+    "seen": 1792565592.540222,
+    "ast_hash": "a489b8cac4f09b3fce066b5baa993e5d",
+    "semantic_hash": "a489b8cac4f09b3fce066b5baa993e5d"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/network/HuggingFaceApi.kt": {
+    "mtime": 1792419835.187488,
+    "seen": 1792565592.540223,
+    "ast_hash": "9b9ad603e91528df5917c9488233f5c5",
+    "semantic_hash": "9b9ad603e91528df5917c9488233f5c5"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/network/HuggingFaceAuth.kt": {
+    "mtime": 1791984474.6001048,
+    "seen": 1792565592.540223,
+    "ast_hash": "4e6eb3c4e32bd1316d5f9c0689e0fc7b",
+    "semantic_hash": "4e6eb3c4e32bd1316d5f9c0689e0fc7b"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/network/NetworkErrorMapper.kt": {
+    "mtime": 1791984474.6021402,
+    "seen": 1792565592.540224,
+    "ast_hash": "3e2325eed1a4eca4592925b284159b05",
+    "semantic_hash": "3e2325eed1a4eca4592925b284159b05"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/network/NetworkMonitor.kt": {
+    "mtime": 1791984474.598141,
+    "seen": 1792565592.540224,
+    "ast_hash": "ce8c9ed9c0c67ce5f9a0bc10774bd845",
+    "semantic_hash": "ce8c9ed9c0c67ce5f9a0bc10774bd845"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/network/PageReader.kt": {
+    "mtime": 1791984474.5934148,
+    "seen": 1792565592.540225,
+    "ast_hash": "e4ecaa926ebff3cf118519a96dc4332c",
+    "semantic_hash": "e4ecaa926ebff3cf118519a96dc4332c"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/network/WebSearchClient.kt": {
+    "mtime": 1791984474.5926638,
+    "seen": 1792565592.540225,
+    "ast_hash": "4ba07f205a656d8e86168594e9652b3f",
+    "semantic_hash": "4ba07f205a656d8e86168594e9652b3f"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/network/WebSearchEndpoints.kt": {
+    "mtime": 1791984474.5975735,
+    "seen": 1792565592.540225,
+    "ast_hash": "7b5e110e31c9f1dddb4db377d5dc8ee3",
+    "semantic_hash": "7b5e110e31c9f1dddb4db377d5dc8ee3"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/network/WebSearchFilter.kt": {
+    "mtime": 1791984474.5956,
+    "seen": 1792565592.540226,
+    "ast_hash": "420dce2142e5f7fe57e4c9dba13c66cb",
+    "semantic_hash": "420dce2142e5f7fe57e4c9dba13c66cb"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/network/WebSearchParser.kt": {
+    "mtime": 1791984474.5967863,
+    "seen": 1792565592.540226,
+    "ast_hash": "8ea03f79f1cdefe81b2e192c9c9cc4b0",
+    "semantic_hash": "8ea03f79f1cdefe81b2e192c9c9cc4b0"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/network/WebSearchPrompt.kt": {
+    "mtime": 1791984474.6012979,
+    "seen": 1792565592.5402272,
+    "ast_hash": "594d6fc0e33a837c5e3c73c32442c4dd",
+    "semantic_hash": "594d6fc0e33a837c5e3c73c32442c4dd"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/network/WebSearchQuery.kt": {
+    "mtime": 1791984474.594188,
+    "seen": 1792565592.5402272,
+    "ast_hash": "eb00e1e389aa29174a5077859f3024ce",
+    "semantic_hash": "eb00e1e389aa29174a5077859f3024ce"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/network/dto/ModelDtoParser.kt": {
+    "mtime": 1791984474.5920055,
+    "seen": 1792565592.5402281,
+    "ast_hash": "9317afad1aa8f7f76a109a669d2fd558",
+    "semantic_hash": "9317afad1aa8f7f76a109a669d2fd558"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/ui/Formatters.kt": {
+    "mtime": 1791984474.5844455,
+    "seen": 1792565592.5402281,
+    "ast_hash": "f856183ed4881df2f1cb30f08280592a",
+    "semantic_hash": "f856183ed4881df2f1cb30f08280592a"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/ui/components/StateViews.kt": {
+    "mtime": 1791984474.5828445,
+    "seen": 1792565592.540229,
+    "ast_hash": "32d574af56a755cedaa5eb4ce34a7db6",
+    "semantic_hash": "32d574af56a755cedaa5eb4ce34a7db6"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/ui/components/WindowInsetsHelper.kt": {
+    "mtime": 1791984474.5837739,
+    "seen": 1792565592.540229,
+    "ast_hash": "b4f419a3831660ab38d7d515e0c8360c",
+    "semantic_hash": "b4f419a3831660ab38d7d515e0c8360c"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/ui/theme/Color.kt": {
+    "mtime": 1791984474.586369,
+    "seen": 1792565592.5402298,
+    "ast_hash": "d22f9850ee8eb68577ebdbe1a1f14e70",
+    "semantic_hash": "d22f9850ee8eb68577ebdbe1a1f14e70"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/ui/theme/Theme.kt": {
+    "mtime": 1791984474.5872324,
+    "seen": 1792565592.5402298,
+    "ast_hash": "fed2a831946c98868cfdfbba869764e7",
+    "semantic_hash": "fed2a831946c98868cfdfbba869764e7"
+  },
+  "app/src/main/java/com/ai/tinymodels/core/ui/theme/Type.kt": {
+    "mtime": 1791984474.5879931,
+    "seen": 1792565592.540231,
+    "ast_hash": "262af605b4eeb58e3d04c2c76d0515a5",
+    "semantic_hash": "262af605b4eeb58e3d04c2c76d0515a5"
+  },
+  "app/src/main/java/com/ai/tinymodels/data/repository/ChatRepositoryImpl.kt": {
+    "mtime": 1791984474.6504912,
+    "seen": 1792565592.540231,
+    "ast_hash": "9e632f0b89c882b73d3f14311e46751c",
+    "semantic_hash": "9e632f0b89c882b73d3f14311e46751c"
+  },
+  "app/src/main/java/com/ai/tinymodels/data/repository/ModelRepositoryImpl.kt": {
+    "mtime": 1792419835.1879373,
+    "seen": 1792565592.540232,
+    "ast_hash": "aa10d71464a73a040586cdcc6fab473f",
+    "semantic_hash": "aa10d71464a73a040586cdcc6fab473f"
+  },
+  "app/src/main/java/com/ai/tinymodels/data/repository/SettingsRepositoryImpl.kt": {
+    "mtime": 1791984474.6490147,
+    "seen": 1792565592.540232,
+    "ast_hash": "77c67893a08c7c4c48896172eed268f9",
+    "semantic_hash": "77c67893a08c7c4c48896172eed268f9"
+  },
+  "app/src/main/java/com/ai/tinymodels/data/repository/WebSearchRepositoryImpl.kt": {
+    "mtime": 1791984474.6513526,
+    "seen": 1792565592.540233,
+    "ast_hash": "66631a7c54d1e7c13052086934cf44bc",
+    "semantic_hash": "66631a7c54d1e7c13052086934cf44bc"
+  },
+  "app/src/main/java/com/ai/tinymodels/data/worker/CancelDownloadReceiver.kt": {
+    "mtime": 1791984474.6520522,
+    "seen": 1792565592.540233,
+    "ast_hash": "155eb69ca14e7225f2c4e37958a842c2",
+    "semantic_hash": "155eb69ca14e7225f2c4e37958a842c2"
+  },
+  "app/src/main/java/com/ai/tinymodels/data/worker/ModelDownloadWorker.kt": {
+    "mtime": 1792419835.188262,
+    "seen": 1792565592.540234,
+    "ast_hash": "6491909487a96fd436da5fc9474ca2a2",
+    "semantic_hash": "6491909487a96fd436da5fc9474ca2a2"
+  },
+  "app/src/main/java/com/ai/tinymodels/di/AppModule.kt": {
+    "mtime": 1791984474.5801,
+    "seen": 1792565592.540235,
+    "ast_hash": "214d3e6ac927d042226d1a238836d606",
+    "semantic_hash": "214d3e6ac927d042226d1a238836d606"
+  },
+  "app/src/main/java/com/ai/tinymodels/di/DatabaseModule.kt": {
+    "mtime": 1792419835.18866,
+    "seen": 1792565592.540235,
+    "ast_hash": "1d786e41a9a71dadf82cca75d6f44a95",
+    "semantic_hash": "1d786e41a9a71dadf82cca75d6f44a95"
+  },
+  "app/src/main/java/com/ai/tinymodels/di/NetworkModule.kt": {
+    "mtime": 1791984474.5807724,
+    "seen": 1792565592.540236,
+    "ast_hash": "e8aad7adbbbf25d9e137e439cc45a5c7",
+    "semantic_hash": "e8aad7adbbbf25d9e137e439cc45a5c7"
+  },
+  "app/src/main/java/com/ai/tinymodels/di/RepositoryModule.kt": {
+    "mtime": 1791984474.5813801,
+    "seen": 1792565592.540236,
+    "ast_hash": "73dbb0a80eb9e8552904d1e70d6a8e4f",
+    "semantic_hash": "73dbb0a80eb9e8552904d1e70d6a8e4f"
+  },
+  "app/src/main/java/com/ai/tinymodels/domain/model/AppSettings.kt": {
+    "mtime": 1791984474.6560814,
+    "seen": 1792565592.540237,
+    "ast_hash": "1864a34ac1226c691f041ba97aaee4ca",
+    "semantic_hash": "1864a34ac1226c691f041ba97aaee4ca"
+  },
+  "app/src/main/java/com/ai/tinymodels/domain/model/Chat.kt": {
+    "mtime": 1791984474.6556106,
+    "seen": 1792565592.540237,
+    "ast_hash": "a1b01c033f94d9915516cd3e8f21af1c",
+    "semantic_hash": "a1b01c033f94d9915516cd3e8f21af1c"
+  },
+  "app/src/main/java/com/ai/tinymodels/domain/model/InferenceConfig.kt": {
+    "mtime": 1791984474.6570017,
+    "seen": 1792565592.5402381,
+    "ast_hash": "c2fddd39be50aff2a827501204087ce6",
+    "semantic_hash": "c2fddd39be50aff2a827501204087ce6"
+  },
+  "app/src/main/java/com/ai/tinymodels/domain/model/InferenceSettings.kt": {
+    "mtime": 1791984474.656428,
+    "seen": 1792565592.540239,
+    "ast_hash": "1ce69b198efd02aa786b8792b2c04378",
+    "semantic_hash": "1ce69b198efd02aa786b8792b2c04378"
+  },
+  "app/src/main/java/com/ai/tinymodels/domain/model/Model.kt": {
+    "mtime": 1792419835.1889904,
+    "seen": 1792565592.540239,
+    "ast_hash": "54e97ab16075c8be0633840bbbdd5036",
+    "semantic_hash": "54e97ab16075c8be0633840bbbdd5036"
+  },
+  "app/src/main/java/com/ai/tinymodels/domain/model/ModelFilter.kt": {
+    "mtime": 1792419835.1891685,
+    "seen": 1792565592.5402398,
+    "ast_hash": "b47276d7097a97069afa08394835b19c",
+    "semantic_hash": "b47276d7097a97069afa08394835b19c"
+  },
+  "app/src/main/java/com/ai/tinymodels/domain/model/WebSearchResult.kt": {
+    "mtime": 1791984474.658099,
+    "seen": 1792565592.5402398,
+    "ast_hash": "a818d18dc4981b36163b071915e8edc1",
+    "semantic_hash": "a818d18dc4981b36163b071915e8edc1"
+  },
+  "app/src/main/java/com/ai/tinymodels/domain/model/WebSearchResults.kt": {
+    "mtime": 1791984474.6573796,
+    "seen": 1792565592.540241,
+    "ast_hash": "bf172f3dfe45f35ddf1e66011c96fe7e",
+    "semantic_hash": "bf172f3dfe45f35ddf1e66011c96fe7e"
+  },
+  "app/src/main/java/com/ai/tinymodels/domain/repository/ChatRepository.kt": {
+    "mtime": 1791984474.6532981,
+    "seen": 1792565592.540241,
+    "ast_hash": "06e7ccf2837a8928fdd156baac056788",
+    "semantic_hash": "06e7ccf2837a8928fdd156baac056788"
+  },
+  "app/src/main/java/com/ai/tinymodels/domain/repository/ModelRepository.kt": {
+    "mtime": 1792419835.1892784,
+    "seen": 1792565592.540242,
+    "ast_hash": "c717d8d28941f8ec30cba59185868355",
+    "semantic_hash": "c717d8d28941f8ec30cba59185868355"
+  },
+  "app/src/main/java/com/ai/tinymodels/domain/repository/SettingsRepository.kt": {
+    "mtime": 1791984474.653746,
+    "seen": 1792565592.540242,
+    "ast_hash": "c2c338035bf3fb43740f0d94285e3263",
+    "semantic_hash": "c2c338035bf3fb43740f0d94285e3263"
+  },
+  "app/src/main/java/com/ai/tinymodels/domain/repository/WebSearchRepository.kt": {
+    "mtime": 1791984474.654079,
+    "seen": 1792565592.540243,
+    "ast_hash": "08a1a82d23f714c7b4a74d308f461eaa",
+    "semantic_hash": "08a1a82d23f714c7b4a74d308f461eaa"
+  },
+  "app/src/main/java/com/ai/tinymodels/domain/usecase/model/DownloadManager.kt": {
+    "mtime": 1791984474.6624224,
+    "seen": 1792565592.540243,
+    "ast_hash": "5c76e327bae83a5275b0a01d92c2bbcf",
+    "semantic_hash": "5c76e327bae83a5275b0a01d92c2bbcf"
+  },
+  "app/src/main/java/com/ai/tinymodels/domain/usecase/model/DownloadManagerService.kt": {
+    "mtime": 1791984474.6614387,
+    "seen": 1792565592.5402439,
+    "ast_hash": "c2cd1c144e904d05d4ba62eab823a4a7",
+    "semantic_hash": "c2cd1c144e904d05d4ba62eab823a4a7"
+  },
+  "app/src/main/java/com/ai/tinymodels/domain/usecase/model/DownloadModelUseCase.kt": {
+    "mtime": 1792419835.1895792,
+    "seen": 1792565592.5402439,
+    "ast_hash": "ef3f38b178e454d5a0c432c30e14e2cc",
+    "semantic_hash": "ef3f38b178e454d5a0c432c30e14e2cc"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/benchmark/BenchmarkScreen.kt": {
+    "mtime": 1791984474.613914,
+    "seen": 1792565592.540245,
+    "ast_hash": "98b05d50ecfa132045d89d5f02da86b7",
+    "semantic_hash": "98b05d50ecfa132045d89d5f02da86b7"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/benchmark/BenchmarkViewModel.kt": {
+    "mtime": 1792419835.1898212,
+    "seen": 1792565592.540245,
+    "ast_hash": "ff47dce403c4ce0ecbba4cc0d412ef38",
+    "semantic_hash": "ff47dce403c4ce0ecbba4cc0d412ef38"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/benchmark/model/BenchmarkUi.kt": {
+    "mtime": 1791984474.614556,
+    "seen": 1792565592.540246,
+    "ast_hash": "d8a8079ed571c0c723c966767e7ea601",
+    "semantic_hash": "d8a8079ed571c0c723c966767e7ea601"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/chat/ChatListViewModel.kt": {
+    "mtime": 1791984474.6245596,
+    "seen": 1792565592.540247,
+    "ast_hash": "f5a514fc45eacd78e336761458ab8ce3",
+    "semantic_hash": "f5a514fc45eacd78e336761458ab8ce3"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/chat/ChatRoomScreen.kt": {
+    "mtime": 1791984474.6387806,
+    "seen": 1792565592.540247,
+    "ast_hash": "e19b17fcd4aafd553b2815ab47e93076",
+    "semantic_hash": "e19b17fcd4aafd553b2815ab47e93076"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/chat/ChatScreen.kt": {
+    "mtime": 1792419835.1900637,
+    "seen": 1792565592.5402482,
+    "ast_hash": "8de2371947b6fbbc2eb4946694213f3a",
+    "semantic_hash": "8de2371947b6fbbc2eb4946694213f3a"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/chat/ChatTabScreen.kt": {
+    "mtime": 1791984474.6234727,
+    "seen": 1792565592.5402482,
+    "ast_hash": "2a4b711f505bac36aa51351a293c1fa3",
+    "semantic_hash": "2a4b711f505bac36aa51351a293c1fa3"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/chat/ChatViewModel.kt": {
+    "mtime": 1792419835.1904604,
+    "seen": 1792565592.540249,
+    "ast_hash": "9ba5ed07027063e9e45e3c554b08c2b8",
+    "semantic_hash": "9ba5ed07027063e9e45e3c554b08c2b8"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/chat/components/ChatHistoryDrawer.kt": {
+    "mtime": 1791984474.6269312,
+    "seen": 1792565592.540249,
+    "ast_hash": "843ca31dfa16a2ab877acc3efe1d3cd7",
+    "semantic_hash": "843ca31dfa16a2ab877acc3efe1d3cd7"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/chat/components/ChatImage.kt": {
+    "mtime": 1791984474.627757,
+    "seen": 1792565592.54025,
+    "ast_hash": "03e395712a3c08099a25beb326fcba2c",
+    "semantic_hash": "03e395712a3c08099a25beb326fcba2c"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/chat/components/ChatInputBar.kt": {
+    "mtime": 1791984474.6316195,
+    "seen": 1792565592.54025,
+    "ast_hash": "a0588a01f8f4244202bf6196926d38bf",
+    "semantic_hash": "a0588a01f8f4244202bf6196926d38bf"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/chat/components/EditMessageDialog.kt": {
+    "mtime": 1791984474.625292,
+    "seen": 1792565592.5402508,
+    "ast_hash": "a0d40085c447b768febc8b337430f352",
+    "semantic_hash": "a0d40085c447b768febc8b337430f352"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/chat/components/InferenceSettingsSheet.kt": {
+    "mtime": 1791984474.6308038,
+    "seen": 1792565592.5402508,
+    "ast_hash": "df8f565eb63bd65c13628e691791c4e8",
+    "semantic_hash": "df8f565eb63bd65c13628e691791c4e8"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/chat/components/MessageBubble.kt": {
+    "mtime": 1791984474.6325533,
+    "seen": 1792565592.540252,
+    "ast_hash": "5ae27d11fdc48b8308ed9fbe0017c71c",
+    "semantic_hash": "5ae27d11fdc48b8308ed9fbe0017c71c"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/chat/components/ModelChip.kt": {
+    "mtime": 1792419835.1908734,
+    "seen": 1792565592.540252,
+    "ast_hash": "087040bbe38a0ea933bed98797287115",
+    "semantic_hash": "087040bbe38a0ea933bed98797287115"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/chat/components/ModelFilePickerSheet.kt": {
+    "mtime": 1792419835.191021,
+    "seen": 1792565592.540253,
+    "ast_hash": "5adb87f7bff61f553b294ceb6b17dd29",
+    "semantic_hash": "5adb87f7bff61f553b294ceb6b17dd29"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/chat/components/ModelLoadingDialog.kt": {
+    "mtime": 1791984474.6282072,
+    "seen": 1792565592.540253,
+    "ast_hash": "3734ba3f1480eccf8e20a9b96a8db899",
+    "semantic_hash": "3734ba3f1480eccf8e20a9b96a8db899"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/chat/model/ChatOptionsMenu.kt": {
+    "mtime": 1791984474.6359503,
+    "seen": 1792565592.5402539,
+    "ast_hash": "e4dd4fa05d593d3577cd99b3379a6828",
+    "semantic_hash": "e4dd4fa05d593d3577cd99b3379a6828"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/chat/model/ChatUi.kt": {
+    "mtime": 1791984474.633922,
+    "seen": 1792565592.540255,
+    "ast_hash": "75d1400b25b6ea2659ccd0bb8a541b17",
+    "semantic_hash": "75d1400b25b6ea2659ccd0bb8a541b17"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/home/AiCapabilityClassifier.kt": {
+    "mtime": 1792420165.7099686,
+    "seen": 1792565592.540255,
+    "ast_hash": "cb82ec863d562eb935ae0799aa4dd1cd",
+    "semantic_hash": "cb82ec863d562eb935ae0799aa4dd1cd"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/home/DeviceInfoScreen.kt": {
+    "mtime": 1791984474.6224377,
+    "seen": 1792565592.540256,
+    "ast_hash": "a752c77c520c6c818b82b6d24c959145",
+    "semantic_hash": "a752c77c520c6c818b82b6d24c959145"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/home/DeviceViewModel.kt": {
+    "mtime": 1792420248.200874,
+    "seen": 1792565592.540256,
+    "ast_hash": "b674bbd7339f451e41fc02741798c10a",
+    "semantic_hash": "b674bbd7339f451e41fc02741798c10a"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/home/HomeScreen.kt": {
+    "mtime": 1792420596.629463,
+    "seen": 1792565592.540257,
+    "ast_hash": "511cef1c9627c411a6da550ebfba5321",
+    "semantic_hash": "511cef1c9627c411a6da550ebfba5321"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/home/HomeViewModel.kt": {
+    "mtime": 1792420527.5308506,
+    "seen": 1792565592.540257,
+    "ast_hash": "84af065fc01eee9eee073f2754849c55",
+    "semantic_hash": "84af065fc01eee9eee073f2754849c55"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/home/RecommendedModels.kt": {
+    "mtime": 1791984474.6179023,
+    "seen": 1792565592.540258,
+    "ast_hash": "31b6c056943b42d8b44cc7faffa04a59",
+    "semantic_hash": "31b6c056943b42d8b44cc7faffa04a59"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/home/components/DeviceInsights.kt": {
+    "mtime": 1791984474.618984,
+    "seen": 1792565592.540258,
+    "ast_hash": "53821af40ab5c8104bc93643584fff29",
+    "semantic_hash": "53821af40ab5c8104bc93643584fff29"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/home/components/RamRecommendations.kt": {
+    "mtime": 1791984474.6198394,
+    "seen": 1792565592.5402591,
+    "ast_hash": "eea7d0efb667c63540654a7c1c315f09",
+    "semantic_hash": "eea7d0efb667c63540654a7c1c315f09"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/home/components/RamUsageChart.kt": {
+    "mtime": 1791991608.5414894,
+    "seen": 1792565592.54026,
+    "ast_hash": "0a34ba134aadc796a42ad5b238aa0e7c",
+    "semantic_hash": "0a34ba134aadc796a42ad5b238aa0e7c"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/home/model/HomeUi.kt": {
+    "mtime": 1791984474.6220765,
+    "seen": 1792565592.54026,
+    "ast_hash": "ec5ca479a0562b1a64da4613361fbf78",
+    "semantic_hash": "ec5ca479a0562b1a64da4613361fbf78"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/models/DownloadedFileDetailViewModel.kt": {
+    "mtime": 1791984474.6486623,
+    "seen": 1792565592.540261,
+    "ast_hash": "f14b4e8c555eb356230727ffe7f11a35",
+    "semantic_hash": "f14b4e8c555eb356230727ffe7f11a35"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/models/DownloadedModelsViewModel.kt": {
+    "mtime": 1792419835.191765,
+    "seen": 1792565592.540261,
+    "ast_hash": "706f72075528c2ed2643524ccb8b968d",
+    "semantic_hash": "706f72075528c2ed2643524ccb8b968d"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/models/ModelDetailsViewModel.kt": {
+    "mtime": 1792419835.1919994,
+    "seen": 1792565592.540262,
+    "ast_hash": "0303cb60136cd73c0f229410f6a6c306",
+    "semantic_hash": "0303cb60136cd73c0f229410f6a6c306"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/models/ModelListViewModel.kt": {
+    "mtime": 1792419835.1923099,
+    "seen": 1792565592.540262,
+    "ast_hash": "66211aeb22196675e19bf3db5f178223",
+    "semantic_hash": "66211aeb22196675e19bf3db5f178223"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/models/components/ActiveDownloadsSection.kt": {
+    "mtime": 1791984474.648295,
+    "seen": 1792565592.540263,
+    "ast_hash": "2f4b266312e6c054fc9b4bfa1573ba62",
+    "semantic_hash": "2f4b266312e6c054fc9b4bfa1573ba62"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/models/screens/DownloadedFileDetailScreen.kt": {
+    "mtime": 1791984474.645506,
+    "seen": 1792565592.540263,
+    "ast_hash": "51a5c75158045316bb0e07d5792e1dcb",
+    "semantic_hash": "51a5c75158045316bb0e07d5792e1dcb"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/models/screens/DownloadedModelsScreen.kt": {
+    "mtime": 1792419835.1924574,
+    "seen": 1792565592.540264,
+    "ast_hash": "8748f9f221f76f8715b9febba9c0f1d2",
+    "semantic_hash": "8748f9f221f76f8715b9febba9c0f1d2"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/models/screens/ModelDetailsScreen.kt": {
+    "mtime": 1792419835.1925764,
+    "seen": 1792565592.540264,
+    "ast_hash": "e20f88e15836e12ad907de34097daec5",
+    "semantic_hash": "e20f88e15836e12ad907de34097daec5"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/models/screens/ModelListScreen.kt": {
+    "mtime": 1791984474.646851,
+    "seen": 1792565592.5402648,
+    "ast_hash": "579b4eb92af5eb39c3c182dadf228f50",
+    "semantic_hash": "579b4eb92af5eb39c3c182dadf228f50"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/models/screens/ModelsTabScreen.kt": {
+    "mtime": 1792419835.1927588,
+    "seen": 1792565592.540266,
+    "ast_hash": "0927944c44fcddfa4e3f8e86da02ab57",
+    "semantic_hash": "0927944c44fcddfa4e3f8e86da02ab57"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/navigation/Routes.kt": {
+    "mtime": 1791984474.6392334,
+    "seen": 1792565592.540266,
+    "ast_hash": "9c3c0eb102b355780d800713448320ef",
+    "semantic_hash": "9c3c0eb102b355780d800713448320ef"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/navigation/TabNavigator.kt": {
+    "mtime": 1792420298.43088,
+    "seen": 1792565592.540267,
+    "ast_hash": "aaca3202430837c174635cade5a36923",
+    "semantic_hash": "aaca3202430837c174635cade5a36923"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/navigation/TinyModelsApp.kt": {
+    "mtime": 1792420309.5373292,
+    "seen": 1792565592.540267,
+    "ast_hash": "383801a43ef4cc2b30ac605a0c1fe4fb",
+    "semantic_hash": "383801a43ef4cc2b30ac605a0c1fe4fb"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/settings/SettingsScreen.kt": {
+    "mtime": 1792419835.1930206,
+    "seen": 1792565592.540268,
+    "ast_hash": "1ae554176f19f0cff3d6312048305609",
+    "semantic_hash": "1ae554176f19f0cff3d6312048305609"
+  },
+  "app/src/main/java/com/ai/tinymodels/feature/settings/SettingsViewModel.kt": {
+    "mtime": 1791984474.616595,
+    "seen": 1792565592.540268,
+    "ast_hash": "584ac3b0db15abffb3fd4c94746e05ac",
+    "semantic_hash": "584ac3b0db15abffb3fd4c94746e05ac"
+  },
+  "app/src/test/java/com/ai/tinymodels/BenchmarkMathTest.kt": {
+    "mtime": 1791984474.5783892,
+    "seen": 1792565592.5402691,
+    "ast_hash": "6327a5edd43ad61a8d1e648c31379dbe",
+    "semantic_hash": "6327a5edd43ad61a8d1e648c31379dbe"
+  },
+  "app/src/test/java/com/ai/tinymodels/ExampleUnitTest.kt": {
+    "mtime": 1791984474.5663533,
+    "seen": 1792565592.5402691,
+    "ast_hash": "3d2649c49bea0f7e734c772c507056ac",
+    "semantic_hash": "3d2649c49bea0f7e734c772c507056ac"
+  },
+  "app/src/test/java/com/ai/tinymodels/ModelDtoParserTest.kt": {
+    "mtime": 1791984474.566605,
+    "seen": 1792565592.54027,
+    "ast_hash": "0da7e8a83363e85f0484e2e2d2fc9444",
+    "semantic_hash": "0da7e8a83363e85f0484e2e2d2fc9444"
+  },
+  "app/src/test/java/com/ai/tinymodels/core/common/MemoryUtilsTest.kt": {
+    "mtime": 1791984474.56435,
+    "seen": 1792565592.54027,
+    "ast_hash": "2431bfe35ce89e0eee09f4a3f849fb21",
+    "semantic_hash": "2431bfe35ce89e0eee09f4a3f849fb21"
+  },
+  "app/src/test/java/com/ai/tinymodels/core/inference/CompactionPolicyTest.kt": {
+    "mtime": 1792419835.1933618,
+    "seen": 1792565592.540271,
+    "ast_hash": "7c6a3c27a929155f2eb50258acc145d5",
+    "semantic_hash": "7c6a3c27a929155f2eb50258acc145d5"
+  },
+  "app/src/test/java/com/ai/tinymodels/core/inference/ModelVisionSupportTest.kt": {
+    "mtime": 1792419835.19366,
+    "seen": 1792565592.540271,
+    "ast_hash": "f82bc8e6deb97f9ddcce69b4205d131a",
+    "semantic_hash": "f82bc8e6deb97f9ddcce69b4205d131a"
+  },
+  "app/src/test/java/com/ai/tinymodels/core/inference/VisionMessageTest.kt": {
+    "mtime": 1792419835.1937754,
+    "seen": 1792565592.5402722,
+    "ast_hash": "53fcd00cd641d08fc3cbece428cc9342",
+    "semantic_hash": "53fcd00cd641d08fc3cbece428cc9342"
+  },
+  "app/src/test/java/com/ai/tinymodels/core/network/NetworkErrorMapperTest.kt": {
+    "mtime": 1791984474.5587265,
+    "seen": 1792565592.5402722,
+    "ast_hash": "0942c13865d1984f40445f4cf752323d",
+    "semantic_hash": "0942c13865d1984f40445f4cf752323d"
+  },
+  "app/src/test/java/com/ai/tinymodels/core/network/PageReaderTest.kt": {
+    "mtime": 1791984474.5620985,
+    "seen": 1792565592.540273,
+    "ast_hash": "966d1e4804b63da745b1296a144e4041",
+    "semantic_hash": "966d1e4804b63da745b1296a144e4041"
+  },
+  "app/src/test/java/com/ai/tinymodels/core/network/WebSearchClientOrchestrationTest.kt": {
+    "mtime": 1791984474.5635166,
+    "seen": 1792565592.540273,
+    "ast_hash": "2daa6121c051b2d1002e66487a4dd2b3",
+    "semantic_hash": "2daa6121c051b2d1002e66487a4dd2b3"
+  },
+  "app/src/test/java/com/ai/tinymodels/core/network/WebSearchClientTest.kt": {
+    "mtime": 1791984474.5592575,
+    "seen": 1792565592.540274,
+    "ast_hash": "120acde8a0c20ca342272fcba25a913d",
+    "semantic_hash": "120acde8a0c20ca342272fcba25a913d"
+  },
+  "app/src/test/java/com/ai/tinymodels/core/network/WebSearchFilterTest.kt": {
+    "mtime": 1791984474.5581954,
+    "seen": 1792565592.540274,
+    "ast_hash": "ab080dad9ebfbdfb8f89801f3583cca0",
+    "semantic_hash": "ab080dad9ebfbdfb8f89801f3583cca0"
+  },
+  "app/src/test/java/com/ai/tinymodels/core/network/WebSearchParserTest.kt": {
+    "mtime": 1791984474.5639944,
+    "seen": 1792565592.5402749,
+    "ast_hash": "9c6881af0babb36e149e344b5c38687e",
+    "semantic_hash": "9c6881af0babb36e149e344b5c38687e"
+  },
+  "app/src/test/java/com/ai/tinymodels/core/network/WebSearchPromptTest.kt": {
+    "mtime": 1791984474.557663,
+    "seen": 1792565592.5402749,
+    "ast_hash": "7b8c893d7308cb0eba4c5834d6f5a4e5",
+    "semantic_hash": "7b8c893d7308cb0eba4c5834d6f5a4e5"
+  },
+  "app/src/test/java/com/ai/tinymodels/core/network/WebSearchQueryTest.kt": {
+    "mtime": 1791984474.5629492,
+    "seen": 1792565592.540276,
+    "ast_hash": "dcda0c621070a0471b0a047baf8c4522",
+    "semantic_hash": "dcda0c621070a0471b0a047baf8c4522"
+  },
+  "app/src/test/java/com/ai/tinymodels/data/repository/ModelRepositoryImplExportTest.kt": {
+    "mtime": 1791984474.57745,
+    "seen": 1792565592.540276,
+    "ast_hash": "73bbd658a5c40e70cdca60d7e66b2e98",
+    "semantic_hash": "73bbd658a5c40e70cdca60d7e66b2e98"
+  },
+  "app/src/test/java/com/ai/tinymodels/data/repository/ModelRepositoryImplImportTest.kt": {
+    "mtime": 1792419835.1941128,
+    "seen": 1792565592.540277,
+    "ast_hash": "1424705ea5cbfd74727ef8f17d5e468c",
+    "semantic_hash": "1424705ea5cbfd74727ef8f17d5e468c"
+  },
+  "app/src/test/java/com/ai/tinymodels/feature/chat/model/ChatOptionsMenuTest.kt": {
+    "mtime": 1791984474.5724702,
+    "seen": 1792565592.540277,
+    "ast_hash": "a9f9cb8e01e135f62d9fb68f7bb0f98d",
+    "semantic_hash": "a9f9cb8e01e135f62d9fb68f7bb0f98d"
+  },
+  "app/src/test/java/com/ai/tinymodels/feature/chat/model/ChatUiStateTest.kt": {
+    "mtime": 1791984474.5717847,
+    "seen": 1792565592.540278,
+    "ast_hash": "44b4f3eb814d1febb54a5cfc8cde47eb",
+    "semantic_hash": "44b4f3eb814d1febb54a5cfc8cde47eb"
+  },
+  "app/src/test/java/com/ai/tinymodels/feature/home/AiCapabilityClassifierTest.kt": {
+    "mtime": 1792420241.1963294,
+    "seen": 1792565592.540278,
+    "ast_hash": "7583d07efe14fcf5b891375bae597bb4",
+    "semantic_hash": "7583d07efe14fcf5b891375bae597bb4"
+  },
+  "app/src/test/java/com/ai/tinymodels/feature/home/DeviceInfoStateTest.kt": {
+    "mtime": 1791984474.5715032,
+    "seen": 1792565592.5402792,
+    "ast_hash": "86bd3e849261513b2f7f51c1f9c6d4ec",
+    "semantic_hash": "86bd3e849261513b2f7f51c1f9c6d4ec"
+  },
+  "app/src/test/java/com/ai/tinymodels/feature/home/DeviceViewModelTest.kt": {
+    "mtime": 1791984474.5688818,
+    "seen": 1792565592.5402792,
+    "ast_hash": "76250a993ddb1d864881904e31f60eb8",
+    "semantic_hash": "76250a993ddb1d864881904e31f60eb8"
+  },
+  "app/src/test/java/com/ai/tinymodels/feature/home/HomeViewModelTest.kt": {
+    "mtime": 1792420879.015779,
+    "seen": 1792565592.54028,
+    "ast_hash": "427ecaa6d6b25c8af0d33146aec1915f",
+    "semantic_hash": "427ecaa6d6b25c8af0d33146aec1915f"
+  },
+  "app/src/test/java/com/ai/tinymodels/feature/home/RecommendedModelsTest.kt": {
+    "mtime": 1791984474.5696638,
+    "seen": 1792565592.54028,
+    "ast_hash": "8f69533f2940598494dfa889907223d1",
+    "semantic_hash": "8f69533f2940598494dfa889907223d1"
+  },
+  "app/src/test/java/com/ai/tinymodels/feature/home/components/DeviceInsightsTest.kt": {
+    "mtime": 1791984474.571251,
+    "seen": 1792565592.540281,
+    "ast_hash": "2e3714fb0bf267ec146bed11c5a50e1a",
+    "semantic_hash": "2e3714fb0bf267ec146bed11c5a50e1a"
+  },
+  "app/src/test/java/com/ai/tinymodels/feature/home/components/RamRecommendationsTest.kt": {
+    "mtime": 1791984474.5701225,
+    "seen": 1792565592.540281,
+    "ast_hash": "3a97d8df971721568ab1e95743c1e8b3",
+    "semantic_hash": "3a97d8df971721568ab1e95743c1e8b3"
+  },
+  "app/src/test/java/com/ai/tinymodels/feature/home/components/RamUsageChartTest.kt": {
+    "mtime": 1791984474.5708158,
+    "seen": 1792565592.540282,
+    "ast_hash": "286339a355acee75c6a4486450ad9c25",
+    "semantic_hash": "286339a355acee75c6a4486450ad9c25"
+  },
+  "app/src/test/java/com/ai/tinymodels/feature/models/DownloadedFileDetailViewModelTest.kt": {
+    "mtime": 1792419835.1945305,
+    "seen": 1792565592.540282,
+    "ast_hash": "5694b34aec781aa7c6b2dcfbe51e048d",
+    "semantic_hash": "5694b34aec781aa7c6b2dcfbe51e048d"
+  },
+  "app/src/test/java/com/ai/tinymodels/feature/models/DownloadedModelsViewModelTest.kt": {
+    "mtime": 1792419835.1946988,
+    "seen": 1792565592.540283,
+    "ast_hash": "68e599634db62879ce87371a8747e7c5",
+    "semantic_hash": "68e599634db62879ce87371a8747e7c5"
+  },
+  "app/src/test/java/com/ai/tinymodels/feature/models/ModelDetailsViewModelTest.kt": {
+    "mtime": 1792419835.1948574,
+    "seen": 1792565592.540283,
+    "ast_hash": "2e592f1fb0f3ff055f923b70a90d4006",
+    "semantic_hash": "2e592f1fb0f3ff055f923b70a90d4006"
+  },
+  "app/src/test/java/com/ai/tinymodels/feature/models/ModelListViewModelTest.kt": {
+    "mtime": 1792419835.194998,
+    "seen": 1792565592.540284,
+    "ast_hash": "b7189637a31c5b2c0720f5de61bff58c",
+    "semantic_hash": "b7189637a31c5b2c0720f5de61bff58c"
+  },
+  "app/src/test/java/com/ai/tinymodels/feature/navigation/TabNavigatorTest.kt": {
+    "mtime": 1792420290.1689181,
+    "seen": 1792565592.5402849,
+    "ast_hash": "ee50a3e89558884cdaa40e659932a7e7",
+    "semantic_hash": "ee50a3e89558884cdaa40e659932a7e7"
+  },
+  "app/src/test/java/com/ai/tinymodels/feature/settings/SettingsViewModelTest.kt": {
+    "mtime": 1792419835.1953366,
+    "seen": 1792565592.5402849,
+    "ast_hash": "b21725836e3d49058c4af3675a0ae5d9",
+    "semantic_hash": "b21725836e3d49058c4af3675a0ae5d9"
+  },
+  "build.gradle.kts": {
+    "mtime": 1790868266.5356562,
+    "seen": 1792565592.540286,
+    "ast_hash": "9a8d0ef325fc3fdc285f0571643e2dc4",
+    "semantic_hash": "9a8d0ef325fc3fdc285f0571643e2dc4"
+  },
+  "gradlew": {
+    "mtime": 1789734315.7112968,
+    "seen": 1792565592.540286,
+    "ast_hash": "266606e78242737ef3da02a80ea0564d",
+    "semantic_hash": "266606e78242737ef3da02a80ea0564d"
+  },
+  "play-assets/make_posters.py": {
+    "mtime": 1791986517.4392822,
+    "seen": 1792565592.540287,
+    "ast_hash": "6e83ffb75a338fd805ec3e71d51118c8",
+    "semantic_hash": "6e83ffb75a338fd805ec3e71d51118c8"
+  },
+  "settings.gradle.kts": {
+    "mtime": 1790868590.4573374,
+    "seen": 1792565592.540287,
+    "ast_hash": "e0d27f5f0a20eb7993f04b8fe5818999",
+    "semantic_hash": "e0d27f5f0a20eb7993f04b8fe5818999"
+  }
+}
