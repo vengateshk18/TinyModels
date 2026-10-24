@@ -168,7 +168,16 @@ fun DownloadedFileDetailScreen(
                 TextButton(
                     onClick = {
                         showDeleteDialog = false
-                        viewModel.onDelete(onBack)
+                        viewModel.onDelete { parentModelDeleted ->
+                            if (parentModelDeleted) {
+                                // Parent model was also deleted, go back to downloaded models list
+                                onBack()
+                                // Note: onBack() will pop this screen, and DownloadedModelsScreen
+                                // will show the updated list automatically since it observes the repository
+                            } else {
+                                onBack()
+                            }
+                        }
                     }
                 ) {
                     Text("Delete")

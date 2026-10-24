@@ -775,11 +775,15 @@ private fun LastUsedModelCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = state.lastUsedModel?.modelId?.substringAfterLast('/')
-                        // Defensive only: HomeViewModel defaults the launch
-                        // card to the newest downloaded model, so this fallback
-                        // should never show once a model exists.
-                        ?: "Your model",
+                    text = if (state.lastUsedModel?.author == "imported") {
+                        state.lastUsedFileName?.substringAfterLast('/')
+                            ?.removeSuffix(".litertlm")
+                            ?: state.lastUsedModel?.modelId?.substringAfterLast('/')
+                            ?: "Your model"
+                    } else {
+                        state.lastUsedModel?.modelId?.substringAfterLast('/')
+                            ?: "Your model"
+                    },
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,

@@ -175,9 +175,18 @@ class HomeViewModel @Inject constructor(
             .sortedByDescending { it.downloadedAt }
             .map { m ->
                 val files = filesByModel[m.modelId].orEmpty()
+                // For imported models (author == "imported"), use the first file's
+                // filename without extension as the display name. For HF models,
+                // use the model name (part after the last '/').
+                val displayName = if (m.author == "imported") {
+                    files.firstOrNull()?.fileName?.removeSuffix(".litertlm")
+                        ?: m.modelId.substringAfterLast('/')
+                } else {
+                    m.modelId.substringAfterLast('/')
+                }
                 DownloadedModelInfo(
                     modelId = m.modelId,
-                    displayName = m.modelId.substringAfterLast('/'),
+                    displayName = displayName,
                     sizeBytes = files.sumOf { it.sizeBytes },
                     fileCount = files.size,
                     downloadedAt = m.downloadedAt,
