@@ -53,6 +53,10 @@ class SettingsViewModel @Inject constructor(
     private val _clearResult = MutableStateFlow<String?>(null)
     val clearResult: StateFlow<String?> = _clearResult.asStateFlow()
 
+    /** Loading state for model import. */
+    private val _isImporting = MutableStateFlow(false)
+    val isImporting: StateFlow<Boolean> = _isImporting.asStateFlow()
+
     fun setThemeMode(mode: ThemeMode) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setThemeMode(mode) }
     fun setDynamicColor(enabled: Boolean) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setDynamicColor(enabled) }
     fun setFontChoice(choice: FontChoice) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setFontChoice(choice) }
@@ -85,12 +89,17 @@ class SettingsViewModel @Inject constructor(
 
     /** Import a .litertlm file from a user-picked document URI. */
     fun importModel(sourceUri: Uri) {
+        _isImporting.value = true
         viewModelScope.launch(Dispatchers.IO) {
-            when (val result = modelRepository.importModel(sourceUri)) {
-                is AppResult.Success -> _clearResult.value =
-                    context.getString(R.string.settings_model_imported, result.data.modelId)
-                is AppResult.Error -> _clearResult.value =
-                    context.getString(R.string.settings_import_failed, result.error.message ?: "")
+            try {
+                when (val result = modelRepository.importModel(sourceUri)) {
+                    is AppResult.Success -> _clearResult.value =
+                        context.getString(R.string.settings_model_imported, result.data.modelId)
+                    is AppResult.Error -> _clearResult.value =
+                        context.getString(R.string.settings_import_failed, result.error.message ?: "")
+                }
+            } finally {
+                _isImporting.value = false
             }
         }
     }

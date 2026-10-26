@@ -22,7 +22,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.runBlocking
@@ -75,6 +74,20 @@ class HomeViewModelTest {
             delay(50)
         }
         error("Timed out waiting for Dashboard, got ${viewModel.uiState.value}")
+    }
+
+    /** Waits until [predicate] holds for [viewModel]'s dashboard state. */
+    private suspend fun awaitDashboardOf(
+        viewModel: HomeViewModel,
+        predicate: (HomeUiState.Dashboard) -> Boolean
+    ): HomeUiState.Dashboard {
+        val start = System.currentTimeMillis()
+        while (System.currentTimeMillis() - start < 10_000) {
+            val state = viewModel.uiState.value
+            if (state is HomeUiState.Dashboard && predicate(state)) return state
+            delay(50)
+        }
+        error("Timed out waiting for dashboard to satisfy predicate, got ${viewModel.uiState.value}")
     }
 
     @Test
@@ -144,6 +157,58 @@ class HomeViewModelTest {
         assertEquals("b.litertlm", dashboard.lastUsedFileName)
         assertTrue(dashboard.models.single { it.modelId == "b/m" }.isLastUsed)
     }
+
+    /**
+     * Fresh-install flow: the very first model was just downloaded and never
+     * opened. The launchpad card must show THAT model ("Create a chat with
+     * …") — not a generic "Your model" placeholder.
+     */
+    @Test
+    fun `dashboard falls back to the newest downloaded model when nothing was last used`() = runBlocking {
+        modelRepo.models.value = listOf(
+            DownloadedModel("old/m", "old", null, null, "/tmp", 100L),
+            DownloadedModel("new/m", "new", null, null, "/tmp", 200L)
+        )
+        modelRepo.fileByModel["new/m"] = DownloadedModelFile(
+            "new/m", "new.litertlm", FileDownloadStatus.DOWNLOADED, 300L, "/tmp", null
+        )
+
+        val dashboard = awaitDashboard()
+
+        assertEquals("new/m", dashboard.lastUsedModel?.modelId)
+        assertEquals("new.litertlm", dashboard.lastUsedFileName)
+        // Nothing has been chatted with yet, so no row is chip-marked — the
+        // launch-card fallback is independent of the "last used" badge.
+        assertTrue(dashboard.models.none { it.isLastUsed })
+    }
+
+    /**
+     * Returning to Home after creating chats elsewhere must reflect the new
+     * state — chat activity is a refresh trigger just like downloads are.
+     */
+    @Test
+    fun `dashboard picks up newly created chats without touching model downloads`() = runBlocking {
+        modelRepo.models.value = listOf(
+            DownloadedModel("m", "m", null, null, "/tmp", 1L)
+        )
+        modelRepo.files.value = listOf(
+            DownloadedModelFile("m", "a.litertlm", FileDownloadStatus.DOWNLOADED, 400L, "/tmp", null)
+        )
+        // ONE ViewModel across the whole test — the Home tab survives tab
+        // switches, so a second instance would mask the staleness under test.
+        val viewModel = vm()
+        val dashboard1 = awaitDashboardOf(viewModel) { it.lastChat?.id == "chat-1" }
+        assertEquals("chat-1", dashboard1.lastChat?.id)
+
+        // A chat is created in the Chat tab while Home is in the background
+        // (downloads did NOT change — the models flow never re-emits).
+        chatRepo.summaries.value = listOf(
+            ChatSummary("chat-2", "Second", "m", "hello", 456L)
+        )
+
+        val dashboard2 = awaitDashboardOf(viewModel) { it.lastChat?.id == "chat-2" }
+        assertEquals("chat-2", dashboard2.lastChat?.id)
+    }
 }
 
 /** ModelRepository fake for Home dashboard tests. */
@@ -152,12 +217,15 @@ private class FakeHomeModelRepository : ModelRepository {
     val files = MutableStateFlow<List<DownloadedModelFile>>(emptyList())
     var lastUsedFile: DownloadedModelFile? = null
 
+    /** Per-model files — [lastUsedFile] stays as the legacy catch-all hook. */
+    val fileByModel = mutableMapOf<String, DownloadedModelFile>()
+
     override fun observeDownloadedModels(): Flow<List<DownloadedModel>> = models
     override fun observeDownloadedFiles(): Flow<List<DownloadedModelFile>> = files
     override suspend fun getDownloadedModel(modelId: String): DownloadedModel? =
         models.value.singleOrNull { it.modelId == modelId }
     override suspend fun getDownloadedFileForModel(modelId: String): DownloadedModelFile? =
-        lastUsedFile
+        fileByModel[modelId] ?: lastUsedFile
 
     override suspend fun listModels(): AppResult<List<ModelSummary>> = throw NotImplementedError()
     override suspend fun listModels(search: String?, pipelineTag: String?): AppResult<List<ModelSummary>> =
@@ -189,11 +257,13 @@ private class FakeHomeModelRepository : ModelRepository {
         throw NotImplementedError()
 }
 
-/** ChatRepository fake with fixed usage stats. */
+/** ChatRepository fake with fixed usage stats and a reactive summaries flow. */
 private class FakeHomeChatRepository : ChatRepository {
-    override fun observeChatSummaries(): Flow<List<ChatSummary>> = flowOf(
+    val summaries = MutableStateFlow(
         listOf(ChatSummary("chat-1", "Hello", "m", "hi", 123L))
     )
+
+    override fun observeChatSummaries(): Flow<List<ChatSummary>> = summaries
 
     override suspend fun totalChats(): Int = 3
     override suspend fun totalMessages(): Int = 50

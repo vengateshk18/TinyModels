@@ -47,6 +47,7 @@ enum class AiCapability(@StringRes val labelRes: Int) {
     EXCELLENT(R.string.device_capability_excellent),
     GOOD(R.string.device_capability_good),
     LIMITED(R.string.device_capability_limited),
+    LOW(R.string.device_capability_low),
     UNKNOWN(R.string.device_capability_unknown)
 }
 
@@ -96,12 +97,7 @@ class DeviceViewModel @Inject constructor(
         val deviceName = "${Build.MANUFACTURER} ${Build.MODEL}"
         val availableRamForAiMb = (totalRamMb * 0.45).toLong()
 
-        val (capability, maxParams) = when {
-            totalRamMb >= 12000 -> AiCapability.EXCELLENT to "8B"
-            totalRamMb >= 8000 -> AiCapability.GOOD to "3B"
-            totalRamMb >= 4000 -> AiCapability.LIMITED to "1B"
-            else -> AiCapability.UNKNOWN to "-"
-        }
+        val (capability, maxParams) = AiCapabilityClassifier.classify(totalRamMb)
 
         return DeviceInfoState(
             deviceName = deviceName,

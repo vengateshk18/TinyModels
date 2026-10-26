@@ -824,8 +824,15 @@ private fun LastUsedModelCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = state.lastUsedModel?.modelId?.substringAfterLast('/')
-                        ?: stringResource(R.string.home_your_model),
+                    text = if (state.lastUsedModel?.author == "imported") {
+                        state.lastUsedFileName?.substringAfterLast('/')
+                            ?.removeSuffix(".litertlm")
+                            ?: state.lastUsedModel?.modelId?.substringAfterLast('/')
+                            ?: stringResource(R.string.home_your_model)
+                    } else {
+                        state.lastUsedModel?.modelId?.substringAfterLast('/')
+                            ?: stringResource(R.string.home_your_model)
+                    },
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,

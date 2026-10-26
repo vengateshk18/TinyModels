@@ -6,7 +6,10 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -36,6 +40,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SegmentedButton
@@ -85,6 +90,7 @@ fun SettingsScreen(
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val clearResult by viewModel.clearResult.collectAsStateWithLifecycle()
+    val isImporting by viewModel.isImporting.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var showClearDialog by remember { mutableStateOf(false) }
 
@@ -103,7 +109,7 @@ fun SettingsScreen(
 
     androidx.compose.runtime.LaunchedEffect(clearResult) {
         clearResult?.let {
-            snackbarHostState.showSnackbar(it)
+            snackbarHostState.showSnackbar(it, duration = SnackbarDuration.Short)
             viewModel.consumeClearResult()
         }
     }
@@ -161,6 +167,29 @@ fun SettingsScreen(
             // 24dp breathing room after the last item so content is never
             // clipped at the scroll end by the navigation bar.
             Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+
+    // Import loading overlay
+    if (isImporting) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                CircularProgressIndicator()
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    "Importing model…",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
         }
     }
 

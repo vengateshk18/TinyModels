@@ -89,7 +89,7 @@ class DownloadedFileDetailViewModel @Inject constructor(
         onSuccess(modelId)
     }
 
-    fun onDelete(onSuccess: () -> Unit) {
+    fun onDelete(onSuccess: (parentModelDeleted: Boolean) -> Unit) {
         val fileInfo = _uiState.value.fileInfo ?: return
         _uiState.update { it.copy(isDeleting = true) }
 
@@ -112,16 +112,18 @@ class DownloadedFileDetailViewModel @Inject constructor(
 
                 // Check if this was the last downloaded file for this model
                 val remainingFiles = modelRepository.observeModelFiles(modelId).first()
-                val hasDownloadedFiles = remainingFiles.any { 
-                    it.status == com.ai.tinymodels.domain.model.FileDownloadStatus.DOWNLOADED 
+                val hasDownloadedFiles = remainingFiles.any {
+                    it.status == com.ai.tinymodels.domain.model.FileDownloadStatus.DOWNLOADED
                 }
 
+                var parentModelDeleted = false
                 if (!hasDownloadedFiles) {
                     // Delete parent and directory
                     modelRepository.deleteDownloadedModel(modelId)
+                    parentModelDeleted = true
                 }
 
-                onSuccess()
+                onSuccess(parentModelDeleted)
             } catch (e: Exception) {
                 _uiState.update { it.copy(isDeleting = false, error = e.message ?: context.getString(R.string.downloaded_file_error_delete_failed)) }
             }
