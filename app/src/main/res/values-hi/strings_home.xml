@@ -89,6 +89,7 @@
     <string name="device_capability_excellent">\u0909\u0924\u094d\u0915\u0943\u0937\u094d\u091f</string>
     <string name="device_capability_good">\u0905\u091a\u094d\u091b\u0940</string>
     <string name="device_capability_limited">\u0938\u0940\u092e\u093f\u0924</string>
+    <string name="device_capability_low">\u0915\u092e</string>
     <string name="device_capability_unknown">\u0905\u091c\u094d\u091e\u093e\u0924</string>
 
     <!-- ================= Device insights card ================= -->

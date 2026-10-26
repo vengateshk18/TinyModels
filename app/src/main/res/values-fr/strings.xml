@@ -1,0 +1,26 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- App -->
+    <string name="app_name" translatable="false">TinyModels</string>
+
+    <!-- Shared UI actions and labels (usable from any feature) -->
+    <string name="common_cancel">Annuler</string>
+    <string name="common_retry">Réessayer</string>
+    <string name="common_back">Retour</string>
+    <string name="common_dismiss">Ignorer</string>
+    <string name="common_delete">Supprimer</string>
+    <string name="common_close">Fermer</string>
+    <string name="common_yes">Oui</string>
+    <string name="common_no">Non</string>
+    <string name="common_unknown">Inconnu</string>
+    <string name="common_percent">%1$d%%</string>
+
+    <!-- Shared relative-time wording (Formatters) -->
+    <string name="common_time_just_now">à l\'instant</string>
+    <string name="common_time_minutes_ago">il y a %1$dm</string>
+    <string name="common_time_hours_ago">il y a %1$dh</string>
+    <string name="common_time_days_ago">il y a %1$dj</string>
+    <string name="common_time_now">maintenant</string>
+    <string name="common_time_minutes_short">%1$dm</string>
+    <string name="common_time_hours_short">%1$dh</string>
+    <string name="common_time_days_short">%1$dj</string>
+</resources>

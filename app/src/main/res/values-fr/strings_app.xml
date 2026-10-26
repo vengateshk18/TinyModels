@@ -1,0 +1,181 @@
+<resources>
+    <!-- ================= Settings ================= -->
+    <string name="settings_title">Paramètres</string>
+    <string name="settings_section_appearance">Apparence</string>
+    <string name="settings_theme">Thème</string>
+    <string name="settings_dynamic_color">Couleur dynamique</string>
+    <string name="settings_dynamic_color_subtitle">Utiliser les couleurs basées sur le fond d\'écran (Android 12+)</string>
+    <string name="settings_font_size">Taille de police</string>
+    <string name="settings_font">Police</string>
+    <string name="settings_change_font_content_description">Changer la police</string>
+    <string name="settings_font_sheet_title">Choisir une police</string>
+    <string name="settings_font_default">Par défaut</string>
+    <string name="settings_font_google">Police Google</string>
+
+    <!-- Language picker -->
+    <string name="settings_language">Langue</string>
+    <string name="settings_language_sheet_title">Choisir la langue</string>
+    <string name="language_system">Langue du système</string>
+    <string name="language_english" translatable="false">English</string>
+    <!-- Native names: always shown in the language\'s own script, never translated. -->
+    <string name="language_native_spanish" translatable="false">Espa\u00f1ol</string>
+    <string name="language_native_french" translatable="false">Fran\u00e7ais</string>
+    <string name="language_native_japanese" translatable="false">\u65e5\u672c\u8a9e</string>
+    <string name="language_native_tamil" translatable="false">\u0ba4\u0bae\u0bbf\u0bb4\u0bcd</string>
+    <string name="language_native_hindi" translatable="false">\u0939\u093f\u0928\u094d\u0926\u0940</string>
+    <!-- English names: the readable hint shown in parentheses. -->
+    <string name="language_name_spanish" translatable="false">Spanish</string>
+    <string name="language_name_french" translatable="false">French</string>
+    <string name="language_name_japanese" translatable="false">Japanese</string>
+    <string name="language_name_tamil" translatable="false">Tamil</string>
+    <string name="language_name_hindi" translatable="false">Hindi</string>
+    <!-- Renders as "<native name> (<English name>)". -->
+    <string name="language_option_format">%1$s (%2$s)</string>
+
+    <string name="settings_section_inference">Inférence</string>
+    <string name="settings_default_backend">Backend par défaut</string>
+    <string name="settings_web_search">Recherche web</string>
+    <string name="settings_web_search_subtitle">Permettre aux conversations d\'utiliser l\'outil de recherche web du modèle. Les requêtes quittent l\'appareil.</string>
+    <string name="settings_web_search_note">Lorsqu\'activé pour une conversation (via le menu + dans la conversation), le modèle peut rechercher sur le web lorsqu\'il a besoin d\'informations actuelles.</string>
+
+    <string name="settings_section_downloads">Téléchargements</string>
+    <string name="settings_wifi_only_downloads">Téléchargements en Wi-Fi uniquement</string>
+    <string name="settings_wifi_only_downloads_subtitle">Attendre une connexion non facturée avant de télécharger les modèles</string>
+    <string name="settings_downloads_note">Les fichiers de modèles font plusieurs Go — cela protège votre forfait mobile.</string>
+
+    <string name="settings_section_chat">Conversation</string>
+    <string name="settings_auto_load_last_model">Charger automatiquement le dernier modèle</string>
+    <string name="settings_auto_load_last_model_subtitle">Charger le modèle précédemment utilisé à l\'ouverture de la conversation</string>
+    <string name="settings_keep_screen_on">Garder l\'écran allumé</string>
+    <string name="settings_keep_screen_on_subtitle">Empêcher la mise en veille pendant la génération du modèle</string>
+    <string name="settings_show_token_counts">Afficher le nombre de tokens</string>
+    <string name="settings_show_token_counts_subtitle">Afficher le nombre de tokens par message sous chaque bulle</string>
+
+    <string name="settings_section_hugging_face">Hugging Face</string>
+    <string name="settings_access_token">Jeton d\'accès</string>
+    <string name="settings_token_not_set">Non défini — optionnel ; seuls les modèles restreints en ont besoin</string>
+    <string name="settings_token_set">Défini — %1$s••••••••%2$s</string>
+    <string name="settings_token_help">Les modèles restreints (ex. Gemma) ont besoin d\'un jeton d\'accès gratuit pour être téléchargés. Créez-en un sur huggingface.co/settings/tokens, puis acceptez la licence du modèle sur sa page.</string>
+    <string name="settings_token_dialog_title">Jeton d\'accès Hugging Face</string>
+    <string name="settings_token_dialog_body">Collez un jeton avec accès en lecture. Créez-en un sur huggingface.co/settings/tokens.</string>
+    <string name="settings_token_placeholder" translatable="false">hf_xxxxxxxxxxxxxxxx</string>
+    <string name="settings_token_save">Enregistrer</string>
+    <string name="settings_token_remove">Supprimer</string>
+
+    <string name="settings_section_support">Support</string>
+    <string name="settings_star_on_github">Star sur GitHub</string>
+    <string name="settings_star_on_github_subtitle">Soutenir l\'IA gratuite et locale pour tous</string>
+    <string name="settings_report_bug">Signaler un bug</string>
+    <string name="settings_report_bug_subtitle">Quelque chose ne fonctionne pas ? Faites-le nous savoir</string>
+
+    <string name="settings_section_about">À propos</string>
+    <string name="settings_benchmark">Benchmark</string>
+    <string name="settings_benchmark_subtitle">Mesurer le temps de chargement, le TTFT et les tokens/s</string>
+    <string name="settings_device_information">Informations sur l\'appareil</string>
+    <string name="settings_device_information_subtitle">Voir la capacité IA de votre appareil</string>
+    <string name="settings_clear_chat_history">Effacer l\'historique des conversations</string>
+    <string name="settings_clear_chat_history_subtitle">Supprimer toutes les conversations</string>
+    <string name="settings_clear_chat_history_title">Effacer l\'historique des conversations</string>
+    <string name="settings_clear_chat_history_body">Supprimer toutes les conversations ? Cette action est irréversible.</string>
+
+    <string name="settings_section_model_management">Gestion des modèles</string>
+    <string name="settings_token_removed">Jeton d\'accès supprimé</string>
+    <string name="settings_token_saved">Jeton d\'accès enregistré</string>
+    <string name="settings_chat_history_cleared">Historique des conversations effacé</string>
+    <string name="settings_model_imported">Modèle importé : %1$s</string>
+    <string name="settings_import_failed">Échec de l\'importation : %1$s</string>
+    <string name="model_import_invalid_file_type">Type de fichier invalide. Seuls les fichiers .litertlm sont pris en charge.</string>
+    <string name="model_import_file_not_found">Fichier introuvable sur l\'appareil : %1$s</string>
+    <string name="model_import_create_failed">Échec de la création du fichier de destination : %1$s</string>
+    <string name="model_import_write_failed">Impossible d\'écrire dans le fichier de destination : %1$s</string>
+    <string name="model_import_no_file_name">Impossible de déterminer le nom du fichier</string>
+    <string name="model_import_already_exists">Ce fichier de modèle existe déjà dans votre bibliothèque</string>
+    <string name="model_import_open_failed">Impossible d\'ouvrir le fichier source</string>
+    <string name="benchmark_error_model_file_missing">Fichier de modèle manquant sur l\'appareil</string>
+    <string name="benchmark_error_not_enough_ram">Pas assez de RAM libre pour charger ce modèle (besoin d\'environ %1$d Mo, disponible %2$d Mo). Fermez d\'autres applications et réessayez.</string>
+    <string name="benchmark_error_failed_to_load">Échec du chargement du modèle</string>
+    <string name="settings_import_model">Importer un modèle</string>
+    <string name="settings_import_model_subtitle">Ajouter un fichier .litertlm depuis un stockage externe</string>
+    <string name="settings_import_model_note">Les modèles importés apparaissent dans votre bibliothèque avec une étiquette « Importé ». Pour partager un fichier téléchargé, ouvrez-le et utilisez Exporter.</string>
+
+    <!-- ================= Theme / backend choices ================= -->
+    <string name="theme_mode_system">Système</string>
+    <string name="theme_mode_light">Clair</string>
+    <string name="theme_mode_dark">Sombre</string>
+    <string name="backend_auto">Auto</string>
+    <string name="backend_gpu">GPU</string>
+    <string name="backend_cpu">CPU</string>
+
+    <!-- ================= Fonts ================= -->    <string name="font_system">Système</string>
+    <string name="font_abel" translatable="false">Abel</string>
+    <string name="font_inter" translatable="false">Inter</string>
+    <string name="font_roboto" translatable="false">Roboto</string>
+    <string name="font_pacifico" translatable="false">Pacifico</string>
+    <string name="font_abril_fatface" translatable="false">Abril Fatface</string>
+
+    <!-- ================= Bottom navigation ================= -->
+    <string name="nav_home">Accueil</string>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_models">Modèles</string>
+    <string name="nav_settings">Paramètres</string>
+
+    <!-- ================= Benchmark ================= -->
+    <string name="benchmark_title">Benchmark</string>
+    <string name="benchmark_loading_title">Chargement du modèle…</string>
+    <string name="benchmark_loading_subtitle">Chargement à froid — ceci est chronométré.</string>
+    <string name="benchmark_failed_title">Échec du benchmark</string>
+    <string name="benchmark_back_to_models">Retour aux modèles</string>
+    <string name="benchmark_stop_title">Arrêter le benchmark ?</string>
+    <string name="benchmark_stop_body">L\'exécution sera annulée et les résultats ignorés.</string>
+    <string name="benchmark_stop">Arrêter</string>
+    <string name="benchmark_continue">Continuer</string>
+    <string name="benchmark_no_models">Aucun modèle téléchargé. Téléchargez d\'abord un modèle, puis revenez le tester.</string>
+    <string name="benchmark_choose_model">Choisir un modèle</string>
+    <string name="benchmark_how_it_works">Comment ça marche</string>
+    <string name="benchmark_bullet_prompts">2 prompts fixes (court + moyen), 3 exécutions chacun</string>
+    <string name="benchmark_bullet_output_cap">Sortie limitée à 256 tokens par exécution</string>
+    <string name="benchmark_bullet_warmup">La première exécution est un échauffement et est ignorée</string>
+    <string name="benchmark_bullet_median">La médiane des exécutions restantes est rapportée</string>
+    <string name="benchmark_bullet_sampler">Échantillonneur fixe : temp 0.7 / top-k 40 / top-p 0.95</string>
+    <string name="benchmark_bullet_load_time">Temps de chargement = un chargement à froid du modèle</string>
+    <string name="benchmark_bullet_memory">Pic de mémoire échantillonné toutes les 250 ms pendant l\'exécution</string>
+    <string name="benchmark_run">Lancer le benchmark</string>
+    <string name="benchmark_running">Benchmark en cours</string>
+    <string name="benchmark_progress_prompt">Prompt %1$s</string>
+    <string name="benchmark_progress_run"> • exécution %1$d sur %2$d</string>
+    <string name="benchmark_progress_warmup"> • échauffement</string>
+    <string name="benchmark_overall_progress">Progression globale</string>
+    <string name="benchmark_stat_prompt">Prompt</string>
+    <string name="benchmark_stat_run">Exécution</string>
+    <string name="benchmark_stat_tokens">Tokens</string>
+    <string name="benchmark_cancel">Annuler</string>
+    <string name="benchmark_decode_speed">Vitesse de décodage</string>
+    <string name="benchmark_decode_speed_range">%1$.1f – %2$.1f entre les exécutions</string>
+    <string name="benchmark_stat_time_to_first_token">Temps jusqu\'au premier token</string>
+    <string name="benchmark_stat_prefill_speed">Vitesse de pré-remplissage</string>
+    <string name="benchmark_section_model">Modèle</string>
+    <string name="benchmark_stat_load_time">Temps de chargement (à froid)</string>
+    <string name="benchmark_stat_peak_memory">Mémoire pic (PSS)</string>
+    <string name="benchmark_stat_baseline_load">Base avant chargement</string>
+    <string name="benchmark_stat_backend">Backend</string>
+    <string name="benchmark_stat_device">Appareil</string>
+    <string name="benchmark_token_note">Les tokens sont comptés à partir des émissions du flux (un token par émission). La vitesse de pré-remplissage est les tokens du prompt / TTFT et inclut la première étape de décodage.</string>
+    <string name="benchmark_copy_summary">Copier le résumé</string>
+    <string name="benchmark_rerun">Relancer</string>
+    <string name="benchmark_format_ms">%1$.0f ms</string>
+    <string name="benchmark_format_tok_per_sec">%1$.1f tok/s</string>
+    <string name="benchmark_format_seconds">%1$.1f s</string>
+    <string name="benchmark_summary_header">Benchmark TinyModels — %1$s (%2$s, %3$s)</string>
+    <string name="benchmark_summary_load">Chargement : %1$.1fs</string>
+    <string name="benchmark_summary_prompt"> · %1$s : TTFT %2$.0fms, décodage %3$.1f tok/s, pré-remplissage %4$.0f tok/s</string>
+    <string name="benchmark_summary_peak">Pic PSS : %1$s (base %2$s)</string>
+    <string name="benchmark_summary_device">Appareil : %1$s</string>
+
+    <!-- ================= Download notifications ================= -->
+    <string name="notification_channel_downloads">Téléchargements de modèles</string>
+    <string name="notification_downloading_title">Téléchargement du modèle</string>
+    <string name="notification_download_complete">Téléchargement terminé</string>
+    <string name="notification_download_failed">Échec du téléchargement</string>
+    <string name="notification_failed_with_reason">%1$s — %2$s</string>
+    <string name="download_error_gated">HTTP 401 — ce modèle est restreint. Ajoutez votre jeton d\'accès Hugging Face dans les Paramètres, ou acceptez la licence du modèle sur huggingface.co d\'abord.</string>
+</resources>

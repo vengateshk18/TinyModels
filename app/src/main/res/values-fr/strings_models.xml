@@ -1,0 +1,106 @@
+<resources>
+    <!-- ================= Model catalog (browse) ================= -->
+    <string name="models_title">Modèles</string>
+    <string name="models_browse_tab">Parcourir</string>
+    <string name="models_downloaded_tab">Téléchargés (%1$d)</string>
+    <string name="models_search_content_description">Rechercher</string>
+    <string name="models_search_placeholder">Rechercher des modèles…</string>
+    <string name="models_error_failed_to_load">Échec du chargement des modèles</string>
+    <string name="models_empty_title">Aucun modèle trouvé</string>
+    <string name="models_empty_message">Essayez une autre recherche ou un autre filtre.</string>
+    <string name="models_by_author">par %1$s</string>
+    <string name="models_downloads_count">⬇ %1$s</string>
+    <string name="models_likes_count">♥ %1$s</string>
+    <plurals name="models_file_count">
+        <item quantity="one">%1$d fichier</item>
+        <item quantity="other">%1$d fichiers</item>
+    </plurals>
+    <string name="models_pipeline_default" translatable="false">text-generation</string>
+
+    <!-- ================= Downloaded models ================= -->
+    <string name="downloaded_models_title">Modèles téléchargés</string>
+    <string name="downloaded_models_empty_title">Aucun modèle téléchargé</string>
+    <string name="downloaded_models_empty_message">Les modèles que vous téléchargez apparaissent ici pour une utilisation hors ligne.</string>
+    <string name="downloaded_models_storage_used">Stockage utilisé : %1$s</string>
+    <string name="downloaded_models_imported_badge">Importé</string>
+
+    <!-- ================= Model details ================= -->
+    <string name="model_details_title">Détails du modèle</string>
+    <string name="model_details_file_too_large_title">Fichier trop volumineux pour cet appareil</string>
+    <string name="model_details_file_too_large_body">Ce fichier (%1$s) nécessite plus de RAM que votre appareil n\'en a (%2$s). Vous pouvez le télécharger, mais il ne pourra pas être utilisé pour discuter ni pour un benchmark sur cet appareil.</string>
+    <string name="model_details_file_too_large_body_unknown_size">Ce fichier nécessite plus de RAM que votre appareil n\'en a (%1$s). Vous pouvez le télécharger, mais il ne pourra pas être utilisé pour discuter ni pour un benchmark sur cet appareil.</string>
+    <string name="model_details_download_anyway">Télécharger quand même</string>
+    <string name="model_details_error_failed_to_load">Échec du chargement des détails</string>
+    <string name="model_details_add_hf_token">Ajouter un jeton Hugging Face</string>
+    <string name="model_details_gated" translatable="false">gated</string>
+    <string name="model_details_stat_downloads">Téléchargements</string>
+    <string name="model_details_stat_likes">J\'aime</string>
+    <string name="model_details_stat_repo_size">Taille du dépôt</string>
+    <string name="model_details_stat_downloaded">Téléchargé</string>
+    <string name="model_details_try_it">Essayer</string>
+    <string name="model_details_sample_prompts">Prompts d\'exemple pour ce modèle</string>
+    <string name="model_details_about">À propos</string>
+    <string name="model_details_base_model">Modèle de base</string>
+    <string name="model_details_revision">Révision</string>
+    <string name="model_details_tags">Tags</string>
+    <string name="model_details_files">Fichiers</string>
+    <string name="model_details_files_hint">Appuyez sur un fichier pour le télécharger individuellement.</string>
+    <string name="model_details_fits_device">✓ Convient à votre appareil</string>
+    <string name="model_details_too_large_short">⚠ Trop volumineux pour cet appareil</string>
+    <string name="model_details_status_downloaded">Téléchargé</string>
+    <string name="model_details_status_failed">Échec</string>
+    <string name="model_details_too_large_banner">Trop volumineux pour cet appareil (%1$s vs %2$s de RAM). Peut être téléchargé mais pas utilisé ici.</string>
+    <string name="model_details_updated">Mis à jour</string>
+    <string name="model_details_created">Créé</string>
+    <string name="model_details_download_file">Télécharger le fichier</string>
+    <string name="model_details_error_not_enough_storage_file">Pas assez d\'espace libre pour ce fichier.</string>
+    <string name="model_details_error_not_enough_storage_model">Pas assez d\'espace libre pour ce modèle.</string>
+
+    <!-- ================= Downloaded file detail ================= -->
+    <string name="downloaded_file_title">Fichier téléchargé</string>
+    <string name="downloaded_file_not_found_title">Fichier introuvable</string>
+    <string name="downloaded_file_go_back">Retour</string>
+    <string name="downloaded_file_delete_title">Supprimer le fichier ?</string>
+    <string name="downloaded_file_delete_body">Cela supprimera définitivement le fichier de votre appareil. Cette action est irréversible.</string>
+    <string name="downloaded_file_model_id">ID du modèle</string>
+    <string name="downloaded_file_size">Taille</string>
+    <string name="downloaded_file_location">Emplacement</string>
+    <string name="downloaded_file_error_failed_to_load">Échec du chargement du modèle</string>
+    <string name="downloaded_file_loading_model">Chargement du modèle…</string>
+    <string name="downloaded_file_start_chat">Démarrer la conversation</string>
+    <string name="downloaded_file_export">Exporter le fichier</string>
+    <string name="downloaded_file_exporting">Exportation…</string>
+    <string name="downloaded_file_delete">Supprimer le fichier</string>
+    <string name="downloaded_file_deleting">Suppression…</string>
+    <string name="downloaded_file_error_not_found">Fichier introuvable</string>
+    <string name="downloaded_file_error_not_on_disk">Fichier introuvable sur le disque. Veuillez re-télécharger.</string>
+    <string name="downloaded_file_error_delete_failed">Échec de la suppression du fichier</string>
+    <string name="downloaded_file_exported">Exporté %1$s</string>
+    <string name="downloaded_file_export_failed">Échec de l\'exportation : %1$s</string>
+
+    <!-- ================= Active downloads ================= -->
+    <string name="downloads_active_title">Téléchargements actifs (%1$d)</string>
+    <string name="downloads_cancel_content_description">Annuler le téléchargement</string>
+    <string name="downloads_waiting_for_network">En attente du réseau…</string>
+    <string name="downloads_progress_bytes">%1$s / %2$s</string>
+    <string name="downloads_progress_percent">(%1$d%%)</string>
+    <string name="downloads_progress_speed"> • %1$s/s</string>
+    <string name="downloads_waiting_for_connection">En attente de connexion…</string>
+    <string name="downloads_preparing">Préparation du téléchargement…</string>
+    <string name="downloads_downloading">Téléchargement…</string>
+    <string name="downloads_progress_with_pct">%1$s / %2$s · %3$d%%</string>
+    <string name="downloads_speed_only">%1$s/s</string>
+    <string name="downloads_button_with_size">Télécharger · %1$s</string>
+    <string name="downloads_button">Télécharger</string>
+
+    <!-- ================= Filters ================= -->
+    <string name="model_filter_all">Tous</string>
+    <string name="model_filter_text_generation">Génération de texte</string>
+    <string name="model_filter_image_generation">Génération d\'image</string>
+
+    <!-- ================= Shared state views ================= -->
+    <string name="state_error_title">Une erreur s\'est produite</string>
+    <string name="state_error_retry">Réessayer</string>
+    <string name="state_offline_title">Vous êtes hors ligne</string>
+    <string name="state_offline_message">Vérifiez votre connexion internet et réessayez.</string>
+</resources>

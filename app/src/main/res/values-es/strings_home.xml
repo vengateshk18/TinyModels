@@ -93,6 +93,7 @@
     <string name="device_capability_excellent">Excelente</string>
     <string name="device_capability_good">Buena</string>
     <string name="device_capability_limited">Limitada</string>
+    <string name="device_capability_low">Baja</string>
     <string name="device_capability_unknown">Desconocida</string>
 
     <!-- ================= Device insights card ================= -->

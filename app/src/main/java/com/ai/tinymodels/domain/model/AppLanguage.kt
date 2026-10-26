@@ -29,6 +29,8 @@ enum class AppLanguage(
     SYSTEM("", R.string.language_system),
     ENGLISH("en", R.string.language_english),
     SPANISH("es", R.string.language_native_spanish, R.string.language_name_spanish),
+    FRENCH("fr", R.string.language_native_french, R.string.language_name_french),
+    JAPANESE("ja", R.string.language_native_japanese, R.string.language_name_japanese),
     TAMIL("ta", R.string.language_native_tamil, R.string.language_name_tamil),
     HINDI("hi", R.string.language_native_hindi, R.string.language_name_hindi);
 

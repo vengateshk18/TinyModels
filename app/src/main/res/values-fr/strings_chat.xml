@@ -1,0 +1,144 @@
+<resources>
+    <!-- ================= Chat list / history ================= -->
+    <string name="chat_tab_title">Conversations</string>
+    <string name="chat_new_chat">Nouvelle conversation</string>
+    <string name="chat_no_conversations">Aucune conversation pour l\'instant</string>
+    <string name="chat_tap_plus_to_start">Appuyez sur + pour commencer</string>
+    <string name="chat_untitled">Sans titre</string>
+    <string name="chat_delete_title">Supprimer la conversation ?</string>
+    <string name="chat_delete_body">« %1$s » sera définitivement supprimée. Cette action est irréversible.</string>
+    <plurals name="chat_message_count">
+        <item quantity="one">%1$d message</item>
+        <item quantity="other">%1$d messages</item>
+    </plurals>
+    <string name="chat_delete_content_description">Supprimer la conversation</string>
+
+    <!-- ================= Chat room ================= -->
+    <string name="chat_room_back_content_description">Retour</string>
+    <string name="chat_room_session_settings_content_description">Paramètres de la session</string>
+    <string name="chat_room_no_models_title">Aucun modèle</string>
+    <string name="chat_room_no_models_body">Téléchargez un modèle pour commencer à discuter.</string>
+    <string name="chat_room_pick_model_title">Choisir un modèle</string>
+    <string name="chat_pick_model_title">Choisir un modèle</string>
+    <string name="chat_room_pick_model_body">Choisissez un modèle téléchargé pour commencer.</string>
+    <string name="chat_room_choose">Choisir</string>
+    <string name="chat_room_say_hello_title">Dites bonjour</string>
+    <string name="chat_room_say_hello_body">Votre conversation reste sur cet appareil.</string>
+    <string name="chat_room_copied_to_clipboard">Copié dans le presse-papiers</string>
+    <string name="chat_room_summarized_conversation">Conversation résumée</string>
+    <string name="chat_room_context_usage_title">Utilisation du contexte</string>
+    <string name="chat_room_tokens_in_context">Tokens dans le contexte</string>
+    <string name="chat_room_context_budget">Budget de contexte</string>
+    <string name="chat_room_compactions_run">Compactions effectuées</string>
+    <plurals name="chat_room_compactions_count">
+        <item quantity="one">%1$d fois</item>
+        <item quantity="other">%1$d fois</item>
+    </plurals>
+    <string name="chat_room_compacted_summary">Résumé compacté</string>
+    <string name="chat_room_summary_present">Présent (%1$d car.)</string>
+    <string name="chat_room_summary_none">Aucun pour l\'instant</string>
+    <string name="chat_room_tokens_used_of_total">%1$d / %2$d tokens</string>
+    <string name="chat_room_context_explainer">Les anciens messages sont résumés automatiquement lorsque l\'utilisation atteint %1$d%% du budget.</string>
+    <string name="chat_room_tokens_label">%1$d tokens</string>
+    <string name="chat_room_compact_hint">Résume les anciens messages en un condensé pour libérer de l\'espace de contexte.</string>
+    <string name="chat_room_compacting">Compactage…</string>
+    <string name="chat_room_compact_conversation">Compacter la conversation</string>
+
+    <!-- ================= Chat screen (empty states) ================= -->
+    <string name="chat_open_chats_content_description">Ouvrir les conversations</string>
+    <string name="chat_settings_content_description">Paramètres</string>
+    <string name="chat_no_models_title">Aucun modèle</string>
+    <string name="chat_no_models_body">Téléchargez un modèle LiteRT-LM pour discuter hors ligne.</string>
+    <string name="chat_browse_models">Parcourir les modèles</string>
+    <string name="chat_choose_downloaded_model_body">Choisissez un modèle téléchargé ci-dessus pour commencer.</string>
+
+    <!-- ================= Chat input bar ================= -->
+    <string name="chat_options_content_description">Options de conversation</string>
+    <string name="chat_options_media_section">Média</string>
+    <string name="chat_options_attach_photo">Joindre une photo</string>
+    <string name="chat_options_tools_section">Outils</string>
+    <string name="chat_options_web_search">Recherche web</string>
+    <string name="chat_input_hint_ready">Message…</string>
+    <string name="chat_input_hint_load_model">Chargez un modèle pour discuter</string>
+    <string name="chat_stop_generating_content_description">Arrêter la génération</string>
+    <string name="chat_send_content_description">Envoyer</string>
+    <string name="chat_photo_to_send_content_description">Photo à envoyer</string>
+    <string name="chat_photo_attached">Photo jointe</string>
+    <string name="chat_remove_photo_content_description">Retirer la photo</string>
+
+    <!-- ================= Edit message dialog ================= -->
+    <string name="chat_edit_title">Modifier le message</string>
+    <string name="chat_edit_body">La modification remplacera ce message et régénérera la réponse.</string>
+    <string name="chat_edit_placeholder">Message</string>
+    <string name="chat_edit_save_send">Enregistrer et envoyer</string>
+
+    <!-- ================= Inference settings sheet ================= -->
+    <string name="chat_settings_title">Paramètres de la session</string>
+    <string name="chat_settings_subtitle">Les changements s\'appliquent à cette conversation uniquement.</string>
+    <string name="chat_settings_temperature">Température</string>
+    <string name="chat_settings_top_p">Top-P</string>
+    <string name="chat_settings_top_k">Top-K</string>
+    <string name="chat_settings_system_instruction">Instruction système</string>
+    <string name="chat_settings_default_system_instruction">Vous êtes un assistant utile.</string>
+    <string name="chat_settings_discard">Annuler</string>
+    <string name="chat_settings_save">Enregistrer</string>
+    <string name="chat_settings_context_window_note">La fenêtre de contexte est gérée automatiquement — les anciens messages sont résumés lorsque la conversation la dépasse.</string>
+    <string name="chat_settings_backend">Backend</string>
+
+    <!-- ================= Message bubble ================= -->
+    <string name="chat_message_token_count">• %1$d tok</string>
+    <string name="chat_duration_seconds">%1$.1fs</string>
+    <string name="chat_duration_minutes_seconds">%1$dm %2$02ds</string>
+    <string name="chat_message_copy_content_description">Copier</string>
+    <string name="chat_message_regenerate_content_description">Régénérer</string>
+
+    <!-- ================= Model chip / pickers ================= -->
+    <string name="chat_model_loading">Chargement…</string>
+    <string name="chat_model_error">Erreur de modèle</string>
+    <string name="chat_model_select">Sélectionner un modèle</string>
+    <string name="chat_model_choose_content_description">Choisir un modèle</string>
+    <string name="chat_model_choose_title">Choisir un modèle</string>
+    <string name="chat_model_active_content_description">Actif</string>
+    <string name="chat_model_files_title">Choisir un modèle</string>
+    <string name="chat_model_files_subtitle">Tous les fichiers de modèles téléchargés sur cet appareil.</string>
+    <string name="chat_model_files_empty">Aucun fichier de modèle téléchargé pour l\'instant.</string>
+
+    <!-- ================= Model loading dialog ================= -->
+    <string name="chat_loading_title">Chargement du modèle</string>
+    <string name="chat_loading_stage_initializing">Initialisation du moteur…</string>
+    <string name="chat_loading_stage_weights">Chargement des poids…</string>
+    <string name="chat_loading_stage_ready">Prêt !</string>
+
+    <!-- ================= Chat options menu ================= -->
+    <string name="chat_attach_photo_unavailable">Ce modèle ne peut pas lire les photos. Chargez un modèle compatible vision (ex. Gemma 3) pour analyser les images.</string>
+
+    <!-- ================= Vision support ================= -->
+    <string name="chat_vision_unsupported">Ce modèle ne comprend pas d\'encodeur vision et ne peut donc pas lire les photos. Chargez un modèle compatible vision (ex. Gemma 3) pour analyser les images — votre texte a été conservé et les pièces jointes photo ont été ignorées.</string>
+
+    <!-- ================= Chat errors ================= -->
+    <string name="chat_error_model_not_downloaded">Le modèle %1$s n\'est pas téléchargé</string>
+    <string name="chat_error_model_file_missing">Fichier de modèle manquant sur l\'appareil</string>
+    <string name="chat_error_re_download">Re-télécharger</string>
+    <string name="chat_error_failed_to_load">Échec du chargement du modèle</string>
+    <string name="chat_error_model_still_loading">Le modèle est encore en cours de chargement</string>
+    <string name="chat_error_download_model_first">Téléchargez d\'abord un modèle pour commencer à discuter.</string>
+    <string name="chat_error_nothing_to_compact">Rien à compacter — la conversation tient déjà dans la fenêtre de contexte</string>
+    <string name="chat_error_summarization_failed">Échec de la synthèse — l\'historique a été tronqué pour tenir dans la fenêtre de contexte</string>
+    <plurals name="chat_error_compacted_messages">
+        <item quantity="one">Compaction de %1$d ancien message en un résumé</item>
+        <item quantity="other">Compaction de %1$d anciens messages en un résumé</item>
+    </plurals>
+    <string name="chat_error_photo_unreadable">Impossible de lire cette photo — essayez une autre image</string>
+    <string name="chat_error_no_active_conversation">Aucune conversation active</string>
+    <string name="chat_error_model_not_ready">Le modèle n\'est pas prêt</string>
+    <string name="chat_error_generation_failed">Échec de la génération</string>
+    <string name="chat_error_vision_photos">Ce modèle ne peut pas lire les photos. Chargez un modèle compatible vision (ex. Gemma 3) pour analyser les images.</string>
+    <string name="chat_error_context_too_long">Le prompt ou l\'historique de conversation est trop long pour la fenêtre de contexte de ce modèle. Commencez une nouvelle conversation ou réduisez le nombre max de tokens de contexte dans les paramètres de session.</string>
+    <string name="chat_error_couldnt_start_conversation">Impossible de démarrer la conversation</string>
+    <string name="chat_error_couldnt_start_conversation_retry">Impossible de démarrer la conversation. Essayez de rouvrir la conversation ou de recharger le modèle.</string>
+    <string name="chat_error_history_too_long">L\'historique de conversation est trop long pour la fenêtre de contexte de ce modèle. Commencez une nouvelle conversation ou compactez la conversation.</string>
+    <string name="chat_error_out_of_memory">Pas assez de mémoire libre. Fermez d\'autres applications et réessayez.</string>
+    <string name="chat_error_model_file_missing_short">Fichier de modèle manquant. Re-téléchargez le modèle.</string>
+    <string name="chat_error_no_backend">Aucun backend pris en charge sur cet appareil.</string>
+    <string name="chat_error_no_model_loaded">Aucun modèle chargé</string>
+</resources>

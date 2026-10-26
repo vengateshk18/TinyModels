@@ -19,10 +19,14 @@
     <string name="language_english" translatable="false">English</string>
     <!-- Native names: always shown in the language's own script, never translated. -->
     <string name="language_native_spanish" translatable="false">Espa\u00f1ol</string>
+    <string name="language_native_french" translatable="false">Fran\u00e7ais</string>
+    <string name="language_native_japanese" translatable="false">\u65e5\u672c\u8a9e</string>
     <string name="language_native_tamil" translatable="false">\u0ba4\u0bae\u0bbf\u0bb4\u0bcd</string>
     <string name="language_native_hindi" translatable="false">\u0939\u093f\u0928\u094d\u0926\u0940</string>
     <!-- English names: the readable hint shown in parentheses. -->
     <string name="language_name_spanish" translatable="false">Spanish</string>
+    <string name="language_name_french" translatable="false">French</string>
+    <string name="language_name_japanese" translatable="false">Japanese</string>
     <string name="language_name_tamil" translatable="false">Tamil</string>
     <string name="language_name_hindi" translatable="false">Hindi</string>
     <!-- Renders as "<native name> (<English name>)". -->

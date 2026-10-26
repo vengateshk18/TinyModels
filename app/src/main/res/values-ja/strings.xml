@@ -1,0 +1,26 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- App -->
+    <string name="app_name" translatable="false">TinyModels</string>
+
+    <!-- Shared UI actions and labels (usable from any feature) -->
+    <string name="common_cancel">\u30ad\u30e3\u30f3\u30bb\u30eb</string>
+    <string name="common_retry">\u518d\u8a66\u884c</string>
+    <string name="common_back">\u623b\u308b</string>
+    <string name="common_dismiss">\u9589\u3058\u308b</string>
+    <string name="common_delete">\u524a\u9664</string>
+    <string name="common_close">\u9589\u3058\u308b</string>
+    <string name="common_yes">\u306f\u3044</string>
+    <string name="common_no">\u3044\u3044\u3048</string>
+    <string name="common_unknown">\u4e0d\u660e</string>
+    <string name="common_percent">%1$d%%</string>
+
+    <!-- Shared relative-time wording (Formatters) -->
+    <string name="common_time_just_now">\u305f\u3063\u305f\u4eca</string>
+    <string name="common_time_minutes_ago">%1$dm\u524d</string>
+    <string name="common_time_hours_ago">%1$dh\u524d</string>
+    <string name="common_time_days_ago">%1$dd\u524d</string>
+    <string name="common_time_now">\u4eca</string>
+    <string name="common_time_minutes_short">%1$dm</string>
+    <string name="common_time_hours_short">%1$dh</string>
+    <string name="common_time_days_short">%1$dd</string>
+</resources>
