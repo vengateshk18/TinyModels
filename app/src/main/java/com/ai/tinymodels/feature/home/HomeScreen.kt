@@ -66,6 +66,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ai.tinymodels.core.ui.Formatters
+import com.ai.tinymodels.core.ui.components.WindowSize
+import com.ai.tinymodels.core.ui.components.rememberWindowSize
 import com.ai.tinymodels.feature.home.components.DeviceInsights
 import com.ai.tinymodels.domain.usecase.model.DownloadStatus
 import com.ai.tinymodels.feature.home.model.HomeUiState
@@ -505,6 +507,8 @@ private fun DashboardHome(
     // storage bar at 0%, battery "Unknown" and thermal stuck on "Normal".
     val liveDevice by deviceViewModel.state.collectAsStateWithLifecycle()
 
+    val isTablet = rememberWindowSize() != WindowSize.Compact
+
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
@@ -552,117 +556,144 @@ private fun DashboardHome(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // ---- Your models ----
-        SectionTitle("Your models")
-        val displayModels = state.models.take(5)
-        displayModels.forEach { model ->
-            ModelRow(model = model, onNewChat = onNewChat)
-        }
-        if (state.models.size > 5) {
-            TextButton(
-                onClick = onManageModels,
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
-            ) {
-                Text("Show ${state.models.size - 5} more models")
-            }
-        }
-        ManageModelsRow(onManageModels = onManageModels)
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // ---- Usage stats ----
-        SectionTitle("Your usage")
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            StatTile("${state.usage.totalChats}", "chats", Modifier.weight(1f))
-            StatTile("${state.usage.totalTokens}", "tokens", Modifier.weight(1f))
-            StatTile("${state.usage.modelsTried}", "models tried", Modifier.weight(1f))
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            StatTile("${state.usage.totalMessages}", "messages", Modifier.weight(1f))
-            StatTile("${state.usage.chatsThisWeek}", "chats this week", Modifier.weight(1f))
-            StatTile("${state.usage.compactionsRun}", "compactions", Modifier.weight(1f))
-        }
-        state.tokensPerSecond?.let { tps ->
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                "Last session: ~${"%.1f".format(tps)} tok/s",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        state.usage.favoriteModel?.let { favorite ->
-            Spacer(modifier = Modifier.height(12.dp))
-            Card(
+        if (isTablet) {
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+                horizontalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Filled.Star,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
-                        Text("Most chatted", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
-                        Text(
-                            favorite,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
+                Column(modifier = Modifier.weight(1f)) {
+                    DashboardModelsSection(state = state, onNewChat = onNewChat, onManageModels = onManageModels)
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    DashboardUsageSection(state = state, liveDevice = liveDevice)
                 }
             }
+        } else {
+            DashboardModelsSection(state = state, onNewChat = onNewChat, onManageModels = onManageModels)
+            Spacer(modifier = Modifier.height(20.dp))
+            DashboardUsageSection(state = state, liveDevice = liveDevice)
         }
-        if (state.usage.webSearchChats > 0) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                )
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Filled.Search,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        "Web search on in ${state.usage.webSearchChats} chat${if (state.usage.webSearchChats == 1) "" else "s"}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // ---- Device Insights (revamped style) ----
-        DeviceInsights(state = liveDevice)
 
         Spacer(modifier = Modifier.height(32.dp))
     }
+}
+
+@Composable
+private fun DashboardModelsSection(
+    state: HomeUiState.Dashboard,
+    onNewChat: (String?) -> Unit,
+    onManageModels: () -> Unit
+) {
+    SectionTitle("Your models")
+    val displayModels = state.models.take(5)
+    displayModels.forEach { model ->
+        ModelRow(model = model, onNewChat = onNewChat)
+    }
+    if (state.models.size > 5) {
+        TextButton(
+            onClick = onManageModels,
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+        ) {
+            Text("Show ${state.models.size - 5} more models")
+        }
+    }
+    ManageModelsRow(onManageModels = onManageModels)
+}
+
+@Composable
+private fun DashboardUsageSection(
+    state: HomeUiState.Dashboard,
+    liveDevice: DeviceInfoState
+) {
+    SectionTitle("Your usage")
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        StatTile("${state.usage.totalChats}", "chats", Modifier.weight(1f))
+        StatTile("${state.usage.totalTokens}", "tokens", Modifier.weight(1f))
+        StatTile("${state.usage.modelsTried}", "models tried", Modifier.weight(1f))
+    }
+    Spacer(modifier = Modifier.height(12.dp))
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        StatTile("${state.usage.totalMessages}", "messages", Modifier.weight(1f))
+        StatTile("${state.usage.chatsThisWeek}", "chats this week", Modifier.weight(1f))
+        StatTile("${state.usage.compactionsRun}", "compactions", Modifier.weight(1f))
+    }
+    state.tokensPerSecond?.let { tps ->
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            "Last session: ~${"%.1f".format(tps)} tok/s",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+    state.usage.favoriteModel?.let { favorite ->
+        Spacer(modifier = Modifier.height(12.dp))
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            )
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Filled.Star,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text("Most chatted", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    Text(
+                        favorite,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+        }
+    }
+    if (state.usage.webSearchChats > 0) {
+        Spacer(modifier = Modifier.height(8.dp))
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer
+            )
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Filled.Search,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    "Web search on in ${state.usage.webSearchChats} chat${if (state.usage.webSearchChats == 1) "" else "s"}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+        }
+    }
+
+    Spacer(modifier = Modifier.height(20.dp))
+
+    // ---- Device Insights (revamped style) ----
+    DeviceInsights(state = liveDevice)
 }
 
 /** A single downloaded model in the "Your models" list. */
