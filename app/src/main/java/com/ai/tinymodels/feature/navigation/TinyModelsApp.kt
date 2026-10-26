@@ -25,9 +25,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
+import com.ai.tinymodels.core.ui.components.WindowSize
+import com.ai.tinymodels.core.ui.components.rememberWindowSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -76,31 +81,27 @@ fun TinyModelsApp(
         Routes.HOME, Routes.CHAT, Routes.MODELS, Routes.SETTINGS
     )
 
+    val windowSize = rememberWindowSize()
+    // On tablet-class (medium/expanded) screens, promote the bottom bar to a
+    // side NavigationRail so the extra horizontal space is used and content
+    // keeps a comfortable reading width.
+    val useRail = showBottomBar && windowSize != WindowSize.Compact
+
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
-            if (showBottomBar) {
+            if (showBottomBar && !useRail) {
                 NavigationBar {
                     bottomNavItems.forEach { item ->
                         val selected = currentRoute == item.route
                         NavigationBarItem(
                             selected = selected,
                             onClick = {
-                                // Tapping the tab you are already on must be a
-                                // no-op: without this guard, popUpTo popped the
-                                // current entry before launchSingleTop could
-                                // dedupe the tap, rebuilding the screen.
                                 if (TabNavigator.shouldNavigate(currentRoute, item.route)) {
                                     val startDest = navController.graph.findStartDestination().id
                                     navController.navigate(item.route) {
-                                        // Pop to start destination to avoid building up
-                                        // a deep back stack when switching tabs.
-                                        popUpTo(startDest) {
-                                            saveState = true
-                                        }
+                                        popUpTo(startDest) { saveState = true }
                                         launchSingleTop = true
-                                        // Sibling tabs restore their preserved state
-                                        // (ViewModels survive the save/restore round trip).
                                         restoreState = true
                                     }
                                 }
@@ -120,7 +121,37 @@ fun TinyModelsApp(
             }
         }
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+        Row(modifier = Modifier.fillMaxSize().padding(padding)) {
+            if (showBottomBar && useRail) {
+                NavigationRail {
+                    bottomNavItems.forEach { item ->
+                        val selected = currentRoute == item.route
+                        NavigationRailItem(
+                            selected = selected,
+                            onClick = {
+                                if (TabNavigator.shouldNavigate(currentRoute, item.route)) {
+                                    val startDest = navController.graph.findStartDestination().id
+                                    navController.navigate(item.route) {
+                                        popUpTo(startDest) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            },
+                            icon = {
+                                AnimatedNavIcon(
+                                    selected = selected,
+                                    selectedIcon = item.selectedIcon,
+                                    unselectedIcon = item.icon,
+                                    label = item.label
+                                )
+                            },
+                            label = { Text(item.label) }
+                        )
+                    }
+                }
+            }
+            Column(modifier = Modifier.fillMaxSize().weight(1f)) {
             NavHost(
                 navController = navController,
                 startDestination = Routes.HOME,
@@ -253,6 +284,7 @@ fun TinyModelsApp(
             }
         }
     }
+}
 }
 
 private data class BottomNavItem(
