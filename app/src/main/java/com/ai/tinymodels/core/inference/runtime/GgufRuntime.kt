@@ -8,6 +8,8 @@ import com.ai.tinymodels.core.inference.gguf.GgufMetadataReader
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.ModelFormat
 import com.dark.gguf_lib.GGMLEngine
+import com.dark.tn_security.TnModule
+import com.dark.tn_security.TnSecurity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
@@ -16,6 +18,8 @@ import org.json.JSONObject
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
+
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 /**
  * The GGUF (llama.cpp) [ModelRuntime], backed by ToolNeuron's prebuilt
@@ -27,7 +31,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class GgufRuntime @Inject constructor(
-    private val dispatchers: DispatcherProvider
+    private val dispatchers: DispatcherProvider,
+    @ApplicationContext private val context: android.content.Context,
 ) : ModelRuntime {
 
     private val engine = GGMLEngine()
@@ -45,6 +50,20 @@ class GgufRuntime @Inject constructor(
 
     override suspend fun initialize(request: RuntimeInitRequest) {
         withContext(dispatchers.io) {
+            // tn_security must be initialized before the gguf native lib is
+            // touched — its static initializer references TnSecurity.
+            try {
+                val crashDir = java.io.File(context.filesDir, "tn_security/crashes").apply { mkdirs() }
+                TnSecurity.init(
+                    context = context,
+                    module = TnModule.TN_APP,
+                    crashDir = crashDir,
+                    installSignalHandlers = false,
+                )
+            } catch (t: Throwable) {
+                TinyLog.w(TAG, "TnSecurity init failed: ${t.message}")
+            }
+
             // Read metadata first (pure Kotlin, no native) for max tokens.
             val md = try {
                 GgufMetadataReader.read(request.modelFile)

@@ -83,7 +83,9 @@ dependencies {
 
     // GGUF (llama.cpp) runtime — prebuilt AAR from ToolNeuron's gguf_lib.
     // Provides GGMLEngine (chat) + RAGEngine (embeddings) + native .so.
+    // tn_security is required by gguf_lib's native lib (TnSecurity class).
     implementation(files("libs/gguf_lib-release.aar"))
+    implementation(files("libs/tn_security-release.aar"))
 
     ksp(libs.androidx.room.compiler)
 
