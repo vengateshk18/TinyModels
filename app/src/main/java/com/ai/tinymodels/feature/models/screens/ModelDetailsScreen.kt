@@ -478,38 +478,41 @@ private fun FileRow(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         fileName.substringAfterLast("/"),
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.titleSmall,
                         overflow = TextOverflow.Ellipsis,
                         maxLines = 1
                     )
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         "${ModelFormat.fromFileName(fileName).displayName} · " +
                             (if (fileSize > 0) Formatters.formatBytes(fileSize) else "—"),
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     // Capacity indicator — only meaningful once the size is known.
                     if (fileSize > 0) {
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             if (isLoadable) "✓ Fits your device"
                             else "⚠ Too large for this device",
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.bodySmall,
                             color = if (isLoadable) MaterialTheme.colorScheme.primary
                             else MaterialTheme.colorScheme.error
                         )
                     }
                     // GGUF-specific hints (before download).
                     if (fileName.endsWith(".gguf", ignoreCase = true)) {
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             "Vision: " + if (hasVisionSupport) "supported (mmproj available)"
                             else "text-only",
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.bodySmall,
                             color = if (hasVisionSupport) MaterialTheme.colorScheme.primary
                             else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             "Context window: detected after download",
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }

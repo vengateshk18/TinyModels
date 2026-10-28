@@ -316,13 +316,14 @@ private fun ModelCard(model: ModelSummary, onClick: () -> Unit) {
                 model.libraryName?.takeIf { it.isNotBlank() }?.let { lib ->
                     SmallChip(lib)
                 }
-                model.lastModified?.takeIf { it.isNotBlank() }?.let { date ->
-                    Text(
-                        Formatters.formatDate(date),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+            }
+            model.lastModified?.takeIf { it.isNotBlank() }?.let { date ->
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    "Updated ${Formatters.formatDate(date)}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
