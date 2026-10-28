@@ -28,6 +28,8 @@ import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SdStorage
@@ -220,6 +222,21 @@ private fun FileDetailContent(
                 InfoRow(Icons.Filled.SdStorage, "Size", Formatters.formatBytes(fileInfo.sizeBytes))
                 fileInfo.localPath?.let {
                     InfoRow(Icons.Filled.Folder, "Location", it)
+                    // GGUF-specific hints: real context window + vision capability.
+                    if (fileInfo.fileName.endsWith(".gguf", ignoreCase = true)) {
+                        val file = java.io.File(it, fileInfo.fileName.substringAfterLast("/"))
+                        val ctx = com.ai.tinymodels.core.inference.ModelContextInspector.detectContext(file)
+                        if (ctx != null) {
+                            InfoRow(Icons.Filled.Memory, "Context window", "$ctx tokens (from model metadata)")
+                        }
+                        val mmproj = file.parentFile?.listFiles()
+                            ?.firstOrNull { f -> f.isFile && f.name.contains("mmproj", ignoreCase = true) }
+                        InfoRow(
+                            Icons.Filled.Image,
+                            "Vision",
+                            if (mmproj != null) "Supported (mmproj present)" else "Text-only"
+                        )
+                    }
                 }
                 
                 // Show downloaded date if we can get it from somewhere
