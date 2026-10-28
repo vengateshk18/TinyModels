@@ -42,7 +42,7 @@ data class CatalogPage(
 const val CATALOG_PAGE_SIZE = 60
 
 /** Extensions of every model file the app can download and track. */
-internal val MODEL_FILE_EXTENSIONS = ModelFormat.entries.map { it.extension }
+internal val MODEL_FILE_EXTENSIONS = listOf(".litertlm", ".gguf")
 
 /**
  * Display name for a model file: strips the directory path and a supported

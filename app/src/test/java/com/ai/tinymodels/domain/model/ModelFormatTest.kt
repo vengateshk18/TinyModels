@@ -33,18 +33,16 @@ class ModelFormatTest {
     }
 
     @Test
-    fun `allRunnableFiles spans every supported format`() {
+    fun `allRunnableFiles spans supported gguf and litertlm formats`() {
         val details = detailsWith(
             listOf("README.md", "weights.bin", "a.litertlm", "b.task", "c.tflite", "d.gguf")
         )
 
         assertEquals(
-            listOf("a.litertlm", "b.task", "c.tflite", "d.gguf"),
+            listOf("a.litertlm", "d.gguf"),
             details.allRunnableFiles
         )
         assertEquals(listOf("a.litertlm"), details.liteRtFiles)
-        assertEquals(listOf("b.task"), details.taskFiles)
-        assertEquals(listOf("c.tflite"), details.tfliteFiles)
         assertEquals(listOf("d.gguf"), details.ggufFiles)
     }
 
@@ -57,7 +55,7 @@ class ModelFormatTest {
         )
 
         assertTrue(summary.hasRuntimeFiles)
-        assertEquals(2, summary.runtimeFileCount)
+        assertEquals(1, summary.runtimeFileCount)
     }
 
     @Test
