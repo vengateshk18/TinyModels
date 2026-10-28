@@ -18,6 +18,7 @@ object RuntimeModule {
     @Singleton
     fun runtimeRegistry(
         litertLmRuntime: LitertLmRuntime,
-        mediaPipeLlmRuntime: MediaPipeLlmRuntime
-    ): RuntimeRegistry = RuntimeRegistry(listOf(litertLmRuntime, mediaPipeLlmRuntime))
+        mediaPipeLlmRuntime: MediaPipeLlmRuntime,
+        ggufRuntime: GgufRuntime
+    ): RuntimeRegistry = RuntimeRegistry(listOf(litertLmRuntime, mediaPipeLlmRuntime, ggufRuntime))
 }
