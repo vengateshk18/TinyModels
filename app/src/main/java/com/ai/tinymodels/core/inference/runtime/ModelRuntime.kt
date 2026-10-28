@@ -43,6 +43,14 @@ interface ModelRuntime {
     val isInitialized: Boolean
 
     /**
+     * The context window the runtime ACTUALLY built with natively, when it
+     * knows it (GGUF: n_ctx read from file metadata). Null when the runtime
+     * stays on the caller's requested budget (LiteRT-LM/MediaPipe). ModelManager
+     * prefers this as the active token budget so the chat UI shows real numbers.
+     */
+    fun extractedMaxTokens(): Int? = null
+
+    /**
      * Build a live session on the initialized handle. Callers serialize
      * native access (ChatViewModel's native mutex / ModelManager's lock).
      */

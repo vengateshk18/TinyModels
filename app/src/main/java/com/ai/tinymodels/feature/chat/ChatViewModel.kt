@@ -492,12 +492,11 @@ class ChatViewModel @Inject constructor(
             "JOURNEY: openChat(chatId=$chatId, model=${chat.modelId}, " +
                 "webSearchEnabled=${chat.webSearchEnabled}, compactionCount=${chat.compactionCount})"
         )
-        // Ensure the chat's model is the one loaded; if not, load it.
-        if (modelManager.loadedModelId != chat.modelId) {
-            selectModel(chat.modelId)
-            // selectModel triggers rebuildSession via activeChatId once ready; set id now.
-            _uiState.update { it.copy(activeChatId = chatId) }
-        }
+        // Surface settings + start observing the conversation BEFORE any model
+        // work. Session creation waits on ModelManager's load mutex, so
+        // anything ordered after rebuildSession only appears once the engine
+        // has fully loaded — that ordering made history chats sit frozen for
+        // the entire load (screen blank, "3 seconds"+) before messages showed.
         _uiState.update {
             it.copy(
                 activeChatId = chatId,
@@ -507,8 +506,13 @@ class ChatViewModel @Inject constructor(
                 webSearchEnabled = chat.webSearchEnabled
             )
         }
-        rebuildSession(chatId)
         observeMessages(chatId)
+        if (modelManager.loadedModelId != chat.modelId) {
+            // selectModel triggers rebuildSession via activeChatId when ready.
+            selectModel(chat.modelId)
+        } else {
+            rebuildSession(chatId)
+        }
     }
 
     private fun deleteChat(chatId: String) {

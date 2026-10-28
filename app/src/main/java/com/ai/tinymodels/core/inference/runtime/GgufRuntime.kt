@@ -56,11 +56,19 @@ class GgufRuntime @Inject constructor(
     private var metadata: GgufMetadataReader.Metadata? = null
     private var activeRequest: RuntimeInitRequest? = null
 
+    /** Context size the engine was actually loaded with (from GGUF metadata). */
+    private var loadedContextSize: Int? = null
+
     override val format: ModelFormat = ModelFormat.GGUF
 
     override val supportsToolCalling: Boolean = false
 
     override val isInitialized: Boolean get() = engine.isLoaded
+
+    /** The real context size the engine was loaded with — n_ctx from the
+     *  GGUF metadata — so ModelManager/chat UI report actual numbers rather
+     *  than the caller's requested budget. */
+    override fun extractedMaxTokens(): Int? = loadedContextSize
 
     override fun detectVisionSupport(modelFile: File): Boolean =
         findMmprojFile(modelFile) != null
@@ -122,6 +130,7 @@ class GgufRuntime @Inject constructor(
             if (!success) {
                 throw InferenceException(InferenceError.LoadFailed("Failed to load GGUF model", null))
             }
+            loadedContextSize = ctx
 
             // Optional vision projector (mmproj). Loaded only when requested AND
             // a companion mmproj file exists next to the model.
@@ -164,6 +173,7 @@ class GgufRuntime @Inject constructor(
                 try { engine.unload() } catch (_: Throwable) {}
                 metadata = null
                 activeRequest = null
+                loadedContextSize = null
             }
         }
     }

@@ -144,6 +144,8 @@ fun DownloadedFileDetailScreen(
                 uiState.fileInfo != null ->
                     FileDetailContent(
                         fileInfo = uiState.fileInfo!!,
+                        ggufContextTokens = uiState.ggufContextTokens,
+                        mmprojPresent = uiState.mmprojPresent,
                         isLoadingModel = uiState.isLoadingModel,
                         loadModelError = uiState.loadModelError,
                         isDeleting = uiState.isDeleting,
@@ -197,6 +199,8 @@ fun DownloadedFileDetailScreen(
 @Composable
 private fun FileDetailContent(
     fileInfo: com.ai.tinymodels.domain.model.DownloadedModelFile,
+    ggufContextTokens: Int?,
+    mmprojPresent: Boolean,
     isLoadingModel: Boolean,
     loadModelError: String?,
     isDeleting: Boolean,
@@ -231,19 +235,17 @@ private fun FileDetailContent(
                 InfoRow(Icons.Filled.SdStorage, "Size", Formatters.formatBytes(fileInfo.sizeBytes))
                 fileInfo.localPath?.let {
                     InfoRow(Icons.Filled.Folder, "Location", it)
-                    // GGUF-specific hints: real context window + vision capability.
+                    // GGUF-specific hints: real context window + vision
+                    // capability — both detected once by the ViewModel
+                    // (disk I/O never runs during composition).
                     if (fileInfo.fileName.endsWith(".gguf", ignoreCase = true)) {
-                        val file = java.io.File(it, fileInfo.fileName.substringAfterLast("/"))
-                        val ctx = com.ai.tinymodels.core.inference.ModelContextInspector.detectContext(file)
-                        if (ctx != null) {
+                        ggufContextTokens?.let { ctx ->
                             InfoRow(Icons.Filled.Memory, "Context window", "$ctx tokens (from model metadata)")
                         }
-                        val mmproj = file.parentFile?.listFiles()
-                            ?.firstOrNull { f -> f.isFile && f.name.contains("mmproj", ignoreCase = true) }
                         InfoRow(
                             Icons.Filled.Image,
                             "Vision",
-                            if (mmproj != null) "Supported (mmproj present)" else "Text-only"
+                            if (mmprojPresent) "Supported (mmproj present)" else "Text-only"
                         )
                     }
                 }

@@ -200,7 +200,12 @@ class ModelManager @Inject constructor(
                         withContext(dispatchers.io) { previous.close() }
                     }
 
-                    val loaded = LoadedModel(modelId, preference, maxNumTokens, visionThisTry)
+                    // Prefer the runtime's own native context window (GGUF
+                    // provides n_ctx from file metadata) over the caller's
+                    // requested budget — the chat UI then displays real numbers.
+                    val actualMaxTokens = runCatching { target.extractedMaxTokens() }
+                        .getOrNull() ?: maxNumTokens
+                    val loaded = LoadedModel(modelId, preference, actualMaxTokens, visionThisTry)
                     _engineState.value = EngineState.Ready(loaded)
                     onProgress?.invoke(1.0f, ModelLoadStage.READY)
                     TinyLog.i(

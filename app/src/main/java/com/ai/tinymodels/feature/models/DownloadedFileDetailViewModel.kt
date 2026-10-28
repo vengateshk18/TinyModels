@@ -39,7 +39,11 @@ class DownloadedFileDetailViewModel @Inject constructor(
         val loadModelError: String? = null,
         val isDeleting: Boolean = false,
         val isExporting: Boolean = false,
-        val exportMessage: String? = null
+        val exportMessage: String? = null,
+        /** Real context window parsed from GGUF metadata (null when unknown). */
+        val ggufContextTokens: Int? = null,
+        /** Whether a companion mmproj (vision projector) sits next to the file. */
+        val mmprojPresent: Boolean = false
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -51,14 +55,41 @@ class DownloadedFileDetailViewModel @Inject constructor(
 
     private fun load() {
         viewModelScope.launch(Dispatchers.Default) {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            _uiState.update {
+                it.copy(isLoading = true, error = null, ggufContextTokens = null, mmprojPresent = false)
+            }
             val fileInfo = modelRepository.getModelFile(modelId, fileName)
             if (fileInfo != null) {
-                _uiState.update { it.copy(isLoading = false, fileInfo = fileInfo) }
+                // The GGUF context line needs a header parse (disk I/O) and the
+                // vision check a directory scan — both ran inline in the
+                // composable and froze the screen on click. Compute once here,
+                // and the UI simply reads the state.
+                var ctx: Int? = null
+                var mmproj = false
+                if (fileInfo.fileName.endsWith(".gguf", ignoreCase = true)) {
+                    localFile(fileInfo)?.let { file ->
+                        ctx = com.ai.tinymodels.core.inference.ModelContextInspector.detectContext(file)
+                        mmproj = file.parentFile?.listFiles()
+                            ?.any { it.isFile && it.name.contains("mmproj", ignoreCase = true) } == true
+                    }
+                }
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        fileInfo = fileInfo,
+                        ggufContextTokens = ctx,
+                        mmprojPresent = mmproj
+                    )
+                }
             } else {
                 _uiState.update { it.copy(isLoading = false, error = "File not found") }
             }
         }
+    }
+
+    private fun localFile(fileInfo: DownloadedModelFile): File? {
+        val dir = fileInfo.localPath ?: return null
+        return File(dir, fileInfo.fileName.substringAfterLast("/")).takeIf { it.exists() }
     }
 
     /**
