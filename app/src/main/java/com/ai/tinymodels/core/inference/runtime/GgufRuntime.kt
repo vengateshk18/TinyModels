@@ -188,9 +188,6 @@ class GgufRuntime @Inject constructor(
     /** Exposed for tests / UI: last-read metadata (null if unreadable). */
     fun lastMetadata(): GgufMetadataReader.Metadata? = metadata
 
-    /** Exposed for tests / UI: max context tokens extracted from the GGUF. */
-    fun extractedMaxTokens(): Int? = metadata?.contextLength
-
     companion object {
         private const val TAG = "GgufRuntime"
     }
