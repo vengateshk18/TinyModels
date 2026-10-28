@@ -215,7 +215,8 @@ fun ChatRoomScreen(
                     webSearchEnabled = uiState.webSearchEnabled,
                     onToggleWebSearch = { viewModel.onEvent(ChatEvent.ToggleWebSearch(it)) },
                     supportsVision = uiState.isVisionModel,
-                    modifier = Modifier.widthIn(max = 640.dp)
+                    // Shared constant with the list gutter in ChatRoomLayout.
+                    modifier = Modifier.widthIn(max = ChatRoomLayout.CONVERSATION_COLUMN_WIDTH)
                 )
             }
         }
@@ -318,18 +319,14 @@ private fun MessageListRoom(
     var showSummary by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
 
-    // Tablet-native conversation column. On compact windows the gutter works
-    // out to the original 16dp and bubbles keep the 300dp phone cap, so the
-    // phone look is untouched; medium/expanded windows center a 640dp
+    // Tablet-native conversation column (see ChatRoomLayout). On compact
+    // windows the gutter clamps to 16dp and bubbles keep the 300dp phone cap,
+    // so the phone look is untouched; medium/expanded windows center a 640dp
     // conversation column with roomier bubble caps — messages stop wrapping
     // into narrow strips at the far edges of a wide screen, and the composer
     // below is capped to the same width so list and input read as one column.
     val windowSize = rememberWindowSize()
-    val bubbleCap = when (windowSize) {
-        WindowSize.Compact -> 300.dp
-        WindowSize.Medium -> 360.dp
-        WindowSize.Expanded -> 440.dp
-    }
+    val bubbleCap = ChatRoomLayout.bubbleMaxWidth(windowSize)
 
     // The list is REVERSED: item 0 renders at the BOTTOM of the viewport and
     // the list grows upward. This is the standard chat layout — the newest
@@ -353,9 +350,9 @@ private fun MessageListRoom(
     }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        // Horizontal gutter centers a 640dp conversation column; on narrow
-        // windows it clamps back to 16dp, matching the phone original.
-        val gutter = ((maxWidth - 640.dp) / 2).coerceAtLeast(16.dp)
+        // Horizontal gutter centers the conversation column; on narrow windows
+        // it clamps back to 16dp, matching the phone original.
+        val gutter = ChatRoomLayout.conversationGutter(maxWidth)
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),

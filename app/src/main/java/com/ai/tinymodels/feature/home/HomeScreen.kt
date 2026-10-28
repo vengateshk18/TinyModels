@@ -607,7 +607,7 @@ private fun DashboardHome(
         // is capped and centered so cards keep a purposeful width instead of
         // ballooning edge-to-edge like a stretched phone layout.
         // Wider windows get more tiles per row from the same stat pool.
-        val tilesPerRow = if (windowSize == WindowSize.Expanded) 3 else 2
+        val tilesPerRow = HomeTabletSpec.usageTilesPerRow(windowSize)
         Box(modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             Column(
                 modifier = Modifier
@@ -704,14 +704,7 @@ private fun UsageStatsBlock(
     state: HomeUiState.Dashboard,
     tilesPerRow: Int
 ) {
-    val stats = listOf(
-        "${state.usage.totalChats}" to "chats",
-        "${state.usage.totalTokens}" to "tokens",
-        "${state.usage.modelsTried}" to "models tried",
-        "${state.usage.totalMessages}" to "messages",
-        "${state.usage.chatsThisWeek}" to "chats this week",
-        "${state.usage.compactionsRun}" to "compactions"
-    )
+    val stats = HomeTabletSpec.usageStatTiles(state.usage)
     stats.chunked(tilesPerRow.coerceAtLeast(1)).forEach { rowStats ->
         Row(
             modifier = Modifier.fillMaxWidth(),
