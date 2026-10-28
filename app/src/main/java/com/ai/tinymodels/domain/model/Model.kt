@@ -121,6 +121,10 @@ data class ModelDetails(
     val ggufFiles: List<String>
         get() = siblings.filter { it.endsWith(".gguf", ignoreCase = true) }
 
+    /** True when the repo ships a companion mmproj (vision projector) file. */
+    val hasVisionSupport: Boolean
+        get() = siblings.any { it.contains("mmproj", ignoreCase = true) }
+
     /** Only .litertlm files - the only format supported by LiteRT-LM runtime. */
     val runtimeFiles: List<String>
         get() = siblings.filter { it.endsWith(".litertlm", ignoreCase = true) }

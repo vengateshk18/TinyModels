@@ -250,6 +250,7 @@ private fun ModelDetailsContent(
             item {
                 InteractiveFilesCard(
                     files = model.allRunnableFiles,
+                    hasVisionSupport = model.hasVisionSupport,
                     uiState = uiState,
                     onFileSelected = onFileSelected,
                     onDownloadedFileClick = onDownloadedFileClick
@@ -382,6 +383,7 @@ private fun TagsCard(tags: List<String>) {
 @Composable
 private fun InteractiveFilesCard(
     files: List<String>,
+    hasVisionSupport: Boolean,
     uiState: ModelDetailsViewModel.UiState,
     onFileSelected: (String) -> Unit,
     onDownloadedFileClick: (String) -> Unit
@@ -398,6 +400,7 @@ private fun InteractiveFilesCard(
                 if (index > 0) HorizontalDivider()
                 FileRow(
                     fileName = fileName,
+                    hasVisionSupport = hasVisionSupport,
                     status = uiState.getFileStatus(fileName),
                     fileSize = uiState.getFileSize(fileName),
                     isLoadable = uiState.isFileLoadable(fileName),
@@ -414,6 +417,7 @@ private fun InteractiveFilesCard(
 @Composable
 private fun FileRow(
     fileName: String,
+    hasVisionSupport: Boolean,
     status: FileDownloadStatus,
     fileSize: Long,
     isLoadable: Boolean,
@@ -491,6 +495,21 @@ private fun FileRow(
                             style = MaterialTheme.typography.labelSmall,
                             color = if (isLoadable) MaterialTheme.colorScheme.primary
                             else MaterialTheme.colorScheme.error
+                        )
+                    }
+                    // GGUF-specific hints (before download).
+                    if (fileName.endsWith(".gguf", ignoreCase = true)) {
+                        Text(
+                            "Vision: " + if (hasVisionSupport) "supported (mmproj available)"
+                            else "text-only",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (hasVisionSupport) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            "Context window: detected after download",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
