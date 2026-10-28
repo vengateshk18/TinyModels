@@ -67,6 +67,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.WindowInsetsSides
+import java.util.Locale
 
 /**
  * Full-screen chat room for a single session (chatId from nav args).
@@ -407,7 +408,10 @@ private fun ContextUsageIcon(
             )
             Text(
                 text = "${(ratio * 100).toInt()}%",
-                fontSize = 8.sp,
+                // "100%" is a character wider than "9%" — step the size down
+                // at full usage so the text stays inside the 28dp ring
+                // instead of overlapping the stroke.
+                fontSize = if (ratio >= 0.995f) 7.sp else 8.sp,
                 lineHeight = 10.sp,
                 maxLines = 1,
                 color = MaterialTheme.colorScheme.onSurface
@@ -475,13 +479,17 @@ private fun ContextMetricsSheet(
                             else -> MaterialTheme.colorScheme.primary
                         }
                     )
+                    // Ring inner diameter ≈ 100dp; keep text inside it with a
+                    // couple dp of slack. Token counts shrink with length
+                    // (thousands separators included) so the line can never
+                    // touch or cross the ring stroke — big GGUF windows
+                    // ("used / 131,072") previously overflowed onto it.
+                    val usageText = "%,d / %,d".format(Locale.US, usedTokens, maxTokens)
+                    val usageFontSize = (96f / (0.62f * usageText.length))
+                        .coerceIn(9f, 15f).sp
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        // Inner diameter is ~100dp (120dp ring minus stroke);
-                        // keep side padding small and center multi-line counts
-                        // so "12345 / 8192 tokens" wraps inside the ring
-                        // instead of touching its edge.
-                        modifier = Modifier.padding(horizontal = 12.dp)
+                        modifier = Modifier.padding(horizontal = 14.dp)
                     ) {
                         Text(
                             "${(ratio * 100).toInt()}%",
@@ -489,8 +497,10 @@ private fun ContextMetricsSheet(
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
                         Text(
-                            "$usedTokens / $maxTokens tokens",
-                            style = MaterialTheme.typography.labelMedium,
+                            usageText,
+                            fontSize = usageFontSize,
+                            lineHeight = 16.sp,
+                            maxLines = 1,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
