@@ -39,5 +39,4 @@ android {
 - `nativeClose(JNIEnv*, jclass, jlong handle) -> void`
 
 Until this library is present, `GgufRuntime` reads GGUF metadata (max tokens etc.)
-in pure Kotlin and fails fast with a clear error, so the app never crashes.EOF
-echo done
+in pure Kotlin and fails fast with a clear error, so the app never crashes.

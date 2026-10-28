@@ -40,3 +40,11 @@
 # (tasks-core) that this app never calls — the text-LLM path does not need
 # them on the classpath.
 -dontwarn com.google.mediapipe.framework.**
+
+# --- GGUF (llama.cpp) runtime — local prebuilt AAR ---
+# libgguf_lib.so resolves these classes/methods by name (StreamCallback fires
+# from C++, GGUFNativeLib declares the natives). The AAR ships consumer rules,
+# but for `implementation(files(...))` local AARs they are not reliably
+# applied by AGP, so keep them explicitly like the other runtimes above.
+-keep class com.dark.gguf_lib.** { *; }
+-keep class com.dark.tn_security.** { *; }

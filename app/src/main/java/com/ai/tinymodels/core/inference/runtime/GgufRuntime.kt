@@ -12,6 +12,8 @@ import com.dark.tn_security.TnModule
 import com.dark.tn_security.TnSecurity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -36,6 +38,20 @@ class GgufRuntime @Inject constructor(
 ) : ModelRuntime {
 
     private val engine = GGMLEngine()
+
+    /**
+     * Serializes ALL native engine access — load, unload, and every
+     * generation stream. ToolNeuron achieves the same discipline by keeping
+     * its whole engine behind a single-purpose `:inference` process; here the
+     * engine lives in the app process, so the mutex does that job. Without
+     * it, closing or re-initializing the engine while a decode loop is inside
+     * `nativeGenerateStreamMultiTurn` frees llama.cpp weights mid-use — a
+     * use-after-free SIGSEGV, not a catchable exception.
+     */
+    private val engineMutex = Mutex()
+
+    /** Runs [block] while no load/unload/reload can touch the native engine. */
+    suspend fun <T> withEngineLock(block: suspend () -> T): T = engineMutex.withLock { block() }
 
     private var metadata: GgufMetadataReader.Metadata? = null
     private var activeRequest: RuntimeInitRequest? = null
@@ -83,7 +99,16 @@ class GgufRuntime @Inject constructor(
                 )
             }
 
+            // The engine-touching span runs under the same lock the session
+            // streams acquire, so a load can never interleave with a decode.
+            engineMutex.withLock {
+            // Mirror ToolNeuron's unload discipline (unloadEverything()): stop
+            // any in-flight decode so the native loop is never left running
+            // across a weight free/reload, and drop a stale projector from a
+            // previously loaded model before loading this one.
+            try { engine.stopGeneration() } catch (_: Throwable) {}
             if (engine.isLoaded) engine.unload()
+            try { engine.releaseVlmProjector() } catch (_: Throwable) {}
 
             engine.setThreadMode(1)
             val ctx = (md?.contextLength ?: request.maxNumTokens).coerceIn(512, 131_072)
@@ -118,20 +143,28 @@ class GgufRuntime @Inject constructor(
                     TinyLog.i(TAG, "No companion mmproj file; vision disabled")
                 }
             }
+            } // engineMutex.withLock
         }
     }
 
     override fun createSession(request: SessionRequest): ChatSession {
         if (!engine.isLoaded) throw InferenceException(InferenceError.NoModelLoaded)
-        return GgufChatSession(engine = engine, request = request)
+        return GgufChatSession(engine = engine, runtime = this, request = request)
     }
 
     override suspend fun close() {
         withContext(dispatchers.io) {
-            try { engine.releaseVlmProjector() } catch (_: Throwable) {}
-            try { engine.unload() } catch (_: Throwable) {}
-            metadata = null
-            activeRequest = null
+            // Ask the decode loop to wind down BEFORE waiting on the lock, so
+            // an in-flight generation exits quickly instead of delaying the
+            // unload. Freeing weights mid-decode is the hard crash this class
+            // exists to prevent.
+            try { engine.stopGeneration() } catch (_: Throwable) {}
+            engineMutex.withLock {
+                try { engine.releaseVlmProjector() } catch (_: Throwable) {}
+                try { engine.unload() } catch (_: Throwable) {}
+                metadata = null
+                activeRequest = null
+            }
         }
     }
 

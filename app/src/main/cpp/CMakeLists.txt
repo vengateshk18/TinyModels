@@ -28,5 +28,3 @@ target_include_directories(gguf_bridge PRIVATE
     "${LLAMA_CPP_DIR}/ggml/include"
     "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries(gguf_bridge PRIVATE llama ggml android log)
-EOF
-echo done
