@@ -7,36 +7,30 @@ import com.ai.tinymodels.core.inference.InferenceException
 import com.ai.tinymodels.core.inference.gguf.GgufMetadataReader
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.ModelFormat
+import com.dark.gguf_lib.GGMLEngine
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * The GGUF (llama.cpp) [ModelRuntime].
+ * The GGUF (llama.cpp) [ModelRuntime], backed by ToolNeuron's prebuilt
+ * `gguf_lib-release.aar` (`com.dark.gguf_lib.GGMLEngine`).
  *
- * GGUF metadata (context length, architecture, quantization, …) is parsed
- * in pure Kotlin via [GgufMetadataReader], so the app can discover a model's
- * max-token budget without loading it. The actual native inference requires
- * the llama.cpp library built with the Android NDK; that binary is NOT bundled
- * in this build, so [initialize] records the metadata and then fails fast with
- * a clear [InferenceException] instead of crashing inside native code.
- *
- * To enable real GGUF execution:
- *   1. Build llama.cpp (with the Android toolchain) into libllama.so for
- *      arm64-v8a and place it under app/src/main/jniLibs/arm64-v8a/.
- *   2. Add a JNI bridge (app/src/main/cpp/gguf_jni.cpp) exposing
- *      loadModel / generate / close, mirroring LitertLmRuntime's contract.
- *   3. Replace the throw in [initialize] with native handle creation and
- *      implement [createSession] against that handle.
- *
- * The metadata reader is independently tested and reusable regardless of the
- * native runtime.
+ * This reuses the same native llama.cpp build ToolNeuron ships, so `.gguf`
+ * models actually run on-device. Metadata (max context tokens) is still read
+ * in pure Kotlin via [GgufMetadataReader] for budgeting/UI even before load.
  */
 @Singleton
 class GgufRuntime @Inject constructor(
     private val dispatchers: DispatcherProvider
 ) : ModelRuntime {
+
+    private val engine = GGMLEngine()
 
     private var metadata: GgufMetadataReader.Metadata? = null
     private var activeRequest: RuntimeInitRequest? = null
@@ -45,17 +39,13 @@ class GgufRuntime @Inject constructor(
 
     override val supportsToolCalling: Boolean = false
 
-    override val isInitialized: Boolean get() = false
+    override val isInitialized: Boolean get() = engine.isLoaded
 
     override fun detectVisionSupport(modelFile: File): Boolean = false
 
-    /**
-     * Read and record GGUF metadata (max context tokens etc.) so it is
-     * available for budgeting/UI, then fail fast because the native llama.cpp
-     * runtime is not bundled in this build.
-     */
     override suspend fun initialize(request: RuntimeInitRequest) {
         withContext(dispatchers.io) {
+            // Read metadata first (pure Kotlin, no native) for max tokens.
             val md = try {
                 GgufMetadataReader.read(request.modelFile)
             } catch (t: Throwable) {
@@ -64,6 +54,7 @@ class GgufRuntime @Inject constructor(
             }
             metadata = md
             activeRequest = request
+
             if (md != null) {
                 TinyLog.i(
                     TAG,
@@ -71,18 +62,32 @@ class GgufRuntime @Inject constructor(
                         "embed=${md.embeddingLength} layers=${md.blockCount} name=${md.name}"
                 )
             }
+
+            if (engine.isLoaded) engine.unload()
+
+            engine.setThreadMode(1)
+            val ctx = (md?.contextLength ?: request.maxNumTokens).coerceIn(512, 131_072)
+            val success = engine.load(
+                path = request.modelFile.absolutePath,
+                contextSize = ctx,
+                flashAttn = true,
+                cacheTypeK = "q8_0",
+                cacheTypeV = "q8_0",
+            )
+            if (!success) {
+                throw InferenceException(InferenceError.LoadFailed("Failed to load GGUF model", null))
+            }
         }
-        throw InferenceException(
-            InferenceError.UnsupportedFormat("GGUF")
-        )
     }
 
     override fun createSession(request: SessionRequest): ChatSession {
-        throw InferenceException(InferenceError.NoModelLoaded)
+        if (!engine.isLoaded) throw InferenceException(InferenceError.NoModelLoaded)
+        return GgufChatSession(engine = engine, request = request)
     }
 
     override suspend fun close() {
         withContext(dispatchers.io) {
+            try { engine.unload() } catch (_: Throwable) {}
             metadata = null
             activeRequest = null
         }

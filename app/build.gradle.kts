@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "com.ai.tinymodels"
-        minSdk = 26
+        minSdk = 29
         targetSdk = 37
         versionCode = 2
         versionName = "1.0.1"
@@ -80,6 +80,11 @@ dependencies {
 
     // MediaPipe LLM Inference — runs .task model bundles (Gemma-family, etc.)
     implementation(libs.google.mediapipe.tasks.genai)
+
+    // GGUF (llama.cpp) runtime — prebuilt AAR from ToolNeuron's gguf_lib.
+    // Provides GGMLEngine (chat) + RAGEngine (embeddings) + native .so.
+    implementation(files("libs/gguf_lib-release.aar"))
+
     ksp(libs.androidx.room.compiler)
 
     // Hilt (DI)
