@@ -58,21 +58,16 @@ class ChatOptionsMenuTest {
         assertEquals(PlusMenuItem.AttachPhoto(enabled = false, disabledReason = null), items[0])
     }
 
-    @Test fun `text-only model shows disabled attach-photo with explanatory text`() {
+    @Test fun `text-only model omits attach-photo entry`() {
         val items = buildPlusMenuItems(
             webSearchAvailable = true,
             webSearchEnabled = false,
             canAttachPhoto = true,
             supportsVision = false
         )
-        val photoItem = items[0] as PlusMenuItem.AttachPhoto
-        assertEquals(false, photoItem.enabled)
-        assertEquals(
-            "This model can't read photos. Load a vision-capable model (e.g. Gemma 3) to analyze images.",
-            photoItem.disabledReason
-        )
-        // Web search still present
-        assertEquals(PlusMenuItem.WebSearch(checked = false, enabled = true), items[1])
+        // No photo entry at all for text-only models.
+        assertEquals(1, items.size)
+        assertEquals(PlusMenuItem.WebSearch(checked = false, enabled = true), items[0])
     }
 
     @Test fun `text-only menu keeps the web-search switch state`() {
@@ -82,12 +77,7 @@ class ChatOptionsMenuTest {
             canAttachPhoto = true,
             supportsVision = false
         )
-        val photoItem = items[0] as PlusMenuItem.AttachPhoto
-        assertEquals(false, photoItem.enabled)
-        assertEquals(
-            "This model can't read photos. Load a vision-capable model (e.g. Gemma 3) to analyze images.",
-            photoItem.disabledReason
-        )
-        assertEquals(PlusMenuItem.WebSearch(checked = true, enabled = true), items[1])
+        assertEquals(1, items.size)
+        assertEquals(PlusMenuItem.WebSearch(checked = true, enabled = true), items[0])
     }
 }

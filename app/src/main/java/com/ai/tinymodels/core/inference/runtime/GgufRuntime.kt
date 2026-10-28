@@ -46,7 +46,8 @@ class GgufRuntime @Inject constructor(
 
     override val isInitialized: Boolean get() = engine.isLoaded
 
-    override fun detectVisionSupport(modelFile: File): Boolean = false
+    override fun detectVisionSupport(modelFile: File): Boolean =
+        findMmprojFile(modelFile) != null
 
     override suspend fun initialize(request: RuntimeInitRequest) {
         withContext(dispatchers.io) {
@@ -96,6 +97,27 @@ class GgufRuntime @Inject constructor(
             if (!success) {
                 throw InferenceException(InferenceError.LoadFailed("Failed to load GGUF model", null))
             }
+
+            // Optional vision projector (mmproj). Loaded only when requested AND
+            // a companion mmproj file exists next to the model.
+            if (request.enableVision) {
+                val mmproj = findMmprojFile(request.modelFile)
+                if (mmproj != null) {
+                    val vlmOk = engine.loadVlmProjector(
+                        path = mmproj.absolutePath,
+                        threads = 2,
+                        imageMinTokens = 256,
+                        imageMaxTokens = 1024,
+                    )
+                    TinyLog.i(TAG, "GGUF VLM projector load: $vlmOk (${mmproj.name})")
+                    if (!vlmOk) {
+                        // Keep the text model usable; vision just disabled.
+                        TinyLog.w(TAG, "VLM projector failed to load; continuing text-only")
+                    }
+                } else {
+                    TinyLog.i(TAG, "No companion mmproj file; vision disabled")
+                }
+            }
         }
     }
 
@@ -106,10 +128,18 @@ class GgufRuntime @Inject constructor(
 
     override suspend fun close() {
         withContext(dispatchers.io) {
+            try { engine.releaseVlmProjector() } catch (_: Throwable) {}
             try { engine.unload() } catch (_: Throwable) {}
             metadata = null
             activeRequest = null
         }
+    }
+
+    /** Find a companion mmproj file (vision projector) next to the model. */
+    private fun findMmprojFile(modelFile: File): File? {
+        val parent = modelFile.parentFile ?: return null
+        return parent.listFiles()
+            ?.firstOrNull { it.isFile && it.name.contains("mmproj", ignoreCase = true) && it.name.endsWith(".gguf", ignoreCase = true) }
     }
 
     /** Exposed for tests / UI: last-read metadata (null if unreadable). */

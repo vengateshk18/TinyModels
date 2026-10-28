@@ -41,31 +41,52 @@ class GgufChatSession(
             close(IllegalStateException("Session is closed"))
             return@callbackFlow
         }
-        val newTurn = ChatTurn(ChatTurn.Role.USER, text, emptyList())
+        val newTurn = ChatTurn(ChatTurn.Role.USER, text, imagePaths)
         turns.addLast(newTurn)
         countPrompt(text)
+        repeat(imagePaths.size) { countImage() }
 
         val messagesJson = buildMessagesJson(systemInstruction, priorSummary, turns.toList())
 
         val accumulated = StringBuilder()
         try {
-            engine.generateMultiTurnFlow(messagesJson, (maxContextTokens * 0.25).toInt().coerceAtLeast(64))
-                .collect { event ->
-                    when (event) {
-                        is GenerationEvent.Token -> {
-                            val piece = event.text
-                            if (piece.isNotEmpty()) {
-                                accumulated.append(piece)
-                                countResponseDelta(piece.length)
-                                trySend(accumulated.toString())
-                            }
-                        }
-                        is GenerationEvent.Error -> {
-                            TinyLog.e(TAG, "GGUF generation error: ${event.message}")
-                        }
-                        else -> {}
-                    }
+            val useVlm = imagePaths.isNotEmpty() && engine.isVlmLoaded
+            val flow = if (useVlm) {
+                val imageBytes = imagePaths.mapNotNull { path ->
+                    runCatching { java.io.File(path).readBytes() }.getOrNull()
                 }
+                if (imageBytes.isNotEmpty()) {
+                    engine.generateVlmFlow(
+                        messagesJson = messagesJson,
+                        imageData = imageBytes,
+                        maxTokens = (maxContextTokens * 0.25).toInt().coerceAtLeast(64),
+                        vtKeys = emptyList(),
+                        vlmKvKey = null,
+                        imageQuality = com.dark.gguf_lib.ImageQuality.HIGH,
+                    )
+                } else {
+                    engine.generateMultiTurnFlow(messagesJson, (maxContextTokens * 0.25).toInt().coerceAtLeast(64))
+                }
+            } else {
+                engine.generateMultiTurnFlow(messagesJson, (maxContextTokens * 0.25).toInt().coerceAtLeast(64))
+            }
+
+            flow.collect { event ->
+                when (event) {
+                    is GenerationEvent.Token -> {
+                        val piece = event.text
+                        if (piece.isNotEmpty()) {
+                            accumulated.append(piece)
+                            countResponseDelta(piece.length)
+                            trySend(accumulated.toString())
+                        }
+                    }
+                    is GenerationEvent.Error -> {
+                        TinyLog.e(TAG, "GGUF generation error: ${event.message}")
+                    }
+                    else -> {}
+                }
+            }
         } catch (t: Throwable) {
             TinyLog.e(TAG, "GGUF generate failed: ${t.message}", t)
             close(t)

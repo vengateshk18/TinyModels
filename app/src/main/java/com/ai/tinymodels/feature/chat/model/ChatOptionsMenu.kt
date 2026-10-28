@@ -36,14 +36,19 @@ fun buildPlusMenuItems(
     webSearchEnabled: Boolean,
     canAttachPhoto: Boolean,
     supportsVision: Boolean
-): List<PlusMenuItem> = listOf(
-    PlusMenuItem.AttachPhoto(
-        enabled = supportsVision && canAttachPhoto,
-        disabledReason = if (supportsVision) null
-        else "This model can't read photos. Load a vision-capable model (e.g. Gemma 3) to analyze images."
-    ),
-    PlusMenuItem.WebSearch(
-        checked = webSearchAvailable && webSearchEnabled,
-        enabled = webSearchAvailable
+): List<PlusMenuItem> = buildList {
+    if (supportsVision) {
+        add(
+            PlusMenuItem.AttachPhoto(
+                enabled = canAttachPhoto,
+                disabledReason = null
+            )
+        )
+    }
+    add(
+        PlusMenuItem.WebSearch(
+            checked = webSearchAvailable && webSearchEnabled,
+            enabled = webSearchAvailable
+        )
     )
-)
+}

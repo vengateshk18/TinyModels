@@ -1,5 +1,6 @@
 package com.ai.tinymodels.core.inference
 
+import com.ai.tinymodels.core.inference.gguf.GgufMetadataReader
 import java.io.File
 
 object ModelContextInspector {
@@ -11,8 +12,16 @@ object ModelContextInspector {
         Regex("""ctx\s{0,5}(\d{3,6})""", RegexOption.IGNORE_CASE)
     )
 
-    fun detectContext(file: File): Int? =
-        fromFilename(file.name)
+    fun detectContext(file: File): Int? {
+        // GGUF files declare their true context length in metadata — prefer it.
+        if (file.name.endsWith(".gguf", ignoreCase = true)) {
+            runCatching { GgufMetadataReader.read(file).contextLength }
+                .getOrNull()
+                ?.takeIf { it in 256..131_072 }
+                ?.let { return it }
+        }
+        return fromFilename(file.name)
+    }
 
     private fun fromFilename(name: String): Int? =
         FILENAME_PATTERNS.firstNotNullOfOrNull { regex ->

@@ -624,7 +624,7 @@ class ChatViewModel @Inject constructor(
             sessionModelId = modelManager.loadedModelId
             updateContextUsage()
             if (hadImages && !visionEnabled) {
-                _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
+                // Photo skipped silently on text-only models (no snackbar).
             }
         } catch (e: InferenceException) {
             // Engine not loaded yet; session will be built when the model finishes loading.
@@ -690,7 +690,7 @@ class ChatViewModel @Inject constructor(
                 }
                 sessionModelId = modelManager.loadedModelId
                 updateContextUsage()
-                _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
+                // Photo skipped silently on text-only models (no snackbar).
                 return
             } catch (retryFailure: Throwable) {
                 TinyLog.e(TAG, "Rebuild after vision reload failed: ${retryFailure.message}", retryFailure)
@@ -721,14 +721,14 @@ class ChatViewModel @Inject constructor(
                 }
                 sessionModelId = modelManager.loadedModelId
                 updateContextUsage()
-                _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
+                // Photo skipped silently on text-only models (no snackbar).
                 return
             } catch (retryFailure: Throwable) {
                 TinyLog.e(TAG, "Stripped-history rebuild failed: ${retryFailure.message}", retryFailure)
             }
         }
         session = null
-        _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
+        // Photo skipped silently on text-only models (no snackbar).
     }
 
     /**
@@ -950,7 +950,7 @@ class ChatViewModel @Inject constructor(
         // no vision encoder, so an image part would fail the turn anyway.
         // Text-only prompts fall through normally.
         if (imageUri != null && !modelManager.isVisionModelLoaded) {
-            _uiState.update { it.copy(error = ChatError(ModelVisionSupport.visionUnsupportedMessage())) }
+            // Photo skipped silently on text-only models (no snackbar).
             return
         }
         var chatId = state.activeChatId
