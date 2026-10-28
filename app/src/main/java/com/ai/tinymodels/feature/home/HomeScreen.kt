@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -169,68 +170,130 @@ private fun FirstTimeHome(
     onBrowseModels: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp)
-    ) {
-        Spacer(modifier = Modifier.height(8.dp))
+    val windowSize = rememberWindowSize()
+    val isTablet = windowSize != WindowSize.Compact
 
-        // ---- Hero ----
-        Text(
-            "Run AI models entirely on your phone.",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            "No internet. No cloud. No data leaves your device.",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+    if (!isTablet) {
+        Column(
+            modifier = modifier
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp)
+        ) {
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // ---- Capability verdict card ----
-        CapabilityVerdictCard(state)
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // ---- 3-step strip ----
-        ThreeStepStrip()
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // ---- Storage note ----
-        Text(
-            "Models range from 600 MB to 2 GB. You have " +
-                Formatters.formatBytes(state.freeStorageBytes) + " free.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // ---- Recommended model card ----
-        state.recommended?.let { recommended ->
-            RecommendedModelCard(
-                recommended = recommended,
-                download = download,
-                onDownload = onDownload,
-                onCancelDownload = onCancelDownload,
-                onOpenModelPage = onOpenModelPage,
-                onOpenSettings = onOpenSettings
+            // ---- Hero ----
+            Text(
+                "Run AI models entirely on your phone.",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
             )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "No internet. No cloud. No data leaves your device.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // ---- Capability verdict card ----
+            CapabilityVerdictCard(state)
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // ---- 3-step strip ----
+            ThreeStepStrip()
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // ---- Storage note ----
+            Text(
+                "Models range from 600 MB to 2 GB. You have " +
+                    Formatters.formatBytes(state.freeStorageBytes) + " free.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // ---- Recommended model card ----
+            state.recommended?.let { recommended ->
+                RecommendedModelCard(
+                    recommended = recommended,
+                    download = download,
+                    onDownload = onDownload,
+                    onCancelDownload = onCancelDownload,
+                    onOpenModelPage = onOpenModelPage,
+                    onOpenSettings = onOpenSettings
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // ---- Browse-all fallback ----
+            OutlinedButton(onClick = onBrowseModels, modifier = Modifier.fillMaxWidth()) {
+                Text("Browse all models")
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
         }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // ---- Browse-all fallback ----
-        OutlinedButton(onClick = onBrowseModels, modifier = Modifier.fillMaxWidth()) {
-            Text("Browse all models")
+    } else {
+        // Tablet: reading-width hero pane on the left, capability verdict +
+        // recommended download on the right — content capped and centered so
+        // it never stretches into awkward ultra-wide text lines.
+        Box(modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+            Column(
+                modifier = Modifier
+                    .widthIn(max = 920.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
+            ) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "Run AI models entirely on this device.",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            "No internet. No cloud. No data leaves your device.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Text(
+                            "Models range from 600 MB to 2 GB. You have " +
+                                Formatters.formatBytes(state.freeStorageBytes) + " free.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+                        OutlinedButton(onClick = onBrowseModels) {
+                            Text("Browse all models")
+                        }
+                    }
+                    Column(modifier = Modifier.weight(1.15f)) {
+                        CapabilityVerdictCard(state)
+                        Spacer(modifier = Modifier.height(20.dp))
+                        state.recommended?.let { recommended ->
+                            RecommendedModelCard(
+                                recommended = recommended,
+                                download = download,
+                                onDownload = onDownload,
+                                onCancelDownload = onCancelDownload,
+                                onOpenModelPage = onOpenModelPage,
+                                onOpenSettings = onOpenSettings
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+                ThreeStepStrip()
+                Spacer(modifier = Modifier.height(32.dp))
+            }
         }
-
-        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
@@ -507,74 +570,92 @@ private fun DashboardHome(
     // storage bar at 0%, battery "Unknown" and thermal stuck on "Normal".
     val liveDevice by deviceViewModel.state.collectAsStateWithLifecycle()
 
-    val isTablet = rememberWindowSize() != WindowSize.Compact
+    val windowSize = rememberWindowSize()
+    val isTablet = windowSize != WindowSize.Compact
 
-    Column(
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp)
-    ) {
-        Spacer(modifier = Modifier.height(8.dp))
+    if (!isTablet) {
+        // Phone — the original single reading column.
+        Column(
+            modifier = modifier
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp)
+        ) {
+            Spacer(modifier = Modifier.height(8.dp))
 
-        // ---- Last-used model launchpad card ----
-        LastUsedModelCard(
-            state = state,
-            onResumeChat = onResumeChat,
-            onNewChat = onNewChat
-        )
+            // ---- Last-used model launchpad card ----
+            LastUsedModelCard(state = state, onResumeChat = onResumeChat, onNewChat = onNewChat)
 
-        // ---- Thermal/battery advisory (contextual, dismissible) ----
-        if (!advisoryDismissed) {
-            Spacer(modifier = Modifier.height(12.dp))
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                )
+            // ---- Thermal/battery advisory (contextual, dismissible) ----
+            if (!advisoryDismissed) {
+                Spacer(modifier = Modifier.height(12.dp))
+                ThermalAdvisoryCard(onDismiss = { advisoryDismissed = true })
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            DashboardModelsSection(state = state, onNewChat = onNewChat, onManageModels = onManageModels)
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            DashboardUsageSection(state = state, liveDevice = liveDevice)
+
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+    } else {
+        // Tablet — canonical two-pane dashboard. The window is split into two
+        // bands: launchpad + at-a-glance usage, then models + device. Content
+        // is capped and centered so cards keep a purposeful width instead of
+        // ballooning edge-to-edge like a stretched phone layout.
+        // Wider windows get more tiles per row from the same stat pool.
+        val tilesPerRow = if (windowSize == WindowSize.Expanded) 3 else 2
+        Box(modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+            Column(
+                modifier = Modifier
+                    .widthIn(max = 920.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
             ) {
-                Row(
-                    modifier = Modifier.padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        "Large models may warm your device and use more battery.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onTertiaryContainer,
-                        modifier = Modifier.weight(1f)
-                    )
-                    IconButton(onClick = { advisoryDismissed = true }) {
-                        Icon(
-                            Icons.Filled.Close,
-                            contentDescription = "Dismiss",
-                            modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.onTertiaryContainer
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // ---- Band 1: launchpad | usage at a glance ----
+                Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                    Column(modifier = Modifier.weight(1.35f)) {
+                        LastUsedModelCard(
+                            state = state,
+                            onResumeChat = onResumeChat,
+                            onNewChat = onNewChat,
+                            expanded = true
                         )
+                        if (!advisoryDismissed) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            ThermalAdvisoryCard(onDismiss = { advisoryDismissed = true })
+                        }
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        SectionTitle("Your usage")
+                        UsageStatsBlock(state = state, tilesPerRow = tilesPerRow)
                     }
                 }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // ---- Band 2: your models | device insights ----
+                Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                    Column(modifier = Modifier.weight(1.35f)) {
+                        DashboardModelsSection(
+                            state = state,
+                            onNewChat = onNewChat,
+                            onManageModels = onManageModels
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        DeviceInsights(state = liveDevice)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
             }
         }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        if (isTablet) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    DashboardModelsSection(state = state, onNewChat = onNewChat, onManageModels = onManageModels)
-                }
-                Column(modifier = Modifier.weight(1f)) {
-                    DashboardUsageSection(state = state, liveDevice = liveDevice)
-                }
-            }
-        } else {
-            DashboardModelsSection(state = state, onNewChat = onNewChat, onManageModels = onManageModels)
-            Spacer(modifier = Modifier.height(20.dp))
-            DashboardUsageSection(state = state, liveDevice = liveDevice)
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
@@ -606,25 +687,43 @@ private fun DashboardUsageSection(
     liveDevice: DeviceInfoState
 ) {
     SectionTitle("Your usage")
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        StatTile("${state.usage.totalChats}", "chats", Modifier.weight(1f))
-        StatTile("${state.usage.totalTokens}", "tokens", Modifier.weight(1f))
-        StatTile("${state.usage.modelsTried}", "models tried", Modifier.weight(1f))
-    }
-    Spacer(modifier = Modifier.height(12.dp))
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        StatTile("${state.usage.totalMessages}", "messages", Modifier.weight(1f))
-        StatTile("${state.usage.chatsThisWeek}", "chats this week", Modifier.weight(1f))
-        StatTile("${state.usage.compactionsRun}", "compactions", Modifier.weight(1f))
+    UsageStatsBlock(state = state, tilesPerRow = 3)
+    Spacer(modifier = Modifier.height(20.dp))
+
+    // ---- Device Insights (revamped style) ----
+    DeviceInsights(state = liveDevice)
+}
+
+/**
+ * Usage stat tiles + secondary cards, sized to shrink token counts within its
+ * column. [tilesPerRow] lets the tablet layout pack 2 tiles per row on medium
+ * windows and 3 on expanded ones while the phone layout keeps the original 3.
+ */
+@Composable
+private fun UsageStatsBlock(
+    state: HomeUiState.Dashboard,
+    tilesPerRow: Int
+) {
+    val stats = listOf(
+        "${state.usage.totalChats}" to "chats",
+        "${state.usage.totalTokens}" to "tokens",
+        "${state.usage.modelsTried}" to "models tried",
+        "${state.usage.totalMessages}" to "messages",
+        "${state.usage.chatsThisWeek}" to "chats this week",
+        "${state.usage.compactionsRun}" to "compactions"
+    )
+    stats.chunked(tilesPerRow.coerceAtLeast(1)).forEach { rowStats ->
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            rowStats.forEach { (value, label) ->
+                StatTile(value, label, Modifier.weight(1f))
+            }
+        }
+        Spacer(modifier = Modifier.height(12.dp))
     }
     state.tokensPerSecond?.let { tps ->
-        Spacer(modifier = Modifier.height(8.dp))
         Text(
             "Last session: ~${"%.1f".format(tps)} tok/s",
             style = MaterialTheme.typography.bodySmall,
@@ -689,11 +788,6 @@ private fun DashboardUsageSection(
             }
         }
     }
-
-    Spacer(modifier = Modifier.height(20.dp))
-
-    // ---- Device Insights (revamped style) ----
-    DeviceInsights(state = liveDevice)
 }
 
 /** A single downloaded model in the "Your models" list. */
@@ -781,18 +875,25 @@ private fun ManageModelsRow(onManageModels: () -> Unit) {
 private fun LastUsedModelCard(
     state: HomeUiState.Dashboard,
     onResumeChat: (String) -> Unit,
-    onNewChat: (String?) -> Unit
+    onNewChat: (String?) -> Unit,
+    expanded: Boolean = false
 ) {
+    // Tablet launchpad: grander type and padding so the hero pane anchors the
+    // first band like a proper tablet dashboard, not a stretched phone card.
+    val eyebrowStyle = if (expanded) MaterialTheme.typography.titleLarge
+        else MaterialTheme.typography.titleMedium
+    val nameStyle = if (expanded) MaterialTheme.typography.headlineMedium
+        else MaterialTheme.typography.titleLarge
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         )
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column(modifier = Modifier.padding(if (expanded) 24.dp else 20.dp)) {
             Text(
                 "Ready to chat",
-                style = MaterialTheme.typography.titleMedium,
+                style = eyebrowStyle,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
@@ -801,7 +902,7 @@ private fun LastUsedModelCard(
                 Icon(
                     Icons.Filled.Memory,
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(if (expanded) 24.dp else 20.dp),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -815,7 +916,7 @@ private fun LastUsedModelCard(
                         state.lastUsedModel?.modelId?.substringAfterLast('/')
                             ?: "Your model"
                     },
-                    style = MaterialTheme.typography.titleLarge,
+                    style = nameStyle,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     maxLines = 1,
@@ -901,6 +1002,37 @@ private fun StatTile(value: String, label: String, modifier: Modifier = Modifier
 // ---------------------------------------------------------------------------
 // Shared bits
 // ---------------------------------------------------------------------------
+
+/** Dismissible thermal/battery advisory shown on both phone and tablet. */
+@Composable
+private fun ThermalAdvisoryCard(onDismiss: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "Large models may warm your device and use more battery.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(onClick = onDismiss) {
+                Icon(
+                    Icons.Filled.Close,
+                    contentDescription = "Dismiss",
+                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+        }
+    }
+}
 
 @Composable
 private fun SectionTitle(title: String) {
