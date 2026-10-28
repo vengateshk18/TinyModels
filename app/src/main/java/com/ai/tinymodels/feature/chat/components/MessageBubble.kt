@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.ai.tinymodels.feature.chat.model.UiChatMessage
 import com.mikepenz.markdown.m3.Markdown
@@ -48,6 +49,12 @@ import java.util.concurrent.TimeUnit
 fun MessageBubble(
     message: UiChatMessage,
     modifier: Modifier = Modifier,
+    /**
+     * Maximum bubble width. Phone keeps the original 300dp; tablet chat rooms
+     * pass a roomier cap — a 300dp bubble on a wide screen wraps messages into
+     * tall narrow strips, which reads as a blown-up phone, not a tablet app.
+     */
+    maxBubbleWidth: Dp = 300.dp,
     onRegenerate: (() -> Unit)? = null,
     onEdit: ((String) -> Unit)? = null,
     onCopied: (() -> Unit)? = null,
@@ -74,7 +81,7 @@ fun MessageBubble(
         ) {
             Card(
                 modifier = Modifier
-                    .widthIn(max = 300.dp)
+                    .widthIn(max = maxBubbleWidth)
                     .combinedClickable(
                         onClick = {
                             if (isUser && onEdit != null && !message.isStreaming) {

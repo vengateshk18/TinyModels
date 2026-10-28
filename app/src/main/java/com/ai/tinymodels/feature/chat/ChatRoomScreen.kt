@@ -1,6 +1,7 @@
 package com.ai.tinymodels.feature.chat
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Box
@@ -43,6 +44,8 @@ import com.ai.tinymodels.core.ui.components.bottomSheetTopSafePadding
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ai.tinymodels.feature.chat.components.ChatInputBar
+import com.ai.tinymodels.core.ui.components.WindowSize
+import com.ai.tinymodels.core.ui.components.rememberWindowSize
 import com.ai.tinymodels.feature.chat.components.EditMessageDialog
 import com.ai.tinymodels.feature.chat.components.InferenceSettingsSheet
 import com.ai.tinymodels.feature.chat.components.MessageBubble
@@ -63,6 +66,7 @@ import androidx.compose.foundation.layout.height
 import com.ai.tinymodels.feature.chat.model.GenerationState
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.only
@@ -197,17 +201,23 @@ fun ChatRoomScreen(
                 }
             }
 
-            ChatInputBar(
-                generation = uiState.generation,
-                canSend = uiState.canSend,
-                isModelReady = uiState.isModelReady,
-                onSend = { text, uri -> viewModel.onEvent(ChatEvent.SendMessage(text, uri?.toString())) },
-                onStop = { viewModel.onEvent(ChatEvent.CancelGeneration) },
-                webSearchAvailable = uiState.webSearchAvailable,
-                webSearchEnabled = uiState.webSearchEnabled,
-                onToggleWebSearch = { viewModel.onEvent(ChatEvent.ToggleWebSearch(it)) },
-                supportsVision = uiState.isVisionModel
-            )
+            // Cap the composer to the same conversation column as the message
+            // list on tablets and center it — on compact windows widthIn is a
+            // no-op so the phone keeps its full-width composer.
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomCenter) {
+                ChatInputBar(
+                    generation = uiState.generation,
+                    canSend = uiState.canSend,
+                    isModelReady = uiState.isModelReady,
+                    onSend = { text, uri -> viewModel.onEvent(ChatEvent.SendMessage(text, uri?.toString())) },
+                    onStop = { viewModel.onEvent(ChatEvent.CancelGeneration) },
+                    webSearchAvailable = uiState.webSearchAvailable,
+                    webSearchEnabled = uiState.webSearchEnabled,
+                    onToggleWebSearch = { viewModel.onEvent(ChatEvent.ToggleWebSearch(it)) },
+                    supportsVision = uiState.isVisionModel,
+                    modifier = Modifier.widthIn(max = 640.dp)
+                )
+            }
         }
     }
 
@@ -308,6 +318,19 @@ private fun MessageListRoom(
     var showSummary by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
 
+    // Tablet-native conversation column. On compact windows the gutter works
+    // out to the original 16dp and bubbles keep the 300dp phone cap, so the
+    // phone look is untouched; medium/expanded windows center a 640dp
+    // conversation column with roomier bubble caps — messages stop wrapping
+    // into narrow strips at the far edges of a wide screen, and the composer
+    // below is capped to the same width so list and input read as one column.
+    val windowSize = rememberWindowSize()
+    val bubbleCap = when (windowSize) {
+        WindowSize.Compact -> 300.dp
+        WindowSize.Medium -> 360.dp
+        WindowSize.Expanded -> 440.dp
+    }
+
     // The list is REVERSED: item 0 renders at the BOTTOM of the viewport and
     // the list grows upward. This is the standard chat layout — the newest
     // message is permanently anchored just above the input bar, on first
@@ -329,33 +352,39 @@ private fun MessageListRoom(
         }
     }
 
-    LazyColumn(
-        state = listState,
-        modifier = Modifier.fillMaxSize(),
-        reverseLayout = true,
-        // Padding is in VIEWPORT space: `bottom` is next to the input bar.
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        items(reversedMessages, key = { it.id }) { message ->
-            MessageBubble(
-                message = message,
-                onRegenerate = if (!message.isUser && !message.isStreaming) {
-                    { onEvent(ChatEvent.Regenerate) }
-                } else null,
-                onEdit = if (message.isUser && !message.isStreaming) {
-                    { text -> onEditMessage(message.id, text) }
-                } else null,
-                onCopied = onCopied,
-                showTokenCounts = uiState.showTokenCounts
-            )
-        }
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        // Horizontal gutter centers a 640dp conversation column; on narrow
+        // windows it clamps back to 16dp, matching the phone original.
+        val gutter = ((maxWidth - 640.dp) / 2).coerceAtLeast(16.dp)
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
+            reverseLayout = true,
+            // Padding is in VIEWPORT space: `bottom` is next to the input bar.
+            contentPadding = PaddingValues(start = gutter, end = gutter, top = 8.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            items(reversedMessages, key = { it.id }) { message ->
+                MessageBubble(
+                    message = message,
+                    maxBubbleWidth = bubbleCap,
+                    onRegenerate = if (!message.isUser && !message.isStreaming) {
+                        { onEvent(ChatEvent.Regenerate) }
+                    } else null,
+                    onEdit = if (message.isUser && !message.isStreaming) {
+                        { text -> onEditMessage(message.id, text) }
+                    } else null,
+                    onCopied = onCopied,
+                    showTokenCounts = uiState.showTokenCounts
+                )
+            }
 
-        // Context-compaction chip — rendered as the LAST item so it appears at
-        // the TOP of the reversed list, above the oldest visible message.
-        if (uiState.compactedSummary != null) {
-            item(key = "compaction-chip") {
-                CompactionChip(onClick = { showSummary = true })
+            // Context-compaction chip — rendered as the LAST item so it appears
+            // at the TOP of the reversed list, above the oldest message.
+            if (uiState.compactedSummary != null) {
+                item(key = "compaction-chip") {
+                    CompactionChip(onClick = { showSummary = true })
+                }
             }
         }
     }
