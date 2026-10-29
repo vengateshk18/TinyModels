@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ai.tinymodels.core.common.AppResult
+import com.ai.tinymodels.core.inference.ModelContextInspector
 import com.ai.tinymodels.core.inference.ModelManager
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.DownloadedModelFile
@@ -43,7 +44,13 @@ class DownloadedFileDetailViewModel @Inject constructor(
         /** Real context window parsed from GGUF metadata (null when unknown). */
         val ggufContextTokens: Int? = null,
         /** Whether a companion mmproj (vision projector) sits next to the file. */
-        val mmprojPresent: Boolean = false
+        val mmprojPresent: Boolean = false,
+        /**
+         * True while the GGUF header parse (context window + vision) is still
+         * running. The screen renders file info immediately and only shows a
+         * small inline loader on those two rows until this flips to false.
+         */
+        val ggufMetaLoading: Boolean = false
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -56,33 +63,36 @@ class DownloadedFileDetailViewModel @Inject constructor(
     private fun load() {
         viewModelScope.launch(Dispatchers.Default) {
             _uiState.update {
-                it.copy(isLoading = true, error = null, ggufContextTokens = null, mmprojPresent = false)
+                it.copy(isLoading = true, error = null, ggufContextTokens = null, mmprojPresent = false, ggufMetaLoading = false)
             }
             val fileInfo = modelRepository.getModelFile(modelId, fileName)
-            if (fileInfo != null) {
-                // The GGUF context line needs a header parse (disk I/O) and the
-                // vision check a directory scan — both ran inline in the
-                // composable and froze the screen on click. Compute once here,
-                // and the UI simply reads the state.
-                var ctx: Int? = null
-                var mmproj = false
-                if (fileInfo.fileName.endsWith(".gguf", ignoreCase = true)) {
-                    localFile(fileInfo)?.let { file ->
-                        ctx = com.ai.tinymodels.core.inference.ModelContextInspector.detectContext(file)
-                        mmproj = file.parentFile?.listFiles()
-                            ?.any { it.isFile && it.name.contains("mmproj", ignoreCase = true) } == true
-                    }
-                }
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        fileInfo = fileInfo,
-                        ggufContextTokens = ctx,
-                        mmprojPresent = mmproj
-                    )
-                }
-            } else {
+            if (fileInfo == null) {
                 _uiState.update { it.copy(isLoading = false, error = "File not found") }
+                return@launch
+            }
+
+            val isGguf = fileInfo.fileName.endsWith(".gguf", ignoreCase = true)
+
+            // Phase 1 — show the screen as soon as the cheap DB read returns.
+            // The full-screen spinner is released here; only the GGUF metadata
+            // rows below are still pending (and they render an inline loader).
+            _uiState.update {
+                it.copy(isLoading = false, fileInfo = fileInfo, ggufMetaLoading = isGguf)
+            }
+
+            // Phase 2 — parse GGUF header (context window) + scan for a
+            // companion mmproj (vision). Disk I/O runs off the main thread and
+            // updates the two rows in place once ready.
+            if (!isGguf) return@launch
+            var ctx: Int? = null
+            var mmproj = false
+            localFile(fileInfo)?.let { file ->
+                ctx = ModelContextInspector.detectContext(file)
+                mmproj = file.parentFile?.listFiles()
+                    ?.any { it.isFile && it.name.contains("mmproj", ignoreCase = true) } == true
+            }
+            _uiState.update {
+                it.copy(ggufMetaLoading = false, ggufContextTokens = ctx, mmprojPresent = mmproj)
             }
         }
     }

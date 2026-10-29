@@ -146,6 +146,7 @@ fun DownloadedFileDetailScreen(
                         fileInfo = uiState.fileInfo!!,
                         ggufContextTokens = uiState.ggufContextTokens,
                         mmprojPresent = uiState.mmprojPresent,
+                        ggufMetaLoading = uiState.ggufMetaLoading,
                         isLoadingModel = uiState.isLoadingModel,
                         loadModelError = uiState.loadModelError,
                         isDeleting = uiState.isDeleting,
@@ -201,6 +202,7 @@ private fun FileDetailContent(
     fileInfo: com.ai.tinymodels.domain.model.DownloadedModelFile,
     ggufContextTokens: Int?,
     mmprojPresent: Boolean,
+    ggufMetaLoading: Boolean,
     isLoadingModel: Boolean,
     loadModelError: String?,
     isDeleting: Boolean,
@@ -237,16 +239,24 @@ private fun FileDetailContent(
                     InfoRow(Icons.Filled.Folder, "Location", it)
                     // GGUF-specific hints: real context window + vision
                     // capability — both detected once by the ViewModel
-                    // (disk I/O never runs during composition).
+                    // (disk I/O never runs during composition). While the
+                    // header parse is still running, show a small inline
+                    // loader on just these two rows so the rest of the screen
+                    // is visible immediately.
                     if (fileInfo.fileName.endsWith(".gguf", ignoreCase = true)) {
-                        ggufContextTokens?.let { ctx ->
-                            InfoRow(Icons.Filled.Memory, "Context window", "$ctx tokens (from model metadata)")
+                        if (ggufMetaLoading) {
+                            MetaLoadingRow(Icons.Filled.Memory, "Reading context window…")
+                            MetaLoadingRow(Icons.Filled.Image, "Detecting vision support…")
+                        } else {
+                            ggufContextTokens?.let { ctx ->
+                                InfoRow(Icons.Filled.Memory, "Context window", "$ctx tokens (from model metadata)")
+                            }
+                            InfoRow(
+                                Icons.Filled.Image,
+                                "Vision",
+                                if (mmprojPresent) "Supported (mmproj present)" else "Text-only"
+                            )
                         }
-                        InfoRow(
-                            Icons.Filled.Image,
-                            "Vision",
-                            if (mmprojPresent) "Supported (mmproj present)" else "Text-only"
-                        )
                     }
                 }
                 
@@ -347,6 +357,36 @@ private fun FileDetailContent(
             Spacer(modifier = Modifier.width(8.dp))
             Text(if (isDeleting) "Deleting..." else "Delete file")
         }
+    }
+}
+
+/** Inline row shown while the GGUF header parse (context window / vision) runs. */
+@Composable
+private fun MetaLoadingRow(icon: ImageVector, label: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            icon,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        CircularProgressIndicator(
+            modifier = Modifier.size(16.dp),
+            strokeWidth = 2.dp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.width(10.dp))
+        Text(
+            label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
