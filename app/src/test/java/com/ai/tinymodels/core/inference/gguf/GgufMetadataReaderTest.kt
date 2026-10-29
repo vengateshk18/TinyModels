@@ -3,6 +3,7 @@ package com.ai.tinymodels.core.inference.gguf
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Test
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
@@ -113,7 +114,7 @@ class GgufMetadataReaderTest {
     }
 
     @Test
-    fun `reads array values`() {
+    fun `reads array values when includeArrays is true`() {
         // manually append an array KV
         val baos = java.io.ByteArrayOutputStream()
         val out = java.io.DataOutputStream(baos)
@@ -128,8 +129,48 @@ class GgufMetadataReaderTest {
         writeUInt32(out, 1); writeUInt32(out, 2); writeUInt32(out, 3)
         out.flush()
         val f = File.createTempFile("gguf", ".gguf").apply { writeBytes(baos.toByteArray()); deleteOnExit() }
-        val md = GgufMetadataReader.read(f)
+        val md = GgufMetadataReader.read(f, includeArrays = true)
         assertEquals(listOf(1, 2, 3), md.values["arr"])
+    }
+
+    @Test
+    fun `skips tokenizer arrays by default and keeps parsing later keys`() {
+        val baos = java.io.ByteArrayOutputStream()
+        val out = java.io.DataOutputStream(baos)
+        writeUInt32(out, 0x46554747)
+        writeUInt32(out, 3)
+        writeUInt64(out, 0L)
+        writeUInt64(out, 3L)
+        // Scalar before the array.
+        writeString(out, "general.architecture")
+        writeUInt32(out, 8)
+        writeString(out, "llama")
+        // A realistic tokenizer array (50k strings) that must be skipped.
+        writeString(out, "tokenizer.ggml.tokens")
+        writeUInt32(out, 9) // ARRAY
+        writeUInt32(out, 8) // STRING element type
+        writeUInt64(out, 50_000L)
+        repeat(50_000) { writeString(out, "tok$it") }
+        // Scalar AFTER the array — proves the stream lands at the right offset.
+        writeString(out, "general.name")
+        writeUInt32(out, 8)
+        writeString(out, "After-Array")
+        out.flush()
+
+        val f = File.createTempFile("gguf", ".gguf").apply { writeBytes(baos.toByteArray()); deleteOnExit() }
+        val md = GgufMetadataReader.read(f)
+        assertEquals("llama", md.architecture)
+        assertEquals("After-Array", md.name)
+        assertNull(md.values["tokenizer.ggml.tokens"])
+    }
+
+    @Test
+    fun `memoizes metadata per file version`() {
+        val bytes = buildGguf(listOf("general.architecture" to "llama"))
+        val f = File.createTempFile("gguf", ".gguf").apply { writeBytes(bytes); deleteOnExit() }
+        val first = GgufMetadataReader.read(f)
+        val second = GgufMetadataReader.read(f)
+        assertSame(first, second)
     }
 
     @Test(expected = IllegalArgumentException::class)

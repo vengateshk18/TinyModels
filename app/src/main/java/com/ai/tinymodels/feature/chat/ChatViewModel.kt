@@ -271,7 +271,16 @@ class ChatViewModel @Inject constructor(
                     it.copy(
                         model = chip,
                         isVisionModel = (engineState as? ModelManager.EngineState.Ready)
-                            ?.model?.visionEnabled == true
+                            ?.model?.visionEnabled == true,
+                        // The loaded model knows its real window (GGUF: n_ctx
+                        // from file metadata). Sync it the moment the engine is
+                        // ready so the context sheet is correct even before a
+                        // ChatSession exists (new chats).
+                        contextUsage = when (engineState) {
+                            is ModelManager.EngineState.Ready ->
+                                it.contextUsage.copy(maxTokens = engineState.model.maxNumTokens)
+                            else -> it.contextUsage
+                        }
                     )
                 }
             }
@@ -313,6 +322,23 @@ class ChatViewModel @Inject constructor(
             val chat = chatId?.let { chatRepository.getChat(it) }
             val inference = chat?.inferenceSettings ?: InferenceSettings()
 
+            // Publish the loading state BEFORE touching the model file. GGUF
+            // context detection parses the file header (and used to read the
+            // whole tokenizer), which delayed this dialog by seconds while the
+            // room sat on its "Pick a model" empty state.
+            _uiState.update {
+                it.copy(
+                    modelLoadProgress = ModelLoadProgress(
+                        modelId = modelId,
+                        progress = 0f,
+                        stage = ModelLoadProgress.LoadStage.INITIALIZING
+                    )
+                )
+            }
+            // Start the simulated ticker immediately so the dialog animates
+            // while the header parse runs.
+            startProgressTicker(modelId)
+
             // Detect the model's true compiled context window — the automatic
             // compaction budget. Context is NO LONGER user-tunable: detected
             // value when available, safe default otherwise.
@@ -323,32 +349,22 @@ class ChatViewModel @Inject constructor(
             val effectiveMaxTokens = detectedContext
                 ?: com.ai.tinymodels.domain.model.InferenceSettings.DEFAULT_CONTEXT_TOKENS
 
-            // Surface the detected context window to the UI.
-            _uiState.update { it.copy(detectedContextTokens = detectedContext) }
+            // Surface the detected context window to the UI — the top-bar ring
+            // AND the context-usage sheet both read this value.
+            _uiState.update {
+                it.copy(
+                    detectedContextTokens = detectedContext,
+                    contextUsage = it.contextUsage.copy(
+                        maxTokens = detectedContext ?: it.contextUsage.maxTokens
+                    )
+                )
+            }
             
             // Record the file being loaded BEFORE the engine flips to Ready so the
             // chip collector (observeEngineState) already sees the correct value.
             // Use the resolved record's name so auto-loads (no explicit pick)
             // also highlight the right file in the picker sheet.
             activeFileName = fileRecord.fileName
-
-            // Track loading progress
-            _uiState.update { 
-                it.copy(
-                    modelLoadProgress = ModelLoadProgress(
-                        modelId = modelId,
-                        progress = 0f,
-                        stage = ModelLoadProgress.LoadStage.INITIALIZING
-                    )
-                ) 
-            }
-
-            // The native engine reports only a few discrete milestones (10% → 30% → 50%)
-            // around one long-blocking initialize() call, so the bar would otherwise
-            // stall and then jump to 100%. Run a simulated ticker alongside the real
-            // load: it creeps asymptotically toward 90% and never reaches it, while
-            // real milestones are merged in as a floor. Completion snaps to 100%.
-            startProgressTicker(modelId)
 
             val result = modelManager.loadModel(
                 modelId = modelId,
@@ -377,13 +393,19 @@ class ChatViewModel @Inject constructor(
             when (result) {
                 is com.ai.tinymodels.core.common.AppResult.Success -> {
                     activeModel = downloaded
+                    // The runtime reports the context window it ACTUALLY loaded
+                    // with (GGUF: n_ctx from metadata) — authoritative for both
+                    // the gauge and the sheet.
+                    val loadedMaxTokens = result.data.maxNumTokens
                     // Animate to 100% with "Ready!" label, hold briefly, then dismiss.
                     _uiState.update {
                         it.copy(
                             modelLoadProgress = it.modelLoadProgress?.copy(
                                 progress = 1.0f,
                                 stage = ModelLoadProgress.LoadStage.READY
-                            )
+                            ),
+                            detectedContextTokens = loadedMaxTokens,
+                            contextUsage = it.contextUsage.copy(maxTokens = loadedMaxTokens)
                         )
                     }
                     delay(400)
@@ -784,9 +806,10 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    /** The automatic compaction budget: detected context window, or safe default. */
+    /** The automatic compaction budget: loaded/detected context window, or safe default. */
     private fun autoContextBudget(): Int =
-        _uiState.value.detectedContextTokens
+        modelManager.activeMaxNumTokens
+            ?: _uiState.value.detectedContextTokens
             ?: com.ai.tinymodels.domain.model.InferenceSettings.DEFAULT_CONTEXT_TOKENS
 
     private suspend fun maybeCompactInternal(

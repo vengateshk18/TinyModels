@@ -22,6 +22,9 @@ object GgufMetadataReader {
     private const val MAGIC = 0x46554747 // "GGUF" little-endian
     private const val GGUF_VERSION_2 = 2
     private const val GGUF_VERSION_3 = 3
+    private const val CACHE_SIZE = 8
+    private const val BUFFER_SIZE = 64 * 1024
+    private const val MAX_STRING_LENGTH = 10_000_000L
 
     data class Metadata(
         val magic: Int,
@@ -85,10 +88,34 @@ object GgufMetadataReader {
         }
     }
 
-    /** Read metadata from [file]. Throws on I/O or format errors. */
-    fun read(file: File): Metadata {
+    /**
+     * Read metadata from [file]. Throws on I/O or format errors.
+     *
+     * Arrays are skipped by default. Real GGUFs embed the whole tokenizer as
+     * arrays (100k+ strings / ints) which this reader never needs; parsing
+     * them dominated load time (seconds on device) and allocated the entire
+     * vocabulary into memory. Pass [includeArrays] = true only when the array
+     * contents are actually needed.
+     *
+     * Results are memoized per (path, size, last-modified) so repeated calls
+     * — chat entry, runtime init, file-details screen — are effectively free.
+     */
+    fun read(file: File, includeArrays: Boolean = false): Metadata {
+        val key = CacheKey(file.absolutePath, file.length(), file.lastModified(), includeArrays)
+        synchronized(cache) { cache[key] }?.let { return it }
+
+        val metadata = parse(file, includeArrays)
+        synchronized(cache) { cache[key] = metadata }
+        return metadata
+    }
+
+    private fun parse(file: File, includeArrays: Boolean): Metadata {
         FileInputStream(file).use { fis ->
-            val r = LittleEndianReader(fis)
+            // Buffered I/O: the reader makes many small reads (keys, lengths,
+            // scalar values). Reading the file unbuffered was a syscall per
+            // byte on device.
+            val input = java.io.BufferedInputStream(fis, BUFFER_SIZE)
+            val r = LittleEndianReader(input)
             val magic = r.readUInt32()
             if (magic != MAGIC) throw IllegalArgumentException("Not a GGUF file (bad magic: 0x${magic.toString(16)})")
             val version = r.readUInt32()
@@ -102,15 +129,18 @@ object GgufMetadataReader {
             repeat(kvCount.toInt()) {
                 val key = r.readString()
                 val type = r.readUInt32()
-                val value = readValue(r, type)
-                values[key] = value
+                val value = readValue(r, type, includeArrays)
+                if (value !== SKIPPED) values[key] = value
             }
             return Metadata(magic, version, tensorCount, kvCount, values)
         }
     }
 
+    /** Sentinel for values deliberately dropped (skipped arrays). */
+    private val SKIPPED = Any()
+
     /** Read a single typed value. */
-    private fun readValue(r: LittleEndianReader, type: Int): Any = when (type) {
+    private fun readValue(r: LittleEndianReader, type: Int, includeArrays: Boolean): Any = when (type) {
         0 -> r.readUInt8()          // UINT8
         1 -> r.readInt8()           // INT8
         2 -> r.readUInt16()         // UINT16
@@ -120,7 +150,7 @@ object GgufMetadataReader {
         6 -> r.readFloat32()        // FLOAT32
         7 -> r.readBool()           // BOOL
         8 -> r.readString()         // STRING
-        9 -> readArray(r)           // ARRAY
+        9 -> if (includeArrays) readArray(r) else { skipArray(r); SKIPPED } // ARRAY
         10 -> r.readUInt64()        // UINT64
         11 -> r.readInt64()         // INT64
         12 -> r.readFloat64()       // FLOAT64
@@ -132,8 +162,27 @@ object GgufMetadataReader {
         val count = r.readUInt64()
         val n = count.toInt().coerceAtMost(1_000_000)
         val out = ArrayList<Any>(n)
-        repeat(n) { out += readValue(r, elemType.toInt()) }
+        repeat(n) { out += readValue(r, elemType, includeArrays = true) }
         return out
+    }
+
+    private fun skipArray(r: LittleEndianReader) {
+        val elemType = r.readUInt32()
+        val count = r.readUInt64()
+        r.skipElements(elemType, count)
+    }
+
+    private data class CacheKey(
+        val path: String,
+        val size: Long,
+        val lastModified: Long,
+        val includeArrays: Boolean,
+    )
+
+    /** Access-ordered LRU: model files are few; metadata entries are tiny. */
+    private val cache = object : LinkedHashMap<CacheKey, Metadata>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<CacheKey, Metadata>): Boolean =
+            size > CACHE_SIZE
     }
 
     /** Little-endian primitive reader over an InputStream. */
@@ -178,11 +227,68 @@ object GgufMetadataReader {
         fun readBool(): Boolean = readUInt8() != 0
         fun readString(): String {
             val len = readUInt64()
-            if (len < 0 || len > 10_000_000) throw IllegalArgumentException("Implausible string length: $len")
+            if (len < 0 || len > MAX_STRING_LENGTH) throw IllegalArgumentException("Implausible string length: $len")
             val bytes = ByteArray(len.toInt())
             readFully(bytes)
             return String(bytes, Charsets.UTF_8)
         }
+
+        /**
+         * Skip [count] elements of [type] without materializing them. Mirrors
+         * the GGUF value encoding so the stream lands exactly after the array.
+         */
+        fun skipElements(type: Int, count: Long) {
+            if (count <= 0) return
+            when (type) {
+                0, 1, 7 -> skipBytes(elementBytes(count, 1))       // UINT8/INT8/BOOL
+                2, 3 -> skipBytes(elementBytes(count, 2))           // UINT16/INT16
+                4, 5, 6 -> skipBytes(elementBytes(count, 4))        // UINT32/INT32/FLOAT32
+                10, 11, 12 -> skipBytes(elementBytes(count, 8))     // UINT64/INT64/FLOAT64
+                8 -> {                                              // STRING
+                    var i = 0L
+                    while (i < count) {
+                        val len = readUInt64()
+                        if (len < 0 || len > MAX_STRING_LENGTH) {
+                            throw IllegalArgumentException("Implausible string length: $len")
+                        }
+                        skipBytes(len)
+                        i++
+                    }
+                }
+                9 -> {                                              // nested ARRAY
+                    var i = 0L
+                    while (i < count) {
+                        val nestedType = readUInt32()
+                        val nestedCount = readUInt64()
+                        skipElements(nestedType, nestedCount)
+                        i++
+                    }
+                }
+                else -> throw IllegalArgumentException("Unknown GGUF value type: $type")
+            }
+        }
+
+        private fun elementBytes(count: Long, width: Int): Long {
+            if (count < 0 || count > Long.MAX_VALUE / width) {
+                throw IllegalArgumentException("Implausible array count: $count")
+            }
+            return count * width
+        }
+
+        private fun skipBytes(len: Long) {
+            var remaining = len
+            while (remaining > 0) {
+                val skipped = input.skip(remaining)
+                if (skipped > 0) {
+                    remaining -= skipped
+                    continue
+                }
+                // skip() is allowed to return 0; advance by reading a byte.
+                if (input.read() < 0) throw java.io.EOFException("Unexpected EOF in GGUF")
+                remaining--
+            }
+        }
+
         private fun readFully(b: ByteArray, off: Int = 0, len: Int = b.size) {
             var read = 0
             while (read < len) {

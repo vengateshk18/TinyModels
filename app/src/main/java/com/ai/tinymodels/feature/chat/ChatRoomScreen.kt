@@ -144,7 +144,7 @@ fun ChatRoomScreen(
                         // manual Compact action).
                         ContextUsageIcon(
                             usedTokens = uiState.contextUsage.usedTokens,
-                            maxTokens = uiState.detectedContextTokens ?: uiState.contextUsage.maxTokens,
+                            maxTokens = uiState.maxContextTokens,
                             onClick = { showContextSheet = true }
                         )
                         IconButton(onClick = { viewModel.onEvent(ChatEvent.OpenInferenceSettings) }) {
@@ -247,7 +247,7 @@ fun ChatRoomScreen(
     if (showContextSheet) {
         ContextMetricsSheet(
             usedTokens = uiState.contextUsage.usedTokens,
-            maxTokens = uiState.contextUsage.maxTokens,
+            maxTokens = uiState.maxContextTokens,
             compactionCount = uiState.compactionCount,
             compactedSummary = uiState.compactedSummary,
             isCompacting = uiState.isCompacting,

@@ -125,6 +125,14 @@ data class ChatUiState(
         get() = model is ModelChipState.Ready && generation == GenerationState.IDLE
 
     /**
+     * Effective context window for display (gauge + metrics sheet). Prefers
+     * the real per-model value (detected from the GGUF header / reported by
+     * the loaded runtime) over [ContextUsage]'s UI default.
+     */
+    val maxContextTokens: Int
+        get() = detectedContextTokens ?: contextUsage.maxTokens
+
+    /**
      * True when a model is loaded, regardless of generation. The composer
      * stays editable while streaming so the next prompt can be typed; sending
      * still requires stopping the current generation first (see [canSend]).
