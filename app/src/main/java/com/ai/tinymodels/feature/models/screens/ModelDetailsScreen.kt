@@ -440,137 +440,89 @@ private fun FileRow(
             }
         }
     ) {
-        Column(modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
+        Column(modifier = Modifier.padding(vertical = 12.dp, horizontal = 12.dp)) {
+            // Row 1: status icon + file name + trailing affordance
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Status icon
                 when (status) {
-                    FileDownloadStatus.NOT_DOWNLOADED -> {
-                        Icon(
-                            if (isSelected) Icons.Filled.RadioButtonChecked else Icons.Filled.RadioButtonUnchecked,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    FileDownloadStatus.DOWNLOADING -> {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                    }
-                    FileDownloadStatus.DOWNLOADED -> {
-                        Icon(
-                            Icons.Filled.CheckCircle,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    FileDownloadStatus.FAILED -> {
-                        Icon(
-                            Icons.Filled.ErrorOutline,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    }
+                    FileDownloadStatus.NOT_DOWNLOADED -> Icon(
+                        if (isSelected) Icons.Filled.RadioButtonChecked else Icons.Filled.RadioButtonUnchecked,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    FileDownloadStatus.DOWNLOADING -> CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    FileDownloadStatus.DOWNLOADED -> Icon(Icons.Filled.CheckCircle, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary)
+                    FileDownloadStatus.FAILED -> Icon(Icons.Filled.ErrorOutline, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.error)
                 }
                 Spacer(modifier = Modifier.width(12.dp))
-                
-                // File name, size, and device-capacity indicator
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        fileName.substringAfterLast("/"),
-                        style = MaterialTheme.typography.titleSmall,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        "${ModelFormat.fromFileName(fileName).displayName} · " +
-                            (if (fileSize > 0) Formatters.formatBytes(fileSize) else "—"),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    // Capacity indicator — only meaningful once the size is known.
-                    if (fileSize > 0) {
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            if (isLoadable) "✓ Fits your device"
-                            else "⚠ Too large for this device",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (isLoadable) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.error
-                        )
-                    }
-                    // GGUF-specific hints (before download).
-                    if (fileName.endsWith(".gguf", ignoreCase = true)) {
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            "Vision: " + if (hasVisionSupport) "supported (mmproj available)"
-                            else "text-only",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (hasVisionSupport) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            "Context window: detected after download",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                
-                // Status badge
-                when (status) {
-                    FileDownloadStatus.DOWNLOADED -> {
-                        Surface(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = MaterialTheme.shapes.small
-                        ) {
-                            Text(
-                                "Downloaded",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-                    }
-                    FileDownloadStatus.DOWNLOADING -> {
-                        download?.let {
-                            Text(
-                                "${(it.progress * 100).toInt()}%",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-                    FileDownloadStatus.FAILED -> {
-                        Surface(
-                            color = MaterialTheme.colorScheme.errorContainer,
-                            shape = MaterialTheme.shapes.small
-                        ) {
-                            Text(
-                                "Failed",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onErrorContainer,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-                    }
-                    else -> {}
-                }
-
-                // Trailing affordance: tap to open for downloaded files
+                Text(
+                    fileName.substringAfterLast("/"),
+                    style = MaterialTheme.typography.titleSmall,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f)
+                )
                 if (status == FileDownloadStatus.DOWNLOADED) {
                     Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = "Open",
-                        modifier = Modifier.size(18.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                    Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = MaterialTheme.shapes.small) {
+                        Text("Downloaded", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                    }
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Open", modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
+                } else if (status == FileDownloadStatus.DOWNLOADING) {
+                    download?.let {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("${(it.progress * 100).toInt()}%", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                    }
+                } else if (status == FileDownloadStatus.FAILED) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Surface(color = MaterialTheme.colorScheme.errorContainer, shape = MaterialTheme.shapes.small) {
+                        Text("Failed", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                    }
                 }
             }
-            
-            // Show inline progress for downloading
+
+            // Row 2: format + size
+            Spacer(modifier = Modifier.height(6.dp))
+            Row(modifier = Modifier.padding(start = 32.dp)) {
+                Text(
+                    "${ModelFormat.fromFileName(fileName).displayName} · " + (if (fileSize > 0) Formatters.formatBytes(fileSize) else "—"),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Capacity
+            if (fileSize > 0) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    if (isLoadable) "✓ Fits your device" else "⚠ Too large for this device",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isLoadable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(start = 32.dp)
+                )
+            }
+
+            // GGUF hints
+            if (fileName.endsWith(".gguf", ignoreCase = true)) {
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    "Vision: " + if (hasVisionSupport) "supported (mmproj available)" else "text-only",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (hasVisionSupport) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 32.dp)
+                )
+                Text(
+                    "Context window: detected after download",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 32.dp)
+                )
+            }
+
+            // Inline progress
             if (status == FileDownloadStatus.DOWNLOADING && download != null) {
                 Spacer(modifier = Modifier.height(8.dp))
                 LinearProgressIndicator(
