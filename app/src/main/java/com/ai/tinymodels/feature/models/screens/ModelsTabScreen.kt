@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -302,6 +303,23 @@ private fun ModelCard(model: ModelSummary, onClick: () -> Unit) {
                 }
             }
             Spacer(modifier = Modifier.height(6.dp))
+            model.lastModified?.takeIf { it.isNotBlank() }?.let { date ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Filled.CalendarToday,
+                        contentDescription = null,
+                        modifier = Modifier.size(12.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        "Updated ${Formatters.formatDate(date)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -316,14 +334,6 @@ private fun ModelCard(model: ModelSummary, onClick: () -> Unit) {
                 model.libraryName?.takeIf { it.isNotBlank() }?.let { lib ->
                     SmallChip(lib)
                 }
-            }
-            model.lastModified?.takeIf { it.isNotBlank() }?.let { date ->
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    "Updated ${Formatters.formatDate(date)}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
     }

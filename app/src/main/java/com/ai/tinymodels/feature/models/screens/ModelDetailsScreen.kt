@@ -36,6 +36,9 @@ import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SdStorage
@@ -508,18 +511,37 @@ private fun FileRow(
             // GGUF hints
             if (fileName.endsWith(".gguf", ignoreCase = true)) {
                 Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    "Vision: " + if (hasVisionSupport) "supported (mmproj available)" else "text-only",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (hasVisionSupport) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 32.dp)
-                )
-                Text(
-                    "Context window: detected after download",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 32.dp)
-                )
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 32.dp)) {
+                    Icon(
+                        if (hasVisionSupport) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = if (hasVisionSupport) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        "Vision: " + if (hasVisionSupport) "supported (mmproj available)" else "text-only",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (hasVisionSupport) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(modifier = Modifier.height(2.dp))
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 32.dp)) {
+                    Icon(
+                        Icons.Filled.Memory,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        "Context window: detected after download",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
             // Inline progress
