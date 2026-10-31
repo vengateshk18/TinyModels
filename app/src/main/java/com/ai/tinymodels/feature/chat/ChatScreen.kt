@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -32,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,6 +52,7 @@ import com.ai.tinymodels.feature.chat.model.ChatEvent
 import com.ai.tinymodels.feature.chat.model.ChatUiState
 import com.ai.tinymodels.feature.chat.model.GenerationState
 import com.ai.tinymodels.feature.chat.model.ModelChipState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /** Top-level chat destination. Wires the MVI ViewModel to stateless components. */
@@ -237,9 +240,38 @@ private fun MessageList(
 ) {
     val listState = rememberLazyListState()
     // Auto-scroll to the latest message when the list grows or the last item updates.
-    LaunchedEffect(uiState.messages.size, uiState.messages.lastOrNull()?.text?.length) {
+    LaunchedEffect(
+        uiState.messages.size,
+        uiState.messages.lastOrNull()?.text?.length,
+        uiState.messages.lastOrNull()?.isStreaming
+    ) {
         if (uiState.messages.isNotEmpty()) {
-            listState.animateScrollToItem(uiState.messages.size - 1)
+            listState.animateScrollToItem(uiState.messages.lastIndex)
+        }
+    }
+
+    // The reply text is revealed by a typewriter, so the bubble grows between
+    // native callbacks. Follow the bottom while it streams, unless the user
+    // deliberately scrolls away to read earlier messages.
+    var followStreaming by remember { mutableStateOf(true) }
+    val isDragged by listState.interactionSource.collectIsDraggedAsState()
+    LaunchedEffect(isDragged) {
+        if (isDragged) followStreaming = false
+    }
+    val latestStreaming by rememberUpdatedState(
+        uiState.messages.lastOrNull()?.isStreaming == true
+    )
+    val latestMessageCount by rememberUpdatedState(uiState.messages.size)
+    LaunchedEffect(Unit) {
+        while (true) {
+            if (latestStreaming && followStreaming && latestMessageCount > 0) {
+                listState.scrollToItem(latestMessageCount - 1)
+            }
+            // Re-arm following once the user is back at the bottom.
+            if (!listState.canScrollForward && !isDragged) {
+                followStreaming = true
+            }
+            delay(100)
         }
     }
     LazyColumn(

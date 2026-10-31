@@ -24,8 +24,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,6 +71,30 @@ internal fun buildStreamingMarkdown(content: String): String {
     return if (fences % 2 == 0) content + STREAMING_CARET_MARKER else content
 }
 
+/** How often the typewriter advances the visible text. ~30 fps. */
+private const val REVEAL_TICK_MS = 33L
+
+/**
+ * Characters to reveal on the next tick for [backlog] unrevealed chars.
+ *
+ * The generous minimum (2) keeps slow token streams visibly moving, while the
+ * backlog-proportional part lets a large native batch (the GGUF engine groups
+ * callbacks by ~256 chars) catch up within roughly a second instead of
+ * appearing as four lines at once. The cap stops a huge batch from turning
+ * back into a single jump.
+ */
+internal fun revealStep(backlog: Int): Int =
+    if (backlog <= 0) 0 else (backlog / 8).coerceIn(2, 10)
+
+/**
+ * Clamps a requested reveal offset to [text] and never leaves a high surrogate
+ * dangling, which would render as a replacement glyph for one frame.
+ */
+internal fun safeRevealEnd(text: String, requested: Int): Int {
+    val end = requested.coerceIn(0, text.length)
+    return if (end in 1 until text.length && text[end - 1].isHighSurrogate()) end - 1 else end
+}
+
 /**
  * Renders an assistant reply as live Markdown.
  *
@@ -85,6 +112,41 @@ fun StreamingMarkdown(
     isStreaming: Boolean,
     modifier: Modifier = Modifier,
 ) {
+    // ── Typewriter reveal ──
+    // GGUF callbacks arrive in ~256-char batches (the native engine groups
+    // tokens to cut JNI crossings), while LiteRT emits per token. Revealing
+    // the buffered text a few chars at a time decouples what the user sees
+    // from how the runtime delivers it, so both formats feel like typing.
+    var revealedLength by rememberSaveable {
+        mutableIntStateOf(if (isStreaming) 0 else content.length)
+    }
+    val latestContent by rememberUpdatedState(content)
+    val latestStreaming by rememberUpdatedState(isStreaming)
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            val target = latestContent.length
+            when {
+                // Finished (or history restored): show the final text at once.
+                !latestStreaming || revealedLength > target -> {
+                    if (revealedLength != target) revealedLength = target
+                    delay(120)
+                }
+                revealedLength < target -> {
+                    revealedLength = minOf(
+                        revealedLength + revealStep(target - revealedLength),
+                        target
+                    )
+                    delay(REVEAL_TICK_MS)
+                }
+                else -> delay(50) // caught up, waiting for the next batch
+            }
+        }
+    }
+
+    val visibleEnd = safeRevealEnd(content, revealedLength)
+    val displayed = if (visibleEnd >= content.length) content else content.substring(0, visibleEnd)
+
     // Hold the caret in the source until its fade-out finishes, then drop it.
     // The retained Markdown state keeps the old render visible in between, so
     // removing the marker never blanks the reply.
@@ -93,13 +155,16 @@ fun StreamingMarkdown(
         if (isStreaming) {
             keepCaret = true
         } else {
+            // Generation just finished: show the complete reply immediately,
+            // then let the caret fade out on top of it.
+            revealedLength = content.length
             delay(160)
             keepCaret = false
         }
     }
 
-    val source = remember(content, keepCaret) {
-        if (keepCaret) buildStreamingMarkdown(content) else content
+    val source = remember(displayed, keepCaret) {
+        if (keepCaret) buildStreamingMarkdown(displayed) else displayed
     }
     val markdownState = rememberMarkdownState(content = source, retainState = true)
     val accent = MaterialTheme.colorScheme.primary
@@ -148,7 +213,7 @@ fun StreamingMarkdown(
             // First frame only (a few milliseconds): show the raw text instead
             // of an empty bubble while the initial parse runs.
             Text(
-                text = content,
+                text = displayed,
                 modifier = loadingModifier.fillMaxWidth(),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
