@@ -81,6 +81,7 @@ import com.ai.tinymodels.core.ui.components.OfflineState
 import com.ai.tinymodels.domain.model.FileDownloadStatus
 import com.ai.tinymodels.domain.model.ModelDetails
 import com.ai.tinymodels.domain.model.ModelFormat
+import com.ai.tinymodels.domain.model.isVisionProjectorFile
 import com.ai.tinymodels.domain.usecase.model.DownloadState
 import com.ai.tinymodels.domain.usecase.model.DownloadStatus
 import com.ai.tinymodels.feature.models.ModelDetailsViewModel
@@ -300,7 +301,10 @@ private fun HeaderCard(model: ModelDetails) {
 
 @Composable
 private fun StatsCard(model: ModelDetails, modelFiles: List<com.ai.tinymodels.domain.model.DownloadedModelFile>) {
-    val downloadedCount = modelFiles.count { it.status == FileDownloadStatus.DOWNLOADED }
+    val downloadedCount = modelFiles.count {
+        it.status == FileDownloadStatus.DOWNLOADED &&
+            !it.fileName.isVisionProjectorFile()
+    }
     Card(modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Row(modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -399,6 +403,24 @@ private fun InteractiveFilesCard(
             Text("Tap a file to download it individually.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (hasVisionSupport) {
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Filled.Visibility,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        "Includes a vision projector (mmproj) — it downloads " +
+                            "automatically with any GGUF model you pick.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(10.dp))
             files.forEachIndexed { index, fileName ->
                 if (index > 0) HorizontalDivider()
@@ -521,7 +543,7 @@ private fun FileRow(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        "Vision: " + if (hasVisionSupport) "supported (mmproj available)" else "text-only",
+                        "Vision: " + if (hasVisionSupport) "supported (projector included)" else "text-only",
                         style = MaterialTheme.typography.bodySmall,
                         color = if (hasVisionSupport) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurfaceVariant

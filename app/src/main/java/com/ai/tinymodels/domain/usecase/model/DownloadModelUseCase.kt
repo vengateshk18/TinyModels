@@ -111,24 +111,31 @@ class DownloadModelUseCase @Inject constructor(
     private fun fileUniqueName(modelId: String, fileName: String) =
         "model_download_${modelId}_${fileName.replace(Regex("[^A-Za-z0-9._-]"), "_")}"
 
-    /** Size of a single model file via one HEAD request. */
+    /** Size of [fileName] plus any companion projector fetched with it. */
     suspend fun calculateFileSize(model: ModelDetails, fileName: String): Long =
         withContext(Dispatchers.IO) {
-            api.contentLength(api.fileUrl(model.id, fileName))
+            downloadFilesFor(model, fileName).sumOf { companion ->
+                api.contentLength(api.fileUrl(model.id, companion))
+            }
         }
+
+    /** The selected file plus automatic companions (vision projector). */
+    private fun downloadFilesFor(model: ModelDetails, fileName: String): List<String> =
+        (listOf(fileName) + model.companionFilesFor(fileName)).distinct()
 
     /** Enqueue a single-file download (or observe the active one) and stream progress. */
     fun executeFile(model: ModelDetails, fileName: String, fileSize: Long): Flow<DownloadState> {
         // KEEP discards the new request when a job already exists — observe
         // THAT job instead of the stillborn request id (which would read IDLE).
         observeExistingFile(model.id, fileName)?.let { return it }
+        val files = downloadFilesFor(model, fileName)
         val request = OneTimeWorkRequestBuilder<ModelDownloadWorker>()
             .setConstraints(downloadConstraints())
             .setInputData(
                 Data.Builder()
                     .putString(ModelDownloadWorker.KEY_MODEL_ID, model.id)
                     .putString(ModelDownloadWorker.KEY_MODEL_NAME, model.id)
-                    .putStringArray(ModelDownloadWorker.KEY_FILES, arrayOf(fileName))
+                    .putStringArray(ModelDownloadWorker.KEY_FILES, files.toTypedArray())
                     .putString(ModelDownloadWorker.KEY_AUTHOR, model.author)
                     .putString(ModelDownloadWorker.KEY_LIBRARY, model.libraryName)
                     .putString(ModelDownloadWorker.KEY_PIPELINE, model.pipelineTag)
@@ -164,7 +171,7 @@ class DownloadModelUseCase @Inject constructor(
 
     /** Compute total download size on demand (user-initiated, avoids extra calls on view). */
     suspend fun calculateSize(model: ModelDetails): Long = withContext(Dispatchers.IO) {
-        val files = model.allRunnableFiles
+        val files = (model.allRunnableFiles + model.mmprojFiles).distinct()
         files.sumOf { fileName ->
             api.contentLength(api.fileUrl(model.id, fileName))
         }
@@ -173,13 +180,14 @@ class DownloadModelUseCase @Inject constructor(
     /** Enqueue a download (or observe the active one) and stream its progress. */
     fun execute(model: ModelDetails, totalBytes: Long): Flow<DownloadState> {
         observeExisting(model.id)?.let { return it }
+        val files = (model.allRunnableFiles + model.mmprojFiles).distinct()
         val request = OneTimeWorkRequestBuilder<ModelDownloadWorker>()
             .setConstraints(downloadConstraints())
             .setInputData(
                 Data.Builder()
                     .putString(ModelDownloadWorker.KEY_MODEL_ID, model.id)
                     .putString(ModelDownloadWorker.KEY_MODEL_NAME, model.id)
-                    .putStringArray(ModelDownloadWorker.KEY_FILES, model.allRunnableFiles.toTypedArray())
+                    .putStringArray(ModelDownloadWorker.KEY_FILES, files.toTypedArray())
                     .putString(ModelDownloadWorker.KEY_AUTHOR, model.author)
                     .putString(ModelDownloadWorker.KEY_LIBRARY, model.libraryName)
                     .putString(ModelDownloadWorker.KEY_PIPELINE, model.pipelineTag)

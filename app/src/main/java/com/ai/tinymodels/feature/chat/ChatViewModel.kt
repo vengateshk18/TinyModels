@@ -21,6 +21,7 @@ import com.ai.tinymodels.domain.model.WebSearchResult
 import com.ai.tinymodels.domain.model.InferenceSettings
 import com.ai.tinymodels.domain.model.DownloadedModel
 import com.ai.tinymodels.domain.model.DownloadedModelFile
+import com.ai.tinymodels.domain.model.isVisionProjectorFile
 import com.ai.tinymodels.domain.repository.ChatRepository
 import com.ai.tinymodels.domain.repository.ModelRepository
 import com.ai.tinymodels.domain.repository.SettingsRepository
@@ -45,6 +46,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -84,9 +86,14 @@ class ChatViewModel @Inject constructor(
         modelRepository.observeDownloadedModels()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    /** Downloaded model files (children) for the file-level picker sheet. */
+    /**
+     * Downloaded model files (children) for the file-level picker sheet.
+     * Vision projectors (`mmproj`) are companions, not models — they are
+     * loaded automatically by their main model, so they are never pickable.
+     */
     val downloadedFiles: StateFlow<List<DownloadedModelFile>> =
         modelRepository.observeDownloadedFiles()
+            .map { files -> files.filterNot { it.fileName.isVisionProjectorFile() } }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     private var session: ChatSession? = null
@@ -308,6 +315,21 @@ class ChatViewModel @Inject constructor(
             if (fileRecord == null) {
                 _uiState.update {
                     it.copy(error = ChatError("Model file missing on device", "Re-download"))
+                }
+                return@launch
+            }
+            // A vision projector shares the .gguf extension but is not a
+            // language model. Loading it natively always fails — explain why
+            // instead of surfacing the raw loader error.
+            if (fileRecord.fileName.isVisionProjectorFile()) {
+                _uiState.update {
+                    it.copy(
+                        error = ChatError(
+                            "This file is a vision projector (mmproj), not a language model. " +
+                                "Open the main .gguf model instead — it picks up the projector " +
+                                "for vision automatically."
+                        )
+                    )
                 }
                 return@launch
             }

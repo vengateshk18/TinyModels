@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Person
@@ -144,6 +145,7 @@ fun DownloadedFileDetailScreen(
                 uiState.fileInfo != null ->
                     FileDetailContent(
                         fileInfo = uiState.fileInfo!!,
+                        isVisionProjector = uiState.isVisionProjector,
                         ggufContextTokens = uiState.ggufContextTokens,
                         mmprojPresent = uiState.mmprojPresent,
                         ggufMetaLoading = uiState.ggufMetaLoading,
@@ -200,6 +202,7 @@ fun DownloadedFileDetailScreen(
 @Composable
 private fun FileDetailContent(
     fileInfo: com.ai.tinymodels.domain.model.DownloadedModelFile,
+    isVisionProjector: Boolean,
     ggufContextTokens: Int?,
     mmprojPresent: Boolean,
     ggufMetaLoading: Boolean,
@@ -243,7 +246,7 @@ private fun FileDetailContent(
                     // header parse is still running, show a small inline
                     // loader on just these two rows so the rest of the screen
                     // is visible immediately.
-                    if (fileInfo.fileName.endsWith(".gguf", ignoreCase = true)) {
+                    if (fileInfo.fileName.endsWith(".gguf", ignoreCase = true) && !isVisionProjector) {
                         if (ggufMetaLoading) {
                             MetaLoadingRow(Icons.Filled.Memory, "Reading context window…")
                             MetaLoadingRow(Icons.Filled.Image, "Detecting vision support…")
@@ -254,7 +257,7 @@ private fun FileDetailContent(
                             InfoRow(
                                 Icons.Filled.Image,
                                 "Vision",
-                                if (mmprojPresent) "Supported (mmproj present)" else "Text-only"
+                                if (mmprojPresent) "Supported (mmproj downloaded)" else "Text-only"
                             )
                         }
                     }
@@ -262,6 +265,44 @@ private fun FileDetailContent(
                 
                 // Show downloaded date if we can get it from somewhere
                 // For now, we'll skip it as it's not in the DownloadedModelFile entity
+            }
+        }
+
+        // Vision projector (mmproj): explain why this file cannot be loaded.
+        if (isVisionProjector) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Icon(
+                        Icons.Filled.Info,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "Vision projector",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            "This file is the image encoder (mmproj) used by a multimodal " +
+                                "model. It cannot be loaded on its own — open the main .gguf " +
+                                "file in the same folder to chat with vision.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
             }
         }
 
@@ -305,23 +346,25 @@ private fun FileDetailContent(
             }
         }
 
-        // Actions
-        Button(
-            onClick = { onStartChat(fileInfo.modelId) },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !isLoadingModel && !isDeleting && !isExporting
-        ) {
-            if (isLoadingModel) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(18.dp),
-                    strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            } else {
-                Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null, modifier = Modifier.size(18.dp))
+        // Actions — projectors are companions, not runnable models.
+        if (!isVisionProjector) {
+            Button(
+                onClick = { onStartChat(fileInfo.modelId) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoadingModel && !isDeleting && !isExporting
+            ) {
+                if (isLoadingModel) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null, modifier = Modifier.size(18.dp))
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(if (isLoadingModel) "Loading model..." else "Start chat")
             }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(if (isLoadingModel) "Loading model..." else "Start chat")
         }
 
         OutlinedButton(

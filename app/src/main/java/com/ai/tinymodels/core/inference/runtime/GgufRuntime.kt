@@ -8,6 +8,7 @@ import com.ai.tinymodels.core.inference.gguf.GgufDiagnostics
 import com.ai.tinymodels.core.inference.gguf.GgufMetadataReader
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.ModelFormat
+import com.ai.tinymodels.domain.model.isVisionProjectorFile
 import com.dark.gguf_lib.GGMLEngine
 import com.dark.tn_security.TnModule
 import com.dark.tn_security.TnSecurity
@@ -276,13 +277,27 @@ class GgufRuntime @Inject constructor(
     /** Find a companion mmproj file (vision projector) next to the model. */
     private fun findMmprojFile(modelFile: File): File? {
         val parent = modelFile.parentFile ?: return null
-        return parent.listFiles()
-            ?.firstOrNull {
+        val candidates = parent.listFiles()
+            ?.filter {
                 it.isFile &&
                     it.absolutePath != modelFile.absolutePath &&
-                    it.name.contains("mmproj", ignoreCase = true) &&
-                    it.name.endsWith(".gguf", ignoreCase = true)
+                    it.name.isVisionProjectorFile()
             }
+            .orEmpty()
+        if (candidates.isEmpty()) return null
+        // Prefer the projector whose name is closest to the model, so a repo
+        // with several models + projectors pairs them correctly.
+        val modelStem = modelFile.name.substringBeforeLast('.')
+        return candidates.maxByOrNull { projector ->
+            commonPrefixLength(modelStem, projector.name.substringBeforeLast('.'))
+        }
+    }
+
+    private fun commonPrefixLength(a: String, b: String): Int {
+        val limit = minOf(a.length, b.length)
+        var i = 0
+        while (i < limit && a[i].equals(b[i], ignoreCase = true)) i++
+        return i
     }
 
     private fun elapsedMs(startedAtNanos: Long): Long =

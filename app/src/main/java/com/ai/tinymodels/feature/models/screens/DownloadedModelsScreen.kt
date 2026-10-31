@@ -44,6 +44,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ai.tinymodels.core.ui.components.EmptyState
 import com.ai.tinymodels.domain.model.DownloadedModelFile
+import com.ai.tinymodels.domain.model.isVisionProjectorFile
 import com.ai.tinymodels.feature.models.DownloadedModelsViewModel
 import com.ai.tinymodels.feature.models.components.ActiveDownloadsSection
 
@@ -161,6 +162,10 @@ private fun DownloadedFileRow(
                         Spacer(modifier = Modifier.width(8.dp))
                         ImportedTag()
                     }
+                    if (file.fileName.isVisionProjectorFile()) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        VisionProjectorTag()
+                    }
                 }
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
@@ -182,6 +187,21 @@ private fun DownloadedFileRow(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+    }
+}
+
+@Composable
+private fun VisionProjectorTag() {
+    androidx.compose.material3.Surface(
+        color = MaterialTheme.colorScheme.primaryContainer,
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)
+    ) {
+        Text(
+            "Vision projector",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+        )
     }
 }
 

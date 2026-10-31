@@ -17,7 +17,7 @@ data class ModelSummary(
     val hasRuntimeFiles: Boolean
         get() = siblings.any { it.isRuntimeFile() }
 
-    /** Count of runnable files in siblings. */
+    /** Count of runnable model files in siblings (vision projectors excluded). */
     val runtimeFileCount: Int
         get() = siblings.count { it.isRuntimeFile() }
 
@@ -25,8 +25,20 @@ data class ModelSummary(
     fun hasFormat(format: ModelFormat): Boolean =
         siblings.any { it.endsWith(format.extension, ignoreCase = true) }
 
-    private fun String.isRuntimeFile() = isRunnableFile()
+    private fun String.isRuntimeFile() = isRunnableFile() && !isVisionProjectorFile()
 }
+
+/**
+ * True when the file is a vision projector (`mmproj`), i.e. the companion
+ * weights a multimodal GGUF model uses to read images.
+ *
+ * Projectors share the `.gguf` extension but are NOT language models: loading
+ * one as a model fails inside llama.cpp. They must be downloaded and kept in
+ * the same folder as their main model, never offered as a standalone model.
+ */
+fun String.isVisionProjectorFile(): Boolean =
+    endsWith(".gguf", ignoreCase = true) &&
+        (contains("mmproj", ignoreCase = true) || contains("projector", ignoreCase = true))
 
 /** One page of catalog results. */
 data class CatalogPage(
@@ -117,21 +129,44 @@ data class ModelDetails(
     val tfliteFiles: List<String>
         get() = siblings.filter { it.endsWith(".tflite", ignoreCase = true) }
 
-    /** GGUF files for llama.cpp runtime. */
+    /** GGUF model files for the llama.cpp runtime (vision projectors excluded). */
     val ggufFiles: List<String>
-        get() = siblings.filter { it.endsWith(".gguf", ignoreCase = true) }
+        get() = siblings.filter {
+            it.endsWith(".gguf", ignoreCase = true) && !it.isVisionProjectorFile()
+        }
+
+    /** Companion vision projectors (`mmproj`) shipped alongside the models. */
+    val mmprojFiles: List<String>
+        get() = siblings.filter { it.isVisionProjectorFile() }
 
     /** True when the repo ships a companion mmproj (vision projector) file. */
     val hasVisionSupport: Boolean
-        get() = siblings.any { it.contains("mmproj", ignoreCase = true) }
+        get() = mmprojFiles.isNotEmpty()
 
     /** Only .litertlm files - the only format supported by LiteRT-LM runtime. */
     val runtimeFiles: List<String>
         get() = siblings.filter { it.endsWith(".litertlm", ignoreCase = true) }
 
-    /** All runnable files across all supported formats. */
+    /** All runnable model files across all supported formats. */
     val allRunnableFiles: List<String>
-        get() = siblings.filter { it.isRunnableFile() }
+        get() = siblings.filter { it.isRunnableFile() && !it.isVisionProjectorFile() }
+
+    /**
+     * Companion files that must be downloaded together with [fileName].
+     *
+     * A GGUF model with an `mmproj` sibling needs the projector on disk for
+     * vision to work, so it is fetched automatically instead of being offered
+     * as a separate download. Projectors themselves have no companions.
+     */
+    fun companionFilesFor(fileName: String): List<String> {
+        if (!fileName.endsWith(".gguf", ignoreCase = true) || fileName.isVisionProjectorFile()) {
+            return emptyList()
+        }
+        val projectors = mmprojFiles
+        if (projectors.isEmpty()) return emptyList()
+        // Prefer the projector closest by name — a repo can ship several models.
+        return listOfNotNull(projectors.maxByOrNull { commonPrefixLength(fileName, it) })
+    }
 
     /** True when access requires accepting a license / login on HuggingFace. */
     val isGated: Boolean
@@ -140,6 +175,14 @@ data class ModelDetails(
 
 private fun String.isRunnableFile() =
     MODEL_FILE_EXTENSIONS.any { endsWith(it, ignoreCase = true) }
+
+/** Length of the case-insensitive common prefix of [a] and [b]. */
+private fun commonPrefixLength(a: String, b: String): Int {
+    val limit = minOf(a.length, b.length)
+    var i = 0
+    while (i < limit && a[i].equals(b[i], ignoreCase = true)) i++
+    return i
+}
 
 /** A model that has been downloaded onto the device (lightweight parent metadata). */
 data class DownloadedModel(

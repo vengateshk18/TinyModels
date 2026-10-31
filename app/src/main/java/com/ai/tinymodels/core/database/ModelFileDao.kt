@@ -19,7 +19,27 @@ interface ModelFileDao {
     @Query("SELECT * FROM model_files WHERE modelId = :modelId AND fileName = :fileName")
     suspend fun getByModelIdAndFile(modelId: String, fileName: String): ModelFileEntity?
 
-    @Query("SELECT * FROM model_files WHERE modelId = :modelId AND status = 'DOWNLOADED' LIMIT 1")
+    /**
+     * The best downloaded model file for [modelId].
+     *
+     * Vision projectors (`mmproj`) share the `.gguf` extension but are not
+     * runnable models, so real model files are ordered first. If only a
+     * projector is present it is returned last (callers surface a clear
+     * "this is a projector" message instead of attempting a native load).
+     */
+    @Query(
+        """
+        SELECT * FROM model_files
+        WHERE modelId = :modelId AND status = 'DOWNLOADED'
+        ORDER BY
+            CASE
+                WHEN LOWER(fileName) LIKE '%mmproj%' OR LOWER(fileName) LIKE '%projector%'
+                THEN 1 ELSE 0
+            END,
+            sizeBytes DESC
+        LIMIT 1
+        """
+    )
     suspend fun getFirstDownloadedForModel(modelId: String): ModelFileEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

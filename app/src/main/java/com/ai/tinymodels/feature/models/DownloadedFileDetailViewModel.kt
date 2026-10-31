@@ -8,6 +8,7 @@ import com.ai.tinymodels.core.inference.ModelContextInspector
 import com.ai.tinymodels.core.inference.ModelManager
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.DownloadedModelFile
+import com.ai.tinymodels.domain.model.isVisionProjectorFile
 import com.ai.tinymodels.domain.repository.ModelRepository
 import com.ai.tinymodels.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -46,6 +47,11 @@ class DownloadedFileDetailViewModel @Inject constructor(
         /** Whether a companion mmproj (vision projector) sits next to the file. */
         val mmprojPresent: Boolean = false,
         /**
+         * True when this file IS the vision projector (`mmproj`), not a
+         * runnable language model. Such files cannot be loaded for chat.
+         */
+        val isVisionProjector: Boolean = false,
+        /**
          * True while the GGUF header parse (context window + vision) is still
          * running. The screen renders file info immediately and only shows a
          * small inline loader on those two rows until this flips to false.
@@ -72,18 +78,25 @@ class DownloadedFileDetailViewModel @Inject constructor(
             }
 
             val isGguf = fileInfo.fileName.endsWith(".gguf", ignoreCase = true)
+            val isProjector = fileInfo.fileName.isVisionProjectorFile()
 
             // Phase 1 — show the screen as soon as the cheap DB read returns.
             // The full-screen spinner is released here; only the GGUF metadata
             // rows below are still pending (and they render an inline loader).
             _uiState.update {
-                it.copy(isLoading = false, fileInfo = fileInfo, ggufMetaLoading = isGguf)
+                it.copy(
+                    isLoading = false,
+                    fileInfo = fileInfo,
+                    isVisionProjector = isProjector,
+                    ggufMetaLoading = isGguf && !isProjector
+                )
             }
 
             // Phase 2 — parse GGUF header (context window) + scan for a
             // companion mmproj (vision). Disk I/O runs off the main thread and
-            // updates the two rows in place once ready.
-            if (!isGguf) return@launch
+            // updates the two rows in place once ready. A projector has no
+            // context window of its own, so there is nothing to parse.
+            if (!isGguf || isProjector) return@launch
             var ctx: Int? = null
             var mmproj = false
             localFile(fileInfo)?.let { file ->
@@ -109,6 +122,17 @@ class DownloadedFileDetailViewModel @Inject constructor(
      */
     fun onStartChat(onSuccess: (preferredModelId: String) -> Unit) {
         val fileInfo = _uiState.value.fileInfo ?: return
+
+        // Projectors are companions for a multimodal model, never loadable.
+        if (fileInfo.fileName.isVisionProjectorFile()) {
+            _uiState.update {
+                it.copy(
+                    loadModelError = "This is a vision projector (mmproj), not a language model. " +
+                        "Open the main .gguf model instead — it uses this projector for vision."
+                )
+            }
+            return
+        }
 
         // Validate the file still exists on disk before navigating.
         val localPath = fileInfo.localPath

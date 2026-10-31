@@ -126,7 +126,7 @@ class ModelDownloadWorker @AssistedInject constructor(
                     modelId, fileName, FileDownloadStatus.NOT_DOWNLOADED.name, null, null, null
                 )
             }
-            modelDirectory.deleteRecursively()
+            deleteJobFiles(modelDirectory, files)
             DownloadNotifier.cancelProgress(applicationContext, id)
             throw cancellation
         } catch (exception: Exception) {
@@ -136,7 +136,7 @@ class ModelDownloadWorker @AssistedInject constructor(
                     modelId, fileName, FileDownloadStatus.FAILED.name, null, null, exception.message
                 )
             }
-            modelDirectory.deleteRecursively()
+            deleteJobFiles(modelDirectory, files)
             DownloadNotifier.notifyFailed(applicationContext, id, title, exception.message)
             val message = exception.message ?: "Download failed"
             // 401/403 (gated repo, missing/invalid token or unaccepted license)
@@ -148,6 +148,18 @@ class ModelDownloadWorker @AssistedInject constructor(
                 Result.retry()
             }
         }
+    }
+
+    /**
+     * Remove only the files written by this job. Nuking the whole model
+     * directory would delete other, already-downloaded files of the same repo
+     * (e.g. a different quantization the user downloaded earlier).
+     */
+    private fun deleteJobFiles(modelDirectory: File, files: List<String>) {
+        files.forEach { fileName ->
+            File(modelDirectory, fileName.substringAfterLast("/")).delete()
+        }
+        if (modelDirectory.listFiles()?.isEmpty() == true) modelDirectory.delete()
     }
 
     /** Posts a progress notification, throttled to avoid flooding the system. */

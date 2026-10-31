@@ -1,5 +1,6 @@
 package com.ai.tinymodels.core.inference.gguf
 
+import com.ai.tinymodels.domain.model.isVisionProjectorFile
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -68,9 +69,7 @@ internal object GgufDiagnostics {
      * `mmproj` / `projector` in the file name is how llama.cpp distributes a
      * vision projector next to the main model.
      */
-    fun looksLikeProjectorName(name: String): Boolean =
-        name.contains("mmproj", ignoreCase = true) ||
-            name.contains("projector", ignoreCase = true)
+    fun looksLikeProjectorName(name: String): Boolean = name.isVisionProjectorFile()
 
     /** llama.cpp stores CLIP vision projectors under the `clip` architecture. */
     fun isProjectorArchitecture(architecture: String?): Boolean =

@@ -24,6 +24,7 @@ import com.ai.tinymodels.domain.model.ModelDetails
 import com.ai.tinymodels.domain.model.ModelFilter
 import com.ai.tinymodels.domain.model.ModelFormat
 import com.ai.tinymodels.domain.model.ModelSummary
+import com.ai.tinymodels.domain.model.isVisionProjectorFile
 import com.ai.tinymodels.domain.model.modelFileDisplayName
 import com.ai.tinymodels.domain.repository.ModelRepository
 import kotlinx.coroutines.CancellationException
@@ -293,6 +294,16 @@ class ModelRepositoryImpl @Inject constructor(
                 if (!fileName.isModelFile()) {
                     throw IllegalArgumentException(
                         "Unsupported file type. Supported: .litertlm, .task, .tflite, .gguf"
+                    )
+                }
+                // A projector alone is not runnable. It is fetched automatically
+                // alongside its main GGUF model, so importing one standalone
+                // would only create an unloadable entry in the library.
+                if (fileName.isVisionProjectorFile()) {
+                    throw IllegalArgumentException(
+                        "This is a vision projector (mmproj), not a language model. " +
+                            "Import the main .gguf model — projectors are downloaded " +
+                            "and paired with it automatically."
                     )
                 }
                 val format = ModelFormat.fromFileName(fileName)
