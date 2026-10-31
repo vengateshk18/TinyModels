@@ -1,5 +1,7 @@
 package com.ai.tinymodels.feature.chat.components
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -31,7 +33,6 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.ai.tinymodels.feature.chat.model.UiChatMessage
-import com.mikepenz.markdown.m3.Markdown
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -112,30 +113,25 @@ fun MessageBubble(
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
-                    } else if (message.text.isBlank() && message.isStreaming) {
-                        // Awaiting the first token — blinking caret.
-                        StreamingCursor()
                     } else {
-                        if (message.isStreaming) {
-                            // While streaming, use plain Text to avoid the Markdown
-                            // renderer's layout glitches (text overlapping itself)
-                            // caused by rapid re-parsing on every token emission.
-                            Row(verticalAlignment = Alignment.Bottom) {
-                                Text(
-                                    text = message.text,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.weight(1f, fill = false)
+                        // Typing dots until the first token, then the reply is
+                        // rendered as Markdown live, with an animated inline
+                        // caret. One retained Markdown state spans streaming ->
+                        // complete, so the bubble never blanks while the final
+                        // parse settles.
+                        Crossfade(
+                            targetState = message.isStreaming && message.text.isBlank(),
+                            animationSpec = tween(durationMillis = 180),
+                            label = "assistantContent"
+                        ) { waitingForFirstToken ->
+                            if (waitingForFirstToken) {
+                                TypingIndicator()
+                            } else {
+                                StreamingMarkdown(
+                                    content = message.text,
+                                    isStreaming = message.isStreaming
                                 )
-                                Spacer(modifier = Modifier.width(2.dp))
-                                StreamingCursor()
                             }
-                        } else {
-                            // Once complete, render full Markdown for formatting.
-                            SafeMarkdown(
-                                content = message.text,
-                                modifier = Modifier.fillMaxWidth()
-                            )
                         }
                     }
                 }
@@ -254,32 +250,4 @@ private fun formatDuration(millis: Long): String {
         val s = seconds % 60
         String.format(Locale.US, "%dm %02ds", m, s)
     }
-}
-
-/**
- * Renders markdown safely. During streaming the text may contain unclosed code
- * fences or half-finished lists that can confuse the parser; fall back to plain
- * [Text] in that case so the partial reply is always visible.
- */
-@Composable
-private fun SafeMarkdown(content: String, modifier: Modifier = Modifier) {
-    val canRender = remember(content) { canRenderMarkdown(content) }
-    if (canRender) {
-        Markdown(content = content, modifier = modifier)
-    } else {
-        Text(
-            text = content,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = modifier
-        )
-    }
-}
-
-/** Quick heuristic: only fully-render once the text looks structurally complete. */
-private fun canRenderMarkdown(text: String): Boolean {
-    if (text.isBlank()) return true
-    // Unbalanced code fences -> render as plain text to avoid broken blocks.
-    val fenceCount = text.split("```").size - 1
-    return fenceCount % 2 == 0
 }
