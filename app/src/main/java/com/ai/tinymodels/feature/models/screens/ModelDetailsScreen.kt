@@ -76,6 +76,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ai.tinymodels.core.common.AppError
 import com.ai.tinymodels.core.ui.Formatters
+import com.ai.tinymodels.core.ui.withTabularFigures
 import com.ai.tinymodels.core.ui.components.ErrorState
 import com.ai.tinymodels.core.ui.components.OfflineState
 import com.ai.tinymodels.domain.model.FileDownloadStatus
@@ -749,21 +750,31 @@ private fun FileDownloadInProgress(
             }
             if (!isWaitingForNetwork) {
                 Spacer(modifier = Modifier.height(6.dp))
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    val pct = (download.progress * 100).toInt()
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val pct = (download.progress * 100).toInt().coerceIn(0, 100)
+                        .toString().padStart(3)
                     Text(
                         if (total > 0)
-                            "${Formatters.formatBytes(download.downloadedBytes)} / ${Formatters.formatBytes(total)} \u00b7 $pct%"
+                            "${Formatters.formatBytes(download.downloadedBytes)} / " +
+                                "${Formatters.formatBytes(total)} \u00b7 $pct%"
                         else "$pct%",
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelSmall.withTabularFigures(),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Clip,
                         modifier = Modifier.weight(1f)
                     )
                     if (download.bytesPerSecond > 0) {
                         Text(
                             "${Formatters.formatBytes(download.bytesPerSecond)}/s",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MaterialTheme.typography.labelSmall.withTabularFigures(),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }

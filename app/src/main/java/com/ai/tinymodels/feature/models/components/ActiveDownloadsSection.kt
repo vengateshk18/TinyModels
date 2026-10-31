@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ai.tinymodels.core.ui.Formatters
+import com.ai.tinymodels.core.ui.withTabularFigures
 import com.ai.tinymodels.domain.usecase.model.ActiveDownload
 import com.ai.tinymodels.domain.usecase.model.DownloadStatus
 import java.util.UUID
@@ -102,8 +103,11 @@ private fun ActiveDownloadRow(
                 }
                 Text(
                     downloadStatusLine(download),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.bodySmall.withTabularFigures(),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Clip
                 )
             }
             IconButton(onClick = onCancel) {
@@ -126,9 +130,9 @@ private fun downloadStatusLine(download: ActiveDownload): String {
     } else {
         Formatters.formatBytes(download.downloadedBytes)
     }
-    val pct = "(${(download.progress * 100).toInt().coerceIn(0, 100)}%)"
+    val pct = (download.progress * 100).toInt().coerceIn(0, 100).toString().padStart(3)
     val speed = if (download.bytesPerSecond > 0) {
         " • ${Formatters.formatBytes(download.bytesPerSecond)}/s"
     } else ""
-    return "$bytes $pct$speed"
+    return "$bytes ($pct%)$speed"
 }

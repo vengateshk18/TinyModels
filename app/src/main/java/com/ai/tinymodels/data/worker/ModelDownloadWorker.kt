@@ -33,10 +33,12 @@ import kotlin.coroutines.coroutineContext
  * notification, then records the result in Room. Hilt-injected (DAO + API + OkHttp).
  *
  * Progress is posted to the system notification at most every [NOTIFY_INTERVAL_MS]
- * (or when the percent changes by >= 1) so the system isn't flooded with per-chunk
- * updates; the WorkManager `setProgress` flow to the UI still updates every chunk.
- * Terminal states post a complete / failed notification; a user cancel dismisses
- * the progress notification without a terminal post.
+ * (or when the percent changes by >= 1), and the WorkManager `setProgress` flow to
+ * the UI at most every [DownloadProgressThrottle.INTERVAL_MS]. Emitting once per
+ * network chunk made the on-screen byte/speed counters reflow dozens of times per
+ * second (and wrote to WorkManager's database just as often). Terminal states post
+ * a complete / failed notification; a user cancel dismisses the progress
+ * notification without a terminal post.
  */
 @HiltWorker
 class ModelDownloadWorker @AssistedInject constructor(
@@ -65,28 +67,40 @@ class ModelDownloadWorker @AssistedInject constructor(
         setForeground(createForegroundInfo(0L, total, title))
 
         val startTimeMs = System.currentTimeMillis()
+        var lastProgressEmitMs = 0L
+
+        suspend fun publishProgress(final: Boolean = false) {
+            val now = System.currentTimeMillis()
+            if (!final && !DownloadProgressThrottle.allowsEmit(lastProgressEmitMs, now)) return
+            lastProgressEmitMs = now
+            val progress = if (total > 0) downloaded.toFloat() / total else 0f
+            val elapsedSec = (now - startTimeMs) / 1000.0
+            val speed = if (elapsedSec > 0.5) (downloaded / elapsedSec).toLong() else 0L
+            setProgress(
+                workDataOf(
+                    KEY_DOWNLOADED_BYTES to downloaded,
+                    KEY_TOTAL_BYTES to total,
+                    KEY_PROGRESS to progress,
+                    KEY_BYTES_PER_SEC to speed
+                )
+            )
+            maybeNotifyProgress(title, downloaded, total)
+        }
+
         return try {
             files.forEach { fileName ->
                 coroutineContext.ensureActive()
                 val previousDownloaded = downloaded
                 val url = api.fileUrl(modelId, fileName)
                 val target = File(modelDirectory, fileName.substringAfterLast("/"))
-                downloadFile(url, target) { fileDownloaded, _ ->
+                downloadFile(url, target) { fileDownloaded, fileTotal ->
                     downloaded = previousDownloaded + fileDownloaded
-                    val progress = if (total > 0) downloaded.toFloat() / total else 0f
-                    val elapsedSec = (System.currentTimeMillis() - startTimeMs) / 1000.0
-                    val speed = if (elapsedSec > 0.5) (downloaded / elapsedSec).toLong() else 0L
-                    setProgress(
-                        workDataOf(
-                            KEY_DOWNLOADED_BYTES to downloaded,
-                            KEY_TOTAL_BYTES to total,
-                            KEY_PROGRESS to progress,
-                            KEY_BYTES_PER_SEC to speed
-                        )
-                    )
-                    maybeNotifyProgress(title, downloaded, total)
+                    val fileComplete = fileTotal > 0 && fileDownloaded >= fileTotal
+                    publishProgress(final = fileComplete)
                 }
             }
+            // Always land on 100% even if the last chunk fell inside the throttle window.
+            publishProgress(final = true)
 
             // ── All files finished successfully ──────────────────────────────────────
             // Only NOW insert the parent row into downloaded_models. This ensures
@@ -258,4 +272,16 @@ class ModelDownloadWorker @AssistedInject constructor(
         private const val DEFAULT_TITLE = "Downloading model"
         private const val NOTIFY_INTERVAL_MS = 400L
     }
+}
+
+/**
+ * Throttles WorkManager progress writes to a human-readable cadence. A fast
+ * connection delivers a chunk every few milliseconds; forwarding each one makes
+ * the on-screen counters flicker and re-layout constantly.
+ */
+internal object DownloadProgressThrottle {
+    const val INTERVAL_MS = 200L
+
+    fun allowsEmit(lastEmitMs: Long, nowMs: Long): Boolean =
+        nowMs - lastEmitMs >= INTERVAL_MS
 }
