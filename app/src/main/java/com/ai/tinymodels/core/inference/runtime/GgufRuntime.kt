@@ -4,6 +4,7 @@ import com.ai.tinymodels.core.common.DispatcherProvider
 import com.ai.tinymodels.core.common.InferenceError
 import com.ai.tinymodels.core.common.TinyLog
 import com.ai.tinymodels.core.inference.InferenceException
+import com.ai.tinymodels.core.inference.gguf.GgufDiagnostics
 import com.ai.tinymodels.core.inference.gguf.GgufMetadataReader
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.ModelFormat
@@ -89,23 +90,69 @@ class GgufRuntime @Inject constructor(
                 TinyLog.w(TAG, "TnSecurity init failed: ${t.message}")
             }
 
+            val modelFile = request.modelFile
+            val header = GgufDiagnostics.readHeader(modelFile)
+            TinyLog.i(
+                TAG,
+                "load:start ${GgufDiagnostics.describe(modelFile)} " +
+                    "requestedCtx=${request.maxNumTokens} vision=${request.enableVision} backend=${request.backend}"
+            )
+            TinyLog.i(
+                TAG,
+                "load:header isGguf=${header.isGguf} raw=${header.rawMagicHex} version=${header.version} " +
+                    "tensors=${header.tensorCount} kv=${header.kvCount} bytesRead=${header.bytesRead}" +
+                    (header.ioError?.let { " ioError=$it" } ?: "")
+            )
+            if (!header.isGguf) {
+                TinyLog.w(
+                    TAG,
+                    "load:header NOT GGUF — first bytes=${header.rawMagicHex} " +
+                        "(expected 47 47 55 46 = \"GGUF\")"
+                )
+            }
+            val nameLooksLikeProjector = GgufDiagnostics.looksLikeProjectorName(modelFile.name)
+            if (nameLooksLikeProjector) {
+                TinyLog.w(
+                    TAG,
+                    "load:file name looks like an mmproj vision projector (${modelFile.name}); " +
+                        "it cannot run as the main model"
+                )
+            }
+
             // Read metadata first (pure Kotlin, no native) for max tokens.
             val md = try {
-                GgufMetadataReader.read(request.modelFile)
+                GgufMetadataReader.read(modelFile).also { m ->
+                    TinyLog.i(
+                        TAG,
+                        "load:metadata arch=${m.architecture} ctx=${m.contextLength} " +
+                            "embed=${m.embeddingLength} layers=${m.blockCount} name=${m.name} " +
+                            "quant=${m.fileType} quantVersion=${m.quantizationVersion} " +
+                            "tensors=${m.tensorCount} kv=${m.kvCount}"
+                    )
+                    if (GgufDiagnostics.isProjectorArchitecture(m.architecture)) {
+                        TinyLog.w(
+                            TAG,
+                            "load:metadata arch='${m.architecture}' is a CLIP/mmproj projector, " +
+                                "not a runnable language model"
+                        )
+                    }
+                }
             } catch (t: Throwable) {
-                TinyLog.w(TAG, "Could not read GGUF metadata: ${t.message}")
+                TinyLog.w(
+                    TAG,
+                    "load:metadata FAILED for ${modelFile.absolutePath}: " +
+                        "${t.javaClass.simpleName}: ${t.message}",
+                    t
+                )
                 null
             }
             metadata = md
             activeRequest = request
 
-            if (md != null) {
-                TinyLog.i(
-                    TAG,
-                    "GGUF metadata: arch=${md.architecture} ctx=${md.contextLength} " +
-                        "embed=${md.embeddingLength} layers=${md.blockCount} name=${md.name}"
-                )
-            }
+            // A projector can be detected either by name or by the CLIP
+            // architecture stamped into its GGUF metadata.
+            val isProjector = nameLooksLikeProjector ||
+                GgufDiagnostics.isProjectorArchitecture(md?.architecture)
 
             // The engine-touching span runs under the same lock the session
             // streams acquire, so a load can never interleave with a decode.
@@ -120,36 +167,84 @@ class GgufRuntime @Inject constructor(
 
             engine.setThreadMode(1)
             val ctx = (md?.contextLength ?: request.maxNumTokens).coerceIn(512, 131_072)
-            val success = engine.load(
-                path = request.modelFile.absolutePath,
-                contextSize = ctx,
-                flashAttn = true,
-                cacheTypeK = "q8_0",
-                cacheTypeV = "q8_0",
+            TinyLog.i(
+                TAG,
+                "load:engine start path=${modelFile.absolutePath} ctx=$ctx " +
+                    "flashAttn=true cacheK=q8_0 cacheV=q8_0"
+            )
+            val startedAt = System.nanoTime()
+            val success = try {
+                engine.load(
+                    path = modelFile.absolutePath,
+                    contextSize = ctx,
+                    flashAttn = true,
+                    cacheTypeK = "q8_0",
+                    cacheTypeV = "q8_0",
+                )
+            } catch (t: Throwable) {
+                val reason = GgufDiagnostics.failureReason(header, md, isProjector)
+                TinyLog.e(
+                    TAG,
+                    "load:engine THREW after ${elapsedMs(startedAt)}ms: " +
+                        "${t.javaClass.simpleName}: ${t.message}. $reason",
+                    t
+                )
+                throw InferenceException(
+                    InferenceError.LoadFailed(
+                        "GGUF load failed: ${t.message ?: t.javaClass.simpleName}. $reason",
+                        t
+                    )
+                )
+            }
+            TinyLog.i(
+                TAG,
+                "load:engine result=$success ctx=$ctx elapsed=${elapsedMs(startedAt)}ms " +
+                    "isLoaded=${engine.isLoaded}"
             )
             if (!success) {
-                throw InferenceException(InferenceError.LoadFailed("Failed to load GGUF model", null))
+                val reason = GgufDiagnostics.failureReason(header, md, isProjector)
+                TinyLog.e(TAG, "load:engine FAILED. $reason")
+                throw InferenceException(
+                    InferenceError.LoadFailed("Failed to load GGUF model. $reason", null)
+                )
             }
             loadedContextSize = ctx
+            TinyLog.i(TAG, "load:engine OK arch=${md?.architecture ?: "unknown"} ctx=$ctx")
 
             // Optional vision projector (mmproj). Loaded only when requested AND
             // a companion mmproj file exists next to the model.
             if (request.enableVision) {
-                val mmproj = findMmprojFile(request.modelFile)
+                val mmproj = findMmprojFile(modelFile)
                 if (mmproj != null) {
-                    val vlmOk = engine.loadVlmProjector(
-                        path = mmproj.absolutePath,
-                        threads = 2,
-                        imageMinTokens = 256,
-                        imageMaxTokens = 1024,
-                    )
-                    TinyLog.i(TAG, "GGUF VLM projector load: $vlmOk (${mmproj.name})")
+                    TinyLog.i(TAG, "load:mmproj found ${GgufDiagnostics.describe(mmproj)}")
+                    try {
+                        val m = GgufMetadataReader.read(mmproj)
+                        TinyLog.i(
+                            TAG,
+                            "load:mmproj metadata arch=${m.architecture} name=${m.name} " +
+                                "tensors=${m.tensorCount} kv=${m.kvCount}"
+                        )
+                    } catch (t: Throwable) {
+                        TinyLog.w(TAG, "load:mmproj metadata failed: ${t.message}", t)
+                    }
+                    val vlmOk = try {
+                        engine.loadVlmProjector(
+                            path = mmproj.absolutePath,
+                            threads = 2,
+                            imageMinTokens = 256,
+                            imageMaxTokens = 1024,
+                        )
+                    } catch (t: Throwable) {
+                        TinyLog.e(TAG, "load:mmproj THREW", t)
+                        false
+                    }
+                    TinyLog.i(TAG, "load:mmproj result=$vlmOk (${mmproj.name})")
                     if (!vlmOk) {
                         // Keep the text model usable; vision just disabled.
-                        TinyLog.w(TAG, "VLM projector failed to load; continuing text-only")
+                        TinyLog.w(TAG, "load:mmproj failed; continuing text-only")
                     }
                 } else {
-                    TinyLog.i(TAG, "No companion mmproj file; vision disabled")
+                    TinyLog.i(TAG, "load:mmproj none beside ${modelFile.name}; vision disabled")
                 }
             }
             } // engineMutex.withLock
@@ -182,8 +277,16 @@ class GgufRuntime @Inject constructor(
     private fun findMmprojFile(modelFile: File): File? {
         val parent = modelFile.parentFile ?: return null
         return parent.listFiles()
-            ?.firstOrNull { it.isFile && it.name.contains("mmproj", ignoreCase = true) && it.name.endsWith(".gguf", ignoreCase = true) }
+            ?.firstOrNull {
+                it.isFile &&
+                    it.absolutePath != modelFile.absolutePath &&
+                    it.name.contains("mmproj", ignoreCase = true) &&
+                    it.name.endsWith(".gguf", ignoreCase = true)
+            }
     }
+
+    private fun elapsedMs(startedAtNanos: Long): Long =
+        (System.nanoTime() - startedAtNanos) / 1_000_000
 
     /** Exposed for tests / UI: last-read metadata (null if unreadable). */
     fun lastMetadata(): GgufMetadataReader.Metadata? = metadata
