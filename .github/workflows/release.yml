@@ -1,24 +1,35 @@
-name: Release AAB
+name: Android Release
 
-# What this does for the app:
-#   - On every version tag (v*, e.g. v1.2.0) it builds the minified release
-#     AAB (R8 + resource shrink, arm64-only) and attaches it to the
-#     GitHub Release, plus the unit-test report for that exact commit.
-#   - Manual runs (workflow_dispatch) are also supported for ad-hoc builds.
-# Note: the repo has no signing config, so the artifact is an unsigned
-# release bundle — when a release keystore is added via secrets, add a
-# signing step before bundle.
+# Builds signed release artifacts (APK + AAB) and, for tag pushes, attaches
+# them to the GitHub Release. Required repository secrets:
+#   ANDROID_KEYSTORE_BASE64     base64 of Release.jks
+#   ANDROID_KEYSTORE_PASSWORD   keystore password
+#   ANDROID_KEY_ALIAS           signing key alias (tinymodels)
+#   ANDROID_KEY_PASSWORD        key password
+# Configure these under Settings > Secrets and variables > Actions.
 
 on:
   push:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version label for artifact names (defaults to the tag, or dev-<run>)"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  release-aab:
+  release:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,30 +40,86 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Accept Android SDK licenses
-        run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses || true
-
       - name: Set up Gradle (caching)
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Assemble release AAB
-        run: ./gradlew :app:bundleRelease --stacktrace
+      - name: Accept Android SDK licenses
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+
+      - name: Resolve version label
+        id: version
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if [ -z "$VERSION" ]; then
+            VERSION="${GITHUB_REF_NAME}"
+          fi
+          VERSION="${VERSION#v}"
+          if [ -z "$VERSION" ] || [ "$VERSION" = "main" ] || [ "$VERSION" = "master" ]; then
+            VERSION="dev-${GITHUB_RUN_NUMBER}"
+          fi
+          echo "name=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Decode release keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 is not configured; add the release signing secrets first"
+            exit 1
+          fi
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          chmod 600 "$RUNNER_TEMP/release.jks"
 
       - name: Run unit tests (release gate)
         run: ./gradlew :app:testDebugUnitTest --stacktrace
 
-      - name: Upload release AAB artifact
+      - name: Build signed release APK and AAB
+        env:
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          ./gradlew :app:assembleRelease :app:bundleRelease --stacktrace \
+            -Pandroid.injected.signing.store.file="$RUNNER_TEMP/release.jks" \
+            -Pandroid.injected.signing.store.password="$RELEASE_KEYSTORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$RELEASE_KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$RELEASE_KEY_PASSWORD"
+
+      - name: Verify signatures
+        run: |
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)"
+          "$APKSIGNER" verify --print-certs app/build/outputs/apk/release/app-release.apk
+          jarsigner -verify -verbose -certs app/build/outputs/bundle/release/app-release.aab > /dev/null
+
+      - name: Stage release artifacts
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/release/app-release.apk \
+            "dist/TinyModels-${{ steps.version.outputs.name }}.apk"
+          cp app/build/outputs/bundle/release/app-release.aab \
+            "dist/TinyModels-${{ steps.version.outputs.name }}.aab"
+          ls -la dist/
+
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: release-aab
-          path: app/build/outputs/bundle/release/*.aab
+          name: TinyModels-${{ steps.version.outputs.name }}-apk
+          path: dist/*.apk
           if-no-files-found: error
 
-      - name: Attach AAB to GitHub Release (tags only)
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TinyModels-${{ steps.version.outputs.name }}-aab
+          path: dist/*.aab
+          if-no-files-found: error
+
+      - name: Attach artifacts to GitHub Release (tags only)
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: app/build/outputs/bundle/release/*.aab
+          files: dist/*
           generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
