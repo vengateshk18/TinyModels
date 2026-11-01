@@ -56,7 +56,7 @@ stay on your device; the optional web-search tool is off by default.
 
 | | Feature | What you get |
 | :--: | :--- | :--- |
-| 🗂️ | **Model catalog** | Search and filter Hugging Face models, inspect per-file details (size, quantization, context window), and see what fits your device before downloading. |
+| 🗂️ | **Model catalog** | Search and filter Hugging Face LiteRT-LM models, inspect per-file details (size, quantization, context window), and see what fits your device before downloading. |
 | ⬇️ | **Reliable downloads** | Resumable WorkManager downloads with progress notifications, cancel/retry, Wi-Fi-only mode, and storage checks before a model starts downloading. |
 | 🔄 | **Import & export** | Import `.litertlm` files from storage or export downloaded models to share between devices — all through the system file picker, with no storage permission required. |
 | 💬 | **On-device chat** | Token-by-token streaming with Markdown bubbles, persisted conversations, regenerate/edit, per-chat sampler settings, and a live context-usage gauge. Stop generation or queue your next prompt at any time. |
@@ -66,45 +66,6 @@ stay on your device; the optional web-search tool is off by default.
 | ⚡ | **Benchmarks** | Measure load time, time-to-first-token, tokens per second, and peak memory for the model on your phone. |
 | 📊 | **Device insights** | A home dashboard with usage stats, AI-capability scoring, RAM guidance, and storage overview. |
 | 🎨 | **Personalisation** | Light/dark theme, font size, CPU/GPU/Auto backend, Wi-Fi-only downloads, and a Hugging Face token for gated models. |
-
-## 📸 A look inside
-
-<table>
-  <tr>
-    <td align="center" width="33%">
-      <img src="docs/images/screenshot-models.png" width="230" alt="TinyModels model catalog"><br>
-      <b>Explore the catalog</b><br>
-      <sub>Search, filter, and inspect every file before downloading.</sub>
-    </td>
-    <td align="center" width="33%">
-      <img src="docs/images/screenshot-chat.png" width="230" alt="TinyModels vision chat"><br>
-      <b>Chat with vision</b><br>
-      <sub>Attach a photo and ask about it — all on-device.</sub>
-    </td>
-    <td align="center" width="33%">
-      <img src="docs/images/screenshot-benchmark.png" width="230" alt="TinyModels benchmark screen"><br>
-      <b>Measure real speed</b><br>
-      <sub>Load time, TTFT, tokens/sec, and peak memory.</sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" width="33%">
-      <img src="docs/images/screenshot-home.png" width="230" alt="TinyModels home dashboard"><br>
-      <b>Know your device</b><br>
-      <sub>Usage insights, RAM guidance, and storage at a glance.</sub>
-    </td>
-    <td align="center" width="33%">
-      <img src="docs/images/screenshot-details.png" width="230" alt="TinyModels model details"><br>
-      <b>Inspect before you download</b><br>
-      <sub>Model metadata, tags, files, and device-fit checks.</sub>
-    </td>
-    <td align="center" width="33%">
-      <img src="docs/images/screenshot-web.png" width="230" alt="TinyModels web search chat"><br>
-      <b>Optional web search</b><br>
-      <sub>Opt in per chat when you need current information.</sub>
-    </td>
-  </tr>
-</table>
 
 ## 🧠 How it works
 
