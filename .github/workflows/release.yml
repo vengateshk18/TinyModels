@@ -1,12 +1,14 @@
 name: Android Release
 
-# Builds signed release artifacts (APK + AAB) and, for tag pushes, attaches
-# them to the GitHub Release. Required repository secrets:
-#   ANDROID_KEYSTORE_BASE64     base64 of Release.jks
+# Builds a signed release AAB (plus an APK for testers) and, for tag pushes,
+# attaches both to the GitHub Release.
+#
+# Required repository secrets:
+#   ANDROID_KEYSTORE_BASE64     base64 of Release.jks  (base64 -i Release.jks | pbcopy)
 #   ANDROID_KEYSTORE_PASSWORD   keystore password
 #   ANDROID_KEY_ALIAS           signing key alias (tinymodels)
 #   ANDROID_KEY_PASSWORD        key password
-# Configure these under Settings > Secrets and variables > Actions.
+# Configure at: Settings > Secrets and variables > Actions > New repository secret.
 
 on:
   push:
@@ -15,7 +17,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version label for artifact names (defaults to the tag, or dev-<run>)"
+        description: "Release version (X.Y.Z). Defaults to the pushed tag; leave empty for a dev build."
         required: false
 
 permissions:
@@ -47,72 +49,97 @@ jobs:
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
 
-      - name: Resolve version label
+      # versionName comes from the tag/input; versionCode is derived as
+      # major*1_000_000 + minor*1_000 + patch so every release is a strictly
+      # higher integer than the previous one (Play requirement).
+      - name: Resolve version
         id: version
         run: |
-          VERSION="${{ github.event.inputs.version }}"
-          if [ -z "$VERSION" ]; then
-            VERSION="${GITHUB_REF_NAME}"
+          RAW="${{ github.event.inputs.version }}"
+          if [ -z "$RAW" ] && [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            RAW="$GITHUB_REF_NAME"
           fi
-          VERSION="${VERSION#v}"
-          if [ -z "$VERSION" ] || [ "$VERSION" = "main" ] || [ "$VERSION" = "master" ]; then
-            VERSION="dev-${GITHUB_RUN_NUMBER}"
-          fi
-          echo "name=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Decode release keystore
+          if [ -z "$RAW" ]; then
+            NAME="dev-${GITHUB_RUN_NUMBER}"
+            CODE=$((1000000 + GITHUB_RUN_NUMBER))
+          else
+            NAME="${RAW#v}"
+            if [[ ! "$NAME" =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$ ]]; then
+              echo "::error::'$RAW' is not a release version. Use vX.Y.Z (or pass X.Y.Z to workflow_dispatch)."
+              exit 1
+            fi
+            MAJOR=$((10#${BASH_REMATCH[1]}))
+            MINOR=$((10#${BASH_REMATCH[2]}))
+            PATCH=$((10#${BASH_REMATCH[3]}))
+            CODE=$((MAJOR * 1000000 + MINOR * 1000 + PATCH))
+          fi
+
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          echo "Releasing $NAME (versionCode $CODE)"
+
+      - name: Decode and verify keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
-          if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "::error::ANDROID_KEYSTORE_BASE64 is not configured; add the release signing secrets first"
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ]; then
+            echo "::error::Release signing secrets are missing. Configure ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD."
             exit 1
           fi
           printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
           chmod 600 "$RUNNER_TEMP/release.jks"
+          keytool -list -keystore "$RUNNER_TEMP/release.jks" \
+            -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" > /dev/null
+          echo "Keystore and alias '$KEY_ALIAS' verified."
 
       - name: Run unit tests (release gate)
         run: ./gradlew :app:testDebugUnitTest --stacktrace
 
-      - name: Build signed release APK and AAB
+      - name: Build signed release AAB and APK
         env:
+          RELEASE_KEYSTORE_PATH: ${{ runner.temp }}/release.jks
           RELEASE_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          ./gradlew :app:assembleRelease :app:bundleRelease --stacktrace \
-            -Pandroid.injected.signing.store.file="$RUNNER_TEMP/release.jks" \
-            -Pandroid.injected.signing.store.password="$RELEASE_KEYSTORE_PASSWORD" \
-            -Pandroid.injected.signing.key.alias="$RELEASE_KEY_ALIAS" \
-            -Pandroid.injected.signing.key.password="$RELEASE_KEY_PASSWORD"
+          ./gradlew :app:bundleRelease :app:assembleRelease --stacktrace \
+            -PversionName="${{ steps.version.outputs.name }}" \
+            -PversionCode="${{ steps.version.outputs.code }}"
 
       - name: Verify signatures
         run: |
+          AAB=app/build/outputs/bundle/release/app-release.aab
+          APK=app/build/outputs/apk/release/app-release.apk
           APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)"
-          "$APKSIGNER" verify --print-certs app/build/outputs/apk/release/app-release.apk
-          jarsigner -verify -verbose -certs app/build/outputs/bundle/release/app-release.aab > /dev/null
+
+          jarsigner -verify "$AAB" | grep -q "jar verified"
+          "$APKSIGNER" verify --print-certs "$APK"
+          echo "AAB and APK are signed."
 
       - name: Stage release artifacts
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/release/app-release.apk \
-            "dist/TinyModels-${{ steps.version.outputs.name }}.apk"
           cp app/build/outputs/bundle/release/app-release.aab \
             "dist/TinyModels-${{ steps.version.outputs.name }}.aab"
+          cp app/build/outputs/apk/release/app-release.apk \
+            "dist/TinyModels-${{ steps.version.outputs.name }}.apk"
           ls -la dist/
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: TinyModels-${{ steps.version.outputs.name }}-apk
-          path: dist/*.apk
-          if-no-files-found: error
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
           name: TinyModels-${{ steps.version.outputs.name }}-aab
           path: dist/*.aab
+          if-no-files-found: error
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TinyModels-${{ steps.version.outputs.name }}-apk
+          path: dist/*.apk
           if-no-files-found: error
 
       - name: Attach artifacts to GitHub Release (tags only)
