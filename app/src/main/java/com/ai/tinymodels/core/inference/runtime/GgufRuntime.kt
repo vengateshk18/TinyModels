@@ -2,8 +2,10 @@ package com.ai.tinymodels.core.inference.runtime
 
 import com.ai.tinymodels.core.common.DispatcherProvider
 import com.ai.tinymodels.core.common.InferenceError
+import com.ai.tinymodels.core.common.MemoryUtils
 import com.ai.tinymodels.core.common.TinyLog
 import com.ai.tinymodels.core.inference.InferenceException
+import com.ai.tinymodels.core.inference.gguf.GgufContextBudget
 import com.ai.tinymodels.core.inference.gguf.GgufDiagnostics
 import com.ai.tinymodels.core.inference.gguf.GgufMetadataReader
 import com.ai.tinymodels.domain.model.BackendPreference
@@ -155,6 +157,23 @@ class GgufRuntime @Inject constructor(
             val isProjector = nameLooksLikeProjector ||
                 GgufDiagnostics.isProjectorArchitecture(md?.architecture)
 
+            // Pick a context the device can actually afford. GGUF's declared
+            // context is the training maximum (Gemma 3: 131,072) and llama.cpp
+            // allocates the whole KV cache for n_ctx up front — ~9.2 GB here.
+            val mmprojFile = findMmprojFile(modelFile)
+            val memSnapshot = MemoryUtils.snapshot(context)
+            val declaredCtx = (md?.contextLength ?: request.maxNumTokens).coerceIn(512, 131_072)
+            val kvBytesPerToken = GgufContextBudget.estimateKvBytesPerToken(md)
+            val ctx = GgufContextBudget.chooseContextTokens(
+                modelMaxContext = declaredCtx,
+                requestedTokens = request.maxNumTokens,
+                modelBytes = modelFile.length(),
+                projectorBytes = if (request.enableVision) mmprojFile?.length() ?: 0L else 0L,
+                availableBytes = memSnapshot.availableBytes,
+                totalRamBytes = memSnapshot.totalBytes,
+                kvBytesPerToken = kvBytesPerToken
+            )
+
             // The engine-touching span runs under the same lock the session
             // streams acquire, so a load can never interleave with a decode.
             engineMutex.withLock {
@@ -167,7 +186,6 @@ class GgufRuntime @Inject constructor(
             try { engine.releaseVlmProjector() } catch (_: Throwable) {}
 
             engine.setThreadMode(1)
-            val ctx = (md?.contextLength ?: request.maxNumTokens).coerceIn(512, 131_072)
             TinyLog.i(
                 TAG,
                 "load:engine start path=${modelFile.absolutePath} ctx=$ctx " +
@@ -215,7 +233,7 @@ class GgufRuntime @Inject constructor(
             // Optional vision projector (mmproj). Loaded only when requested AND
             // a companion mmproj file exists next to the model.
             if (request.enableVision) {
-                val mmproj = findMmprojFile(modelFile)
+                val mmproj = mmprojFile
                 if (mmproj != null) {
                     TinyLog.i(TAG, "load:mmproj found ${GgufDiagnostics.describe(mmproj)}")
                     try {
