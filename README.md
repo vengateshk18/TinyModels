@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/feature-graphic.png" alt="TinyModels — private, offline AI that runs on your phone" width="820">
+  <img src="docs/images/tinymodels_feature_graphic.png" alt="TinyModels — private, offline AI that runs on your phone" width="820">
 </p>
 
 <h1 align="center">TinyModels</h1>
