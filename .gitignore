@@ -13,3 +13,5 @@ local.properties
 *.jks
 *.keystore
 release.properties
+.DS_Store
+app/.DS_Store
