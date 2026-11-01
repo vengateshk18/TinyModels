@@ -69,8 +69,17 @@ class GgufChatSession(
         countPrompt(text)
         repeat(imagePaths.size) { countImage() }
 
+        // mtmd needs the projector's media marker in the prompt to know where
+        // to splice the image embeddings. Read it from the loaded projector
+        // (it is model-specific) and only for the turn carrying the bitmaps.
+        val vlmMarker = if (imagePaths.isNotEmpty() && engine.isVlmLoaded) {
+            engine.getVlmDefaultMarker()
+        } else {
+            null
+        }
+
         val messagesJson = synchronized(transcriptLock) {
-            buildMessagesJson(systemInstruction, priorSummary, turns.toList())
+            buildMessagesJson(systemInstruction, priorSummary, turns.toList(), vlmMarker)
         }
         val accumulated = StringBuilder()
         val recorded = AtomicBoolean(false)
@@ -181,6 +190,7 @@ class GgufChatSession(
         systemInstruction: String?,
         priorSummary: String?,
         turns: List<ChatTurn>,
+        vlmMarker: String? = null,
     ): String {
         val arr = JSONArray()
         val system = SessionBudget.foldSystemInstruction(systemInstruction, priorSummary)
@@ -190,10 +200,19 @@ class GgufChatSession(
                 put("content", system)
             })
         }
-        for (turn in turns) {
+        for ((index, turn) in turns.withIndex()) {
+            val content = if (
+                vlmMarker != null &&
+                index == turns.lastIndex &&
+                turn.role == ChatTurn.Role.USER
+            ) {
+                VlmPromptMarker.apply(turn.text, vlmMarker, turn.imagePaths.size)
+            } else {
+                turn.text
+            }
             arr.put(JSONObject().apply {
                 put("role", if (turn.role == ChatTurn.Role.USER) "user" else "assistant")
-                put("content", turn.text)
+                put("content", content)
             })
         }
         return arr.toString()
