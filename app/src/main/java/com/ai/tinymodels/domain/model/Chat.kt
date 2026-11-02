@@ -16,7 +16,9 @@ data class Chat(
     /** How many times compaction has run for this chat (observability metric). */
     val compactionCount: Int = 0,
     /** Per-chat opt-in for the model's web_search tool (global setting gates availability). */
-    val webSearchEnabled: Boolean = false
+    val webSearchEnabled: Boolean = false,
+    /** Pinned chats are grouped at the top of the history list. */
+    val isPinned: Boolean = false
 )
 
 /** A single message within a chat. */
@@ -44,5 +46,7 @@ data class ChatSummary(
     val lastMessagePreview: String?,
     val updatedAt: Long,
     /** Total number of messages in this chat. */
-    val messageCount: Int = 0
+    val messageCount: Int = 0,
+    /** Pinned chats are grouped at the top of the history list. */
+    val isPinned: Boolean = false
 )

@@ -285,6 +285,8 @@ private class FakeHomeChatRepository : ChatRepository {
         webSearchEnabled: Boolean
     ): com.ai.tinymodels.domain.model.Chat = throw NotImplementedError()
     override suspend fun renameChat(chatId: String, title: String) {}
+
+    override suspend fun setChatPinned(chatId: String, pinned: Boolean) {}
     override suspend fun updateInferenceSettings(
         chatId: String,
         settings: com.ai.tinymodels.domain.model.InferenceSettings
