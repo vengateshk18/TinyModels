@@ -1,102 +1,147 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Privacy Policy — TinyModels</title>
-  <meta name="description" content="Privacy Policy for the TinyModels Android app.">
+  <meta name="description" content="Privacy Policy for the TinyModels Android app: what stays on your device, what leaves it, and when.">
+  <meta name="theme-color" content="#fbf8ff">
+  <link rel="canonical" href="https://vengateshk18.github.io/TinyModels/privacy.html">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="images/app-icon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <script>document.documentElement.classList.replace('no-js', 'js');</script>
 </head>
-<body>
+<body class="doc-page">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4.5 12h15m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19.5 12h-15m6 6-6-6 6-6"/></symbol>
+  </svg>
+
   <header class="site-header">
-    <div class="wrap">
-      <span class="logo">TinyModels</span>
-      <nav>
+    <div class="shell nav-wrap">
+      <a class="brand" href="index.html" aria-label="TinyModels home">
+        <img src="images/app-icon.png" width="38" height="38" alt="">
+        <span>TinyModels</span>
+      </a>
+      <nav class="nav-links" id="primary-nav" aria-label="Primary navigation">
         <a href="index.html">Home</a>
-        <a href="privacy.html" class="active">Privacy Policy</a>
+        <a href="privacy.html" aria-current="page">Privacy</a>
         <a href="security.html">Security</a>
       </nav>
+      <div class="nav-actions">
+        <a class="btn btn--primary btn--sm" href="index.html#download">Download</a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open menu">
+          <svg class="icon" aria-hidden="true"><use id="nav-toggle-icon" href="#i-menu"></use></svg>
+        </button>
+      </div>
     </div>
   </header>
 
-  <main class="wrap doc">
-    <h1>Privacy Policy</h1>
-    <p class="meta">Effective: 14 October 2026 · App: TinyModels (Android)</p>
+  <main id="main">
+    <div class="doc-shell">
+      <header class="doc-header">
+        <a class="doc-back" href="index.html">
+          <svg class="icon" aria-hidden="true"><use href="#i-arrow-left"></use></svg>
+          Back to TinyModels
+        </a>
+        <h1>Privacy Policy</h1>
+        <p class="meta">Effective: 14 October 2026 · App: TinyModels (Android)</p>
+      </header>
 
-    <p>TinyModels runs open AI models entirely on your device. This policy describes
-      what the app stores, what leaves your device, and when.</p>
+      <article class="doc-card">
+        <div class="doc-callout">
+          <p><strong>The short version:</strong> TinyModels has no accounts and no analytics. Chats, photos, and model files stay on your device. The network is used only for model downloads, optional web search, and optional downloadable fonts.</p>
+        </div>
 
-    <h2>1. Data that never leaves your device</h2>
-    <ul>
-      <li><strong>Chats and messages</strong> — stored only in the app's private on-device
-        database. They are never uploaded anywhere.</li>
-      <li><strong>Photos you attach</strong> — processed on-device by the loaded model.
-        They are never uploaded by the app.</li>
-      <li><strong>Downloaded and imported model files</strong> — kept in the app's private
-        storage. Exporting a file only happens when you explicitly choose a destination
-        folder.</li>
-      <li><strong>Settings</strong> — theme, inference, and download preferences stay on-device.</li>
-    </ul>
+        <p>TinyModels runs open AI models entirely on your device. This policy describes what the app stores, what leaves your device, and when.</p>
 
-    <h2>2. Data that leaves your device (only when you ask)</h2>
-    <ul>
-      <li><strong>Model downloads.</strong> When you download a model, the app connects to
-        Hugging&nbsp;Face (<code>huggingface.co</code>) to fetch model files. Standard
-        connection metadata (e.g. IP address) is visible to Hugging&nbsp;Face as with any
-        download. If you access a gated model, the access token you saved in Settings is
-        sent to Hugging&nbsp;Face to authorize the download — and only then.</li>
-      <li><strong>Web search (opt-in).</strong> Web search is off by default. If you enable
-        it globally in Settings and per chat, the model may issue web searches when it
-        needs current information. Search queries are sent to public search endpoints
-        (DuckDuckGo, Bing, Wikipedia) and therefore leave your device.</li>
-      <li><strong>Downloadable fonts (opt-in).</strong> If you pick a non-system font in
-        Settings, the font files are fetched from Google Fonts. Using the default system
-        font makes no such connection.</li>
-    </ul>
+        <h2>1. Data that never leaves your device</h2>
+        <ul>
+          <li><strong>Chats and messages</strong> — stored only in the app's private on-device database. They are never uploaded anywhere.</li>
+          <li><strong>Photos you attach</strong> — processed on-device by the loaded model. They are never uploaded by the app.</li>
+          <li><strong>Downloaded and imported model files</strong> — kept in the app's private storage. Exporting a file only happens when you explicitly choose a destination folder.</li>
+          <li><strong>Settings</strong> — theme, inference, and download preferences stay on-device.</li>
+        </ul>
 
-    <h2>3. What we collect</h2>
-    <p><strong>Nothing.</strong> The app has no user accounts and ships with no analytics,
-      advertising, or crash-reporting SDKs. The developer receives no data from the app —
-      the only information ever shared is what you choose to send (e.g. a bug-report email
-      or a model download request to Hugging&nbsp;Face).</p>
+        <h2>2. Data that leaves your device (only when you ask)</h2>
+        <ul>
+          <li><strong>Model downloads.</strong> When you download a model, the app connects to Hugging&nbsp;Face (<code>huggingface.co</code>) to fetch model files. Standard connection metadata (e.g. IP address) is visible to Hugging&nbsp;Face as with any download. If you access a gated model, the access token you saved in Settings is sent to Hugging&nbsp;Face to authorize the download — and only then.</li>
+          <li><strong>Web search (opt-in).</strong> Web search is off by default. If you enable it globally in Settings and per chat, the model may issue web searches when it needs current information. Search queries are sent to public search endpoints (DuckDuckGo, Bing, Wikipedia) and therefore leave your device.</li>
+          <li><strong>Downloadable fonts (opt-in).</strong> If you pick a non-system font in Settings, the font files are fetched from Google Fonts. Using the default system font makes no such connection.</li>
+        </ul>
 
-    <h2>4. Permissions and why</h2>
-    <ul>
-      <li><code>INTERNET</code> — model downloads, optional web search, optional fonts.</li>
-      <li><code>ACCESS_NETWORK_STATE</code> — detecting offline state and unmetered (Wi-Fi)
-        connections for the Wi-Fi-only download setting.</li>
-      <li><code>FOREGROUND_SERVICE / FOREGROUND_SERVICE_DATA_SYNC</code> — keeping model
-        downloads running reliably in the background.</li>
-      <li><code>POST_NOTIFICATIONS</code> — download progress notifications (with a Cancel
-        action). You can deny this; downloads still work.</li>
-    </ul>
-    <p>Import/export of model files uses the system file picker (Storage Access Framework),
-      so no broad storage permission is requested.</p>
+        <h2>3. What we collect</h2>
+        <p><strong>Nothing.</strong> The app has no user accounts and ships with no analytics, advertising, or crash-reporting SDKs. The developer receives no data from the app — the only information ever shared is what you choose to send (e.g. a bug-report email or a model download request to Hugging&nbsp;Face).</p>
 
-    <h2>5. Device backups</h2>
-    <p>Android backup is enabled, so app data (chats, settings) may be included in your own
-      device/cloud backups under your Google account, governed by Google's terms — the
-      developer has no access to those backups.</p>
+        <h2>4. Permissions and why</h2>
+        <ul>
+          <li><code>INTERNET</code> — model downloads, optional web search, optional fonts.</li>
+          <li><code>ACCESS_NETWORK_STATE</code> — detecting offline state and unmetered (Wi-Fi) connections for the Wi-Fi-only download setting.</li>
+          <li><code>FOREGROUND_SERVICE / FOREGROUND_SERVICE_DATA_SYNC</code> — keeping model downloads running reliably in the background.</li>
+          <li><code>POST_NOTIFICATIONS</code> — download progress notifications (with a Cancel action). You can deny this; downloads still work.</li>
+        </ul>
+        <p>Import/export of model files uses the system file picker (Storage Access Framework), so no broad storage permission is requested.</p>
 
-    <h2>6. Children</h2>
-    <p>The app collects no data from anyone, including children. Model files are large
-      technical artifacts; there is no user-generated content shared with anyone.</p>
+        <h2>5. Device backups</h2>
+        <p>Android backup is enabled, so app data (chats, settings) may be included in your own device/cloud backups under your Google account, governed by Google's terms — the developer has no access to those backups.</p>
 
-    <h2>7. Changes to this policy</h2>
-    <p>Material changes will be published on this page with a new effective date. Continued
-      use of the app after a change means you accept the updated policy.</p>
+        <h2>6. Children</h2>
+        <p>The app collects no data from anyone, including children. Model files are large technical artifacts; there is no user-generated content shared with anyone.</p>
 
-    <h2>8. Contact</h2>
-    <p>Questions about this policy or the app's data handling:
-      <a href="mailto:vengatesh00014@gamil.com">vengatesh00014@gamil.com</a>.
-      The source code is public at
-      <a href="https://github.com/vengateshk18/TinyModels">github.com/vengateshk18/TinyModels</a>.</p>
+        <h2>7. Changes to this policy</h2>
+        <p>Material changes will be published on this page with a new effective date. Continued use of the app after a change means you accept the updated policy.</p>
+
+        <h2>8. Contact</h2>
+        <p>Questions about this policy or the app's data handling:
+          <a href="mailto:vengatesh00014@gamil.com">vengatesh00014@gamil.com</a>.
+          The source code is public at
+          <a href="https://github.com/vengateshk18/TinyModels">github.com/vengateshk18/TinyModels</a>.
+        </p>
+      </article>
+
+      <p class="doc-footer">See also: <a href="security.html">Security practices</a> · <a href="index.html#faq">Frequently asked questions</a></p>
+    </div>
   </main>
 
   <footer class="site-footer">
-    <div class="wrap">
-      <span>TinyModels · <a href="privacy.html">Privacy</a> · <a href="security.html">Security</a></span>
+    <div class="shell footer-bottom footer-bottom--plain">
+      <p>© 2026 TinyModels · <a href="privacy.html">Privacy</a> · <a href="security.html">Security</a></p>
+      <p><a href="index.html">Back to home</a></p>
     </div>
   </footer>
+
+  <script>
+    (() => {
+      const header = document.querySelector('.site-header');
+      const onScroll = () => header.classList.toggle('is-scrolled', window.scrollY > 8);
+      onScroll();
+      window.addEventListener('scroll', onScroll, { passive: true });
+
+      const navToggle = document.querySelector('.nav-toggle');
+      const nav = document.getElementById('primary-nav');
+      const navIcon = document.getElementById('nav-toggle-icon');
+      if (navToggle && nav) {
+        const setOpen = (open) => {
+          nav.classList.toggle('is-open', open);
+          navToggle.setAttribute('aria-expanded', String(open));
+          navToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+          if (navIcon) navIcon.setAttribute('href', open ? '#i-close' : '#i-menu');
+        };
+        navToggle.addEventListener('click', () => setOpen(!nav.classList.contains('is-open')));
+        nav.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setOpen(false)));
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') setOpen(false);
+        });
+      }
+    })();
+  </script>
 </body>
 </html>
