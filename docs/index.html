@@ -1,73 +1,738 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TinyModels — On-device AI chat</title>
-  <meta name="description" content="TinyModels runs open AI models entirely on your phone. No internet. No cloud. No data leaves your device.">
+  <title>TinyModels — Private, offline AI for Android</title>
+  <meta name="description" content="Run open language models entirely on your Android phone. Chat, understand photos, and benchmark models offline with TinyModels. No account, no cloud, no data leaving your device.">
+  <meta name="theme-color" content="#fbf8ff">
+  <link rel="canonical" href="https://vengateshk18.github.io/TinyModels/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="TinyModels — Private, offline AI for Android">
+  <meta property="og:description" content="Run open language models entirely on your phone. Chat, vision, benchmarks and more — all on-device.">
+  <meta property="og:url" content="https://vengateshk18.github.io/TinyModels/">
+  <meta property="og:image" content="https://vengateshk18.github.io/TinyModels/images/tinymodels_feature_graphic.png">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" href="images/app-icon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <script>document.documentElement.classList.replace('no-js', 'js');</script>
 </head>
 <body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+    <symbol id="i-spark" viewBox="0 0 24 24">
+      <path d="M12 3l1.6 4.7L18.5 9l-4.9 1.4L12 15l-1.6-4.6L5.5 9l4.9-1.3L12 3Z"/>
+      <path d="M18.8 15l.7 2.1 2.2.7-2.2.7-.7 2.2-.7-2.2-2.1-.7 2.1-.7.7-2.1Z"/>
+    </symbol>
+    <symbol id="i-download" viewBox="0 0 24 24">
+      <path d="M12 3v12m0 0 4.2-4.2M12 15l-4.2-4.2M4.5 20h15"/>
+    </symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24">
+      <path d="M4.5 12h15m-6-6 6 6-6 6"/>
+    </symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24">
+      <path d="M12 2.8 4.7 5.9v5.4c0 4.6 3.1 7.8 7.3 9.9 4.2-2.1 7.3-5.3 7.3-9.9V5.9L12 2.8Z"/>
+      <path d="m9 11.6 2.1 2.1L15.3 9"/>
+    </symbol>
+    <symbol id="i-cloud-off" viewBox="0 0 24 24">
+      <path d="m3 3 18 18"/>
+      <path d="M8.2 5.5A7 7 0 0 1 19.2 12H20a4 4 0 0 1 .7 7.9M5.1 8a6 6 0 0 0 .2 11H15"/>
+    </symbol>
+    <symbol id="i-github" viewBox="0 0 24 24">
+      <path fill="currentColor" stroke="none" d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2.17c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.45-2.28 1.19-3.08-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18A11 11 0 0 1 12 5.53c.98 0 1.96.13 2.88.39 2.2-1.49 3.16-1.18 3.16-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.08 0 4.41-2.69 5.38-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.68.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/>
+    </symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24">
+      <rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1.5"/>
+      <rect x="14" y="3.5" width="6.5" height="6.5" rx="1.5"/>
+      <rect x="3.5" y="14" width="6.5" height="6.5" rx="1.5"/>
+      <rect x="14" y="14" width="6.5" height="6.5" rx="1.5"/>
+    </symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24">
+      <path d="M20.5 11.5a8 8 0 0 1-8 8H7.4L3.5 22v-6.6a8 8 0 1 1 17-3.9Z"/>
+      <path d="M8 10h8M8 13.5h5"/>
+    </symbol>
+    <symbol id="i-image" viewBox="0 0 24 24">
+      <rect x="3" y="3.5" width="18" height="17" rx="3"/>
+      <circle cx="8.3" cy="8.8" r="1.5"/>
+      <path d="m21 15.5-4.8-4.8L5 20.5"/>
+    </symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24">
+      <path d="M20.8 15.5a9 9 0 1 0-17.6 0"/>
+      <path d="m12 12 4.3-4.3"/>
+      <circle cx="12" cy="12" r="1.3"/>
+    </symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9"/>
+      <path d="M3 12h18M12 3a15.5 15.5 0 0 1 0 18 15.5 15.5 0 0 1 0-18Z"/>
+    </symbol>
+    <symbol id="i-speed" viewBox="0 0 24 24">
+      <path d="M4 17.5a9 9 0 1 1 16 0"/>
+      <path d="m12 13 5.2-5.2"/>
+      <path d="M4.2 12H2.7M21.3 12h-1.5M12 4.2V2.7"/>
+      <circle cx="12" cy="13" r="1.3"/>
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24">
+      <path d="m5 12.5 4.3 4.3L19.5 6.5"/>
+    </symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24">
+      <rect x="7" y="2.5" width="10" height="19" rx="2.5"/>
+      <path d="M11 18.5h2"/>
+    </symbol>
+    <symbol id="i-package" viewBox="0 0 24 24">
+      <path d="m12 2.8 8.2 4.6v9.2L12 21.2l-8.2-4.6V7.4L12 2.8Z"/>
+      <path d="m3.8 7.4 8.2 4.6 8.2-4.6M12 12v9.2"/>
+    </symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24">
+      <path d="M4 7h16M4 12h16M4 17h16"/>
+    </symbol>
+    <symbol id="i-close" viewBox="0 0 24 24">
+      <path d="m6 6 12 12M18 6 6 18"/>
+    </symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24">
+      <rect x="4" y="10" width="16" height="11" rx="2.5"/>
+      <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+    </symbol>
+    <symbol id="i-device" viewBox="0 0 24 24">
+      <rect x="3" y="4" width="18" height="13" rx="2.5"/>
+      <path d="M8 21h8M12 17v4"/>
+    </symbol>
+    <symbol id="i-languages" viewBox="0 0 24 24">
+      <path d="M3.5 5.5h8M7.5 3v2.5c0 4.3-2.1 7.4-5 8.8"/>
+      <path d="M5 9.2c.5 2.6 2.7 4.8 5.6 5.8"/>
+      <path d="m13 21 4-10 4 10M14.6 17h4.8"/>
+    </symbol>
+    <symbol id="i-file" viewBox="0 0 24 24">
+      <path d="M14 2.8H6.5a2 2 0 0 0-2 2v14.4a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.3L14 2.8Z"/>
+      <path d="M14 2.8v5.5h5.5"/>
+    </symbol>
+  </svg>
+
   <header class="site-header">
-    <div class="wrap">
-      <span class="logo">TinyModels</span>
-      <nav>
-        <a href="index.html" class="active">Home</a>
-        <a href="privacy.html">Privacy Policy</a>
-        <a href="security.html">Security</a>
+    <div class="shell nav-wrap">
+      <a class="brand" href="index.html" aria-label="TinyModels home">
+        <img src="images/app-icon.png" width="38" height="38" alt="">
+        <span>TinyModels</span>
+      </a>
+
+      <nav class="nav-links" id="primary-nav" aria-label="Primary navigation">
+        <a href="#features">Features</a>
+        <a href="#screenshots">Screenshots</a>
+        <a href="#roadmap">Roadmap</a>
+        <a href="#faq">FAQ</a>
       </nav>
+
+      <div class="nav-actions">
+        <a class="icon-btn" href="https://github.com/vengateshk18/TinyModels" target="_blank" rel="noopener noreferrer" aria-label="TinyModels on GitHub">
+          <svg class="icon" aria-hidden="true"><use href="#i-github"></use></svg>
+        </a>
+        <a class="btn btn--primary btn--sm" href="#download">Download</a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open menu">
+          <svg class="icon" aria-hidden="true"><use id="nav-toggle-icon" href="#i-menu"></use></svg>
+        </button>
+      </div>
     </div>
   </header>
 
-  <main class="wrap">
+  <main id="main">
     <section class="hero">
-      <h1>Run AI models entirely on your phone.</h1>
-      <p class="lede">No internet. No cloud. No data leaves your device.</p>
-      <p>TinyModels downloads open large-language models (in <code>.litertlm</code> format)
-        and runs them locally with on-device inference. Your chats, photos, and files
-        stay on your phone.</p>
-      <p class="cta-row">
-        <a class="btn" href="https://github.com/vengateshk18/TinyModels">Star on GitHub</a>
-        <a class="btn btn-ghost" href="privacy.html">Read the Privacy Policy</a>
-      </p>
+      <div class="shell">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <span class="eyebrow"><span class="pulse-dot" aria-hidden="true"></span>100% on-device · Open source</span>
+            <h1>Your own AI.<br><span class="gradient-text">On your phone.</span></h1>
+            <p class="hero-lede">
+              TinyModels runs open language models entirely on your Android device.
+              Chat, understand photos, and measure performance — without an account,
+              a server, or your data leaving your pocket.
+            </p>
+            <div class="hero-actions">
+              <a class="btn btn--primary" href="#download">
+                Download TinyModels
+                <svg class="icon" aria-hidden="true"><use href="#i-download"></use></svg>
+              </a>
+              <a class="btn btn--soft" href="#features">
+                See what is inside
+                <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg>
+              </a>
+            </div>
+            <p class="store-mini">
+              Available on
+              <a href="https://www.phonepeappstore.com/apps/productivity/tinymodels/com.ai.tinymodels/?page=details&amp;id=com.ai.tinymodels">PhonePe App Store</a>
+              <span aria-hidden="true">·</span>
+              <a href="https://apkpure.com/p/com.ai.tinymodels">APKPure</a>
+              <span aria-hidden="true">·</span>
+              <a href="https://github.com/vengateshk18/TinyModels/releases/latest">GitHub Releases</a>
+            </p>
+            <ul class="trust-row">
+              <li><svg class="icon" aria-hidden="true"><use href="#i-cloud-off"></use></svg>Works offline</li>
+              <li><svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>No account</li>
+              <li><svg class="icon" aria-hidden="true"><use href="#i-spark"></use></svg>MIT licensed</li>
+            </ul>
+          </div>
+
+          <div class="hero-visual" role="img" aria-label="TinyModels home dashboard and a vision chat with a photo of a water bottle">
+            <div class="hero-poster hero-poster--back" aria-hidden="true">
+              <img src="images/screenshots/tinymodels_01.png" width="1080" height="1920" alt="">
+            </div>
+            <div class="hero-poster hero-poster--front" aria-hidden="true">
+              <img src="images/screenshots/tinymodels_05.png" width="1080" height="1920" alt="">
+            </div>
+            <div class="floating-card floating-card--private" aria-hidden="true">
+              <span class="icon-wrap"><svg class="icon"><use href="#i-shield"></use></svg></span>
+              <span class="fc-copy">
+                <strong>Nothing leaves your phone</strong>
+                <span>Chats and photos stay local</span>
+              </span>
+            </div>
+            <div class="floating-card floating-card--local" aria-hidden="true">
+              <span class="icon-wrap"><svg class="icon"><use href="#i-speed"></use></svg></span>
+              <span class="fc-copy">
+                <strong>Runs on-device</strong>
+                <span>Powered by LiteRT-LM</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <figure class="brand-banner reveal">
+          <img src="images/tinymodels_feature_graphic.png" width="1024" height="500" alt="TinyModels feature graphic: private AI that runs on your phone, shown with the app icon and two app screens" loading="lazy">
+        </figure>
+
+        <div class="stat-strip reveal" aria-label="TinyModels at a glance">
+          <div><strong>100%</strong><span>on-device inference</span></div>
+          <div><strong>0</strong><span>accounts or trackers</span></div>
+          <div><strong>8</strong><span>screens to explore</span></div>
+          <div><strong>5</strong><span>languages coming soon</span></div>
+        </div>
+      </div>
     </section>
 
-    <section>
-      <h2>How your data is handled</h2>
-      <ul class="facts">
-        <li><strong>Chats stay on your device.</strong> Conversations are stored in the app's
-          private on-device database only.</li>
-        <li><strong>No account, no analytics.</strong> The app ships with no login and no
-          analytics or crash-reporting SDKs.</li>
-        <li><strong>Network is used only when you ask.</strong> Model downloads from
-          Hugging&nbsp;Face, optional web search, and downloadable fonts are the only
-          connections the app makes — see the <a href="privacy.html">Privacy Policy</a>
-          for details.</li>
-        <li><strong>Open source.</strong> The code is public at
-          <a href="https://github.com/vengateshk18/TinyModels">github.com/vengateshk18/TinyModels</a>,
-          so these claims are verifiable.</li>
-      </ul>
+    <section class="section" id="features">
+      <div class="shell">
+        <div class="section-head reveal">
+          <span class="eyebrow">Your pocket AI studio</span>
+          <h2>Everything you need<br>to run AI locally.</h2>
+          <p>From browsing models to measuring tokens per second, TinyModels keeps the entire workflow on your phone.</p>
+        </div>
+
+        <div class="bento">
+          <article class="feature-card feature-card--span-7 feature-card--lavender reveal">
+            <span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-grid"></use></svg></span>
+            <h3>Find a model that fits</h3>
+            <p>Browse the Hugging Face LiteRT-LM catalog, filter by what matters, and inspect every file before you download. TinyModels shows file size, quantization, context window, and device-fit guidance in one place.</p>
+            <div class="chip-row">
+              <span class="chip chip--lavender">Search &amp; filters</span>
+              <span class="chip chip--lavender">Per-file details</span>
+              <span class="chip chip--lavender">Device-fit check</span>
+            </div>
+          </article>
+
+          <article class="feature-card feature-card--span-5 feature-card--mint reveal">
+            <span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-chat"></use></svg></span>
+            <h3>A chat that keeps up</h3>
+            <p>Responses stream in token by token with live Markdown. Your draft survives screen changes, and you can stop or redirect generation whenever you want.</p>
+            <div class="chip-row">
+              <span class="chip chip--mint">Streaming</span>
+              <span class="chip chip--mint">Markdown</span>
+              <span class="chip chip--mint">Draft-safe</span>
+            </div>
+          </article>
+
+          <article class="feature-card reveal">
+            <span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-download"></use></svg></span>
+            <h3>Downloads that survive</h3>
+            <p>Resumable downloads run through WorkManager, with progress notifications, cancel and retry, storage checks, and a Wi-Fi-only option.</p>
+            <div class="chip-row">
+              <span class="chip">Resumable</span>
+              <span class="chip">Wi-Fi-only</span>
+            </div>
+          </article>
+
+          <article class="feature-card reveal">
+            <span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-image"></use></svg></span>
+            <h3>Ask about a photo</h3>
+            <p>Attach an image on a vision-capable model and ask what is in it. The photo is processed on-device and never uploaded.</p>
+            <div class="chip-row">
+              <span class="chip">On-device</span>
+              <span class="chip">Private</span>
+            </div>
+          </article>
+
+          <article class="feature-card reveal">
+            <span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-gauge"></use></svg></span>
+            <h3>Long chats, under control</h3>
+            <p>See exactly how much context is in use. TinyModels compacts automatically at 90% and gives you a manual Compact action when you need it.</p>
+            <div class="chip-row">
+              <span class="chip">Live usage</span>
+              <span class="chip">Auto-compact</span>
+            </div>
+          </article>
+
+          <article class="feature-card feature-card--span-6 feature-card--sky reveal">
+            <span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-speed"></use></svg></span>
+            <h3>Know how fast it really is</h3>
+            <p>A built-in benchmark measures load time, time to first token, tokens per second, and peak memory on your device — with a repeatable methodology.</p>
+            <div class="chip-row">
+              <span class="chip chip--sky">TTFT</span>
+              <span class="chip chip--sky">Tokens/sec</span>
+              <span class="chip chip--sky">Peak memory</span>
+            </div>
+          </article>
+
+          <article class="feature-card feature-card--span-6 reveal">
+            <span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-globe"></use></svg></span>
+            <h3>Current answers, on your terms</h3>
+            <p>When a model needs fresher information, enable web search for that chat. It stays off by default, and you decide when a query leaves the device.</p>
+            <div class="chip-row">
+              <span class="chip">Opt-in</span>
+              <span class="chip">Per chat</span>
+            </div>
+          </article>
+        </div>
+      </div>
     </section>
 
-    <section>
-      <h2>Documents</h2>
-      <ul>
-        <li><a href="privacy.html">Privacy Policy</a> — required for the Google Play listing.</li>
-        <li><a href="security.html">Security practices</a> — how tokens, files, and permissions are handled.</li>
-      </ul>
+    <section class="section section--tint" id="chat">
+      <div class="shell split">
+        <div class="split-copy reveal">
+          <span class="eyebrow">Chat room</span>
+          <h2>Built for the way<br>you think.</h2>
+          <p>Messages stream in token by token, Markdown renders as it arrives, and the composer remembers exactly what you were writing. Every conversation stays in a private on-device database.</p>
+          <ul class="check-list">
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Real-time Markdown with a smooth typewriter reveal</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Draft text and attached photos survive rotation, resizing, and theme changes</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Regenerate, edit, copy, or stop generation at any time</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Per-chat sampler settings and persistent conversation history</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Live context gauge with automatic compaction at 90%</span></li>
+          </ul>
+          <div class="metric-grid">
+            <div class="metric"><strong>Streaming</strong><span>Token-by-token replies</span></div>
+            <div class="metric"><strong>On-device</strong><span>No server round-trip</span></div>
+            <div class="metric"><strong>Persistent</strong><span>History stays in Room</span></div>
+            <div class="metric"><strong>Draft-safe</strong><span>Survives configuration changes</span></div>
+          </div>
+        </div>
+        <div class="split-media split-media--mint reveal">
+          <div class="poster">
+            <img src="images/screenshots/tinymodels_05.png" width="1080" height="1920" alt="TinyModels chat answering a question about a photo of a water bottle" loading="lazy">
+          </div>
+          <span class="floating-note floating-note--chat"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg>Draft saved</span>
+        </div>
+      </div>
     </section>
 
-    <section>
-      <h2>Contact</h2>
-      <p>Bug reports and privacy questions:
-        <a href="mailto:vengatesh00014@gamil.com">vengatesh00014@gamil.com</a>.</p>
+    <section class="section" id="benchmark">
+      <div class="shell split split--reverse">
+        <div class="split-copy reveal">
+          <span class="eyebrow">Benchmark</span>
+          <h2>Numbers you<br>can trust.</h2>
+          <p>A repeatable benchmark is built into the app. Compare models on your own phone, under the same conditions, instead of relying on someone else's server numbers.</p>
+          <div class="metric-grid">
+            <div class="metric"><strong>Load time</strong><span>One cold model load</span></div>
+            <div class="metric"><strong>Time to first token</strong><span>Responsiveness you can feel</span></div>
+            <div class="metric"><strong>Tokens per second</strong><span>Steady-state generation speed</span></div>
+            <div class="metric"><strong>Peak memory</strong><span>Sampled every 250 ms</span></div>
+          </div>
+          <ul class="check-list">
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Two fixed prompts (short and medium), three runs each</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Output capped at 256 tokens per run</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>First run is discarded as a warm-up</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Median of the remaining runs is reported</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Fixed sampler: temperature 0.7, top-k 40, top-p 0.95</span></li>
+          </ul>
+        </div>
+        <div class="split-media split-media--sky reveal">
+          <div class="poster">
+            <img src="images/screenshots/tinymodels_06.png" width="1080" height="1920" alt="TinyModels benchmark screen explaining the test methodology before running it" loading="lazy">
+          </div>
+          <span class="floating-note floating-note--catalog"><svg class="icon" aria-hidden="true"><use href="#i-speed"></use></svg>Measured locally</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--tint" id="catalog">
+      <div class="shell split">
+        <div class="split-copy reveal">
+          <span class="eyebrow">Catalog &amp; downloads</span>
+          <h2>From discovery to download,<br>without the guesswork.</h2>
+          <p>Search the catalog, understand exactly what you are getting, and download with confidence. TinyModels checks your device before a large file starts moving.</p>
+          <ul class="check-list">
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Search and filter Hugging Face LiteRT-LM models</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Inspect file size, quantization, context window, and tags</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Device-fit guidance before you commit to a download</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Resumable downloads with notifications and Wi-Fi-only mode</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Import and export <code>.litertlm</code> files through the system picker</span></li>
+          </ul>
+        </div>
+        <div class="split-media reveal">
+          <div class="duo-posters">
+            <div class="poster">
+              <img src="images/screenshots/tinymodels_02.png" width="1080" height="1920" alt="TinyModels model catalog with search, filters, and model cards" loading="lazy">
+            </div>
+            <div class="poster">
+              <img src="images/screenshots/tinymodels_03.png" width="1080" height="1920" alt="TinyModels model detail page with metadata, tags, and individual files" loading="lazy">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ask">
+      <div class="shell">
+        <div class="section-head reveal">
+          <span class="eyebrow">More ways to ask</span>
+          <h2>Photos on-device.<br>Web search on your terms.</h2>
+          <p>Two optional capabilities, both designed around the same rule: your data stays yours unless you explicitly choose otherwise.</p>
+        </div>
+
+        <div class="two-up">
+          <article class="showcase-card reveal">
+            <div class="showcase-media">
+              <div class="poster">
+                <img src="images/screenshots/tinymodels_05.png" width="1080" height="1920" alt="A vision-capable model describing a photo of a stainless steel water bottle" loading="lazy">
+              </div>
+            </div>
+            <div class="showcase-body">
+              <h3>Your photos stay yours</h3>
+              <p>Attach a photo to a vision-capable model and ask about it. The image is processed entirely on the device — no upload, no image server, no copy left in the cloud.</p>
+              <div class="chip-row">
+                <span class="chip chip--mint">On-device vision</span>
+                <span class="chip chip--mint">Private by design</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="showcase-card reveal">
+            <div class="showcase-media">
+              <div class="poster">
+                <img src="images/screenshots/tinymodels_08.png" width="1080" height="1920" alt="A chat using the optional web search tool to answer a question about a current stock price" loading="lazy">
+              </div>
+            </div>
+            <div class="showcase-body">
+              <h3>Fresh answers, only when you ask</h3>
+              <p>Enable web search for a specific chat when the model needs current information. It is off by default, and search queries leave the device only after you turn it on.</p>
+              <div class="chip-row">
+                <span class="chip chip--sky">Opt-in</span>
+                <span class="chip chip--sky">Per-chat control</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--tint" id="insights">
+      <div class="shell split split--reverse">
+        <div class="split-copy reveal">
+          <span class="eyebrow">Device insights</span>
+          <h2>Built for the phone<br>in your hand.</h2>
+          <p>TinyModels reads your device's memory and capability, recommends models that fit, and keeps an eye on the resources that matter during inference.</p>
+          <ul class="check-list">
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>AI capability rating and recommended maximum model size</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Live RAM usage and available storage at a glance</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Usage stats: chats, messages, tokens, models tried, and compactions</span></li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Thermal and battery status while you run models</span></li>
+          </ul>
+        </div>
+        <div class="split-media reveal">
+          <div class="duo-posters">
+            <div class="poster">
+              <img src="images/screenshots/tinymodels_01.png" width="1080" height="1920" alt="TinyModels home dashboard showing usage statistics and device insights" loading="lazy">
+            </div>
+            <div class="poster">
+              <img src="images/screenshots/tinymodels_04_1.png" width="1080" height="1920" alt="TinyModels device information screen with AI capability, RAM usage, and recommendations" loading="lazy">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="screenshots">
+      <div class="shell">
+        <div class="section-head reveal">
+          <span class="eyebrow">Screenshots</span>
+          <h2>Every screen, up close.</h2>
+          <p>A look at the catalog, private chat, vision, live web search, benchmark, dashboard, and device insights. Tap any screen to enlarge it.</p>
+        </div>
+
+        <div class="gallery">
+          <button class="shot reveal" type="button" data-full="images/screenshots/tinymodels_07.png" aria-label="Enlarge the get started screenshot">
+            <img src="images/screenshots/tinymodels_07.png" width="1080" height="1920" alt="Get started screen recommending the right model for your phone" loading="lazy">
+            <span>Get started</span>
+          </button>
+          <button class="shot reveal" type="button" data-full="images/screenshots/tinymodels_02.png" aria-label="Enlarge the model catalog screenshot">
+            <img src="images/screenshots/tinymodels_02.png" width="1080" height="1920" alt="Model catalog with search and filters for browsing Hugging Face models" loading="lazy">
+            <span>Model catalog</span>
+          </button>
+          <button class="shot reveal" type="button" data-full="images/screenshots/tinymodels_03.png" aria-label="Enlarge the model details screenshot">
+            <img src="images/screenshots/tinymodels_03.png" width="1080" height="1920" alt="Model details with size, context window, tags, and files" loading="lazy">
+            <span>Model details</span>
+          </button>
+          <button class="shot reveal" type="button" data-full="images/screenshots/tinymodels_05.png" aria-label="Enlarge the private chat screenshot">
+            <img src="images/screenshots/tinymodels_05.png" width="1080" height="1920" alt="Private chat with AI, fully offline, including a photo question" loading="lazy">
+            <span>Private chat</span>
+          </button>
+          <button class="shot reveal" type="button" data-full="images/screenshots/tinymodels_08.png" aria-label="Enlarge the live web search screenshot">
+            <img src="images/screenshots/tinymodels_08.png" width="1080" height="1920" alt="Live web search answering a question about a current stock price" loading="lazy">
+            <span>Live web search</span>
+          </button>
+          <button class="shot reveal" type="button" data-full="images/screenshots/tinymodels_06.png" aria-label="Enlarge the benchmark screenshot">
+            <img src="images/screenshots/tinymodels_06.png" width="1080" height="1920" alt="Benchmark any model with load time, time to first token, and tokens per second" loading="lazy">
+            <span>Benchmark</span>
+          </button>
+          <button class="shot reveal" type="button" data-full="images/screenshots/tinymodels_01.png" aria-label="Enlarge the usage insights screenshot">
+            <img src="images/screenshots/tinymodels_01.png" width="1080" height="1920" alt="Usage insights showing chats, messages, tokens, and device health" loading="lazy">
+            <span>Usage insights</span>
+          </button>
+          <button class="shot reveal" type="button" data-full="images/screenshots/tinymodels_04_1.png" aria-label="Enlarge the device info screenshot">
+            <img src="images/screenshots/tinymodels_04_1.png" width="1080" height="1920" alt="Device info showing AI capability, RAM usage, and model recommendations" loading="lazy">
+            <span>Device info</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--tint" id="roadmap">
+      <div class="shell">
+        <div class="section-head reveal">
+          <span class="eyebrow">Roadmap</span>
+          <h2>What is coming next.</h2>
+          <p>Two substantial updates are in development. No dates yet — just the direction we are building toward.</p>
+        </div>
+
+        <div class="roadmap-grid">
+          <article class="roadmap-card roadmap-card--lavender reveal">
+            <span class="status-pill">In development</span>
+            <h3>TinyModels in your language</h3>
+            <p>The interface is being localised, starting with five of the most widely spoken languages in our community. The goal is a natural, full-app translation — not just a translated settings screen.</p>
+            <ul class="language-list">
+              <li><span class="native">தமிழ்</span><span class="name">Tamil</span></li>
+              <li><span class="native">हिन्दी</span><span class="name">Hindi</span></li>
+              <li><span class="native">Español</span><span class="name">Spanish</span></li>
+              <li><span class="native">日本語</span><span class="name">Japanese</span></li>
+              <li><span class="native">Français</span><span class="name">French</span></li>
+            </ul>
+            <p class="language-note">English is available today. The five languages above are planned for a future release.</p>
+          </article>
+
+          <article class="roadmap-card roadmap-card--mint reveal">
+            <span class="status-pill">In development</span>
+            <h3>Bring your own GGUF models</h3>
+            <p>A GGUF runtime will sit alongside LiteRT-LM, opening the door to more model families, sizes, and quantizations — with inference still running entirely on-device.</p>
+            <ul class="check-list">
+              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>More model families and parameter sizes</span></li>
+              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Quantized <span class="code-pill">.gguf</span> files</span></li>
+              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>The same offline, private-by-default experience</span></li>
+              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Managed alongside your LiteRT-LM library</span></li>
+            </ul>
+          </article>
+        </div>
+
+        <p class="roadmap-note">Current release: LiteRT-LM <span class="code-pill">.litertlm</span> models. GGUF support and the new languages are not available yet.</p>
+      </div>
+    </section>
+
+    <section class="section" id="download">
+      <div class="shell">
+        <div class="download-panel reveal">
+          <div class="download-copy">
+            <span class="eyebrow eyebrow--plain">Available now</span>
+            <h2>Take your AI offline.</h2>
+            <p>Download TinyModels free on Android. No account, no subscription, and no cloud. Install it, pick a model, and start your first on-device conversation.</p>
+            <div class="download-actions">
+              <a class="store-btn store-btn--phonepe" href="https://www.phonepeappstore.com/apps/productivity/tinymodels/com.ai.tinymodels/?page=details&amp;id=com.ai.tinymodels">
+                <svg class="icon" aria-hidden="true"><use href="#i-phone"></use></svg>
+                <span><small>Get it on</small><strong>PhonePe App Store</strong></span>
+              </a>
+              <a class="store-btn store-btn--apkpure" href="https://apkpure.com/p/com.ai.tinymodels">
+                <svg class="icon" aria-hidden="true"><use href="#i-package"></use></svg>
+                <span><small>Download from</small><strong>APKPure</strong></span>
+              </a>
+              <a class="store-btn store-btn--github" href="https://github.com/vengateshk18/TinyModels/releases/latest">
+                <svg class="icon" aria-hidden="true"><use href="#i-github"></use></svg>
+                <span><small>Latest build</small><strong>GitHub Releases</strong></span>
+              </a>
+            </div>
+            <ul class="download-meta">
+              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg>Android 8.0+</li>
+              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg>arm64 device</li>
+              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg>4 GB RAM minimum</li>
+              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg>Free &amp; open source</li>
+            </ul>
+          </div>
+          <div class="download-visual" aria-hidden="true">
+            <div class="poster">
+              <img src="images/screenshots/tinymodels_07.png" width="1080" height="1920" alt="">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--tight" id="faq">
+      <div class="shell faq-grid">
+        <div class="faq-intro reveal">
+          <span class="eyebrow">FAQ</span>
+          <h2>Good questions,<br>straight answers.</h2>
+          <p>Everything you need to know before running a model on your phone. Still curious? The source code is open.</p>
+          <p style="margin-top: 18px;"><a class="btn btn--ghost" href="https://github.com/vengateshk18/TinyModels/issues">Ask on GitHub <svg class="icon" aria-hidden="true"><use href="#i-arrow"></use></svg></a></p>
+        </div>
+
+        <div class="faq-list reveal">
+          <details class="faq-item">
+            <summary>Does TinyModels need an internet connection?</summary>
+            <p>Only for downloading models and for optional web search. Once a model is on your phone, chat, vision, and benchmarks work fully offline — airplane mode is fine.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Which models can I run today?</summary>
+            <p>TinyModels currently runs LiteRT-LM <code>.litertlm</code> models from the Hugging Face catalog. GGUF support is in development and is not available in the current release.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Is my data really private?</summary>
+            <p>Chats, photos, settings, and model files stay in the app's private storage. There are no accounts, analytics, or advertising SDKs. Web search is opt-in and off by default, and model downloads contact Hugging Face only when you start them.</p>
+          </details>
+          <details class="faq-item">
+            <summary>What phone do I need?</summary>
+            <p>Android 8.0 or newer on an arm64 device with at least 4 GB of RAM. For 3B models, 8 GB or more is recommended. The app's device insights screen shows what your phone can comfortably run.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Is TinyModels free?</summary>
+            <p>Yes. TinyModels is free to download and open source under the MIT License. You can inspect the code, build it yourself, or contribute on GitHub.</p>
+          </details>
+          <details class="faq-item">
+            <summary>How do I report a bug or request a feature?</summary>
+            <p>Open an issue on <a href="https://github.com/vengateshk18/TinyModels/issues">GitHub</a>. For security vulnerabilities, please use the contact on the <a href="security.html">Security page</a> instead of a public issue.</p>
+          </details>
+        </div>
+      </div>
     </section>
   </main>
 
   <footer class="site-footer">
-    <div class="wrap">
-      <span>TinyModels · <a href="privacy.html">Privacy</a> · <a href="security.html">Security</a></span>
+    <div class="shell">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="brand" href="index.html">
+            <img src="images/app-icon.png" width="38" height="38" alt="">
+            <span>TinyModels</span>
+          </a>
+          <p>Private AI that runs on your phone. Open source under the MIT License, built for Android with LiteRT-LM.</p>
+        </div>
+        <div class="footer-col">
+          <h3>Product</h3>
+          <ul>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#screenshots">Screenshots</a></li>
+            <li><a href="#roadmap">Roadmap</a></li>
+            <li><a href="#download">Download</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3>Resources</h3>
+          <ul>
+            <li><a href="https://github.com/vengateshk18/TinyModels">GitHub</a></li>
+            <li><a href="https://github.com/vengateshk18/TinyModels/releases/latest">Releases</a></li>
+            <li><a href="https://github.com/vengateshk18/TinyModels/issues">Issues</a></li>
+            <li><a href="https://github.com/vengateshk18/TinyModels/blob/main/CONTRIBUTING.md">Contributing</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3>Legal</h3>
+          <ul>
+            <li><a href="privacy.html">Privacy Policy</a></li>
+            <li><a href="security.html">Security</a></li>
+            <li><a href="https://github.com/vengateshk18/TinyModels/blob/main/LICENSE">MIT License</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 TinyModels. Made for Android.</p>
+        <p>No cloud. No account. No compromise.</p>
+      </div>
     </div>
   </footer>
+
+  <dialog class="lightbox" id="lightbox" aria-label="Screenshot preview">
+    <button class="lightbox-close" type="button" aria-label="Close screenshot">
+      <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+    </button>
+    <img id="lightbox-image" src="" alt="">
+  </dialog>
+
+  <script>
+    (() => {
+      const header = document.querySelector('.site-header');
+      const onScroll = () => header.classList.toggle('is-scrolled', window.scrollY > 8);
+      onScroll();
+      window.addEventListener('scroll', onScroll, { passive: true });
+
+      const navToggle = document.querySelector('.nav-toggle');
+      const nav = document.getElementById('primary-nav');
+      const navIcon = document.getElementById('nav-toggle-icon');
+
+      if (navToggle && nav) {
+        const setOpen = (open) => {
+          nav.classList.toggle('is-open', open);
+          navToggle.setAttribute('aria-expanded', String(open));
+          navToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+          if (navIcon) navIcon.setAttribute('href', open ? '#i-close' : '#i-menu');
+        };
+
+        navToggle.addEventListener('click', () => setOpen(!nav.classList.contains('is-open')));
+        nav.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setOpen(false)));
+        document.addEventListener('click', (event) => {
+          if (!nav.contains(event.target) && !navToggle.contains(event.target)) setOpen(false);
+        });
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') setOpen(false);
+        });
+      }
+
+      const reveals = document.querySelectorAll('.reveal');
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+        reveals.forEach((element) => observer.observe(element));
+      } else {
+        reveals.forEach((element) => element.classList.add('is-visible'));
+      }
+
+      const lightbox = document.getElementById('lightbox');
+      const lightboxImage = document.getElementById('lightbox-image');
+      const closeButton = lightbox ? lightbox.querySelector('.lightbox-close') : null;
+
+      if (lightbox && lightboxImage) {
+        document.querySelectorAll('.shot').forEach((shot) => {
+          shot.addEventListener('click', () => {
+            const image = shot.querySelector('img');
+            lightboxImage.src = shot.dataset.full || image.src;
+            lightboxImage.alt = image.alt;
+            lightbox.showModal();
+            if (closeButton) closeButton.focus();
+          });
+        });
+
+        lightbox.addEventListener('click', (event) => {
+          if (event.target === lightbox) lightbox.close();
+        });
+
+        lightbox.addEventListener('close', () => {
+          lightboxImage.src = '';
+        });
+      }
+    })();
+  </script>
 </body>
 </html>

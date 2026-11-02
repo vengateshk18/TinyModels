@@ -1,76 +1,138 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Security — TinyModels</title>
-  <meta name="description" content="Security practices for the TinyModels Android app.">
+  <meta name="description" content="Security practices for the TinyModels Android app: on-device inference, private storage, HTTPS, and responsible disclosure.">
+  <meta name="theme-color" content="#fbf8ff">
+  <link rel="canonical" href="https://vengateshk18.github.io/TinyModels/security.html">
+  <link rel="icon" href="images/app-icon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <script>document.documentElement.classList.replace('no-js', 'js');</script>
 </head>
-<body>
+<body class="doc-page">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4.5 12h15m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19.5 12h-15m6 6-6-6 6-6"/></symbol>
+  </svg>
+
   <header class="site-header">
-    <div class="wrap">
-      <span class="logo">TinyModels</span>
-      <nav>
+    <div class="shell nav-wrap">
+      <a class="brand" href="index.html" aria-label="TinyModels home">
+        <img src="images/app-icon.png" width="38" height="38" alt="">
+        <span>TinyModels</span>
+      </a>
+      <nav class="nav-links" id="primary-nav" aria-label="Primary navigation">
         <a href="index.html">Home</a>
-        <a href="privacy.html">Privacy Policy</a>
-        <a href="security.html" class="active">Security</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="security.html" aria-current="page">Security</a>
       </nav>
+      <div class="nav-actions">
+        <a class="btn btn--primary btn--sm" href="index.html#download">Download</a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open menu">
+          <svg class="icon" aria-hidden="true"><use id="nav-toggle-icon" href="#i-menu"></use></svg>
+        </button>
+      </div>
     </div>
   </header>
 
-  <main class="wrap doc">
-    <h1>Security practices</h1>
-    <p class="meta">Effective: 14 October 2026 · App: TinyModels (Android)</p>
+  <main id="main">
+    <div class="doc-shell">
+      <header class="doc-header">
+        <a class="doc-back" href="index.html">
+          <svg class="icon" aria-hidden="true"><use href="#i-arrow-left"></use></svg>
+          Back to TinyModels
+        </a>
+        <h1>Security practices</h1>
+        <p class="meta">Effective: 14 October 2026 · App: TinyModels (Android)</p>
+      </header>
 
-    <h2>1. On-device by design</h2>
-    <p>Inference runs locally with an on-device runtime. There is no app server, no user
-      database on our side, and therefore no server-side breach surface for your chats.</p>
+      <article class="doc-card">
+        <div class="doc-callout">
+          <p><strong>The short version:</strong> inference runs on-device, tokens and model files stay in private app storage, and every network call uses HTTPS.</p>
+        </div>
 
-    <h2>2. Access tokens</h2>
-    <ul>
-      <li>Your optional Hugging&nbsp;Face token is stored only in the app's private
-        on-device preferences.</li>
-      <li>It is transmitted solely to <code>huggingface.co</code> over HTTPS when
-        downloading a gated model, and never logged, cached elsewhere, or shared.</li>
-      <li>You can view, replace, or remove it at any time in Settings → Hugging Face.</li>
-    </ul>
+        <h2>1. On-device by design</h2>
+        <p>Inference runs locally with an on-device runtime. There is no app server, no user database on our side, and therefore no server-side breach surface for your chats.</p>
 
-    <h2>3. Files and storage</h2>
-    <ul>
-      <li>Model files live in the app's private internal storage, inaccessible to other
-        apps.</li>
-      <li>Import/export goes through Android's Storage Access Framework (system picker):
-        the app receives access only to the specific file or folder you choose — it does
-        not request broad external-storage permission (<code>MANAGE_EXTERNAL_STORAGE</code>
-        is not used).</li>
-      <li>Deleting a model in the app deletes its files from the device.</li>
-    </ul>
+        <h2>2. Access tokens</h2>
+        <ul>
+          <li>Your optional Hugging&nbsp;Face token is stored only in the app's private on-device preferences.</li>
+          <li>It is transmitted solely to <code>huggingface.co</code> over HTTPS when downloading a gated model, and never logged, cached elsewhere, or shared.</li>
+          <li>You can view, replace, or remove it at any time in Settings → Hugging&nbsp;Face.</li>
+        </ul>
 
-    <h2>4. Network hygiene</h2>
-    <ul>
-      <li>All network traffic uses HTTPS endpoints.</li>
-      <li>No third-party analytics, advertising, or crash-reporting SDKs are bundled, so
-        there are no hidden data recipients.</li>
-      <li>Web search is strictly opt-in (global switch plus per-chat toggle).</li>
-    </ul>
+        <h2>3. Files and storage</h2>
+        <ul>
+          <li>Model files live in the app's private internal storage, inaccessible to other apps.</li>
+          <li>Import/export goes through Android's Storage Access Framework (system picker): the app receives access only to the specific file or folder you choose — it does not request broad external-storage permission (<code>MANAGE_EXTERNAL_STORAGE</code> is not used).</li>
+          <li>Deleting a model in the app deletes its files from the device.</li>
+        </ul>
 
-    <h2>5. Transparency</h2>
-    <p>The app is open source at
-      <a href="https://github.com/vengateshk18/TinyModels">github.com/vengateshk18/TinyModels</a>.
-      Every claim on this page can be checked against the code.</p>
+        <h2>4. Network hygiene</h2>
+        <ul>
+          <li>All network traffic uses HTTPS endpoints.</li>
+          <li>No third-party analytics, advertising, or crash-reporting SDKs are bundled, so there are no hidden data recipients.</li>
+          <li>Web search is strictly opt-in (global switch plus per-chat toggle).</li>
+        </ul>
 
-    <h2>6. Reporting a vulnerability</h2>
-    <p>If you find a security issue, please email
-      <a href="mailto:vengatesh00014@gamil.com">vengatesh00014@gamil.com</a> with
-      details and steps to reproduce. Please avoid opening public issues for
-      vulnerabilities until a fix is available.</p>
+        <h2>5. Transparency</h2>
+        <p>The app is open source at
+          <a href="https://github.com/vengateshk18/TinyModels">github.com/vengateshk18/TinyModels</a>.
+          Every claim on this page can be checked against the code.
+        </p>
+
+        <h2>6. Reporting a vulnerability</h2>
+        <p>If you find a security issue, please email
+          <a href="mailto:vengatesh00014@gamil.com">vengatesh00014@gamil.com</a> with
+          details and steps to reproduce. Please avoid opening public issues for
+          vulnerabilities until a fix is available.
+        </p>
+      </article>
+
+      <p class="doc-footer">See also: <a href="privacy.html">Privacy Policy</a> · <a href="index.html#faq">Frequently asked questions</a></p>
+    </div>
   </main>
 
   <footer class="site-footer">
-    <div class="wrap">
-      <span>TinyModels · <a href="privacy.html">Privacy</a> · <a href="security.html">Security</a></span>
+    <div class="shell footer-bottom footer-bottom--plain">
+      <p>© 2026 TinyModels · <a href="privacy.html">Privacy</a> · <a href="security.html">Security</a></p>
+      <p><a href="index.html">Back to home</a></p>
     </div>
   </footer>
+
+  <script>
+    (() => {
+      const header = document.querySelector('.site-header');
+      const onScroll = () => header.classList.toggle('is-scrolled', window.scrollY > 8);
+      onScroll();
+      window.addEventListener('scroll', onScroll, { passive: true });
+
+      const navToggle = document.querySelector('.nav-toggle');
+      const nav = document.getElementById('primary-nav');
+      const navIcon = document.getElementById('nav-toggle-icon');
+      if (navToggle && nav) {
+        const setOpen = (open) => {
+          nav.classList.toggle('is-open', open);
+          navToggle.setAttribute('aria-expanded', String(open));
+          navToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+          if (navIcon) navIcon.setAttribute('href', open ? '#i-close' : '#i-menu');
+        };
+        navToggle.addEventListener('click', () => setOpen(!nav.classList.contains('is-open')));
+        nav.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setOpen(false)));
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') setOpen(false);
+        });
+      }
+    })();
+  </script>
 </body>
 </html>
