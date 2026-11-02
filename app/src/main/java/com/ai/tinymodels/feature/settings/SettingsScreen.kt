@@ -46,12 +46,15 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,8 +62,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ai.tinymodels.domain.model.AppSettings
@@ -246,13 +251,95 @@ private fun AppearanceSection(settings: AppSettings, viewModel: SettingsViewMode
         )
     }
     Spacer(modifier = Modifier.height(4.dp))
+    FontSizeSetting(settings = settings, viewModel = viewModel)
+}
+
+/** Slider bounds for the app font scale. */
+private const val FONT_SCALE_MIN = 0.85f
+private const val FONT_SCALE_MAX = 1.30f
+
+/**
+ * 0.05 increments across 0.85..1.30 -> nine intervals, so eight interior steps.
+ */
+private const val FONT_SCALE_STEPS = 8
+
+/**
+ * Font-size control.
+ *
+ * The slider keeps its own local state, so dragging is instant: moving the
+ * thumb never writes to DataStore and never rebuilds the app-wide [Typography].
+ * The chosen scale is committed once — when the user lifts their finger — so
+ * the app re-lays out a single time instead of dozens of times per drag.
+ *
+ * A preview card below the slider shows the selected size immediately, which is
+ * how system Settings-style font pickers let you judge the result before
+ * committing to it.
+ */
+@Composable
+private fun FontSizeSetting(settings: AppSettings, viewModel: SettingsViewModel) {
+    val appliedScale = settings.fontScale
+    // Reset the local value whenever the persisted value changes underneath us.
+    var pendingScale by remember(appliedScale) { mutableStateOf(appliedScale) }
+
     SliderRow(
         label = "Font size",
-        valueText = "%.2f×".format(settings.fontScale),
-        value = settings.fontScale,
-        valueRange = 0.85f..1.30f,
-        onValueChange = { viewModel.setFontScale(it) }
+        valueText = "%.2f×".format(pendingScale),
+        value = pendingScale,
+        valueRange = FONT_SCALE_MIN..FONT_SCALE_MAX,
+        steps = FONT_SCALE_STEPS,
+        onValueChange = { pendingScale = it },
+        onValueChangeFinished = {
+            if (pendingScale != appliedScale) viewModel.setFontScale(pendingScale)
+        }
     )
+
+    FontSizePreview(scale = pendingScale, fontChoice = settings.fontChoice)
+
+    if (pendingScale != 1.0f) {
+        TextButton(onClick = { viewModel.setFontScale(1.0f) }) {
+            Text("Reset to default")
+        }
+    }
+}
+
+/** Live preview of the chosen scale, rendered at [scale] without touching the theme. */
+@Composable
+private fun FontSizePreview(scale: Float, fontChoice: FontChoice) {
+    val family = remember(fontChoice) { fontFamilyFor(fontChoice) }
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shape = MaterialTheme.shapes.medium,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "TinyModels",
+                fontFamily = family,
+                fontSize = (20f * scale).sp,
+                lineHeight = (26f * scale).sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "This is how your chats will look.",
+                fontFamily = family,
+                fontSize = (14f * scale).sp,
+                lineHeight = (20f * scale).sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Small print stays readable.",
+                fontFamily = family,
+                fontSize = (12f * scale).sp,
+                lineHeight = (16f * scale).sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
 }
 
 @Composable
@@ -510,7 +597,9 @@ private fun SliderRow(
     valueText: String,
     value: Float,
     valueRange: ClosedFloatingPointRange<Float>,
-    onValueChange: (Float) -> Unit
+    onValueChange: (Float) -> Unit,
+    steps: Int = 0,
+    onValueChangeFinished: (() -> Unit)? = null
 ) {
     Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
         Row(modifier = Modifier.fillMaxWidth()) {
@@ -518,7 +607,13 @@ private fun SliderRow(
             Text(valueText, style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Slider(value = value, onValueChange = onValueChange, valueRange = valueRange)
+        Slider(
+            value = value,
+            onValueChange = onValueChange,
+            valueRange = valueRange,
+            steps = steps,
+            onValueChangeFinished = onValueChangeFinished
+        )
     }
 }
 
