@@ -50,6 +50,43 @@ Java 25 toolchain resolves to a VS Code JRE that has no `jlink`, which breaks
 - `app/src/androidTest/java/` — instrumentation tests (device required).
 - `docs/` — the GitHub Pages site. Plain static HTML/CSS, no build step.
 
+## Codebase search: use graphify before grepping
+
+A knowledge graph of the code lives in `graphify-out/` (~2.1k nodes, ~5.9k edges,
+~109 communities). It is gitignored — rebuild it, never commit it.
+
+```bash
+# Ask a question about the code; returns only the relevant subgraph
+graphify query "how does a chat title flow from the UI to the database?"
+
+# Shortest relationship between two symbols or modules
+graphify path "ChatTabScreen()" "ChatEntity" --undirected
+
+# What a symbol imports, calls, or is used by
+graphify explain "ChatListViewModel.kt"
+
+# Architectural hubs
+graphify god-nodes
+```
+
+Rules:
+- Reach for `query` / `path` / `explain` **first** for structure, data-flow, and
+  "what calls what" questions. Fall back to `grep` and `read` for exact literals,
+  string resources, and anything the graph does not cover.
+- The graph is **code-only** (`--code-only`): Kotlin sources are indexed; `docs/`,
+  images, and XML are not. Use `grep` for those.
+- `path` searches directed edges by default and often finds nothing useful; pass
+  `--undirected` unless you specifically want call direction.
+- `query` exits `3` when a name is ambiguous (candidates are listed) and `4` when
+  nothing matches.
+- A fresh clone has **no graph**; build it once — free, AST-only, no API key:
+  ```bash
+  graphify extract . --code-only --force && graphify cluster-only . --no-label
+  ```
+- Keep it fresh after code changes with `graphify update .` (cheaper, incremental),
+  or the two commands above for a full rebuild. Check staleness against the commit
+  in `graphify-out/GRAPH_REPORT.md` ("Graph Freshness").
+
 ## Conventions
 
 - Settings flow: `SettingsViewModel` → `SettingsRepository` → DataStore → `AppSettings`.
