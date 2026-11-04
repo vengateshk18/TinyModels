@@ -545,7 +545,7 @@ private fun AboutSection(
     SectionHeader("About")
     NavigationRow(
         label = "Benchmark",
-        subtitle = "Measure load time, TTFT, and tokens/sec",
+        subtitle = "Score speed, memory, and thermal behaviour",
         onClick = onBenchmark
     )
     NavigationRow(

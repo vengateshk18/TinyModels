@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.ai.tinymodels.core.common.AppResult
 import com.ai.tinymodels.core.common.MemoryUtils
 import com.ai.tinymodels.core.inference.BenchmarkMath
+import com.ai.tinymodels.core.inference.BenchmarkProtocol
 import com.ai.tinymodels.core.inference.BenchmarkResult
 import com.ai.tinymodels.core.inference.BenchmarkRunner
 import com.ai.tinymodels.core.inference.ModelManager
@@ -19,6 +20,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -111,13 +113,20 @@ class BenchmarkViewModel @Inject constructor(
 
             _uiState.value = BenchmarkUiState.LoadingModel(modelId)
 
-            // ---- PSS monitoring across the whole run ----
+            // ---- PSS monitoring across the load + run ----
+            // Baseline must be sampled with NO model resident, otherwise it
+            // already includes the model we are about to measure and the
+            // overhead figure collapses to zero.
             val pssMonitor = PssMonitor(context, this)
-            pssMonitor.start()
 
             try {
                 // ---- Cold load, timed ----
                 modelManager.unloadModel()
+                // Give the freed weight buffers a moment to be reclaimed
+                // before the baseline sample, so it reflects app overhead.
+                delay(PSS_SETTLE_MS)
+                pssMonitor.start()
+
                 val loadStartNs = System.nanoTime()
                 val settings = settingsRepository.settings.first()
                 val loadResult = modelManager.loadModel(
@@ -141,20 +150,26 @@ class BenchmarkViewModel @Inject constructor(
                         ?.model?.backendUsed?.name
                 } ?: settings.defaultBackend.name
 
-                // ---- Prompt loop ----
+                // ---- Prompt suite: 1 warm-up + N measured runs per prompt ----
+                val prompts = BenchmarkProtocol.PROMPTS
+                val runsPerPrompt = BenchmarkProtocol.WARM_UP_RUNS + BenchmarkProtocol.MEASURED_RUNS
+                val totalSuiteRuns = prompts.size * runsPerPrompt
+                var completedRuns = 0
                 val allMetrics = mutableListOf<com.ai.tinymodels.core.inference.RunMetrics>()
-                val prompts = BenchmarkRunner.PROMPTS
+
                 prompts.forEachIndexed { promptIndex, prompt ->
-                    repeat(BenchmarkRunner.RUNS_PER_PROMPT) { runIndex ->
+                    repeat(runsPerPrompt) { runIndex ->
                         _uiState.value = BenchmarkUiState.Running(
                             RunProgress(
                                 promptIndex = promptIndex,
                                 promptTotal = prompts.size,
                                 promptLabel = prompt.label,
                                 runIndex = runIndex,
-                                runTotal = BenchmarkRunner.RUNS_PER_PROMPT,
+                                runTotal = runsPerPrompt,
                                 tokensSoFar = 0,
-                                isWarmUp = runIndex == 0
+                                isWarmUp = BenchmarkProtocol.isWarmUp(runIndex),
+                                phase = RunProgress.Phase.SUITE,
+                                overallFraction = SUITE_WEIGHT * completedRuns / totalSuiteRuns
                             )
                         )
                         allMetrics += benchmarkRunner.runOnce(prompt, runIndex) { tokens ->
@@ -167,25 +182,47 @@ class BenchmarkViewModel @Inject constructor(
                                 )
                             }
                         }
+                        completedRuns++
                     }
                 }
 
-                // ---- Aggregate ----
-                val promptResults = BenchmarkMath.aggregate(prompts, allMetrics)
-                val overallDecode = promptResults
-                    .flatMap { it.measuredRuns.mapNotNull { m -> m.decodeTokensPerSec } }
-                    .let { BenchmarkMath.median(it) }
+                // ---- Sustained phase: is the device throttling? ----
+                val sustainSamples = benchmarkRunner.runSustained { elapsedMs, _ ->
+                    val fraction = (elapsedMs.toFloat() / BenchmarkProtocol.SUSTAIN_DURATION_MS)
+                        .coerceIn(0f, 1f)
+                    _uiState.value = BenchmarkUiState.Running(
+                        RunProgress(
+                            promptIndex = prompts.lastIndex,
+                            promptTotal = prompts.size,
+                            promptLabel = "Sustained",
+                            runIndex = 0,
+                            runTotal = 1,
+                            tokensSoFar = 0,
+                            isWarmUp = false,
+                            phase = RunProgress.Phase.SUSTAINED,
+                            overallFraction = SUITE_WEIGHT + (1f - SUITE_WEIGHT) * fraction,
+                            sustainedRemainingSec =
+                                ((BenchmarkProtocol.SUSTAIN_DURATION_MS - elapsedMs) / 1000L)
+                                    .toInt().coerceAtLeast(0)
+                        )
+                    )
+                }
+                val sustain = BenchmarkMath.sustainSummary(sustainSamples)
 
+                // ---- Aggregate + score ----
                 _uiState.value = BenchmarkUiState.Completed(
-                    BenchmarkResult(
+                    BenchmarkMath.composeResult(
                         modelId = modelId,
                         fileName = fileName,
                         backendUsed = backendUsed,
                         loadTimeMs = loadTimeMs,
                         baselinePssBytes = pssMonitor.baselineBytes,
                         peakPssBytes = pssMonitor.peakBytes,
-                        promptResults = promptResults,
-                        overallDecodeTokensPerSec = overallDecode,
+                        modelFileBytes = modelFile.length(),
+                        prompts = prompts,
+                        metrics = allMetrics,
+                        sustainedTokensPerSec = sustain.averageTokensPerSec,
+                        sustainedThrottlePercent = sustain.throttlePercent,
                         deviceName = "${Build.MANUFACTURER} ${Build.MODEL}",
                         completedAt = System.currentTimeMillis()
                     )
@@ -244,5 +281,13 @@ class BenchmarkViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private companion object {
+        /** Share of the progress bar taken by the prompt suite; the rest is thermal. */
+        const val SUITE_WEIGHT = 0.8f
+
+        /** Settle time after unloading, before the memory baseline is sampled. */
+        const val PSS_SETTLE_MS = 600L
     }
 }

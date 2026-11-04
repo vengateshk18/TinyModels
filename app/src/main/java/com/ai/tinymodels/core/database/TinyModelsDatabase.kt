@@ -24,7 +24,7 @@ import com.ai.tinymodels.core.database.entities.ModelFileEntity
         ChatEntity::class,
         MessageEntity::class
     ],
-        version = 10,
+        version = 11,
     exportSchema = false
 )
 abstract class TinyModelsDatabase : RoomDatabase() {

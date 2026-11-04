@@ -20,8 +20,16 @@ data class RunProgress(
     val runIndex: Int,
     val runTotal: Int,
     val tokensSoFar: Int,
-    val isWarmUp: Boolean
-)
+    val isWarmUp: Boolean,
+    /** Which phase of the protocol is running. */
+    val phase: Phase = Phase.SUITE,
+    /** 0..1 across the whole benchmark, so the UI can render one bar. */
+    val overallFraction: Float = 0f,
+    /** Seconds remaining in the sustained phase (0 outside it). */
+    val sustainedRemainingSec: Int = 0
+) {
+    enum class Phase { SUITE, SUSTAINED }
+}
 
 /**
  * The single, immutable UI state for the Benchmark screen.

@@ -72,6 +72,16 @@ object Migrations {
         }
     }
 
+    /**
+     * v10 → v11: adds `isPinned` to `chats` so the history list can group
+     * pinned conversations at the top. Existing chats default to unpinned.
+     */
+    val MIGRATION_10_11 = object : Migration(10, 11) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE chats ADD COLUMN isPinned INTEGER NOT NULL DEFAULT 0")
+        }
+    }
+
     val MIGRATION_4_5 = object : Migration(4, 5) {
         override fun migrate(db: SupportSQLiteDatabase) {
             // 1. Create the new model_files table.

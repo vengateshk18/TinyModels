@@ -31,6 +31,12 @@ interface ChatRepository {
 
     suspend fun renameChat(chatId: String, title: String)
 
+    /**
+     * Pin or unpin a chat. Pinned chats are listed above unpinned ones,
+     * each group still ordered by most recently active.
+     */
+    suspend fun setChatPinned(chatId: String, pinned: Boolean)
+
     /** Update the per-session inference settings for a chat. */
     suspend fun updateInferenceSettings(chatId: String, settings: InferenceSettings)
 
