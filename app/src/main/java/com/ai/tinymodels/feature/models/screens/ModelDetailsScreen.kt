@@ -1,5 +1,12 @@
 package com.ai.tinymodels.feature.models.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.systemBars
@@ -24,6 +32,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -33,7 +43,6 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Pause
@@ -68,6 +77,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -78,6 +92,7 @@ import com.ai.tinymodels.core.ui.Formatters
 import com.ai.tinymodels.core.ui.components.ErrorState
 import com.ai.tinymodels.core.ui.components.OfflineState
 import com.ai.tinymodels.domain.model.FileDownloadStatus
+import com.ai.tinymodels.domain.usecase.model.DownloadEta
 import com.ai.tinymodels.domain.usecase.model.FileRowPhase
 import com.ai.tinymodels.domain.usecase.model.FileRowState
 import com.ai.tinymodels.domain.model.ModelDetails
@@ -365,33 +380,43 @@ private fun InteractiveFilesCard(
     onDiscard: (String) -> Unit,
     onDownloadedFileClick: (String) -> Unit
 ) {
-    Card(modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text("Files", style = MaterialTheme.typography.titleMedium)
-            Text("Download files individually — several can run at once.",
+            Text(
+                "Download files individually — several can run at once.",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(modifier = Modifier.height(10.dp))
-            files.forEachIndexed { index, fileName ->
-                if (index > 0) HorizontalDivider()
-                FileRow(
-                    fileName = fileName,
-                    state = uiState.fileState(fileName),
-                    fileSize = uiState.getFileSize(fileName),
-                    isLoadable = uiState.isFileLoadable(fileName),
-                    error = uiState.fileError(fileName),
-                    onDownload = { onDownload(fileName) },
-                    onPause = { onPause(fileName) },
-                    onResume = { onResume(fileName) },
-                    onDiscard = { onDiscard(fileName) },
-                    onDownloadedClick = { onDownloadedFileClick(fileName) }
-                )
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                files.forEach { fileName ->
+                    FileRow(
+                        fileName = fileName,
+                        state = uiState.fileState(fileName),
+                        fileSize = uiState.getFileSize(fileName),
+                        isLoadable = uiState.isFileLoadable(fileName),
+                        error = uiState.fileError(fileName),
+                        onDownload = { onDownload(fileName) },
+                        onPause = { onPause(fileName) },
+                        onResume = { onResume(fileName) },
+                        onDiscard = { onDiscard(fileName) },
+                        onDownloadedClick = { onDownloadedFileClick(fileName) }
+                    )
+                }
             }
         }
     }
 }
 
+/**
+ * One file, one self-contained card: name, size, a single primary action on the
+ * right, and — only while it is relevant — the transfer itself underneath.
+ * No leading selection affordance: nothing here is a radio choice.
+ */
 @Composable
 private fun FileRow(
     fileName: String,
@@ -405,179 +430,326 @@ private fun FileRow(
     onDiscard: () -> Unit,
     onDownloadedClick: () -> Unit
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        onClick = { if (state.phase == FileRowPhase.DOWNLOADED) onDownloadedClick() }
-    ) {
-        Column(modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                FilePhaseIcon(state)
-                Spacer(modifier = Modifier.width(12.dp))
+    val phase = state.phase
+    val active = phase == FileRowPhase.DOWNLOADING || phase == FileRowPhase.QUEUED
+    val borderColor by animateColorAsState(
+        targetValue = if (active) {
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
+        } else {
+            Color.Transparent
+        },
+        label = "fileRowBorder"
+    )
 
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize()
+            .clip(RoundedCornerShape(18.dp))
+            .clickable(enabled = phase == FileRowPhase.DOWNLOADED, onClick = onDownloadedClick),
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = BorderStroke(1.dp, borderColor)
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         fileName.substringAfterLast("/"),
-                        style = MaterialTheme.typography.bodyMedium,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
-                    Text(
-                        fileSubtitle(state, fileSize),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    if (state.phase != FileRowPhase.DOWNLOADED && fileSize > 0) {
-                        Text(
-                            if (isLoadable) "✓ Fits your device"
-                            else "⚠ Too large for this device",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (isLoadable) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.error
-                        )
-                    }
-                    if (state.phase == FileRowPhase.FAILED && !error.isNullOrBlank()) {
-                        Text(
-                            error,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.error,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                    if (state.phase == FileRowPhase.DOWNLOADING) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        if (state.totalBytes > 0) {
-                            LinearProgressIndicator(
-                                progress = { state.progress.coerceIn(0f, 1f) },
-                                modifier = Modifier.fillMaxWidth().height(4.dp)
-                            )
-                        } else {
-                            // Unknown size — a determinate bar would sit at 0%.
-                            LinearProgressIndicator(
-                                modifier = Modifier.fillMaxWidth().height(4.dp)
-                            )
-                        }
-                    }
+                    Spacer(modifier = Modifier.height(3.dp))
+                    FileMetaLine(state = state, fileSize = fileSize, isLoadable = isLoadable)
                 }
+                Spacer(modifier = Modifier.width(12.dp))
+                FileActions(
+                    state = state,
+                    onDownload = onDownload,
+                    onPause = onPause,
+                    onResume = onResume,
+                    onDiscard = onDiscard
+                )
+            }
 
-                // One control per row: the same surface that shows progress
-                // also pauses, resumes and discards it.
-                when (state.phase) {
-                    FileRowPhase.IDLE -> {
-                        IconButton(onClick = onDownload) {
-                            Icon(
-                                Icons.Filled.Download,
-                                contentDescription = "Download ${fileName.substringAfterLast("/")}",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-                    FileRowPhase.QUEUED -> {
-                        IconButton(onClick = onPause) {
-                            Icon(Icons.Filled.Close, contentDescription = "Cancel queued download")
-                        }
-                    }
-                    FileRowPhase.DOWNLOADING -> {
-                        IconButton(onClick = onPause) {
-                            Icon(Icons.Filled.Pause, contentDescription = "Pause download")
-                        }
-                    }
-                    FileRowPhase.PAUSED -> {
-                        IconButton(onClick = onResume) {
-                            Icon(
-                                Icons.Filled.PlayArrow,
-                                contentDescription = "Resume download",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        IconButton(onClick = onDiscard) {
-                            Icon(Icons.Filled.Close, contentDescription = "Discard download")
-                        }
-                    }
-                    FileRowPhase.FAILED -> {
-                        IconButton(onClick = onDownload) {
-                            Icon(
-                                Icons.Filled.Refresh,
-                                contentDescription = "Retry download",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                        IconButton(onClick = onDiscard) {
-                            Icon(Icons.Filled.Close, contentDescription = "Discard download")
-                        }
-                    }
-                    FileRowPhase.DOWNLOADED -> {
-                        Icon(
-                            Icons.Filled.CheckCircle,
-                            contentDescription = "Downloaded",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
+            AnimatedVisibility(visible = phase == FileRowPhase.DOWNLOADING || phase == FileRowPhase.QUEUED) {
+                Column {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    ActiveProgress(state)
                 }
+            }
+
+            AnimatedVisibility(visible = phase == FileRowPhase.PAUSED) {
+                Column {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        "Paused · partial data kept on device",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
+                }
+            }
+
+            if (phase == FileRowPhase.FAILED && !error.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    error,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
 }
 
-/** Size, live byte counters, speed and percentage — whatever is known. */
-private fun fileSubtitle(state: FileRowState, fileSize: Long): String = when (state.phase) {
-    FileRowPhase.DOWNLOADING -> buildString {
-        append(Formatters.formatBytes(state.downloadedBytes))
-        if (state.totalBytes > 0) append(" / ${Formatters.formatBytes(state.totalBytes)}")
-        append(" · ${(state.progress * 100).toInt()}%")
-        if (state.bytesPerSecond > 0) append(" · ${Formatters.formatBytes(state.bytesPerSecond)}/s")
+/** `331 MB · Fits your device` — or why it will not run here. */
+@Composable
+private fun FileMetaLine(state: FileRowState, fileSize: Long, isLoadable: Boolean) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            if (fileSize > 0) Formatters.formatBytes(fileSize) else "Size unknown",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        val separator = "  ·  "
+        val (label, tint) = when {
+            state.phase == FileRowPhase.DOWNLOADED ->
+                "Downloaded" to MaterialTheme.colorScheme.primary
+            fileSize > 0 && !isLoadable ->
+                "Too large for this device" to MaterialTheme.colorScheme.error
+            fileSize > 0 ->
+                "Fits your device" to MaterialTheme.colorScheme.onSurfaceVariant
+            else -> return
+        }
+        Text(
+            separator + label,
+            style = MaterialTheme.typography.labelMedium,
+            color = tint,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
-    FileRowPhase.QUEUED -> "Waiting for network"
-    FileRowPhase.PAUSED -> "Paused"
-    FileRowPhase.DOWNLOADED -> if (fileSize > 0) Formatters.formatBytes(fileSize) + " · Downloaded" else "Downloaded"
-    FileRowPhase.FAILED -> "Download failed"
-    FileRowPhase.IDLE -> if (fileSize > 0) Formatters.formatBytes(fileSize) else "—"
+}
+
+/** Progress, counters, speed and time left — the full story of the transfer. */
+@Composable
+private fun ActiveProgress(state: FileRowState) {
+    if (state.phase == FileRowPhase.QUEUED) {
+        IndeterminateTrack()
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            "Waiting for network",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        return
+    }
+
+    val progress by animateFloatAsState(
+        targetValue = state.progress.coerceIn(0f, 1f),
+        label = "fileProgress"
+    )
+    if (state.totalBytes > 0) {
+        ProgressTrack(progress)
+    } else {
+        IndeterminateTrack()
+    }
+
+    Spacer(modifier = Modifier.height(6.dp))
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            buildString {
+                append(Formatters.formatBytes(state.downloadedBytes))
+                if (state.totalBytes > 0) {
+                    append(" / ")
+                    append(Formatters.formatBytes(state.totalBytes))
+                    append(" · ")
+                    append((progress * 100).toInt())
+                    append("%")
+                }
+            },
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        val trailing = buildList {
+            if (state.bytesPerSecond > 0) {
+                add("${Formatters.formatBytes(state.bytesPerSecond)}/s")
+            }
+            DownloadEta
+                .label(state.downloadedBytes, state.totalBytes, state.bytesPerSecond)
+                ?.let(::add)
+        }.joinToString(" · ")
+        if (trailing.isNotEmpty()) {
+            Text(
+                trailing,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
+        }
+    }
+}
+
+/** Rounded track with a gradient fill — reads as progress, not as a slider. */
+@Composable
+private fun ProgressTrack(progress: Float) {
+    val shape = RoundedCornerShape(3.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(6.dp)
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(progress)
+                .clip(shape)
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.tertiary)
+                    )
+                )
+        )
+    }
 }
 
 @Composable
-private fun FilePhaseIcon(state: FileRowState) {
-    val iconSize = 20.dp
+private fun IndeterminateTrack() {
+    LinearProgressIndicator(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(6.dp)
+            .clip(RoundedCornerShape(3.dp))
+    )
+}
+
+@Composable
+private fun FileActions(
+    state: FileRowState,
+    onDownload: () -> Unit,
+    onPause: () -> Unit,
+    onResume: () -> Unit,
+    onDiscard: () -> Unit
+) {
     when (state.phase) {
-        FileRowPhase.IDLE -> Icon(
-            Icons.Filled.RadioButtonUnchecked,
-            contentDescription = null,
-            modifier = Modifier.size(iconSize),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        FileRowPhase.IDLE -> CircleAction(
+            icon = Icons.Filled.Download,
+            contentDescription = "Download",
+            container = MaterialTheme.colorScheme.primary,
+            content = MaterialTheme.colorScheme.onPrimary,
+            onClick = onDownload
         )
-        FileRowPhase.QUEUED -> Icon(
-            Icons.Filled.CloudDownload,
-            contentDescription = null,
-            modifier = Modifier.size(iconSize),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        FileRowPhase.DOWNLOADING -> ProgressRingAction(progress = state.progress, onClick = onPause)
+        FileRowPhase.QUEUED -> CircleAction(
+            icon = Icons.Filled.Close,
+            contentDescription = "Cancel queued download",
+            container = MaterialTheme.colorScheme.secondaryContainer,
+            content = MaterialTheme.colorScheme.onSecondaryContainer,
+            onClick = onPause,
+            size = 40.dp
         )
-        FileRowPhase.DOWNLOADING -> if (state.totalBytes > 0) {
-            CircularProgressIndicator(
-                progress = { state.progress.coerceIn(0f, 1f) },
-                modifier = Modifier.size(iconSize),
-                strokeWidth = 2.dp
+        FileRowPhase.PAUSED -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            CircleAction(
+                icon = Icons.Filled.Close,
+                contentDescription = "Discard download",
+                container = MaterialTheme.colorScheme.surfaceContainerHighest,
+                content = MaterialTheme.colorScheme.onSurfaceVariant,
+                onClick = onDiscard,
+                size = 40.dp
             )
-        } else {
-            CircularProgressIndicator(modifier = Modifier.size(iconSize), strokeWidth = 2.dp)
+            CircleAction(
+                icon = Icons.Filled.PlayArrow,
+                contentDescription = "Resume download",
+                container = MaterialTheme.colorScheme.primary,
+                content = MaterialTheme.colorScheme.onPrimary,
+                onClick = onResume
+            )
         }
-        FileRowPhase.PAUSED -> Icon(
-            Icons.Filled.Pause,
-            contentDescription = null,
-            modifier = Modifier.size(iconSize),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        FileRowPhase.FAILED -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            CircleAction(
+                icon = Icons.Filled.Close,
+                contentDescription = "Discard download",
+                container = MaterialTheme.colorScheme.surfaceContainerHighest,
+                content = MaterialTheme.colorScheme.onSurfaceVariant,
+                onClick = onDiscard,
+                size = 40.dp
+            )
+            CircleAction(
+                icon = Icons.Filled.Refresh,
+                contentDescription = "Retry download",
+                container = MaterialTheme.colorScheme.primary,
+                content = MaterialTheme.colorScheme.onPrimary,
+                onClick = onDownload
+            )
+        }
         FileRowPhase.DOWNLOADED -> Icon(
             Icons.Filled.CheckCircle,
-            contentDescription = null,
-            modifier = Modifier.size(iconSize),
+            contentDescription = "Downloaded",
+            modifier = Modifier.size(28.dp),
             tint = MaterialTheme.colorScheme.primary
         )
-        FileRowPhase.FAILED -> Icon(
-            Icons.Filled.ErrorOutline,
-            contentDescription = null,
-            modifier = Modifier.size(iconSize),
-            tint = MaterialTheme.colorScheme.error
+    }
+}
+
+@Composable
+private fun CircleAction(
+    icon: ImageVector,
+    contentDescription: String,
+    container: Color,
+    content: Color,
+    onClick: () -> Unit,
+    size: Dp = 44.dp
+) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.size(size),
+        shape = CircleShape,
+        color = container,
+        contentColor = content
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(icon, contentDescription = contentDescription, modifier = Modifier.size(20.dp))
+        }
+    }
+}
+
+/** Pause inside a ring that doubles as the percentage indicator. */
+@Composable
+private fun ProgressRingAction(progress: Float, onClick: () -> Unit) {
+    val animated by animateFloatAsState(
+        targetValue = progress.coerceIn(0f, 1f),
+        label = "fileProgressRing"
+    )
+    Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator(
+            progress = { animated },
+            modifier = Modifier.size(48.dp),
+            strokeWidth = 3.dp,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            strokeCap = StrokeCap.Round
         )
+        Surface(
+            onClick = onClick,
+            modifier = Modifier.size(36.dp),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    Icons.Filled.Pause,
+                    contentDescription = "Pause download",
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
     }
 }
 

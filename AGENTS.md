@@ -87,6 +87,15 @@ Rules:
   or the two commands above for a full rebuild. Check staleness against the commit
   in `graphify-out/GRAPH_REPORT.md` ("Graph Freshness").
 
+## Device testing
+
+**Never install, launch, or interact with the app on an emulator or a physical
+device unless the user explicitly asks for it in the current session.** No
+`adb install`, no `adb shell am start`, no UI automation, no screenshots from a
+device, no logcat-driven verification. Compile (`:app:compileDebugKotlin`),
+`assembleDebug`, and unit tests are fine. When a change needs on-device
+verification, say so and wait to be asked.
+
 ## Conventions
 
 - Settings flow: `SettingsViewModel` → `SettingsRepository` → DataStore → `AppSettings`.
