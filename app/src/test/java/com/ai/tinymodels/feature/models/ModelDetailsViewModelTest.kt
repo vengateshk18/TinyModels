@@ -12,13 +12,17 @@ import com.ai.tinymodels.domain.model.FileDownloadStatus
 import com.ai.tinymodels.domain.model.ModelDetails
 import com.ai.tinymodels.domain.model.ModelSummary
 import com.ai.tinymodels.domain.repository.ModelRepository
+import com.ai.tinymodels.domain.usecase.model.ActiveDownload
 import com.ai.tinymodels.domain.usecase.model.DownloadModelUseCase
 import com.ai.tinymodels.domain.usecase.model.DownloadState
 import com.ai.tinymodels.domain.usecase.model.DownloadStatus
+import com.ai.tinymodels.domain.usecase.model.FileRowPhase
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -38,6 +42,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.UUID
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ModelDetailsViewModelTest {
@@ -52,6 +57,9 @@ class ModelDetailsViewModelTest {
 
     /** Mocked app context — MemoryUtils.totalRamBytes is stubbed to a fixed value. */
     private val appContext = mockk<android.content.Context>()
+
+    /** Live jobs the ViewModel is told about; tests push entries here. */
+    private val activeDownloads = MutableStateFlow<List<ActiveDownload>>(emptyList())
 
     /** In-memory monitor so tests can toggle connectivity. */
     private class FakeNetworkMonitor : NetworkMonitor {
@@ -82,6 +90,7 @@ class ModelDetailsViewModelTest {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         repo.reset(sampleModel)
         every { storage.hasSpaceFor(any()) } returns true
+        every { downloadUseCase.observeActiveDownloads() } returns activeDownloads
         // Stub totalRamBytes: a 4GB device. MemoryUtils is a Kotlin object,
         // so mockkObject (not mockkStatic) is required.
         io.mockk.mockkObject(com.ai.tinymodels.core.common.MemoryUtils)
@@ -213,6 +222,154 @@ class ModelDetailsViewModelTest {
         val state = viewModel.uiState.value
         assertEquals(DownloadStatus.IDLE, state.download.status)
     }
+
+    // ---- per-file downloads ----
+
+    private fun file(name: String, status: FileDownloadStatus = FileDownloadStatus.NOT_DOWNLOADED) =
+        DownloadedModelFile(
+            modelId = sampleModel.id,
+            fileName = name,
+            status = status,
+            sizeBytes = 100L,
+            localPath = null,
+            error = null
+        )
+
+    private fun active(fileName: String, progress: Float = 0.4f) = ActiveDownload(
+        workId = UUID.randomUUID(),
+        modelId = sampleModel.id,
+        fileName = fileName,
+        status = DownloadStatus.DOWNLOADING,
+        progress = progress,
+        downloadedBytes = 40L,
+        totalBytes = 100L,
+        bytesPerSecond = 10L
+    )
+
+    @Test
+    fun `only the file with a live job is shown as downloading`() = runTest {
+        repo.seedFiles(file("a.litertlm"), file("b.litertlm"))
+        activeDownloads.value = listOf(active("a.litertlm", progress = 0.4f))
+
+        val viewModel = vm()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals(FileRowPhase.DOWNLOADING, state.fileState("a.litertlm").phase)
+        assertEquals(0.4f, state.fileState("a.litertlm").progress, 0.001f)
+        assertEquals(FileRowPhase.IDLE, state.fileState("b.litertlm").phase)
+    }
+
+    @Test
+    fun `two live jobs both report progress`() = runTest {
+        repo.seedFiles(file("a.litertlm"), file("b.litertlm"))
+        activeDownloads.value = listOf(active("a.litertlm", 0.2f), active("b.litertlm", 0.8f))
+
+        val viewModel = vm()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals(0.2f, state.fileState("a.litertlm").progress, 0.001f)
+        assertEquals(0.8f, state.fileState("b.litertlm").progress, 0.001f)
+    }
+
+    @Test
+    fun `persisted status shows when no job is running`() = runTest {
+        repo.seedFiles(
+            file("a.litertlm", FileDownloadStatus.PAUSED),
+            file("b.litertlm", FileDownloadStatus.DOWNLOADED)
+        )
+
+        val viewModel = vm()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals(FileRowPhase.PAUSED, state.fileState("a.litertlm").phase)
+        assertEquals(FileRowPhase.DOWNLOADED, state.fileState("b.litertlm").phase)
+    }
+
+    @Test
+    fun `re-entering the screen reattaches to a running job`() = runTest {
+        repo.seedFiles(file("a.litertlm", FileDownloadStatus.DOWNLOADING))
+        activeDownloads.value = listOf(active("a.litertlm", 0.55f))
+
+        // Brand new ViewModel — the job outlived the previous one.
+        val viewModel = vm()
+        advanceUntilIdle()
+
+        assertEquals(FileRowPhase.DOWNLOADING, viewModel.uiState.value.fileState("a.litertlm").phase)
+        assertEquals(0.55f, viewModel.uiState.value.fileState("a.litertlm").progress, 0.001f)
+    }
+
+    @Test
+    fun `downloading a file records DOWNLOADING and enqueues it`() = runTest {
+        repo.seedFiles(file("a.litertlm"))
+        every { downloadUseCase.executeFile(any(), any(), any()) } returns MutableStateFlow(DownloadState())
+
+        val viewModel = vm()
+        advanceUntilIdle()
+        viewModel.onDownloadFileClicked("a.litertlm")
+        advanceUntilIdle()
+
+        assertEquals(FileDownloadStatus.DOWNLOADING, repo.statusOf("a.litertlm"))
+        verify(exactly = 1) { downloadUseCase.executeFile(any(), "a.litertlm", any()) }
+    }
+
+    @Test
+    fun `pausing a file cancels its job and records PAUSED`() = runTest {
+        repo.seedFiles(file("a.litertlm", FileDownloadStatus.DOWNLOADING))
+
+        val viewModel = vm()
+        advanceUntilIdle()
+        viewModel.onPauseFile("a.litertlm")
+        advanceUntilIdle()
+
+        verify { downloadUseCase.cancelFile(sampleModel.id, "a.litertlm") }
+        assertEquals(FileDownloadStatus.PAUSED, repo.statusOf("a.litertlm"))
+    }
+
+    @Test
+    fun `resuming a paused file re-enqueues it and records DOWNLOADING`() = runTest {
+        repo.seedFiles(file("a.litertlm", FileDownloadStatus.PAUSED))
+        every { downloadUseCase.executeFile(any(), any(), any()) } returns MutableStateFlow(DownloadState())
+
+        val viewModel = vm()
+        advanceUntilIdle()
+        viewModel.onResumeFile("a.litertlm")
+        advanceUntilIdle()
+
+        verify { downloadUseCase.executeFile(any(), "a.litertlm", any()) }
+        assertEquals(FileDownloadStatus.DOWNLOADING, repo.statusOf("a.litertlm"))
+    }
+
+    @Test
+    fun `discarding a paused file drops the partial and clears the row`() = runTest {
+        repo.seedFiles(file("a.litertlm", FileDownloadStatus.PAUSED))
+
+        val viewModel = vm()
+        advanceUntilIdle()
+        viewModel.onDiscardFile("a.litertlm")
+        advanceUntilIdle()
+
+        verify { downloadUseCase.cancelFile(sampleModel.id, "a.litertlm") }
+        coVerify { downloadUseCase.discardPartial(sampleModel.id, "a.litertlm") }
+        assertEquals(FileDownloadStatus.NOT_DOWNLOADED, repo.statusOf("a.litertlm"))
+    }
+
+    @Test
+    fun `discarding one file keeps the parent row while another is downloaded`() = runTest {
+        repo.seedFiles(
+            file("a.litertlm", FileDownloadStatus.PAUSED),
+            file("b.litertlm", FileDownloadStatus.DOWNLOADED)
+        )
+
+        val viewModel = vm()
+        advanceUntilIdle()
+        viewModel.onDiscardFile("a.litertlm")
+        advanceUntilIdle()
+
+        assertEquals(0, repo.deleteCalls)
+    }
 }
 
 /** Minimal in-memory ModelRepository for tests. */
@@ -225,6 +382,18 @@ private class FakeModelRepository : ModelRepository {
     ))
     private val downloaded = MutableStateFlow<List<DownloadedModel>>(emptyList())
     private val modelFiles = MutableStateFlow<List<DownloadedModelFile>>(emptyList())
+    private val statusUpdates = mutableListOf<Pair<String, FileDownloadStatus>>()
+
+    /** How many times the parent downloaded_models row was removed. */
+    var deleteCalls = 0
+        private set
+
+    fun seedFiles(vararg files: DownloadedModelFile) {
+        modelFiles.value = files.toList()
+    }
+
+    fun statusOf(fileName: String): FileDownloadStatus? =
+        statusUpdates.lastOrNull { it.first == fileName }?.second
 
     fun reset(details: ModelDetails) {
         detailsResult = AppResult.Success(details)
@@ -240,7 +409,9 @@ private class FakeModelRepository : ModelRepository {
 
     override fun observeDownloadedModels() = downloaded
     override suspend fun getDownloadedModel(modelId: String): DownloadedModel? = null
-    override suspend fun deleteDownloadedModel(modelId: String) {}
+    override suspend fun deleteDownloadedModel(modelId: String) {
+        deleteCalls++
+    }
 
     override fun observeModelFiles(modelId: String): Flow<List<DownloadedModelFile>> = modelFiles
     override fun observeDownloadedFiles(): Flow<List<DownloadedModelFile>> = modelFiles
@@ -255,7 +426,12 @@ private class FakeModelRepository : ModelRepository {
         sizeBytes: Long?,
         localPath: String?,
         error: String?
-    ) {}
+    ) {
+        statusUpdates += fileName to status
+        modelFiles.value = modelFiles.value.map {
+            if (it.fileName == fileName) it.copy(status = status, error = error) else it
+        }
+    }
     override suspend fun deleteModelFile(modelId: String, fileName: String) {}
     override suspend fun exportModelFile(
         modelId: String,

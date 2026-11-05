@@ -16,6 +16,7 @@ import com.ai.tinymodels.core.database.entities.ModelFileEntity
 import com.ai.tinymodels.core.network.HuggingFaceApi
 import com.ai.tinymodels.core.network.HuggingFaceAuth
 import com.ai.tinymodels.domain.model.FileDownloadStatus
+import com.ai.tinymodels.domain.usecase.model.DownloadPaths
 import com.ai.tinymodels.domain.usecase.model.DownloadResumePolicy
 import com.ai.tinymodels.domain.usecase.model.ResumeAction
 import dagger.assisted.Assisted
@@ -60,7 +61,7 @@ class ModelDownloadWorker @AssistedInject constructor(
         val files = inputData.getStringArray(KEY_FILES)?.toList().orEmpty()
         val total = inputData.getLong(KEY_TOTAL_BYTES, 0L)
         val title = inputData.getString(KEY_MODEL_NAME) ?: DEFAULT_TITLE
-        val modelDirectory = File(applicationContext.filesDir, "models/${modelId.replace("/", "_")}")
+        val modelDirectory = DownloadPaths.modelDirectory(applicationContext.filesDir, modelId)
         var downloaded = 0L
 
         DownloadNotifier.createChannel(applicationContext)
@@ -72,11 +73,12 @@ class ModelDownloadWorker @AssistedInject constructor(
                 coroutineContext.ensureActive()
                 val previousDownloaded = downloaded
                 val url = api.fileUrl(modelId, fileName)
-                val target = File(modelDirectory, fileName.substringAfterLast("/"))
+                val target = DownloadPaths.finalFile(applicationContext.filesDir, modelId, fileName)
+                val part = DownloadPaths.partFile(applicationContext.filesDir, modelId, fileName)
                 // A per-file job knows its exact size; a whole-model job only
                 // knows the sum, so it passes 0 and still resumes safely.
                 val fileTotal = if (files.size == 1) total else 0L
-                downloadFile(url, target, fileTotal) { fileDownloaded ->
+                downloadFile(url, target, part, fileTotal) { fileDownloaded ->
                     downloaded = previousDownloaded + fileDownloaded
                     val progress = if (total > 0) downloaded.toFloat() / total else 0f
                     val elapsedSec = (System.currentTimeMillis() - startTimeMs) / 1000.0
@@ -108,7 +110,7 @@ class ModelDownloadWorker @AssistedInject constructor(
                 )
             )
             files.forEach { fileName ->
-                val target = File(modelDirectory, fileName.substringAfterLast("/"))
+                val target = DownloadPaths.finalFile(applicationContext.filesDir, modelId, fileName)
                 modelFileDao.insert(
                     ModelFileEntity(
                         modelId = modelId,
@@ -166,10 +168,10 @@ class ModelDownloadWorker @AssistedInject constructor(
     private suspend fun downloadFile(
         url: String,
         target: File,
+        part: File,
         totalBytes: Long,
         onProgress: suspend (downloaded: Long) -> Unit
     ) = withContext(Dispatchers.IO) {
-        val part = File(target.parentFile, "${target.name}.part")
         part.parentFile?.mkdirs()
         val offset = DownloadResumePolicy.resumeOffset(part.length(), totalBytes)
         val request = auth.authorize(

@@ -162,6 +162,15 @@ class DownloadModelUseCase @Inject constructor(
         workManager.cancelUniqueWork(fileUniqueName(modelId, fileName))
     }
 
+    /**
+     * Deletes the partial bytes of a paused/failed file. The final file is left
+     * alone — this is "throw away what I did not finish", not "delete a model".
+     */
+    suspend fun discardPartial(modelId: String, fileName: String) =
+        withContext(Dispatchers.IO) {
+            DownloadPaths.partFile(context.filesDir, modelId, fileName).delete()
+        }
+
     /** Compute total download size on demand (user-initiated, avoids extra calls on view). */
     suspend fun calculateSize(model: ModelDetails): Long = withContext(Dispatchers.IO) {
         val files = model.runtimeFiles.ifEmpty { model.liteRtFiles }

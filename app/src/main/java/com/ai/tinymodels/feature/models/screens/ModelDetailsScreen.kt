@@ -28,16 +28,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SdStorage
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.Warning
@@ -76,6 +78,8 @@ import com.ai.tinymodels.core.ui.Formatters
 import com.ai.tinymodels.core.ui.components.ErrorState
 import com.ai.tinymodels.core.ui.components.OfflineState
 import com.ai.tinymodels.domain.model.FileDownloadStatus
+import com.ai.tinymodels.domain.usecase.model.FileRowPhase
+import com.ai.tinymodels.domain.usecase.model.FileRowState
 import com.ai.tinymodels.domain.model.ModelDetails
 import com.ai.tinymodels.domain.usecase.model.DownloadState
 import com.ai.tinymodels.domain.usecase.model.DownloadStatus
@@ -90,7 +94,7 @@ fun ModelDetailsScreen(
     viewModel: ModelDetailsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var showOversizedFileDialog by remember { mutableStateOf(false) }
+    var oversizedFile by remember { mutableStateOf<String?>(null) }
 
         val safeDrawing = WindowInsets.systemBars.union(WindowInsets.displayCutout)
 
@@ -110,88 +114,45 @@ fun ModelDetailsScreen(
             )
         },
         bottomBar = {
-            val model = uiState.model ?: return@Scaffold
-            
-            // Show bar for: (a) per-file download in progress, (b) selected NOT_DOWNLOADED file, (c) global download in progress
-            val shouldShowBar = when {
-                // Per-file download in progress
-                uiState.fileDownload.isDownloading -> true
-                
-                // File selected but not downloaded
-                uiState.selectedFile != null && 
-                    uiState.getFileStatus(uiState.selectedFile!!) == FileDownloadStatus.NOT_DOWNLOADED -> true
-                
-                // Global download in progress
-                uiState.download.isDownloading -> true
-                
-                else -> false
-            }
-            
-            if (shouldShowBar) {
-                uiState.selectedFile?.let { fileName ->
-                    if (uiState.getFileStatus(fileName) == FileDownloadStatus.NOT_DOWNLOADED ||
-                        uiState.fileDownload.isDownloading) {
-                        FileDownloadBar(
-                            fileName = fileName,
-                            fileSize = uiState.getFileSize(fileName),
-                            isLoadable = uiState.isFileLoadable(fileName),
-                            deviceRamBytes = uiState.deviceRamBytes,
-                            download = uiState.fileDownload,
-                            onDownload = {
-                                // Alert before downloading a file too large for this device.
-                                if (uiState.isFileLoadable(fileName)) {
-                                    viewModel.onDownloadFileClick()
-                                } else {
-                                    showOversizedFileDialog = true
-                                }
-                            },
-                            onCancel = viewModel::onCancelFileDownload
-                        )
-                    }
-                } ?: run {
-                    // Global download bar
-                    DownloadBar(
-                        model = model,
-                        isDownloaded = uiState.isDownloaded,
-                        download = uiState.download,
-                        totalSizeBytes = uiState.totalSizeBytes,
-                        onAction = viewModel::onDownloadClick
-                    )
-                }
+            // Whole-model downloads keep their own bar. Per-file downloads are
+            // driven entirely from the file rows themselves.
+            val model = uiState.model
+            if (model != null && uiState.download.isDownloading) {
+                DownloadBar(
+                    model = model,
+                    isDownloaded = uiState.isDownloaded,
+                    download = uiState.download,
+                    totalSizeBytes = uiState.totalSizeBytes,
+                    onAction = viewModel::onDownloadClick
+                )
             }
         }
     ) { padding ->
-        // Oversized-file confirmation: the user explicitly wants to download
-        // a file this device cannot load. Let them, but make the cost clear.
-        if (showOversizedFileDialog) {
-            val fileName = uiState.selectedFile
+        // Oversized-file confirmation: the user explicitly wants a file this
+        // device cannot load. Let them, but make the cost clear up front.
+        oversizedFile?.let { pending ->
+            val pendingSize = uiState.getFileSize(pending)
             AlertDialog(
-                onDismissRequest = { showOversizedFileDialog = false },
+                onDismissRequest = { oversizedFile = null },
                 icon = { Icon(Icons.Filled.Warning, contentDescription = null) },
                 title = { Text("File too large for this device") },
                 text = {
                     Text(
-                        if (fileName != null && uiState.getFileSize(fileName) > 0)
-                            "This file (${Formatters.formatBytes(uiState.getFileSize(fileName))}) " +
-                                "needs more RAM than your device has " +
-                                "(${Formatters.formatBytes(uiState.deviceRamBytes)}). " +
-                                "You can download it, but it cannot be used for chat or " +
-                                "benchmark on this device."
-                        else
-                            "This file needs more RAM than your device has " +
-                                "(${Formatters.formatBytes(uiState.deviceRamBytes)}). " +
-                                "You can download it, but it cannot be used for chat or " +
-                                "benchmark on this device."
+                        (if (pendingSize > 0) "This file (${Formatters.formatBytes(pendingSize)}) " else "This file ")
+                            + "needs more RAM than your device has "
+                            + "(${Formatters.formatBytes(uiState.deviceRamBytes)}). "
+                            + "You can download it, but it cannot be used for chat or "
+                            + "benchmark on this device."
                     )
                 },
                 confirmButton = {
                     TextButton(onClick = {
-                        showOversizedFileDialog = false
-                        viewModel.onDownloadFileClick()
+                        oversizedFile = null
+                        viewModel.onDownloadFileClicked(pending)
                     }) { Text("Download anyway") }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showOversizedFileDialog = false }) { Text("Cancel") }
+                    TextButton(onClick = { oversizedFile = null }) { Text("Cancel") }
                 }
             )
         }
@@ -221,7 +182,16 @@ fun ModelDetailsScreen(
                     ModelDetailsContent(
                         model = uiState.model!!,
                         uiState = uiState,
-                        onFileSelected = viewModel::onFileSelected,
+                        onDownload = { name ->
+                            if (uiState.isFileLoadable(name)) {
+                                viewModel.onDownloadFileClicked(name)
+                            } else {
+                                oversizedFile = name
+                            }
+                        },
+                        onPause = viewModel::onPauseFile,
+                        onResume = viewModel::onResumeFile,
+                        onDiscard = viewModel::onDiscardFile,
                         onDownloadedFileClick = onDownloadedFileClick
                     )
             }
@@ -233,7 +203,10 @@ fun ModelDetailsScreen(
 private fun ModelDetailsContent(
     model: ModelDetails,
     uiState: ModelDetailsViewModel.UiState,
-    onFileSelected: (String) -> Unit,
+    onDownload: (String) -> Unit,
+    onPause: (String) -> Unit,
+    onResume: (String) -> Unit,
+    onDiscard: (String) -> Unit,
     onDownloadedFileClick: (String) -> Unit
 ) {
     LazyColumn(
@@ -251,7 +224,10 @@ private fun ModelDetailsContent(
                 InteractiveFilesCard(
                     files = model.runtimeFiles.ifEmpty { model.liteRtFiles },
                     uiState = uiState,
-                    onFileSelected = onFileSelected,
+                    onDownload = onDownload,
+                    onPause = onPause,
+                    onResume = onResume,
+                    onDiscard = onDiscard,
                     onDownloadedFileClick = onDownloadedFileClick
                 )
             }
@@ -383,14 +359,17 @@ private fun TagsCard(tags: List<String>) {
 private fun InteractiveFilesCard(
     files: List<String>,
     uiState: ModelDetailsViewModel.UiState,
-    onFileSelected: (String) -> Unit,
+    onDownload: (String) -> Unit,
+    onPause: (String) -> Unit,
+    onResume: (String) -> Unit,
+    onDiscard: (String) -> Unit,
     onDownloadedFileClick: (String) -> Unit
 ) {
     Card(modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text("Files", style = MaterialTheme.typography.titleMedium)
-            Text("Tap a file to download it individually.",
+            Text("Download files individually — several can run at once.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.height(10.dp))
@@ -398,12 +377,14 @@ private fun InteractiveFilesCard(
                 if (index > 0) HorizontalDivider()
                 FileRow(
                     fileName = fileName,
-                    status = uiState.getFileStatus(fileName),
+                    state = uiState.fileState(fileName),
                     fileSize = uiState.getFileSize(fileName),
                     isLoadable = uiState.isFileLoadable(fileName),
-                    isSelected = uiState.selectedFile == fileName,
-                    download = if (uiState.selectedFile == fileName) uiState.fileDownload else null,
-                    onSelect = { onFileSelected(fileName) },
+                    error = uiState.fileError(fileName),
+                    onDownload = { onDownload(fileName) },
+                    onPause = { onPause(fileName) },
+                    onResume = { onResume(fileName) },
+                    onDiscard = { onDiscard(fileName) },
                     onDownloadedClick = { onDownloadedFileClick(fileName) }
                 )
             }
@@ -414,71 +395,26 @@ private fun InteractiveFilesCard(
 @Composable
 private fun FileRow(
     fileName: String,
-    status: FileDownloadStatus,
+    state: FileRowState,
     fileSize: Long,
     isLoadable: Boolean,
-    isSelected: Boolean,
-    download: DownloadState?,
-    onSelect: () -> Unit,
+    error: String?,
+    onDownload: () -> Unit,
+    onPause: () -> Unit,
+    onResume: () -> Unit,
+    onDiscard: () -> Unit,
     onDownloadedClick: () -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = if (isSelected && status == FileDownloadStatus.NOT_DOWNLOADED) 
-            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
-        else MaterialTheme.colorScheme.surfaceContainer,
-        onClick = {
-            when (status) {
-                FileDownloadStatus.DOWNLOADED -> onDownloadedClick()
-                FileDownloadStatus.NOT_DOWNLOADED, FileDownloadStatus.FAILED,
-                FileDownloadStatus.PAUSED -> onSelect()
-                FileDownloadStatus.DOWNLOADING -> onSelect()
-            }
-        }
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        onClick = { if (state.phase == FileRowPhase.DOWNLOADED) onDownloadedClick() }
     ) {
         Column(modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Status icon
-                when (status) {
-                    FileDownloadStatus.NOT_DOWNLOADED -> {
-                        Icon(
-                            if (isSelected) Icons.Filled.RadioButtonChecked else Icons.Filled.RadioButtonUnchecked,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    FileDownloadStatus.DOWNLOADING -> {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                    }
-                    FileDownloadStatus.PAUSED -> {
-                        Icon(
-                            Icons.Filled.Pause,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    FileDownloadStatus.DOWNLOADED -> {
-                        Icon(
-                            Icons.Filled.CheckCircle,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                    FileDownloadStatus.FAILED -> {
-                        Icon(
-                            Icons.Filled.ErrorOutline,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
+                FilePhaseIcon(state)
                 Spacer(modifier = Modifier.width(12.dp))
-                
-                // File name, size, and device-capacity indicator
+
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         fileName.substringAfterLast("/"),
@@ -487,12 +423,11 @@ private fun FileRow(
                         maxLines = 1
                     )
                     Text(
-                        if (fileSize > 0) Formatters.formatBytes(fileSize) else "—",
+                        fileSubtitle(state, fileSize),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    // Capacity indicator — only meaningful once the size is known.
-                    if (fileSize > 0) {
+                    if (state.phase != FileRowPhase.DOWNLOADED && fileSize > 0) {
                         Text(
                             if (isLoadable) "✓ Fits your device"
                             else "⚠ Too large for this device",
@@ -501,58 +436,125 @@ private fun FileRow(
                             else MaterialTheme.colorScheme.error
                         )
                     }
+                    if (state.phase == FileRowPhase.FAILED && !error.isNullOrBlank()) {
+                        Text(
+                            error,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.error,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    if (state.phase == FileRowPhase.DOWNLOADING) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        LinearProgressIndicator(
+                            progress = { state.progress.coerceIn(0f, 1f) },
+                            modifier = Modifier.fillMaxWidth().height(4.dp)
+                        )
+                    }
                 }
-                
-                // Status badge
-                when (status) {
-                    FileDownloadStatus.DOWNLOADED -> {
-                        Surface(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = MaterialTheme.shapes.small
-                        ) {
-                            Text(
-                                "Downloaded",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+
+                // One control per row: the same surface that shows progress
+                // also pauses, resumes and discards it.
+                when (state.phase) {
+                    FileRowPhase.IDLE -> {
+                        IconButton(onClick = onDownload) {
+                            Icon(
+                                Icons.Filled.Download,
+                                contentDescription = "Download ${fileName.substringAfterLast("/")}",
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
-                    FileDownloadStatus.DOWNLOADING -> {
-                        download?.let {
-                            Text(
-                                "${(it.progress * 100).toInt()}%",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
+                    FileRowPhase.DOWNLOADING -> {
+                        IconButton(onClick = onPause) {
+                            Icon(Icons.Filled.Pause, contentDescription = "Pause download")
                         }
                     }
-                    FileDownloadStatus.FAILED -> {
-                        Surface(
-                            color = MaterialTheme.colorScheme.errorContainer,
-                            shape = MaterialTheme.shapes.small
-                        ) {
-                            Text(
-                                "Failed",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onErrorContainer,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    FileRowPhase.PAUSED -> {
+                        IconButton(onClick = onResume) {
+                            Icon(
+                                Icons.Filled.PlayArrow,
+                                contentDescription = "Resume download",
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
+                        IconButton(onClick = onDiscard) {
+                            Icon(Icons.Filled.Close, contentDescription = "Discard download")
+                        }
                     }
-                    else -> {}
+                    FileRowPhase.FAILED -> {
+                        IconButton(onClick = onDownload) {
+                            Icon(
+                                Icons.Filled.Refresh,
+                                contentDescription = "Retry download",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        IconButton(onClick = onDiscard) {
+                            Icon(Icons.Filled.Close, contentDescription = "Discard download")
+                        }
+                    }
+                    FileRowPhase.DOWNLOADED -> {
+                        Icon(
+                            Icons.Filled.CheckCircle,
+                            contentDescription = "Downloaded",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
-            }
-            
-            // Show inline progress for downloading
-            if (status == FileDownloadStatus.DOWNLOADING && download != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                LinearProgressIndicator(
-                    progress = { download.progress.coerceIn(0f, 1f) },
-                    modifier = Modifier.fillMaxWidth().height(4.dp)
-                )
             }
         }
+    }
+}
+
+/** Size, live byte counters, speed and percentage — whatever is known. */
+private fun fileSubtitle(state: FileRowState, fileSize: Long): String = when (state.phase) {
+    FileRowPhase.DOWNLOADING -> buildString {
+        append(Formatters.formatBytes(state.downloadedBytes))
+        if (state.totalBytes > 0) append(" / ${Formatters.formatBytes(state.totalBytes)}")
+        append(" · ${(state.progress * 100).toInt()}%")
+        if (state.bytesPerSecond > 0) append(" · ${Formatters.formatBytes(state.bytesPerSecond)}/s")
+    }
+    FileRowPhase.PAUSED -> "Paused"
+    FileRowPhase.DOWNLOADED -> if (fileSize > 0) Formatters.formatBytes(fileSize) + " · Downloaded" else "Downloaded"
+    FileRowPhase.FAILED -> "Download failed"
+    FileRowPhase.IDLE -> if (fileSize > 0) Formatters.formatBytes(fileSize) else "—"
+}
+
+@Composable
+private fun FilePhaseIcon(state: FileRowState) {
+    val iconSize = 20.dp
+    when (state.phase) {
+        FileRowPhase.IDLE -> Icon(
+            Icons.Filled.RadioButtonUnchecked,
+            contentDescription = null,
+            modifier = Modifier.size(iconSize),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        FileRowPhase.DOWNLOADING -> CircularProgressIndicator(
+            progress = { state.progress.coerceIn(0f, 1f) },
+            modifier = Modifier.size(iconSize),
+            strokeWidth = 2.dp
+        )
+        FileRowPhase.PAUSED -> Icon(
+            Icons.Filled.Pause,
+            contentDescription = null,
+            modifier = Modifier.size(iconSize),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        FileRowPhase.DOWNLOADED -> Icon(
+            Icons.Filled.CheckCircle,
+            contentDescription = null,
+            modifier = Modifier.size(iconSize),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        FileRowPhase.FAILED -> Icon(
+            Icons.Filled.ErrorOutline,
+            contentDescription = null,
+            modifier = Modifier.size(iconSize),
+            tint = MaterialTheme.colorScheme.error
+        )
     }
 }
 
@@ -567,191 +569,6 @@ private fun Chip(label: String, leading: (@Composable () -> Unit)? = null) {
             leading?.let { it(); Spacer(modifier = Modifier.width(4.dp)) }
             Text(label, style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSecondaryContainer)
-        }
-    }
-}
-
-// ---------- Sticky per-file download action bar ----------
-
-@Composable
-private fun FileDownloadBar(
-    fileName: String,
-    fileSize: Long,
-    isLoadable: Boolean,
-    deviceRamBytes: Long,
-    download: DownloadState,
-    onDownload: () -> Unit,
-    onCancel: () -> Unit
-) {
-    Surface(
-        tonalElevation = 3.dp,
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        shadowElevation = 8.dp,
-        modifier = Modifier.imePadding()
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                // navigationBarsPadding handles bottom; windowInsetsPadding for horizontal cutout
-                .windowInsetsPadding(
-                    WindowInsets.systemBars.union(WindowInsets.displayCutout)
-                        .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
-                )
-                .padding(16.dp)
-        ) {
-            // Warning banner when the selected file can't be loaded on this device.
-            if (!isLoadable && fileSize > 0 && !download.isDownloading) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Filled.Warning,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        "Too large for this device " +
-                            "(${Formatters.formatBytes(fileSize)} vs " +
-                            "${Formatters.formatBytes(deviceRamBytes)} RAM). " +
-                            "It can be downloaded but not used here.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-
-            when (download.status) {
-                DownloadStatus.DOWNLOADING, DownloadStatus.CHECKING_SIZE,
-                DownloadStatus.WAITING_FOR_NETWORK -> {
-                    FileDownloadInProgress(fileName, fileSize, download, onCancel)
-                }
-                DownloadStatus.FAILED -> {
-                    FileDownloadIdle(fileName, fileSize, download, onDownload)
-                }
-                else -> {
-                    FileDownloadIdle(fileName, fileSize, download, onDownload)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun FileDownloadIdle(
-    fileName: String,
-    fileSize: Long,
-    download: DownloadState,
-    onDownload: () -> Unit
-) {
-    Column {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    fileName.substringAfterLast("/"),
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                if (fileSize > 0) {
-                    Text(
-                        Formatters.formatBytes(fileSize),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = onDownload, modifier = Modifier.fillMaxWidth()) {
-            Icon(Icons.Filled.CloudDownload, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Download file")
-        }
-        
-        // Error display
-        download.error?.let {
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.ErrorOutline, contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(it, color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
-            }
-        }
-    }
-}
-
-@Composable
-private fun FileDownloadInProgress(
-    fileName: String,
-    fileSize: Long,
-    download: DownloadState,
-    onCancel: () -> Unit
-) {
-    val total = if (download.totalBytes > 0) download.totalBytes else fileSize
-    val isPreparing = download.status == DownloadStatus.CHECKING_SIZE
-    val isWaitingForNetwork = download.status == DownloadStatus.WAITING_FOR_NETWORK
-
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                fileName.substringAfterLast("/"),
-                style = MaterialTheme.typography.titleSmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                when {
-                    isWaitingForNetwork -> "Waiting for connection\u2026"
-                    isPreparing -> "Preparing download\u2026"
-                    else -> "Downloading\u2026"
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            if (isPreparing || isWaitingForNetwork) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth().height(6.dp))
-            } else {
-                LinearProgressIndicator(
-                    progress = { download.progress.coerceIn(0f, 1f) },
-                    modifier = Modifier.fillMaxWidth().height(6.dp)
-                )
-            }
-            if (!isWaitingForNetwork) {
-                Spacer(modifier = Modifier.height(6.dp))
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    val pct = (download.progress * 100).toInt()
-                    Text(
-                        if (total > 0)
-                            "${Formatters.formatBytes(download.downloadedBytes)} / ${Formatters.formatBytes(total)} \u00b7 $pct%"
-                        else "$pct%",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.weight(1f)
-                    )
-                    if (download.bytesPerSecond > 0) {
-                        Text(
-                            "${Formatters.formatBytes(download.bytesPerSecond)}/s",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-        }
-        Spacer(modifier = Modifier.width(12.dp))
-        OutlinedButton(onClick = onCancel) {
-            Icon(Icons.Filled.Cancel, contentDescription = null, modifier = Modifier.size(16.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("Cancel")
         }
     }
 }
