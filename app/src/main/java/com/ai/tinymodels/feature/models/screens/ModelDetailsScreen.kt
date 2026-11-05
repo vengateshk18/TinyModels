@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SdStorage
 import androidx.compose.material.icons.filled.TrendingUp
@@ -429,7 +430,8 @@ private fun FileRow(
         onClick = {
             when (status) {
                 FileDownloadStatus.DOWNLOADED -> onDownloadedClick()
-                FileDownloadStatus.NOT_DOWNLOADED, FileDownloadStatus.FAILED -> onSelect()
+                FileDownloadStatus.NOT_DOWNLOADED, FileDownloadStatus.FAILED,
+                FileDownloadStatus.PAUSED -> onSelect()
                 FileDownloadStatus.DOWNLOADING -> onSelect()
             }
         }
@@ -448,6 +450,14 @@ private fun FileRow(
                     }
                     FileDownloadStatus.DOWNLOADING -> {
                         CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                    }
+                    FileDownloadStatus.PAUSED -> {
+                        Icon(
+                            Icons.Filled.Pause,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                     FileDownloadStatus.DOWNLOADED -> {
                         Icon(

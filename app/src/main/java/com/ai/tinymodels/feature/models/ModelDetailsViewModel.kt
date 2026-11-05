@@ -225,7 +225,8 @@ class ModelDetailsViewModel @Inject constructor(
                 }
                 _uiState.update { it.copy(selectedFile = fileName) }
             }
-            FileDownloadStatus.NOT_DOWNLOADED, FileDownloadStatus.FAILED -> {
+            FileDownloadStatus.NOT_DOWNLOADED, FileDownloadStatus.FAILED,
+            FileDownloadStatus.PAUSED -> {
                 // Select this file for download
                 _uiState.update { it.copy(selectedFile = fileName, fileDownload = DownloadState()) }
             }
