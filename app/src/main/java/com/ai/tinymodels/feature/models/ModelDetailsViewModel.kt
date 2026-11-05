@@ -219,8 +219,12 @@ class ModelDetailsViewModel @Inject constructor(
      */
     fun onDownloadFileClicked(fileName: String) {
         val model = _uiState.value.model ?: return
-        val size = _uiState.value.getFileSize(fileName)
         viewModelScope.launch {
+            // The background size sweep may not have reached this file yet; a
+            // missing size would make the row's progress bar meaningless.
+            val size = _uiState.value.getFileSize(fileName).takeIf { it > 0 }
+                ?: runCatching { downloadModel.calculateFileSize(model, fileName) }
+                    .getOrDefault(0L)
             if (size > 0 && !storageUtils.hasSpaceFor(size)) {
                 modelRepository.updateFileStatus(
                     modelId, fileName, FileDownloadStatus.FAILED,

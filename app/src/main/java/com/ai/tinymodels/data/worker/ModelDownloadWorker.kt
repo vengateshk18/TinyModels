@@ -18,6 +18,7 @@ import com.ai.tinymodels.core.network.HuggingFaceAuth
 import com.ai.tinymodels.domain.model.FileDownloadStatus
 import com.ai.tinymodels.domain.usecase.model.DownloadPaths
 import com.ai.tinymodels.domain.usecase.model.DownloadResumePolicy
+import com.ai.tinymodels.domain.usecase.model.DownloadSpeed
 import com.ai.tinymodels.domain.usecase.model.ResumeAction
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -68,6 +69,11 @@ class ModelDownloadWorker @AssistedInject constructor(
         setForeground(createForegroundInfo(0L, total, title))
 
         val startTimeMs = System.currentTimeMillis()
+        // Bytes already on disk before this job started. They count towards
+        // progress but not towards the speed of *this* transfer.
+        val resumedBytes = files.sumOf {
+            DownloadPaths.partFile(applicationContext.filesDir, modelId, it).length()
+        }
         return try {
             files.forEach { fileName ->
                 coroutineContext.ensureActive()
@@ -81,8 +87,11 @@ class ModelDownloadWorker @AssistedInject constructor(
                 downloadFile(url, target, part, fileTotal) { fileDownloaded ->
                     downloaded = previousDownloaded + fileDownloaded
                     val progress = if (total > 0) downloaded.toFloat() / total else 0f
-                    val elapsedSec = (System.currentTimeMillis() - startTimeMs) / 1000.0
-                    val speed = if (elapsedSec > 0.5) (downloaded / elapsedSec).toLong() else 0L
+                    val transferred = (downloaded - resumedBytes).coerceAtLeast(0L)
+                    val speed = DownloadSpeed.bytesPerSecond(
+                        transferredBytes = transferred,
+                        elapsedMs = System.currentTimeMillis() - startTimeMs
+                    )
                     setProgress(
                         workDataOf(
                             KEY_DOWNLOADED_BYTES to downloaded,
