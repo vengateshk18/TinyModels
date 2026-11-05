@@ -16,6 +16,8 @@ import com.ai.tinymodels.core.database.entities.ModelFileEntity
 import com.ai.tinymodels.core.network.HuggingFaceApi
 import com.ai.tinymodels.core.network.HuggingFaceAuth
 import com.ai.tinymodels.domain.model.FileDownloadStatus
+import com.ai.tinymodels.domain.usecase.model.DownloadResumePolicy
+import com.ai.tinymodels.domain.usecase.model.ResumeAction
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +27,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
+import java.io.FileOutputStream
 import kotlin.coroutines.coroutineContext
 
 /**
@@ -70,7 +73,10 @@ class ModelDownloadWorker @AssistedInject constructor(
                 val previousDownloaded = downloaded
                 val url = api.fileUrl(modelId, fileName)
                 val target = File(modelDirectory, fileName.substringAfterLast("/"))
-                downloadFile(url, target) { fileDownloaded, _ ->
+                // A per-file job knows its exact size; a whole-model job only
+                // knows the sum, so it passes 0 and still resumes safely.
+                val fileTotal = if (files.size == 1) total else 0L
+                downloadFile(url, target, fileTotal) { fileDownloaded ->
                     downloaded = previousDownloaded + fileDownloaded
                     val progress = if (total > 0) downloaded.toFloat() / total else 0f
                     val elapsedSec = (System.currentTimeMillis() - startTimeMs) / 1000.0
@@ -117,24 +123,16 @@ class ModelDownloadWorker @AssistedInject constructor(
             DownloadNotifier.notifyComplete(applicationContext, id, title)
             Result.success()
         } catch (cancellation: kotlinx.coroutines.CancellationException) {
-            // Cancelled mid-download — reset every file back to NOT_DOWNLOADED,
-            // delete partial files, and do NOT insert the parent downloaded_models row.
-            files.forEach { fileName ->
-                modelFileDao.updateStatus(
-                    modelId, fileName, FileDownloadStatus.NOT_DOWNLOADED.name, null, null, null
-                )
-            }
-            modelDirectory.deleteRecursively()
+            // Paused (or stopped by the system): KEEP the .part files so Resume
+            // continues where it left off. Files that already finished stay
+            // DOWNLOADED — only the ones still in flight become PAUSED.
+            markUnfinished(modelId, files, FileDownloadStatus.PAUSED, null)
             DownloadNotifier.cancelProgress(applicationContext, id)
             throw cancellation
         } catch (exception: Exception) {
-            // Unexpected error — mark files as FAILED, clean up, no parent row inserted.
-            files.forEach { fileName ->
-                modelFileDao.updateStatus(
-                    modelId, fileName, FileDownloadStatus.FAILED.name, null, null, exception.message
-                )
-            }
-            modelDirectory.deleteRecursively()
+            // Unexpected error — mark unfinished files FAILED but keep their
+            // partial bytes, so a retry can still resume them.
+            markUnfinished(modelId, files, FileDownloadStatus.FAILED, exception.message)
             DownloadNotifier.notifyFailed(applicationContext, id, title, exception.message)
             val message = exception.message ?: "Download failed"
             // 401/403 (gated repo, missing/invalid token or unaccepted license)
@@ -160,15 +158,31 @@ class ModelDownloadWorker @AssistedInject constructor(
         DownloadNotifier.notifyProgress(applicationContext, id, title, downloaded, total)
     }
 
+    /**
+     * Downloads [url] into [target], resuming a previous `.part` file when the
+     * server allows it. The final file only appears once every byte arrived, so
+     * a half-written model can never be mistaken for a complete one.
+     */
     private suspend fun downloadFile(
         url: String,
         target: File,
-        onProgress: suspend (downloaded: Long, total: Long) -> Unit
+        totalBytes: Long,
+        onProgress: suspend (downloaded: Long) -> Unit
     ) = withContext(Dispatchers.IO) {
-        val request = auth.authorize(Request.Builder().url(url).get()).build()
+        val part = File(target.parentFile, "${target.name}.part")
+        part.parentFile?.mkdirs()
+        val offset = DownloadResumePolicy.resumeOffset(part.length(), totalBytes)
+        val request = auth.authorize(
+            Request.Builder()
+                .url(url)
+                .get()
+                .apply {
+                    DownloadResumePolicy.rangeHeader(offset)?.let { header("Range", it) }
+                }
+        ).build()
         val call = client.newCall(request)
         // Abort a stalled socket read the moment this work is cancelled
-        // (notification Cancel, in-app Cancel, or preemption). Without this,
+        // (notification Cancel, in-app Pause, or preemption). Without this,
         // coroutine cancellation cannot preempt the blocking read and the
         // download lingers up to the 60s socket timeout.
         coroutineContext.job.invokeOnCompletion { cause ->
@@ -176,7 +190,8 @@ class ModelDownloadWorker @AssistedInject constructor(
         }
         try {
             call.execute().use { response ->
-                if (!response.isSuccessful) {
+                val action = DownloadResumePolicy.actionFor(offset, response.code)
+                if (action == ResumeAction.FAIL) {
                     if (response.code == 401) {
                         throw java.io.IOException(
                             "HTTP 401 — this model is gated. Add your Hugging Face access token " +
@@ -185,14 +200,19 @@ class ModelDownloadWorker @AssistedInject constructor(
                     }
                     throw java.io.IOException("HTTP ${response.code}")
                 }
+
                 val body = response.body ?: throw java.io.IOException("Empty body")
-                var total = body.contentLength()
-                response.header("x-linked-size")?.toLongOrNull()?.takeIf { it > 0 }?.let { total = it }
-                target.parentFile?.mkdirs()
+                val append = action == ResumeAction.APPEND
+                if (!append) part.delete()
+                val startAt = if (append) offset else 0L
+                // Report the resumed bytes immediately, otherwise a resumed job
+                // looks stuck at 0% until the first chunk lands.
+                if (startAt > 0L) onProgress(startAt)
+
                 body.byteStream().use { input ->
-                    target.outputStream().use { output ->
+                    FileOutputStream(part, append).use { output ->
                         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                        var downloadedBytes = 0L
+                        var downloadedBytes = startAt
                         var count: Int
                         while (input.read(buffer).also { count = it } != -1) {
                             // Cooperative cancel: aborts promptly even when the
@@ -200,17 +220,40 @@ class ModelDownloadWorker @AssistedInject constructor(
                             ensureActive()
                             output.write(buffer, 0, count)
                             downloadedBytes += count
-                            onProgress(downloadedBytes, if (total > 0) total else -1L)
+                            onProgress(downloadedBytes)
                         }
                     }
                 }
             }
+            // Promote the complete download. Deleting first avoids a stale
+            // file from an earlier attempt blocking the rename.
+            if (target.exists()) target.delete()
+            if (!part.renameTo(target)) {
+                throw java.io.IOException("Could not finalize ${target.name}")
+            }
         } catch (e: java.io.IOException) {
             // A cancelled call surfaces as SocketException("Socket closed"),
             // NOT CancellationException — convert it so doWork() takes the
-            // cancel path (cleanup, no retry) instead of FAILED+retry.
+            // cancel path (keep partial, mark PAUSED) instead of FAILED+retry.
             coroutineContext.ensureActive()
             throw e
+        }
+    }
+
+    /** Marks every file that is not already fully downloaded with [status]. */
+    private suspend fun markUnfinished(
+        modelId: String,
+        files: List<String>,
+        status: FileDownloadStatus,
+        error: String?
+    ) {
+        val existing = modelFileDao.getByModelId(modelId)
+        files.forEach { fileName ->
+            val alreadyDownloaded = existing.firstOrNull { it.fileName == fileName }
+                ?.status == FileDownloadStatus.DOWNLOADED.name
+            if (!alreadyDownloaded) {
+                modelFileDao.updateStatus(modelId, fileName, status.name, null, null, error)
+            }
         }
     }
 
