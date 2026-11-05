@@ -90,6 +90,16 @@ class FileRowStateTest {
     }
 
     @Test
+    fun `a job waiting for the network is queued, not downloading`() {
+        val state = fileRowState(
+            FileDownloadStatus.DOWNLOADING,
+            active().copy(status = DownloadStatus.WAITING_FOR_NETWORK)
+        )
+
+        assertEquals(FileRowPhase.QUEUED, state.phase)
+    }
+
+    @Test
     fun `progress above one is clamped`() {
         val state = fileRowState(FileDownloadStatus.DOWNLOADING, active(progress = 1.7f))
 

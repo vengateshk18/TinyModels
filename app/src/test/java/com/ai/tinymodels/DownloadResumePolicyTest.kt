@@ -67,8 +67,13 @@ class DownloadResumePolicyTest {
     }
 
     @Test
-    fun `416 range not satisfiable restarts`() {
-        assertEquals(ResumeAction.RESTART, DownloadResumePolicy.actionFor(offset = 250L, responseCode = 416))
+    fun `416 range not satisfiable asks for a fresh request without a range`() {
+        // The 416 body is an error page, not file content — it must never be
+        // written into the partial file.
+        assertEquals(
+            ResumeAction.RESTART_WITHOUT_RANGE,
+            DownloadResumePolicy.actionFor(offset = 250L, responseCode = 416)
+        )
     }
 
     @Test

@@ -447,10 +447,17 @@ private fun FileRow(
                     }
                     if (state.phase == FileRowPhase.DOWNLOADING) {
                         Spacer(modifier = Modifier.height(8.dp))
-                        LinearProgressIndicator(
-                            progress = { state.progress.coerceIn(0f, 1f) },
-                            modifier = Modifier.fillMaxWidth().height(4.dp)
-                        )
+                        if (state.totalBytes > 0) {
+                            LinearProgressIndicator(
+                                progress = { state.progress.coerceIn(0f, 1f) },
+                                modifier = Modifier.fillMaxWidth().height(4.dp)
+                            )
+                        } else {
+                            // Unknown size — a determinate bar would sit at 0%.
+                            LinearProgressIndicator(
+                                modifier = Modifier.fillMaxWidth().height(4.dp)
+                            )
+                        }
                     }
                 }
 
@@ -464,6 +471,11 @@ private fun FileRow(
                                 contentDescription = "Download ${fileName.substringAfterLast("/")}",
                                 tint = MaterialTheme.colorScheme.primary
                             )
+                        }
+                    }
+                    FileRowPhase.QUEUED -> {
+                        IconButton(onClick = onPause) {
+                            Icon(Icons.Filled.Close, contentDescription = "Cancel queued download")
                         }
                     }
                     FileRowPhase.DOWNLOADING -> {
@@ -516,6 +528,7 @@ private fun fileSubtitle(state: FileRowState, fileSize: Long): String = when (st
         append(" · ${(state.progress * 100).toInt()}%")
         if (state.bytesPerSecond > 0) append(" · ${Formatters.formatBytes(state.bytesPerSecond)}/s")
     }
+    FileRowPhase.QUEUED -> "Waiting for network"
     FileRowPhase.PAUSED -> "Paused"
     FileRowPhase.DOWNLOADED -> if (fileSize > 0) Formatters.formatBytes(fileSize) + " · Downloaded" else "Downloaded"
     FileRowPhase.FAILED -> "Download failed"
@@ -532,11 +545,21 @@ private fun FilePhaseIcon(state: FileRowState) {
             modifier = Modifier.size(iconSize),
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        FileRowPhase.DOWNLOADING -> CircularProgressIndicator(
-            progress = { state.progress.coerceIn(0f, 1f) },
+        FileRowPhase.QUEUED -> Icon(
+            Icons.Filled.CloudDownload,
+            contentDescription = null,
             modifier = Modifier.size(iconSize),
-            strokeWidth = 2.dp
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
+        FileRowPhase.DOWNLOADING -> if (state.totalBytes > 0) {
+            CircularProgressIndicator(
+                progress = { state.progress.coerceIn(0f, 1f) },
+                modifier = Modifier.size(iconSize),
+                strokeWidth = 2.dp
+            )
+        } else {
+            CircularProgressIndicator(modifier = Modifier.size(iconSize), strokeWidth = 2.dp)
+        }
         FileRowPhase.PAUSED -> Icon(
             Icons.Filled.Pause,
             contentDescription = null,

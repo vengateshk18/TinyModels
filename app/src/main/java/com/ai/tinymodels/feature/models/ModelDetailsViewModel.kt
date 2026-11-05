@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -217,7 +218,11 @@ class ModelDetailsViewModel @Inject constructor(
      * Starts (or resumes) one file. Resuming is the same call as starting: the
      * worker finds the `.part` file and asks the server to continue from it.
      */
-    fun onDownloadFileClicked(fileName: String) {
+    fun onDownloadFileClicked(fileName: String) = startFileDownload(fileName, replace = false)
+
+    fun onResumeFile(fileName: String) = startFileDownload(fileName, replace = true)
+
+    private fun startFileDownload(fileName: String, replace: Boolean) {
         val model = _uiState.value.model ?: return
         viewModelScope.launch {
             // The background size sweep may not have reached this file yet; a
@@ -234,11 +239,9 @@ class ModelDetailsViewModel @Inject constructor(
             }
             modelRepository.updateFileStatus(modelId, fileName, FileDownloadStatus.DOWNLOADING)
             // Enqueueing is the side effect; progress is observed centrally.
-            downloadModel.executeFile(model, fileName, size)
+            downloadModel.executeFile(model, fileName, size, replace)
         }
     }
-
-    fun onResumeFile(fileName: String) = onDownloadFileClicked(fileName)
 
     /**
      * Stops the job but keeps the partial file. The worker also writes PAUSED
@@ -247,7 +250,12 @@ class ModelDetailsViewModel @Inject constructor(
     fun onPauseFile(fileName: String) {
         downloadModel.cancelFile(modelId, fileName)
         viewModelScope.launch {
-            modelRepository.updateFileStatus(modelId, fileName, FileDownloadStatus.PAUSED)
+            // The last chunk may have landed before the cancel did — never
+            // downgrade a finished file to Paused.
+            val current = modelRepository.getModelFile(modelId, fileName)?.status
+            if (current != FileDownloadStatus.DOWNLOADED) {
+                modelRepository.updateFileStatus(modelId, fileName, FileDownloadStatus.PAUSED)
+            }
         }
     }
 
@@ -257,7 +265,9 @@ class ModelDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             downloadModel.discardPartial(modelId, fileName)
             modelRepository.updateFileStatus(modelId, fileName, FileDownloadStatus.NOT_DOWNLOADED)
-            val stillUsed = _uiState.value.modelFiles.any { file ->
+            // Read the DB rather than the UI snapshot, which can lag an emission
+            // behind a file that just finished downloading.
+            val stillUsed = modelRepository.observeModelFiles(modelId).first().any { file ->
                 file.fileName != fileName && file.status in setOf(
                     FileDownloadStatus.DOWNLOADED,
                     FileDownloadStatus.PAUSED,

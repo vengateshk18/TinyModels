@@ -5,6 +5,8 @@ import com.ai.tinymodels.domain.model.FileDownloadStatus
 /** What a single model-file row should show right now. */
 enum class FileRowPhase {
     IDLE,
+    /** Enqueued but blocked on a network constraint. */
+    QUEUED,
     DOWNLOADING,
     PAUSED,
     DOWNLOADED,
@@ -32,7 +34,11 @@ data class FileRowState(
 fun fileRowState(dbStatus: FileDownloadStatus, active: ActiveDownload?): FileRowState {
     if (active != null) {
         return FileRowState(
-            phase = FileRowPhase.DOWNLOADING,
+            phase = if (active.status == DownloadStatus.WAITING_FOR_NETWORK) {
+                FileRowPhase.QUEUED
+            } else {
+                FileRowPhase.DOWNLOADING
+            },
             progress = active.progress.coerceIn(0f, 1f),
             downloadedBytes = active.downloadedBytes,
             totalBytes = active.totalBytes,

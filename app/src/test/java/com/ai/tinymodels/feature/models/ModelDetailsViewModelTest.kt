@@ -304,7 +304,7 @@ class ModelDetailsViewModelTest {
     @Test
     fun `downloading a file records DOWNLOADING and enqueues it`() = runTest {
         repo.seedFiles(file("a.litertlm"))
-        every { downloadUseCase.executeFile(any(), any(), any()) } returns MutableStateFlow(DownloadState())
+        every { downloadUseCase.executeFile(any(), any(), any(), any()) } returns MutableStateFlow(DownloadState())
 
         val viewModel = vm()
         advanceUntilIdle()
@@ -312,7 +312,7 @@ class ModelDetailsViewModelTest {
         advanceUntilIdle()
 
         assertEquals(FileDownloadStatus.DOWNLOADING, repo.statusOf("a.litertlm"))
-        verify(exactly = 1) { downloadUseCase.executeFile(any(), "a.litertlm", any()) }
+        verify(exactly = 1) { downloadUseCase.executeFile(any(), "a.litertlm", any(), false) }
     }
 
     @Test
@@ -331,14 +331,14 @@ class ModelDetailsViewModelTest {
     @Test
     fun `resuming a paused file re-enqueues it and records DOWNLOADING`() = runTest {
         repo.seedFiles(file("a.litertlm", FileDownloadStatus.PAUSED))
-        every { downloadUseCase.executeFile(any(), any(), any()) } returns MutableStateFlow(DownloadState())
+        every { downloadUseCase.executeFile(any(), any(), any(), any()) } returns MutableStateFlow(DownloadState())
 
         val viewModel = vm()
         advanceUntilIdle()
         viewModel.onResumeFile("a.litertlm")
         advanceUntilIdle()
 
-        verify { downloadUseCase.executeFile(any(), "a.litertlm", any()) }
+        verify { downloadUseCase.executeFile(any(), "a.litertlm", any(), true) }
         assertEquals(FileDownloadStatus.DOWNLOADING, repo.statusOf("a.litertlm"))
     }
 

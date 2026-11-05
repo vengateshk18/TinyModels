@@ -5,8 +5,14 @@ enum class ResumeAction {
     /** Server honoured the Range header — append the body to the partial file. */
     APPEND,
 
-    /** Server sent the whole body (or the partial is unusable) — start over. */
+    /** This body is the whole file — write it from zero. */
     RESTART,
+
+    /**
+     * The range could not be satisfied (416). The body is an error page, so it
+     * must be thrown away and the request repeated without a `Range` header.
+     */
+    RESTART_WITHOUT_RANGE,
 
     /** Server rejected the request for a reason a retry cannot fix. */
     FAIL
@@ -34,7 +40,7 @@ object DownloadResumePolicy {
     fun actionFor(offset: Long, responseCode: Int): ResumeAction = when {
         responseCode == 206 && offset > 0L -> ResumeAction.APPEND
         responseCode == 200 -> ResumeAction.RESTART
-        responseCode == 416 -> ResumeAction.RESTART
+        responseCode == 416 -> ResumeAction.RESTART_WITHOUT_RANGE
         responseCode == 206 -> ResumeAction.RESTART
         else -> ResumeAction.FAIL
     }
