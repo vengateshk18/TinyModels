@@ -1,5 +1,13 @@
 package com.ai.tinymodels.feature.chat.components
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,16 +24,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.ai.tinymodels.feature.chat.model.ModelLoadProgress
+import com.ai.tinymodels.feature.chat.model.ModelLoadVisual
+import com.ai.tinymodels.feature.chat.model.modelLoadVisual
 
 /**
  * Non-dismissible dialog shown while a model is initialising.
  *
- * Uses [BasicAlertDialog] so the system back-button and outside-tap are
- * consumed and cannot accidentally close the dialog mid-load.
+ * Honesty over cosmetics: the engine reports only a few discrete milestones,
+ * and there is no way to measure the long blocking span where ~95% of the
+ * time is spent. So the dialog shows measured progress while it exists and
+ * Material's natural indeterminate animation after it — never an invented
+ * percentage. The only motion added beyond the engine's own milestones is
+ * *animation* (eased transitions, crossfades), not fabricated advancement.
+ *
  * The dialog is removed from the composition by the ViewModel once the
  * engine transitions to [EngineState.Ready] or [EngineState.Error].
  */
@@ -36,6 +52,15 @@ fun ModelLoadingDialog(
     /** Kept for API compatibility — always pass null (non-dismissible). */
     @Suppress("UNUSED_PARAMETER") onDismiss: (() -> Unit)? = null
 ) {
+    // The displayed value is eased toward wherever the engine actually is, so a
+    // milestone arriving never shows up as a jarring jump — the bar glides to it.
+    val display by animateFloatAsState(
+        targetValue = progress.progress.coerceIn(0f, 1f),
+        animationSpec = tween(700, easing = FastOutSlowInEasing),
+        label = "modelLoadDisplay"
+    )
+    val visual = modelLoadVisual(progress.progress, progress.stage)
+
     BasicAlertDialog(
         // Intentionally empty — dialog is dismissed by the ViewModel, not by
         // user interaction.
@@ -52,21 +77,24 @@ fun ModelLoadingDialog(
                     .padding(28.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Indeterminate spinner while progress is near zero.
-                if (progress.progress < 0.05f) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(48.dp),
-                        strokeWidth = 3.dp,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                } else {
-                    CircularProgressIndicator(
-                        progress = { progress.progress.coerceIn(0f, 1f) },
-                        modifier = Modifier.size(48.dp),
-                        strokeWidth = 3.dp,
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
+                // Spinner: natural indeterminate while the engine works (constant,
+                // comfortable pace — not 100ms-per-frame jumps), it simply
+                // completes when the engine says so.
+                when (visual) {
+                    ModelLoadVisual.COMPLETE ->
+                        CircularProgressIndicator(
+                            progress = { 1f },
+                            modifier = Modifier.size(48.dp),
+                            strokeWidth = 3.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    else ->
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(48.dp),
+                            strokeWidth = 3.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -88,40 +116,70 @@ fun ModelLoadingDialog(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Linear progress bar.
-                LinearProgressIndicator(
-                    progress = { progress.progress.coerceIn(0f, 1f) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(6.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                // Bar: measured milestone while it exists, indeterminate while the
+                // engine is inside its unmeasurable blocking call, full at READY.
+                when (visual) {
+                    ModelLoadVisual.DETERMINATE ->
+                        LinearProgressIndicator(
+                            progress = { display.coerceIn(0f, 1f) },
+                            modifier = Modifier.fillMaxWidth().height(6.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    ModelLoadVisual.WORKING ->
+                        LinearProgressIndicator(
+                            modifier = Modifier.fillMaxWidth().height(6.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    ModelLoadVisual.COMPLETE ->
+                        LinearProgressIndicator(
+                            progress = { 1f },
+                            modifier = Modifier.fillMaxWidth().height(6.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Stage label + percentage on same row.
+                // Stage + percentage; the percentage is shown only while the
+                // engine's measurement exists — an invented number is not helpful.
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        text = when (progress.stage) {
-                            ModelLoadProgress.LoadStage.INITIALIZING -> "Initializing engine…"
-                            ModelLoadProgress.LoadStage.LOADING_WEIGHTS -> "Loading weights…"
-                            ModelLoadProgress.LoadStage.READY -> "Ready!"
+                    AnimatedContent(
+                        targetState = progress.stage,
+                        transitionSpec = {
+                            fadeIn(tween(240)) togetherWith fadeOut(tween(180))
                         },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (progress.stage == ModelLoadProgress.LoadStage.READY)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = "${(progress.progress * 100).toInt()}%",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                        label = "loadStageText"
+                    ) { stage ->
+                        Text(
+                            text = when (stage) {
+                                ModelLoadProgress.LoadStage.INITIALIZING -> "Initializing engine…"
+                                ModelLoadProgress.LoadStage.LOADING_WEIGHTS -> "Loading weights…"
+                                ModelLoadProgress.LoadStage.READY -> "Ready!"
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (stage == ModelLoadProgress.LoadStage.READY)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    AnimatedVisibility(visible = visual != ModelLoadVisual.WORKING) {
+                        Text(
+                            text = if (visual == ModelLoadVisual.COMPLETE) {
+                                "100%"
+                            } else {
+                                "${(display * 100).toInt()}%"
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
         }
