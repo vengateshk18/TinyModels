@@ -30,8 +30,17 @@ data class FileRowState(
  * and showing "Paused" while bytes are arriving would be a lie. Progress is
  * clamped because WorkManager is fed by a remote server whose reported sizes
  * are not something we control.
+ *
+ * [partialBytes] and [totalBytes] describe what is left on disk for a paused or
+ * failed file, so the row can tell the user exactly how much came down before
+ * they decide whether to resume or throw it away.
  */
-fun fileRowState(dbStatus: FileDownloadStatus, active: ActiveDownload?): FileRowState {
+fun fileRowState(
+    dbStatus: FileDownloadStatus,
+    active: ActiveDownload?,
+    partialBytes: Long = 0L,
+    totalBytes: Long = 0L
+): FileRowState {
     if (active != null) {
         return FileRowState(
             phase = if (active.status == DownloadStatus.WAITING_FOR_NETWORK) {
@@ -45,10 +54,22 @@ fun fileRowState(dbStatus: FileDownloadStatus, active: ActiveDownload?): FileRow
             bytesPerSecond = active.bytesPerSecond
         )
     }
+    val partial = partialBytes.coerceAtLeast(0L)
+    val fraction = if (totalBytes > 0L) {
+        (partial.toFloat() / totalBytes.toFloat()).coerceIn(0f, 1f)
+    } else {
+        0f
+    }
     return when (dbStatus) {
         FileDownloadStatus.DOWNLOADED -> FileRowState(FileRowPhase.DOWNLOADED, progress = 1f)
-        FileDownloadStatus.PAUSED -> FileRowState(FileRowPhase.PAUSED)
-        FileDownloadStatus.FAILED -> FileRowState(FileRowPhase.FAILED)
+        FileDownloadStatus.PAUSED -> FileRowState(
+            FileRowPhase.PAUSED, progress = fraction,
+            downloadedBytes = partial, totalBytes = totalBytes
+        )
+        FileDownloadStatus.FAILED -> FileRowState(
+            FileRowPhase.FAILED, progress = fraction,
+            downloadedBytes = partial, totalBytes = totalBytes
+        )
         FileDownloadStatus.NOT_DOWNLOADED,
         FileDownloadStatus.DOWNLOADING -> FileRowState(FileRowPhase.IDLE)
     }

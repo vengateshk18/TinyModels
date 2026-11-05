@@ -8,16 +8,16 @@ import com.ai.tinymodels.core.common.DownloadNotifier
 import java.util.UUID
 
 /**
- * Handles the **Cancel** action on a download progress notification. Receives the
- * target WorkManager workId and cancels that job — the exact same cancel path the
- * in-app Cancel button uses, so DB status + disk cleanup behave identically.
+ * Handles the **Pause** action on a download progress notification. Receives the
+ * target WorkManager workId and cancels that job — the exact same pause path the
+ * in-app Pause button uses, so DB status + partial bytes behave identically.
  *
  * Registered non-exported in the manifest; the action intent is package-scoped.
  */
-class CancelDownloadReceiver : BroadcastReceiver() {
+class PauseDownloadReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != DownloadNotifier.ACTION_CANCEL) return
+        if (intent.action != DownloadNotifier.ACTION_PAUSE) return
         val workId = intent.getStringExtra(DownloadNotifier.EXTRA_WORK_ID)
             ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
             ?: return

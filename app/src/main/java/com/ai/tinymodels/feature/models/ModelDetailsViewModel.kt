@@ -15,10 +15,12 @@ import com.ai.tinymodels.domain.model.FileDownloadStatus
 import com.ai.tinymodels.domain.model.ModelDetails
 import com.ai.tinymodels.domain.repository.ModelRepository
 import com.ai.tinymodels.domain.usecase.model.DownloadModelUseCase
+import com.ai.tinymodels.domain.usecase.model.DownloadPaths
 import com.ai.tinymodels.domain.usecase.model.DownloadState
 import com.ai.tinymodels.domain.usecase.model.DownloadStatus
 import com.ai.tinymodels.domain.usecase.model.FileRowPhase
 import com.ai.tinymodels.domain.usecase.model.FileRowState
+import com.ai.tinymodels.domain.usecase.model.FileSizeStatus
 import com.ai.tinymodels.domain.usecase.model.fileRowState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -27,7 +29,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -54,6 +55,8 @@ class ModelDetailsViewModel @Inject constructor(
         // Per-file state
         val modelFiles: List<DownloadedModelFile> = emptyList(),
         val fileSizes: Map<String, Long> = emptyMap(),
+        /** Per-file size resolution: still asking, known, or undetermined. */
+        val fileSizeStatuses: Map<String, FileSizeStatus> = emptyMap(),
         /** Render-ready state for every file row, keyed by file name. */
         val fileStates: Map<String, FileRowState> = emptyMap(),
         /** Total device RAM — used for the per-file capacity indicator. */
@@ -69,6 +72,14 @@ class ModelDetailsViewModel @Inject constructor(
         
         /** Get size of a specific file (0 if not yet calculated). */
         fun getFileSize(fileName: String): Long = fileSizes[fileName] ?: 0L
+
+        /**
+         * Whether [fileName]'s size is still being fetched, known, or cannot be
+         * determined. Until the first resolution every file is LOADING, so a
+         * row never has to guess from a zero byte count.
+         */
+        fun fileSizeStatus(fileName: String): FileSizeStatus =
+            fileSizeStatuses[fileName] ?: FileSizeStatus.LOADING
 
         /** Live state of one file row; idle until the first DB emission. */
         fun fileState(fileName: String): FileRowState =
@@ -178,7 +189,24 @@ class ModelDetailsViewModel @Inject constructor(
                     .filter { it.modelId == modelId && it.fileName != null }
                     .associateBy { it.fileName!! }
                 files to files.associate { file ->
-                    file.fileName to fileRowState(file.status, activeByFile[file.fileName])
+                    // Only unfinished files can have bytes on disk. The `.part`
+                    // path is a single File.length() — no dedicated dispatcher
+                    // needed for a stat.
+                    val partialBytes = if (activeByFile[file.fileName] == null &&
+                        file.status in setOf(FileDownloadStatus.PAUSED, FileDownloadStatus.FAILED)
+                    ) {
+                        runCatching {
+                            DownloadPaths.partFile(appContext.filesDir, modelId, file.fileName).length()
+                        }.getOrDefault(0L)
+                    } else {
+                        0L
+                    }
+                    file.fileName to fileRowState(
+                        dbStatus = file.status,
+                        active = activeByFile[file.fileName],
+                        partialBytes = partialBytes,
+                        totalBytes = _uiState.value.getFileSize(file.fileName)
+                    )
                 }
             }.collect { (files, states) ->
                 _uiState.update { it.copy(modelFiles = files, fileStates = states) }
@@ -186,20 +214,50 @@ class ModelDetailsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * HEAD-requests each file's size in turn, publishing Known/Unknown per file
+     * as it goes. Sizes already resolved are skipped — there is no reason to
+     * ask the server a second time, and the row only needs it once.
+     */
     private fun calculateFileSizes(model: ModelDetails) {
+        val files = model.runtimeFiles.ifEmpty { model.liteRtFiles }
+
+        // Each size is a HEAD request — no network means no size, so say so
+        // instead of leaving the row on "Loading…" forever.
+        if (!networkMonitor.isOnline.value) {
+            val current = _uiState.value
+            _uiState.update {
+                it.copy(
+                    fileSizeStatuses = files.associateWith { fileName ->
+                        if (current.fileSizeStatus(fileName) == FileSizeStatus.KNOWN) {
+                            FileSizeStatus.KNOWN
+                        } else {
+                            FileSizeStatus.UNKNOWN
+                        }
+                    }
+                )
+            }
+            return
+        }
+
         viewModelScope.launch {
-            // Each size is a HEAD request — skip entirely when offline.
-            // Rows keep showing "—" until a later successful load fills them in.
-            if (!networkMonitor.isOnline.value) return@launch
-            val files = model.runtimeFiles.ifEmpty { model.liteRtFiles }
-            val sizes = mutableMapOf<String, Long>()
             files.forEach { fileName ->
+                // Already resolved in this session — don't re-ask the server.
+                if (_uiState.value.fileSizeStatus(fileName) != FileSizeStatus.LOADING) return@forEach
                 try {
                     val size = downloadModel.calculateFileSize(model, fileName)
-                    sizes[fileName] = size
-                    _uiState.update { it.copy(fileSizes = sizes.toMap()) }
+                    _uiState.update {
+                        it.copy(
+                            fileSizes = it.fileSizes + (fileName to size),
+                            fileSizeStatuses = it.fileSizeStatuses + (fileName to FileSizeStatus.KNOWN)
+                        )
+                    }
                 } catch (_: Exception) {
-                    // Size calculation failed, keep as 0
+                    _uiState.update {
+                        it.copy(
+                            fileSizeStatuses = it.fileSizeStatuses + (fileName to FileSizeStatus.UNKNOWN)
+                        )
+                    }
                 }
             }
         }
@@ -264,17 +322,10 @@ class ModelDetailsViewModel @Inject constructor(
         downloadModel.cancelFile(modelId, fileName)
         viewModelScope.launch {
             downloadModel.discardPartial(modelId, fileName)
+            // The tracking rows stay. They are the only thing the row's live
+            // progress attaches to — deleting them would make the next download
+            // run (and show in the notification) while the row looks idle.
             modelRepository.updateFileStatus(modelId, fileName, FileDownloadStatus.NOT_DOWNLOADED)
-            // Read the DB rather than the UI snapshot, which can lag an emission
-            // behind a file that just finished downloading.
-            val stillUsed = modelRepository.observeModelFiles(modelId).first().any { file ->
-                file.fileName != fileName && file.status in setOf(
-                    FileDownloadStatus.DOWNLOADED,
-                    FileDownloadStatus.PAUSED,
-                    FileDownloadStatus.DOWNLOADING
-                )
-            }
-            if (!stillUsed) modelRepository.deleteDownloadedModel(modelId)
         }
     }
 

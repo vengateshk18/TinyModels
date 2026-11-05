@@ -93,6 +93,7 @@ import com.ai.tinymodels.core.ui.components.ErrorState
 import com.ai.tinymodels.core.ui.components.OfflineState
 import com.ai.tinymodels.domain.model.FileDownloadStatus
 import com.ai.tinymodels.domain.usecase.model.DownloadEta
+import com.ai.tinymodels.domain.usecase.model.FileSizeStatus
 import com.ai.tinymodels.domain.usecase.model.FileRowPhase
 import com.ai.tinymodels.domain.usecase.model.FileRowState
 import com.ai.tinymodels.domain.model.ModelDetails
@@ -110,6 +111,7 @@ fun ModelDetailsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var oversizedFile by remember { mutableStateOf<String?>(null) }
+    var fileToDiscard by remember { mutableStateOf<String?>(null) }
 
         val safeDrawing = WindowInsets.systemBars.union(WindowInsets.displayCutout)
 
@@ -172,6 +174,47 @@ fun ModelDetailsScreen(
             )
         }
 
+        // Discarding is irreversible — the partial bytes are gone and the
+        // download has to start over. Ask before doing it.
+        fileToDiscard?.let { pending ->
+            val state = uiState.fileState(pending)
+            val partial = state.downloadedBytes
+            AlertDialog(
+                onDismissRequest = { fileToDiscard = null },
+                icon = { Icon(Icons.Filled.Warning, contentDescription = null) },
+                title = { Text("Discard download?") },
+                text = {
+                    Text(
+                        buildString {
+                            append(pending.substringAfterLast("/"))
+                            append("\n\n")
+                            if (partial > 0) {
+                                append(Formatters.formatBytes(partial))
+                                append(" downloaded so far will be deleted. ")
+                            } else {
+                                append("The partial data for this file will be deleted. ")
+                            }
+                            append("The download will have to start over, and this cannot be undone.")
+                        }
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        fileToDiscard = null
+                        viewModel.onDiscardFile(pending)
+                    }) {
+                        Text(
+                            "Discard",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { fileToDiscard = null }) { Text("Keep") }
+                }
+            )
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -206,7 +249,7 @@ fun ModelDetailsScreen(
                         },
                         onPause = viewModel::onPauseFile,
                         onResume = viewModel::onResumeFile,
-                        onDiscard = viewModel::onDiscardFile,
+                        onDiscard = { name -> fileToDiscard = name },
                         onDownloadedFileClick = onDownloadedFileClick
                     )
             }
@@ -398,6 +441,7 @@ private fun InteractiveFilesCard(
                         fileName = fileName,
                         state = uiState.fileState(fileName),
                         fileSize = uiState.getFileSize(fileName),
+                        sizeStatus = uiState.fileSizeStatus(fileName),
                         isLoadable = uiState.isFileLoadable(fileName),
                         error = uiState.fileError(fileName),
                         onDownload = { onDownload(fileName) },
@@ -422,6 +466,7 @@ private fun FileRow(
     fileName: String,
     state: FileRowState,
     fileSize: Long,
+    sizeStatus: FileSizeStatus,
     isLoadable: Boolean,
     error: String?,
     onDownload: () -> Unit,
@@ -461,7 +506,12 @@ private fun FileRow(
                         overflow = TextOverflow.Ellipsis
                     )
                     Spacer(modifier = Modifier.height(3.dp))
-                    FileMetaLine(state = state, fileSize = fileSize, isLoadable = isLoadable)
+                    FileMetaLine(
+                        state = state,
+                        fileSize = fileSize,
+                        sizeStatus = sizeStatus,
+                        isLoadable = isLoadable
+                    )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 FileActions(
@@ -482,12 +532,8 @@ private fun FileRow(
 
             AnimatedVisibility(visible = phase == FileRowPhase.PAUSED) {
                 Column {
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        "Paused · partial data kept on device",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.tertiary
-                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    PausedProgress(state)
                 }
             }
 
@@ -505,31 +551,98 @@ private fun FileRow(
     }
 }
 
-/** `331 MB · Fits your device` — or why it will not run here. */
+/**
+ * When the size cannot be read we say so — a spinner forever would be a lie,
+ * and a bare "unknown" tells the user neither what is happening nor that we
+ * stopped asking.
+ */
 @Composable
-private fun FileMetaLine(state: FileRowState, fileSize: Long, isLoadable: Boolean) {
+private fun FileMetaLine(
+    state: FileRowState,
+    fileSize: Long,
+    sizeStatus: FileSizeStatus,
+    isLoadable: Boolean
+) {
+    val sizeKnown = fileSize > 0
+    val sizeText = when {
+        sizeKnown -> Formatters.formatBytes(fileSize)
+        state.phase == FileRowPhase.DOWNLOADED -> null
+        sizeStatus == FileSizeStatus.LOADING -> "Loading size…"
+        else -> "Size can't be determined"
+    }
+
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            if (fileSize > 0) Formatters.formatBytes(fileSize) else "Size unknown",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        val separator = "  ·  "
+        sizeText?.let { label ->
+            Text(
+                label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
         val (label, tint) = when {
             state.phase == FileRowPhase.DOWNLOADED ->
                 "Downloaded" to MaterialTheme.colorScheme.primary
-            fileSize > 0 && !isLoadable ->
+            sizeKnown && !isLoadable ->
                 "Too large for this device" to MaterialTheme.colorScheme.error
-            fileSize > 0 ->
+            sizeKnown ->
                 "Fits your device" to MaterialTheme.colorScheme.onSurfaceVariant
-            else -> return
+            else -> return@Row
         }
         Text(
-            separator + label,
+            if (sizeText != null) "  ·  $label" else label,
             style = MaterialTheme.typography.labelMedium,
             color = tint,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+/**
+ * A paused transfer tells the user exactly how much is already on the device.
+ * Resume continues from this byte offset, so the number is not trivia.
+ */
+@Composable
+private fun PausedProgress(state: FileRowState) {
+    if (state.totalBytes > 0) {
+        val progress by animateFloatAsState(
+            targetValue = state.progress.coerceIn(0f, 1f),
+            label = "pausedProgress"
+        )
+        ProgressTrack(progress, Brush.horizontalGradient(listOf(
+            MaterialTheme.colorScheme.tertiary,
+            MaterialTheme.colorScheme.tertiaryContainer
+        )))
+    } else {
+        IndeterminateTrack()
+    }
+
+    Spacer(modifier = Modifier.height(6.dp))
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        val detail = if (state.totalBytes > 0) {
+            buildString {
+                append(Formatters.formatBytes(state.downloadedBytes))
+                append(" / ")
+                append(Formatters.formatBytes(state.totalBytes))
+                append(" · ")
+                append((state.progress * 100).toInt())
+                append("%")
+            }
+        } else {
+            Formatters.formatBytes(state.downloadedBytes) + " downloaded"
+        }
+        Text(
+            detail,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Text(
+            "Paused · resumable",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.tertiary,
+            maxLines = 1
         )
     }
 }
@@ -597,7 +710,12 @@ private fun ActiveProgress(state: FileRowState) {
 
 /** Rounded track with a gradient fill — reads as progress, not as a slider. */
 @Composable
-private fun ProgressTrack(progress: Float) {
+private fun ProgressTrack(
+    progress: Float,
+    fill: Brush = Brush.horizontalGradient(
+        listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.tertiary)
+    )
+) {
     val shape = RoundedCornerShape(3.dp)
     Box(
         modifier = Modifier
@@ -611,11 +729,7 @@ private fun ProgressTrack(progress: Float) {
                 .fillMaxHeight()
                 .fillMaxWidth(progress)
                 .clip(shape)
-                .background(
-                    Brush.horizontalGradient(
-                        listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.tertiary)
-                    )
-                )
+                .background(fill)
         )
     }
 }

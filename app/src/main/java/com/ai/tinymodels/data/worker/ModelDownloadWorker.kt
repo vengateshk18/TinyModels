@@ -68,9 +68,13 @@ class ModelDownloadWorker @AssistedInject constructor(
         val title = inputData.getString(KEY_MODEL_NAME) ?: DEFAULT_TITLE
         val modelDirectory = DownloadPaths.modelDirectory(applicationContext.filesDir, modelId)
         var downloaded = 0L
+        // The notification can carry a destructive Cancel action per file, so
+        // a per-file job hands over its single file; a whole-model job cannot
+        // (its Cancel must discard everything, handled by passing null).
+        val singleFile = if (files.size == 1) files[0] else null
 
         DownloadNotifier.createChannel(applicationContext)
-        setForeground(createForegroundInfo(0L, total, title))
+        setForeground(createForegroundInfo(0L, total, title, modelId, singleFile))
 
         val startTimeMs = System.currentTimeMillis()
         // Bytes actually written by this job — resumed bytes are excluded so the
@@ -102,7 +106,7 @@ class ModelDownloadWorker @AssistedInject constructor(
                             KEY_BYTES_PER_SEC to speed
                         )
                     )
-                    maybeNotifyProgress(title, downloaded, total)
+                    maybeNotifyProgress(title, downloaded, total, speed, modelId, singleFile)
                 }
             }
 
@@ -164,7 +168,14 @@ class ModelDownloadWorker @AssistedInject constructor(
     }
 
     /** Posts a progress notification, throttled to avoid flooding the system. */
-    private fun maybeNotifyProgress(title: String, downloaded: Long, total: Long) {
+    private fun maybeNotifyProgress(
+        title: String,
+        downloaded: Long,
+        total: Long,
+        bytesPerSecond: Long,
+        modelId: String,
+        singleFile: String?
+    ) {
         val nowMs = System.currentTimeMillis()
         val pct = if (total > 0) (downloaded * 100 / total).toInt() else 0
         val due = nowMs - lastNotifyMs >= NOTIFY_INTERVAL_MS
@@ -172,7 +183,9 @@ class ModelDownloadWorker @AssistedInject constructor(
         if (!due && !pctAdvanced) return
         lastNotifyMs = nowMs
         lastNotifiedPct = pct
-        DownloadNotifier.notifyProgress(applicationContext, id, title, downloaded, total)
+        DownloadNotifier.notifyProgress(
+            applicationContext, id, title, downloaded, total, bytesPerSecond, modelId, singleFile
+        )
     }
 
     /**
@@ -350,9 +363,16 @@ class ModelDownloadWorker @AssistedInject constructor(
         }
     }
 
-    private fun createForegroundInfo(downloaded: Long, total: Long, title: String): ForegroundInfo {
-        val notification =
-            DownloadNotifier.progressNotification(applicationContext, id, title, downloaded, total)
+    private fun createForegroundInfo(
+        downloaded: Long,
+        total: Long,
+        title: String,
+        modelId: String,
+        singleFile: String?
+    ): ForegroundInfo {
+        val notification = DownloadNotifier.progressNotification(
+            applicationContext, id, title, downloaded, total, 0L, modelId, singleFile
+        )
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ForegroundInfo(
                 DownloadNotifier.notificationIdFor(id), notification,

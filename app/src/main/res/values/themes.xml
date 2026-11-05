@@ -2,4 +2,9 @@
 <resources>
 
     <style name="Theme.TinyModels" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Windowless, for dialog-only confirmation activities launched from notifications. -->
+    <style name="Theme.TinyModels.Transparent" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
 </resources>

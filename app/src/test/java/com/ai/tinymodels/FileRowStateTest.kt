@@ -112,4 +112,37 @@ class FileRowStateTest {
 
         assertEquals(0f, state.progress, 0f)
     }
+
+    @Test
+    fun `paused file with partial bytes reports how much is downloaded`() {
+        val state = fileRowState(
+            FileDownloadStatus.PAUSED, null,
+            partialBytes = 250L, totalBytes = 1000L
+        )
+
+        assertEquals(FileRowPhase.PAUSED, state.phase)
+        assertEquals(250L, state.downloadedBytes)
+        assertEquals(1000L, state.totalBytes)
+        assertEquals(0.25f, state.progress, 0f)
+    }
+
+    @Test
+    fun `paused file with partial bytes but unknown total reports bytes without progress`() {
+        val state = fileRowState(
+            FileDownloadStatus.PAUSED, null,
+            partialBytes = 250L, totalBytes = 0L
+        )
+
+        assertEquals(250L, state.downloadedBytes)
+        assertEquals(0L, state.totalBytes)
+        assertEquals(0f, state.progress, 0f)
+    }
+
+    @Test
+    fun `paused file without partial bytes reports no downloaded data`() {
+        val state = fileRowState(FileDownloadStatus.PAUSED, null, totalBytes = 1000L)
+
+        assertEquals(0L, state.downloadedBytes)
+        assertEquals(0f, state.progress, 0f)
+    }
 }

@@ -17,6 +17,7 @@ import com.ai.tinymodels.domain.usecase.model.DownloadModelUseCase
 import com.ai.tinymodels.domain.usecase.model.DownloadState
 import com.ai.tinymodels.domain.usecase.model.DownloadStatus
 import com.ai.tinymodels.domain.usecase.model.FileRowPhase
+import com.ai.tinymodels.domain.usecase.model.FileSizeStatus
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -369,6 +370,93 @@ class ModelDetailsViewModelTest {
         advanceUntilIdle()
 
         assertEquals(0, repo.deleteCalls)
+    }
+
+    @Test
+    fun `discarding the last file keeps the file rows so progress can be tracked again`() = runTest {
+        repo.seedFiles(file("a.litertlm", FileDownloadStatus.PAUSED))
+
+        val viewModel = vm()
+        advanceUntilIdle()
+        viewModel.onDownloadFileClicked("a.litertlm")
+        advanceUntilIdle()
+        viewModel.onPauseFile("a.litertlm")
+        advanceUntilIdle()
+        viewModel.onDiscardFile("a.litertlm")
+        advanceUntilIdle()
+        viewModel.onDownloadFileClicked("a.litertlm")
+        advanceUntilIdle()
+
+        // The rows must stay, or the live job below has nothing to attach to.
+        assertEquals(0, repo.deleteCalls)
+        assertEquals(FileDownloadStatus.DOWNLOADING, repo.statusOf("a.litertlm"))
+
+        // Simulate the worker actually running again.
+        activeDownloads.value = listOf(active("a.litertlm", 0.35f))
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value.fileState("a.litertlm")
+        assertEquals(FileRowPhase.DOWNLOADING, state.phase)
+        assertEquals(0.35f, state.progress, 0.001f)
+    }
+
+    @Test
+    fun `file size is known once its HEAD request succeeds`() = runTest {
+        io.mockk.coEvery { downloadUseCase.calculateFileSize(any(), any()) } returns 100L
+
+        val viewModel = vm()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals(FileSizeStatus.KNOWN, state.fileSizeStatus("model_G5.litertlm"))
+        assertEquals(100L, state.getFileSize("model_G5.litertlm"))
+    }
+
+    @Test
+    fun `file size is marked undetermined when its HEAD request fails`() = runTest {
+        io.mockk.coEvery { downloadUseCase.calculateFileSize(any(), any()) } throws RuntimeException("404")
+
+        val viewModel = vm()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals(FileSizeStatus.UNKNOWN, state.fileSizeStatus("model_G5.litertlm"))
+        assertEquals(0L, state.getFileSize("model_G5.litertlm"))
+    }
+
+    @Test
+    fun `file size is undetermined once the size sweep fails for a file`() = runTest {
+        io.mockk.coEvery {
+            downloadUseCase.calculateFileSize(any(), any())
+        } throws RuntimeException("gone")
+
+        val viewModel = vm()
+        advanceUntilIdle()
+
+        // Every file in the model resolved as undetermined — never stuck on Loading.
+        assertEquals(FileSizeStatus.UNKNOWN, viewModel.uiState.value.fileSizeStatus("model_G5.litertlm"))
+        assertEquals(FileSizeStatus.UNKNOWN, viewModel.uiState.value.fileSizeStatus("model_G6.litertlm"))
+    }
+
+    @Test
+    fun `paused file reports how many bytes are left on the device`() = runTest {
+        val tmp = java.nio.file.Files.createTempDirectory("vm-test").toFile()
+        val part = com.ai.tinymodels.domain.usecase.model.DownloadPaths
+            .partFile(tmp, sampleModel.id, "model_G5.litertlm")
+        part.parentFile?.mkdirs()
+        part.writeBytes(ByteArray(30))
+        every { appContext.filesDir } returns tmp
+        io.mockk.coEvery { downloadUseCase.calculateFileSize(any(), any()) } returns 100L
+        repo.seedFiles(file("model_G5.litertlm", FileDownloadStatus.PAUSED))
+
+        val viewModel = vm()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value.fileState("model_G5.litertlm")
+        assertEquals(FileRowPhase.PAUSED, state.phase)
+        assertEquals(30L, state.downloadedBytes)
+        assertEquals(100L, state.totalBytes)
+        assertEquals(0.3f, state.progress, 0.001f)
     }
 }
 
