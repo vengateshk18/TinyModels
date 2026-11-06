@@ -33,4 +33,12 @@ class BrandLogoGeometryTest {
     fun `the upscale never lets the artwork exceed the box`() {
         assertTrue(LOGO_CANVAS_ART_FRACTION * logoUpscale() <= 1f)
     }
+
+    @Test
+    fun `the logo is presented as a rounded card, never a sharp square`() {
+        // A card corner has to be clearly visible, not a token 2–3%.
+        assertTrue("corner radius is too subtle", LOGO_CORNER_FRACTION >= 0.20f)
+        // …but not so round that it turns into a circle / pill.
+        assertTrue("corner radius is too round", LOGO_CORNER_FRACTION <= 0.28f)
+    }
 }
