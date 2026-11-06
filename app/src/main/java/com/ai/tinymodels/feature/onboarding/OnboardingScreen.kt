@@ -71,6 +71,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ai.tinymodels.core.ui.components.TinyModelsLogo
@@ -91,8 +92,8 @@ import kotlinx.coroutines.launch
 fun OnboardingScreen(
     onFinish: () -> Unit,
     onSkip: () -> Unit,
-    isReplay: Boolean = false,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isReplay: Boolean = false
 ) {
     val pages = OnboardingPages.pages
     val pagerState = rememberPagerState(pageCount = { pages.size })
@@ -141,8 +142,6 @@ fun OnboardingScreen(
                 modifier = Modifier.weight(1f)
             ) { index ->
                 val page = pages[index]
-                val offset = (pagerState.currentPage - index) + pagerState.currentPageOffsetFraction
-                val proximity = 1f - abs(offset).coerceIn(0f, 1f)
 
                 Column(
                     modifier = Modifier
@@ -156,6 +155,12 @@ fun OnboardingScreen(
                             .weight(1f)
                             .fillMaxWidth(0.86f)
                             .graphicsLayer {
+                                // Read the pager scroll state inside the draw
+                                // layer, not in composition, so a swipe scales
+                                // the art without recomposing the whole page.
+                                val offset = (pagerState.currentPage - index) +
+                                    pagerState.currentPageOffsetFraction
+                                val proximity = 1f - abs(offset).coerceIn(0f, 1f)
                                 val scale = 0.88f + 0.12f * proximity
                                 scaleX = scale
                                 scaleY = scale
@@ -352,7 +357,12 @@ private fun OnboardingIllustration(art: OnboardingArt, modifier: Modifier = Modi
                 accent = accent,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .offset(x = side * 0.02f, y = side * 0.10f + (drift * 5).dp),
+                    .offset {
+                        IntOffset(
+                            x = (side * 0.02f).roundToPx(),
+                            y = (side * 0.10f + (drift * 5).dp).roundToPx()
+                        )
+                    },
                 size = side * 0.20f
             )
             BadgeChip(
@@ -360,7 +370,12 @@ private fun OnboardingIllustration(art: OnboardingArt, modifier: Modifier = Modi
                 accent = accent,
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .offset(x = (side * 0.02f), y = -(side * 0.10f) - (drift * 5).dp),
+                    .offset {
+                        IntOffset(
+                            x = (side * 0.02f).roundToPx(),
+                            y = (-(side * 0.10f) - (drift * 5).dp).roundToPx()
+                        )
+                    },
                 size = side * 0.20f
             )
         }

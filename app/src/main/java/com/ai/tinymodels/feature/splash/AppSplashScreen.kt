@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ai.tinymodels.core.ui.components.TinyModelsLogo
@@ -163,7 +164,7 @@ fun AppSplashScreen(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.offset(y = wordShift.value.dp)
+                modifier = Modifier.offset { IntOffset(0, wordShift.value.dp.roundToPx()) }
             ) {
                 Text(
                     text = "Tiny",
@@ -208,7 +209,7 @@ fun AppSplashScreen(
                 letterSpacing = 0.3.sp,
                 textAlign = TextAlign.Center,
                 color = colors.onSurfaceVariant.copy(alpha = sloganAlpha.value),
-                modifier = Modifier.offset(y = sloganShift.value.dp)
+                modifier = Modifier.offset { IntOffset(0, sloganShift.value.dp.roundToPx()) }
             )
         }
 

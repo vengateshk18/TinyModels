@@ -65,7 +65,7 @@ private fun AppShellWithSplash(networkMonitor: NetworkMonitor) {
     var introComplete by rememberSaveable { mutableStateOf(false) }
     var splashVisible by rememberSaveable { mutableStateOf(true) }
     // Survives rotation: rotating mid-splash must not restart the beat.
-    val startedAt by rememberSaveable { mutableStateOf(SystemClock.elapsedRealtime()) }
+    val startedAt = rememberSaveable { SystemClock.elapsedRealtime() }
 
     LaunchedEffect(Unit) {
         while (
