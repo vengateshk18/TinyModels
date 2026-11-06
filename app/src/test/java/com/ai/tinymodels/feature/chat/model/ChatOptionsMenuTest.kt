@@ -1,5 +1,6 @@
 package com.ai.tinymodels.feature.chat.model
 
+import com.ai.tinymodels.R
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -19,7 +20,7 @@ class ChatOptionsMenuTest {
         )
         assertEquals(
             listOf(
-                PlusMenuItem.AttachPhoto(enabled = true, disabledReason = null),
+                PlusMenuItem.AttachPhoto(enabled = true, disabledReasonRes = null),
                 PlusMenuItem.WebSearch(checked = false, enabled = true)
             ),
             items
@@ -55,19 +56,21 @@ class ChatOptionsMenuTest {
             canAttachPhoto = false,
             supportsVision = true
         )
-        assertEquals(PlusMenuItem.AttachPhoto(enabled = false, disabledReason = null), items[0])
+        assertEquals(PlusMenuItem.AttachPhoto(enabled = false, disabledReasonRes = null), items[0])
     }
 
-    @Test fun `text-only model omits attach-photo entry`() {
+    @Test fun `text-only model disables attach-photo entry with a reason`() {
         val items = buildPlusMenuItems(
             webSearchAvailable = true,
             webSearchEnabled = false,
             canAttachPhoto = true,
             supportsVision = false
         )
-        // No photo entry at all for text-only models.
-        assertEquals(1, items.size)
-        assertEquals(PlusMenuItem.WebSearch(checked = false, enabled = true), items[0])
+        val photoItem = items[0] as PlusMenuItem.AttachPhoto
+        assertEquals(false, photoItem.enabled)
+        assertEquals(R.string.chat_attach_photo_unavailable, photoItem.disabledReasonRes)
+        // Web search still present
+        assertEquals(PlusMenuItem.WebSearch(checked = false, enabled = true), items[1])
     }
 
     @Test fun `text-only menu keeps the web-search switch state`() {
@@ -77,7 +80,9 @@ class ChatOptionsMenuTest {
             canAttachPhoto = true,
             supportsVision = false
         )
-        assertEquals(1, items.size)
-        assertEquals(PlusMenuItem.WebSearch(checked = true, enabled = true), items[0])
+        val photoItem = items[0] as PlusMenuItem.AttachPhoto
+        assertEquals(false, photoItem.enabled)
+        assertEquals(R.string.chat_attach_photo_unavailable, photoItem.disabledReasonRes)
+        assertEquals(PlusMenuItem.WebSearch(checked = true, enabled = true), items[1])
     }
 }

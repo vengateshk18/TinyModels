@@ -10,6 +10,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import com.ai.tinymodels.domain.model.FontChoice
 import com.ai.tinymodels.domain.model.ThemeMode
@@ -126,9 +127,16 @@ fun TinyModelsTheme(
 
     val colorScheme = resolveColorScheme(LocalContext.current, darkTheme, dynamicColor)
 
+    // Rebuild the Typography only when the font actually changes. Without this,
+    // any recomposition of the theme recreates all 15 text styles, which makes
+    // every Text in the tree re-layout.
+    val typography = remember(fontChoice, fontScale) {
+        buildTypography(fontChoice, fontScale)
+    }
+
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = buildTypography(fontChoice, fontScale),
+        typography = typography,
         content = content
     )
 }

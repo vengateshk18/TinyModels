@@ -1,3 +1,37 @@
-<resources>
-    <string name="app_name">TinyModels</string>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- App -->
+    <string name="app_name" translatable="false">TinyModels</string>
+
+    <!-- Shared UI actions and labels (usable from any feature) -->
+    <string name="common_cancel">Cancel</string>
+    <string name="common_retry">Retry</string>
+    <string name="common_back">Back</string>
+    <string name="common_dismiss">Dismiss</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_save">Save</string>
+    <string name="common_close">Close</string>
+    <string name="common_yes">Yes</string>
+    <string name="common_no">No</string>
+    <string name="common_unknown">Unknown</string>
+    <string name="common_percent">%1$d%%</string>
+
+    <!-- Shared relative-time wording (Formatters) -->
+    <string name="common_time_just_now">just now</string>
+    <string name="common_time_minutes_ago">%1$dm ago</string>
+    <string name="common_time_hours_ago">%1$dh ago</string>
+    <string name="common_time_days_ago">%1$dd ago</string>
+
+    <!-- Network / load errors shown by any screen -->
+    <string name="error_no_connection">You’re offline. Check your internet connection and try again.</string>
+    <string name="error_timeout">Connection timed out. Try again.</string>
+    <string name="error_gated">This model is gated. Add a Hugging Face access token in Settings, or accept its license on huggingface.co first.</string>
+    <string name="error_no_access">You don’t have access to this model. It may be gated — check its license on huggingface.co.</string>
+    <string name="error_too_many_requests">Too many requests. Wait a moment and try again.</string>
+    <string name="error_server">Hugging Face is having trouble right now. Try again later.</string>
+    <string name="error_not_found">Model not found. It may have been removed from Hugging Face.</string>
+    <string name="error_network">Network error. Check your connection and try again.</string>
+    <string name="error_storage">Not enough free storage.</string>
+    <string name="error_unknown">Something went wrong. Try again.</string>
+<string name="notification_pause">Pause</string>
+<string name="notification_cancel">Cancel</string>
 </resources>

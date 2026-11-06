@@ -22,8 +22,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.ui.Formatters
 import com.ai.tinymodels.core.ui.withTabularFigures
 import com.ai.tinymodels.domain.usecase.model.ActiveDownload
@@ -47,7 +51,7 @@ fun ActiveDownloadsSection(
     if (active.isEmpty()) return
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
-            "Active downloads (${active.size})",
+            stringResource(R.string.downloads_active_title, active.size),
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary
         )
@@ -102,7 +106,7 @@ private fun ActiveDownloadRow(
                     Spacer(modifier = Modifier.height(4.dp))
                 }
                 Text(
-                    downloadStatusLine(download),
+                    ActiveDownloadsStatus.line(download, LocalContext.current.resources),
                     style = MaterialTheme.typography.bodySmall.withTabularFigures(),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -113,26 +117,10 @@ private fun ActiveDownloadRow(
             IconButton(onClick = onCancel) {
                 Icon(
                     Icons.Filled.Close,
-                    contentDescription = "Cancel download",
+                    contentDescription = stringResource(R.string.downloads_cancel_content_description),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
     }
-}
-
-private fun downloadStatusLine(download: ActiveDownload): String {
-    if (download.status == DownloadStatus.WAITING_FOR_NETWORK) {
-        return "Waiting for network…"
-    }
-    val bytes = if (download.totalBytes > 0) {
-        "${Formatters.formatBytes(download.downloadedBytes)} / ${Formatters.formatBytes(download.totalBytes)}"
-    } else {
-        Formatters.formatBytes(download.downloadedBytes)
-    }
-    val pct = (download.progress * 100).toInt().coerceIn(0, 100).toString().padStart(3)
-    val speed = if (download.bytesPerSecond > 0) {
-        " • ${Formatters.formatBytes(download.bytesPerSecond)}/s"
-    } else ""
-    return "$bytes ($pct%)$speed"
 }

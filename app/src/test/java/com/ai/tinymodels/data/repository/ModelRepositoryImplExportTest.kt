@@ -4,6 +4,7 @@ import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.AppResult
 import com.ai.tinymodels.core.common.DispatcherProvider
 import com.ai.tinymodels.core.database.DownloadedModelDao
@@ -56,6 +57,12 @@ class ModelRepositoryImplExportTest {
         mockkStatic(DocumentsContract::class)
         every { context.filesDir } returns temp.root
         every { context.contentResolver } returns resolver
+        every { context.getString(any()) } answers { firstArg<Int>().toString() }
+        every { context.getString(any(), *anyVararg()) } answers {
+            firstArg<Int>().toString() + "(" + invocation.args.drop(1)
+                .flatMap { arg -> if (arg is Array<*>) arg.toList() else listOf(arg) }
+                .joinToString(",") + ")"
+        }
         repo = ModelRepositoryImpl(context, downloadedModelDao, modelFileDao, api, dispatchers)
     }
 
@@ -97,6 +104,9 @@ class ModelRepositoryImplExportTest {
         val result = repo.exportModelFile("a/b", "absent.litertlm", mockk())
 
         assertTrue(result is AppResult.Error)
-        assertTrue((result as AppResult.Error).error.message?.contains("not found") == true)
+        assertTrue(
+            (result as AppResult.Error).error.message
+                ?.contains(R.string.model_import_file_not_found.toString()) == true
+        )
     }
 }

@@ -18,7 +18,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.ai.tinymodels.R
 
 /**
  * Dialog for editing a previously-sent user prompt. Pre-fills the original
@@ -35,11 +37,11 @@ fun EditMessageDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(Icons.Filled.Edit, contentDescription = null) },
-        title = { Text("Edit message") },
+        title = { Text(stringResource(R.string.chat_edit_title)) },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Editing will replace this message and regenerate the reply.",
+                    text = stringResource(R.string.chat_edit_body),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 12.dp)
@@ -50,7 +52,7 @@ fun EditMessageDialog(
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 2,
                     maxLines = 6,
-                    placeholder = { Text("Message") }
+                    placeholder = { Text(stringResource(R.string.chat_edit_placeholder)) }
                 )
             }
         },
@@ -59,12 +61,12 @@ fun EditMessageDialog(
                 onClick = { onConfirm(text.trim()) },
                 enabled = text.trim().isNotEmpty() && text.trim() != originalText.trim()
             ) {
-                Text("Save & Send")
+                Text(stringResource(R.string.chat_edit_save_send))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.common_cancel))
             }
         }
     )

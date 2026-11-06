@@ -1,0 +1,219 @@
+<resources>
+    <!-- ================= Settings ================= -->
+    <string name="settings_title">அமைப்புகள்</string>
+    <string name="settings_section_appearance">தோற்றம்</string>
+    <string name="settings_theme">தீம்</string>
+    <string name="settings_dynamic_color">டைனமிக் வண்ணம்</string>
+    <string name="settings_dynamic_color_subtitle">வால்பேப்பர் வண்ணங்களைப் பயன்படுத்து (Android 12+)</string>
+    <string name="settings_font_size">எழுத்துரு அளவு</string>
+    <string name="settings_font">எழுத்துரு</string>
+    <string name="settings_change_font_content_description">எழுத்துருவை மாற்று</string>
+    <string name="settings_font_sheet_title">ஒரு எழுத்துருவைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="settings_font_default">இயல்பானது</string>
+    <string name="settings_font_google">Google எழுத்துரு</string>
+
+    <!-- Language picker -->
+    <string name="language_system">கணினியின் இயல்பு</string>
+    <string name="language_option_format">%1$s (%2$s)</string>
+
+    <string name="settings_section_inference">ஊகம்</string>
+    <string name="settings_default_backend">இயல்பான பின்பகுதி</string>
+    <string name="settings_web_search">இணைய தேடல்</string>
+    <string name="settings_web_search_subtitle">சாட்கள் மாதிரியின் இணைய தேடல் கருவியை இயக்க வேண்டும். தேடல் கோரிகள் சாதனத்திலிருந்து வெளியேறும்.</string>
+    <string name="settings_web_search_note">ஒரு சாட்டிற்கு இயக்கப்பட்டால் (சாட்டின் + மெனுவிலிருந்து), மாதிரி தற்போதைய தகவல் தேவைப்படும்போது இணையத்தைத் தேடலாம்.</string>
+
+    <string name="settings_section_downloads">பதிவிறக்கங்கள்</string>
+    <string name="settings_wifi_only_downloads">Wi-Fi மட்டுமே பதிவிறக்கு</string>
+    <string name="settings_wifi_only_downloads_subtitle">மாதிரிகளைப் பதிவிறக்கும் முன் எண்ணிக்கையற்ற இணைப்பைக் காத்திருக்கவும்</string>
+    <string name="settings_downloads_note">மாதிரி கோப்புகள் ஜிகாபைட்கள் — இது உங்கள் மொபைல் டேட்டா திட்டத்தைக் காப்பதற்காக.</string>
+
+    <string name="settings_section_chat">சாட்</string>
+    <string name="settings_auto_load_last_model">கடைசிய மாதிரியைத் தானாக ஏற்று</string>
+    <string name="settings_auto_load_last_model_subtitle">முந்தைய பயன்படுத்திய மாதிரியை ஏற்ற, சாட்டைத் திறக்கும்போது ஏற்றப்படும்</string>
+    <string name="settings_keep_screen_on">திரையை இயக்கத்தில் வைத்திரு</string>
+    <string name="settings_keep_screen_on_subtitle">மாதிரி உருவாக்கும்போது தூக்கத்தைத் தடுக்கவும்</string>
+    <string name="settings_show_token_counts">டோக்கன் எண்ணிக்கையைக் காட்டு</string>
+    <string name="settings_show_token_counts_subtitle">ஒவ்வொரு செய்தியிலும் கீழே டோக்கன் எண்ணிக்கையைக் காட்டும்</string>
+
+    <string name="settings_section_hugging_face">Hugging Face</string>
+    <string name="settings_access_token">அணுகல் டோக்கன்</string>
+    <string name="settings_token_not_set">அமைக்கப்படவில்லை — விருப்பம்; உரிமம் கட்டுப்பட்ட மாதிரிகளுக்கு மட்டுமே தேவை</string>
+    <string name="settings_token_set">அமைக்கப்பட்டது — %1$s••••••••%2$s</string>
+    <string name="settings_token_help">உரிமம் கட்டுப்பட்ட மாதிரிகளுக்கு (எ.கா. Gemma) பதிவிறக்கத்திற்கு இலவச டோக்கன் தேவை. huggingface.co/settings/tokens இல் ஒன்றை உருவாக்கி, பின்னர் மாதிரியின் உரிமத்தை அதன் பக்கத்தில் ஏற்றுக்கொள்ளவும்.</string>
+    <string name="settings_token_dialog_title">Hugging Face அணுகல் டோக்கன்</string>
+    <string name="settings_token_dialog_body">படிக்கும் அனுமதியுடைய டோக்கனை ஒட்டவும். huggingface.co/settings/tokens இல் ஒன்றை உருவாக்கவும்.</string>
+    <string name="settings_token_save">சேமி</string>
+    <string name="settings_token_remove">அகற்று</string>
+
+    <string name="settings_section_support">ஆதரவு</string>
+    <string name="settings_star_on_github">GitHub-இல் ஒரு நட்சத்திரம்</string>
+    <string name="settings_star_on_github_subtitle">அனைவருக்கும் இலவசமான, சாதனத்திலேயே இயங்கும் AI-க்கு ஆதரவளிக்கவும்</string>
+    <string name="settings_report_bug">பிழையைத் தெரிவிக்கவும்</string>
+    <string name="settings_report_bug_subtitle">ஏதோ உடைந்ததா? எங்களுக்குத் தெரியப்படுத்துங்கள்</string>
+
+    <string name="settings_section_about">பற்றி</string>
+    <string name="settings_benchmark">பென்ச்மார்க்</string>
+    <string name="settings_benchmark_subtitle">ஏற்றும் நேரம், TTFT மற்றும் டோக்கன்/வினாடியை அளவிடுங்கள்</string>
+    <string name="settings_device_information">சாதன தகவல்</string>
+    <string name="settings_device_information_subtitle">உங்கள் சாதனத்தின் AI திறனைப் பாருங்கள்</string>
+    <string name="settings_clear_chat_history">சாட் வரலாறை அழி</string>
+    <string name="settings_clear_chat_history_subtitle">அனைத்துச் சமவசங்களையும் நீக்கவும்</string>
+    <string name="settings_clear_chat_history_title">சாட் வரலாறை அழி</string>
+    <string name="settings_clear_chat_history_body">அனைத்துச் சாட் சமவசங்களையும் நீக்கவா? இந்தச் செயலைச் செயலாக மாட்ட முடியாது.</string>
+
+    <string name="settings_section_model_management">மாதிரி மேலாண்மை</string>
+    <string name="settings_token_removed">அணுகல் டோக்கன் அகற்றப்பட்டது</string>
+    <string name="settings_token_saved">அணுகல் டோக்கன் சேமிக்கப்பட்டது</string>
+    <string name="settings_chat_history_cleared">சாட் வரலாறு அழிக்கப்பட்டது</string>
+    <string name="settings_model_imported">மாதிரி இறக்குமதி செய்யப்பட்டது: %1$s</string>
+    <string name="settings_import_failed">இறக்குமதி தோல்வி: %1$s</string>
+    <string name="model_import_invalid_file_type">தவறான கோப்பு வகை. .litertlm கோப்புகள் மட்டுமே ஆதரிக்கப்படுகின்றன.</string>
+    <string name="model_import_file_not_found">சாதனத்தில் கோப்பு கிடைக்கவில்லை: %1$s</string>
+    <string name="model_import_create_failed">இலக்குக் கோப்பை உருவாக்க முடியவில்லை: %1$s</string>
+    <string name="model_import_write_failed">இலக்குக் கோப்பில் எழுத முடியவில்லை: %1$s</string>
+    <string name="model_import_no_file_name">கோப்பின் பெயரைத் தீர்மானிக்க முடியவில்லை</string>
+    <string name="model_import_already_exists">இந்த மாதிரி கோப்பு உங்கள் நூலகத்தில் ஏற்கனவே உள்ளது</string>
+    <string name="model_import_open_failed">மூலக் கோப்பைத் திறக்க முடியவில்லை</string>
+    <string name="benchmark_error_model_file_missing">சாதனத்தில் மாதிரி கோப்பு இல்லை</string>
+    <string name="benchmark_error_not_enough_ram">இந்த மாதிரியை ஏற்ற கட்டை RAM இல்லை (~%1$d MB தேவை, %2$d MB உள்ளது). மற்ற செயலிகளை மூடி மீண்டும் முயற்சிக்கவும்.</string>
+    <string name="benchmark_error_failed_to_load">மாதிரியை ஏற்ற முடியவில்லை</string>
+    <string name="settings_import_model">மாதிரியை இறக்குமதி</string>
+    <string name="settings_import_model_subtitle">.litertlm, .task, .tflite அல்லது .gguf கோப்பை இறக்குமதி செய்யுங்கள்</string>
+    <string name="settings_import_model_note">இறக்குமதி செய்யப்பட்ட மாதிரிகள் உங்கள் நூலகத்தில் «இறக்குமதி» என்ற குறியுடன் தோன்றும். பதிவிறக்கப்பட்ட கோப்பைப் பகிர ஒரு கோப்பைத் திறந்து ஏற்றுமதி பயன்படுத்தவும்.</string>
+
+    <!-- ================= Theme / backend choices ================= -->
+
+    <!-- ================= Fonts ================= -->
+    <string name="font_system">கணினி</string>
+
+    <!-- ================= Bottom navigation ================= -->
+    <string name="nav_home">முகப்பு</string>
+    <string name="nav_chat">சாட்</string>
+    <string name="nav_models">மாதிரிகள்</string>
+    <string name="nav_settings">அமைப்புகள்</string>
+
+    <!-- ================= Benchmark ================= -->
+    <string name="benchmark_title">பென்ச்மார்க்</string>
+    <string name="benchmark_loading_title">மாதிரி ஏற்றப்படுகிறது…</string>
+    <string name="benchmark_loading_subtitle">குளிர் ஏற்றம் — இதுவே காலம் அளக்கப்படுகிறது.</string>
+    <string name="benchmark_failed_title">பென்ச்மார்க் தோல்வியடைந்தது</string>
+    <string name="benchmark_back_to_models">மாதிரிகளுக்குத் திரும்பவும்</string>
+    <string name="benchmark_stop_title">பென்ச்மார்க்கை நிறுத்தவா?</string>
+    <string name="benchmark_stop_body">இயக்கம் ரத்து செய்யப்பட்டு முடிவுகள் கைவிடப்படும்.</string>
+    <string name="benchmark_stop">நிறுத்து</string>
+    <string name="benchmark_continue">தொடர்</string>
+    <string name="benchmark_choose_model">ஒரு மாதிரியைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="benchmark_run">பென்ச்மார்க்கை இயக்கு</string>
+    <string name="benchmark_progress_prompt">%1$s கோர்ப்பு</string>
+    <string name="benchmark_progress_warmup"> • வெப்பமாக்கல்</string>
+    <string name="benchmark_stat_prompt">கோர்ப்பு</string>
+    <string name="benchmark_stat_tokens">டோக்கன்கள்</string>
+    <string name="benchmark_section_model">மாதிரி</string>
+    <string name="benchmark_stat_peak_memory">உச்ச நினைவு (PSS)</string>
+    <string name="benchmark_stat_backend">பின்பகுதி</string>
+    <string name="benchmark_stat_device">சாதனம்</string>
+    <string name="benchmark_token_note">டோக்கன்கள் ஸ்ட்ரீம் வெளியீட்டிலிருந்து எண்ணப்படுகின்றன (வெளியீட்டுக்கு ஒரு டோக்கன்). முன்னிடல் வேகம் = கோர்ப்பு டோக்கன்கள் / TTFT, மேலும் முதல் குறிப்பிடும் படிக்கையும் உள்ளடக்கும்.</string>
+    <string name="benchmark_rerun">மீண்டும் இயக்கு</string>
+    <string name="benchmark_summary_header">TinyModels பென்ச்மார்க் — %1$s (%2$s, %3$s)</string>
+    <string name="benchmark_summary_device">சாதனம்: %1$s</string>
+
+    <!-- ================= Download notifications ================= -->
+    <string name="notification_channel_downloads">மாதிரி பதிவிறக்கங்கள்</string>
+    <string name="notification_downloading_title">மாதிரி பதிவிறக்கப்படுகிறது</string>
+    <string name="notification_download_complete">பதிவிறக்கம் முடிந்தது</string>
+    <string name="notification_download_failed">பதிவிறக்கம் தோல்வியடைந்தது</string>
+    <string name="notification_failed_with_reason">%1$s — %2$s</string>
+    <string name="download_error_gated">HTTP 401 — இந்த மாதிரிக்கு உரிமம் உள்ளது. அமைப்புகளில் உங்கள் Hugging Face அணுகல் டோக்கனைச் சேர்க்கவும், அல்லது huggingface.co இல் முதலில் மாதிரியின் உரிமத்தை ஏற்றுக்கொள்ளவும்.</string>
+
+    <!-- வளப் பிரித்தெடுப்பில் சேர்க்கப்பட்ட புதிய சரங்கள் -->
+    <string name="settings_importing_model">மாதிரி இறக்குமதி செய்யப்படுகிறது…</string>
+    <string name="settings_font_reset">இயல்புநிலைக்கு மீட்டமை</string>
+    <string name="settings_font_preview_body">உங்கள் அரட்டைகள் இப்படி இருக்கும்.</string>
+    <string name="settings_font_preview_small">சிறிய எழுத்தும் படிக்கக்கூடியதாகவே இருக்கும்.</string>
+    <string name="settings_bug_report_subject">TinyModels பிழை அறிக்கை</string>
+    <string name="settings_theme_system">சிஸ்டம்</string>
+    <string name="settings_theme_light">ஒளி</string>
+    <string name="settings_theme_dark">இருள்</string>
+    <string name="settings_backend_auto">தானியங்கி</string>
+    <string name="benchmark_state_result">முடிவு</string>
+    <string name="benchmark_state_measuring">அளவிடப்படுகிறது</string>
+    <string name="benchmark_state_loading">மாதிரி ஏற்றப்படுகிறது</string>
+    <string name="benchmark_state_subtitle">இந்தச் சாதனத்தில் அனுமான வேகம்</string>
+    <string name="benchmark_no_models_title">இன்னும் மாதிரிகள் இல்லை</string>
+    <string name="benchmark_no_models_body">மாதிரிகள் தாவலில் ஒரு மாதிரியைப் பதிவிறக்கி, பிறகு அளவிட திரும்பி வரவும்.</string>
+    <string name="benchmark_files_available">%1$d கிடைக்கின்றன</string>
+    <string name="benchmark_what_gets_measured">எது அளவிடப்படுகிறது</string>
+    <string name="benchmark_metric_decode">டிகோட்</string>
+    <string name="benchmark_metric_decode_sub">டோக்கன்கள் / வினாடி</string>
+    <string name="benchmark_metric_ttft">முதல் டோக்கன் வரையிலான நேரம்</string>
+    <string name="benchmark_metric_ttft_sub">பதிலளிக்கும் திறன்</string>
+    <string name="benchmark_metric_prefill">ப்ரீஃபில்</string>
+    <string name="benchmark_metric_prefill_sub">ப்ராம்ப்ட் செயலாக்கம்</string>
+    <string name="benchmark_metric_memory">உச்ச நினைவகம்</string>
+    <string name="benchmark_metric_memory_sub">அளவு</string>
+    <string name="benchmark_run_measuring">%1$s அளவிடப்படுகிறது</string>
+    <string name="benchmark_run_duration">வழக்கமாக 3–10 நிமிடம், மாதிரியைப் பொறுத்தது</string>
+    <string name="benchmark_hero_title">இந்த மொபைல் உண்மையில் எவ்வளவு வேகமானது?</string>
+    <string name="benchmark_hero_body">அதே மூன்று ப்ராம்ப்ட்களை க்ரீடி டிகோடிங்கில் இயக்கி, ஒரு வார்ம்-அப் சுற்றை நீக்கி, பிறகு நிலையான வேகம், நினைவகம், வெப்ப வீழ்ச்சியை அளவிடுகிறது.</string>
+    <string name="benchmark_hero_chip_prompts">%1$d ப்ராம்ப்ட்கள்</string>
+    <string name="benchmark_hero_chip_runs">ஒவ்வொன்றும் %1$d சுற்றுகள்</string>
+    <string name="benchmark_hero_chip_temp">temp 0</string>
+    <string name="benchmark_selected_content_description">தேர்ந்தெடுக்கப்பட்டது</string>
+    <string name="benchmark_methodology">முறையியல்</string>
+    <string name="benchmark_method_prompts">முதல் டோக்கன் நேரத்தை ப்ரீஃபில் செயல்திறனிலிருந்து பிரிக்க %1$d ப்ராம்ப்ட்கள் (குறுகிய → நீண்ட)</string>
+    <string name="benchmark_method_runs">1 வார்ம்-அப் + ஒவ்வொன்றும் %1$d அளவிடப்பட்ட சுற்றுகள், வார்ம்-அப் நீக்கப்படுகிறது</string>
+    <string name="benchmark_method_greedy">சுற்றுகள் மீளக்கூடியதாக இருக்க க்ரீடி டிகோடிங் (வெப்பநிலை 0, top-k 1)</string>
+    <string name="benchmark_method_sustained">வெப்ப த்ராட்ட்லிங்கைக் கண்டறிய %1$d வினாடி தொடர் சுழற்சி</string>
+    <string name="benchmark_method_memory">உச்ச நினைவகம் ஒவ்வொரு 250 ms-க்கும் மாதிரியெடுக்கப்படுகிறது; வெளியீடு %1$d டோக்கன்களுக்கு வரம்பிடப்பட்டது</string>
+    <string name="benchmark_progress_seconds_left">%1$d வினாடிகள் மீதம்</string>
+    <string name="benchmark_progress_measuring">அளவிடப்படுகிறது</string>
+    <string name="benchmark_thermal_check">வெப்ப சோதனை</string>
+    <string name="benchmark_progress_run_of">சுற்று %1$d / %2$d</string>
+    <string name="benchmark_sustained_watching">தொடர் சுமை — த்ராட்ட்லிங் கண்காணிக்கப்படுகிறது</string>
+    <string name="benchmark_section_thermal">வெப்பம்</string>
+    <string name="benchmark_phase_prompt_suite">ப்ராம்ப்ட் தொகுப்பு</string>
+    <string name="benchmark_phase_thermal">வெப்பம்</string>
+    <string name="benchmark_result_score">மதிப்பெண்</string>
+    <string name="benchmark_result_grade">தரம் %1$s</string>
+    <string name="benchmark_result_median_decode">%1$.1f tok/s இடைநிலை டிகோட்</string>
+    <string name="benchmark_stat_decode_p50">டிகோட் p50</string>
+    <string name="benchmark_stat_ttft_p50">TTFT p50</string>
+    <string name="benchmark_stat_prefill_p50">ப்ரீஃபில் p50</string>
+    <string name="benchmark_section_by_prompt">ப்ராம்ப்ட் வாரியாக</string>
+    <string name="benchmark_section_by_prompt_hint">p50 · p95</string>
+    <string name="benchmark_section_thermal_hint">தொடர் சுமை</string>
+    <string name="benchmark_stat_sustained_speed">நிலையான வேகம்</string>
+    <string name="benchmark_stat_change_over_run">இயக்கத்தின் போது மாற்றம்</string>
+    <string name="benchmark_stat_spread">சுற்று-வாரி பரவல்</string>
+    <string name="benchmark_stability_value">%1$s (%2$.1f%%)</string>
+    <string name="benchmark_info_cold_load">குளிர் ஏற்றம்</string>
+    <string name="benchmark_info_model_size">மாதிரி அளவு</string>
+    <string name="benchmark_info_memory_ratio">நினைவகம் / மாதிரி</string>
+    <string name="benchmark_copy">நகலெடு</string>
+    <string name="benchmark_prompt_short">குறுகிய</string>
+    <string name="benchmark_prompt_medium">நடுத்தர</string>
+    <string name="benchmark_prompt_long">நீண்ட</string>
+    <string name="benchmark_thermal_holds">முழு வேகத்தைத் தக்கவைக்கிறது</string>
+    <string name="benchmark_thermal_slight">சிறிய வெப்ப வீழ்ச்சி</string>
+    <string name="benchmark_thermal_noticeable">கவனிக்கத்தக்க த்ராட்ட்லிங்</string>
+    <string name="benchmark_thermal_heavy">கடுமையான த்ராட்ட்லிங்</string>
+    <string name="benchmark_stability_stable">நிலையானது</string>
+    <string name="benchmark_stability_fair">ஏற்புடையது</string>
+    <string name="benchmark_stability_unstable">நிலையற்றது</string>
+    <string name="benchmark_throttle_drop">%1$.1f%% வீழ்ச்சி</string>
+    <string name="benchmark_throttle_faster">%1$.1f%% வேகமாக</string>
+    <string name="benchmark_throttle_none">மாற்றமில்லை</string>
+    <string name="benchmark_summary_score">மதிப்பெண்: %1$d (%2$s) · %3$.1f tok/s இடைநிலை டிகோட்</string>
+    <string name="benchmark_summary_prompt_line">%1$s: TTFT %2$.0fms (p95 %3$.0f), டிகோட் %4$.1f tok/s (p95 %5$.1f, sd %6$.1f), ப்ரீஃபில் %7$.0f tok/s</string>
+    <string name="benchmark_summary_sustained">நிலையானது: %1$.1f tok/s, %2$s (%3$s)</string>
+    <string name="benchmark_summary_load">ஏற்றம் %1$.1fs · உச்ச PSS %2$s · மாதிரி %3$s</string>
+    <string name="splash_tagline">சிறிய மாதிரிகள். மாபெரும் சாத்தியங்கள்.</string>
+    <string name="splash_pillars">தனிப்பட்டது · ஆஃப்லைன் · உங்களுடையது</string>
+    <string name="notification_progress_bytes">%1$s / %2$s · %3$d%%</string>
+    <string name="notification_progress_downloading">%1$s · பதிவிறக்கம்</string>
+    <string name="notification_speed">%1$s/s</string>
+    <string name="settings_view_intro">அறிமுகத்தைப் பார்</string>
+    <string name="settings_view_intro_subtitle">TinyModels சுற்றுலாவை மீண்டும் எடு</string>
+    <string name="benchmark_ttft_line">TTFT %1$.0f ms · p95 %2$.0f ms</string>
+    <string name="model_import_projector_not_model">இது ஒரு விஷன் புரொஜெக்டர் (mmproj), மொழி மாதிரி அல்ல. முக்கிய .gguf மாதிரியை இறக்குமதி செய்யவும் — புரொஜெக்டர்கள் தானாகவே பதிவிறக்கப்பட்டு இணைக்கப்படும்.</string>
+</resources>

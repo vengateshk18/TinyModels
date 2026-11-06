@@ -11,6 +11,7 @@ import com.ai.tinymodels.core.database.ModelFileDao
 import com.ai.tinymodels.core.database.entities.DownloadedModelEntity
 import com.ai.tinymodels.core.database.entities.ModelFileEntity
 import com.ai.tinymodels.core.network.HuggingFaceApi
+import com.ai.tinymodels.R
 import com.ai.tinymodels.domain.model.FileDownloadStatus
 import com.ai.tinymodels.domain.model.ModelFormat
 import io.mockk.coEvery
@@ -60,6 +61,12 @@ class ModelRepositoryImplImportTest {
     fun setUp() {
         every { context.contentResolver } returns resolver
         every { context.filesDir } returns temp.root
+        every { context.getString(any()) } answers { firstArg<Int>().toString() }
+        every { context.getString(any(), *anyVararg()) } answers {
+            firstArg<Int>().toString() + "(" + invocation.args.drop(1)
+                .flatMap { arg -> if (arg is Array<*>) arg.toList() else listOf(arg) }
+                .joinToString(",") + ")"
+        }
         repo = ModelRepositoryImpl(context, downloadedModelDao, modelFileDao, api, dispatchers)
     }
 
@@ -77,7 +84,11 @@ class ModelRepositoryImplImportTest {
         val result = repo.importModel(sourceUriServing("notes.txt"))
 
         assertTrue(result is AppResult.Error)
-        assertTrue((result as AppResult.Error).error.message?.contains("Unsupported file type") == true)
+        assertTrue(
+            "expected invalid-file-type error, got: ${(result as AppResult.Error).error.message}",
+            (result as AppResult.Error).error.message!!
+                .contains(R.string.model_import_invalid_file_type.toString())
+        )
     }
 
     @Test
@@ -123,6 +134,9 @@ class ModelRepositoryImplImportTest {
         val result = repo.importModel(sourceUriServing(fileName))
 
         assertTrue(result is AppResult.Error)
-        assertTrue((result as AppResult.Error).error.message?.contains("already exists") == true)
+        assertTrue(
+            (result as AppResult.Error).error.message
+                ?.contains(R.string.model_import_already_exists.toString()) == true
+        )
     }
 }

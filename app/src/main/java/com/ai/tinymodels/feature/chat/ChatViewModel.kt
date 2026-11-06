@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.ai.tinymodels.core.common.DispatcherProvider
 import com.ai.tinymodels.core.common.TinyLog
 import com.ai.tinymodels.core.common.InferenceError
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.inference.InferenceException
 import com.ai.tinymodels.core.inference.ModelContextInspector
 import com.ai.tinymodels.core.inference.ModelManager
@@ -122,8 +123,23 @@ class ChatViewModel @Inject constructor(
      */
     private val lastSearchSources = mutableMapOf<String, List<WebSearchResult>>()
 
-    /** Simulated progress ticker running while a model loads (see [selectModel]). */
-    private var progressTickerJob: Job? = null
+    /**
+     * Track loading progress. The native engine reports only discrete
+     * milestones (10% → 30% → blocking call → 50% → 100%), and there is no
+     * honest way to measure the blocking span — the dialog renders millstones
+     * determinately and the blocking span indeterminately. Nothing here is
+     * advanced artificially.
+     */
+    private fun onLoadProgress(modelId: String, progress: Float, stage: ModelLoadProgress.LoadStage) {
+        _uiState.update {
+            it.copy(
+                modelLoadProgress = it.modelLoadProgress?.copy(
+                    progress = progress.coerceIn(0f, 1f),
+                    stage = stage
+                )
+            )
+        }
+    }
 
     /** The chatId for this screen, passed via nav arguments (SavedStateHandle). */
     val chatId: String? get() = savedStateHandle["chatId"]
@@ -302,7 +318,7 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.Default) {
             val downloaded = modelRepository.getDownloadedModel(modelId)
             if (downloaded == null) {
-                _uiState.update { it.copy(error = ChatError("Model $modelId is not downloaded")) }
+                _uiState.update { it.copy(error = ChatError(appContext.getString(R.string.chat_error_model_not_downloaded, modelId))) }
                 return@launch
             }
             // Resolve the exact file record to load — the user's pick, or the
@@ -314,7 +330,10 @@ class ChatViewModel @Inject constructor(
             }
             if (fileRecord == null) {
                 _uiState.update {
-                    it.copy(error = ChatError("Model file missing on device", "Re-download"))
+                    it.copy(error = ChatError(
+                        appContext.getString(R.string.chat_error_model_file_missing),
+                        appContext.getString(R.string.chat_error_re_download)
+                    ))
                 }
                 return@launch
             }
@@ -325,9 +344,7 @@ class ChatViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         error = ChatError(
-                            "This file is a vision projector (mmproj), not a language model. " +
-                                "Open the main .gguf model instead — it picks up the projector " +
-                                "for vision automatically."
+                            appContext.getString(R.string.downloaded_file_projector_error)
                         )
                     )
                 }
@@ -336,7 +353,10 @@ class ChatViewModel @Inject constructor(
             val modelFile = File(File(downloaded.localPath), fileRecord.fileName.substringAfterLast("/"))
             if (!modelFile.exists()) {
                 _uiState.update {
-                    it.copy(error = ChatError("Model file missing on device", "Re-download"))
+                    it.copy(error = ChatError(
+                        appContext.getString(R.string.chat_error_model_file_missing),
+                        appContext.getString(R.string.chat_error_re_download)
+                    ))
                 }
                 return@launch
             }
@@ -357,10 +377,6 @@ class ChatViewModel @Inject constructor(
                     )
                 )
             }
-            // Start the simulated ticker immediately so the dialog animates
-            // while the header parse runs.
-            startProgressTicker(modelId)
-
             // Detect the model's true compiled context window — the automatic
             // compaction budget. Context is NO LONGER user-tunable: detected
             // value when available, safe default otherwise.
@@ -382,36 +398,53 @@ class ChatViewModel @Inject constructor(
                 )
             }
             
+            // Track loading progress for the loading dialog.
+            _uiState.update {
+                it.copy(
+                    modelLoadProgress = ModelLoadProgress(
+                        modelId = modelId,
+                        progress = 0f,
+                        stage = ModelLoadProgress.LoadStage.INITIALIZING
+                    )
+                )
+            }
+
             // Record the file being loaded BEFORE the engine flips to Ready so the
             // chip collector (observeEngineState) already sees the correct value.
             // Use the resolved record's name so auto-loads (no explicit pick)
             // also highlight the right file in the picker sheet.
             activeFileName = fileRecord.fileName
 
+            // Track loading progress for the loading dialog.
+            _uiState.update {
+                it.copy(
+                    modelLoadProgress = ModelLoadProgress(
+                        modelId = modelId,
+                        progress = 0f,
+                        stage = ModelLoadProgress.LoadStage.INITIALIZING
+                    )
+                )
+            }
+
+            // The native engine reports only a few discrete milestones (10% → 30% → 50%)
+            // around one long-blocking initialize() call. They are passed through
+            // untouched — the dialog animates to them naturally and renders the
+            // unmeasurable blocking span indeterminately. Nothing moves that the
+            // engine did not move.
             val result = modelManager.loadModel(
                 modelId = modelId,
                 modelFile = modelFile,
                 backend = inference.backend,
                 maxNumTokens = effectiveMaxTokens,
                 onProgress = { progress, stage ->
-                    _uiState.update { currentState ->
-                        val uiStage = when (stage) {
-                            ModelManager.ModelLoadStage.INITIALIZING -> ModelLoadProgress.LoadStage.INITIALIZING
-                            ModelManager.ModelLoadStage.LOADING_WEIGHTS -> ModelLoadProgress.LoadStage.LOADING_WEIGHTS
-                            ModelManager.ModelLoadStage.READY -> ModelLoadProgress.LoadStage.READY
-                        }
-                        currentState.copy(
-                            modelLoadProgress = currentState.modelLoadProgress?.copy(
-                                // Never regress below the simulated value.
-                                progress = maxOf(simulatedProgress, progress),
-                                stage = uiStage
-                            )
-                        )
+                    val uiStage = when (stage) {
+                        ModelManager.ModelLoadStage.INITIALIZING -> ModelLoadProgress.LoadStage.INITIALIZING
+                        ModelManager.ModelLoadStage.LOADING_WEIGHTS -> ModelLoadProgress.LoadStage.LOADING_WEIGHTS
+                        ModelManager.ModelLoadStage.READY -> ModelLoadProgress.LoadStage.READY
                     }
+                    onLoadProgress(modelId, progress, uiStage)
                 }
             )
-            progressTickerJob?.cancel()
-            progressTickerJob = null
             when (result) {
                 is com.ai.tinymodels.core.common.AppResult.Success -> {
                     activeModel = downloaded
@@ -440,7 +473,7 @@ class ChatViewModel @Inject constructor(
                 is com.ai.tinymodels.core.common.AppResult.Error -> {
                     _uiState.update {
                         it.copy(
-                            error = ChatError(result.error.message ?: "Failed to load model"),
+                            error = ChatError(result.error.message ?: appContext.getString(R.string.chat_error_failed_to_load)),
                             modelLoadProgress = null
                         )
                     }
@@ -449,50 +482,7 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Simulated progress for the loading dialog. [simulatedProgress] is the current
-     * fake value; the ticker nudges it toward [SIMULATED_PROGRESS_CEILING] (~90%)
-     * with decreasing steps so it never actually arrives while the real load runs.
-     */
-    private var simulatedProgress = 0f
-
-    private fun startProgressTicker(modelId: String) {
-        progressTickerJob?.cancel()
-        simulatedProgress = 0.05f
-        progressTickerJob = viewModelScope.launch(Dispatchers.Default) {
-            while (true) {
-                delay(150)
-                simulatedProgress += (SIMULATED_PROGRESS_CEILING - simulatedProgress) * 0.06f
-                val stage = if (simulatedProgress < 0.35f) {
-                    ModelLoadProgress.LoadStage.INITIALIZING
-                } else {
-                    ModelLoadProgress.LoadStage.LOADING_WEIGHTS
-                }
-                _uiState.update { state ->
-                    val current = state.modelLoadProgress ?: return@update state
-                    if (current.stage == ModelLoadProgress.LoadStage.READY) return@update state
-                    // Stage is monotonic: never regress from LOADING_WEIGHTS to INITIALIZING.
-                    val mergedStage = if (stage == ModelLoadProgress.LoadStage.LOADING_WEIGHTS ||
-                        current.stage == ModelLoadProgress.LoadStage.LOADING_WEIGHTS
-                    ) {
-                        ModelLoadProgress.LoadStage.LOADING_WEIGHTS
-                    } else {
-                        ModelLoadProgress.LoadStage.INITIALIZING
-                    }
-                    state.copy(
-                        modelLoadProgress = current.copy(
-                            progress = maxOf(current.progress, simulatedProgress),
-                            stage = mergedStage
-                        )
-                    )
-                }
-            }
-        }
-    }
-
     private companion object {
-        /** The simulated ticker approaches but never reaches this value. */
-        const val SIMULATED_PROGRESS_CEILING = 0.90f
 
         /** Compaction triggers when usage crosses this fraction of the budget. */
         const val COMPACTION_HEADROOM = 0.90
@@ -672,7 +662,7 @@ class ChatViewModel @Inject constructor(
             sessionModelId = modelManager.loadedModelId
             updateContextUsage()
             if (hadImages && !visionEnabled) {
-                // Photo skipped silently on text-only models (no snackbar).
+                _uiState.update { it.copy(error = ChatError(appContext.getString(ModelVisionSupport.visionUnsupportedMessageRes()))) }
             }
         } catch (e: InferenceException) {
             // Engine not loaded yet; session will be built when the model finishes loading.
@@ -738,7 +728,7 @@ class ChatViewModel @Inject constructor(
                 }
                 sessionModelId = modelManager.loadedModelId
                 updateContextUsage()
-                // Photo skipped silently on text-only models (no snackbar).
+                _uiState.update { it.copy(error = ChatError(appContext.getString(ModelVisionSupport.visionUnsupportedMessageRes()))) }
                 return
             } catch (retryFailure: Throwable) {
                 TinyLog.e(TAG, "Rebuild after vision reload failed: ${retryFailure.message}", retryFailure)
@@ -769,14 +759,14 @@ class ChatViewModel @Inject constructor(
                 }
                 sessionModelId = modelManager.loadedModelId
                 updateContextUsage()
-                // Photo skipped silently on text-only models (no snackbar).
+                _uiState.update { it.copy(error = ChatError(appContext.getString(ModelVisionSupport.visionUnsupportedMessageRes()))) }
                 return
             } catch (retryFailure: Throwable) {
                 TinyLog.e(TAG, "Stripped-history rebuild failed: ${retryFailure.message}", retryFailure)
             }
         }
         session = null
-        // Photo skipped silently on text-only models (no snackbar).
+        _uiState.update { it.copy(error = ChatError(appContext.getString(ModelVisionSupport.visionUnsupportedMessageRes()))) }
     }
 
     /**
@@ -812,7 +802,7 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.Default) {
             val chat = chatRepository.getChat(chatId)
             val message = if (chat == null) {
-                "No active chat to compact"
+                appContext.getString(R.string.chat_compaction_no_active_chat)
             } else {
                 withContext(dispatchers.io) {
                     nativeMutex.withLock {
@@ -894,7 +884,7 @@ class ChatViewModel @Inject constructor(
         val kept = SessionBudget.trimToBudget(allTurns, keepBudget)
         val olderCount = allTurns.size - kept.size
         if (olderCount <= 0) {
-            return "Nothing to compact — the conversation already fits the context window"
+            return appContext.getString(R.string.chat_error_nothing_to_compact)
         }
         val olderEntities = live.take(olderCount)
         val older = olderEntities.map {
@@ -923,7 +913,7 @@ class ChatViewModel @Inject constructor(
             } finally {
                 nativeMutex.lock()
             }
-            return "Summarization failed — history was trimmed to fit the context window"
+            return appContext.getString(R.string.chat_error_summarization_failed)
         }
         // Cutoff by entity identity, never by content match: duplicate texts
         // ("thanks", "hi") previously resolved the cutoff to the wrong message
@@ -944,7 +934,11 @@ class ChatViewModel @Inject constructor(
         } finally {
             nativeMutex.lock()
         }
-        return "Compacted ${older.size} older message${if (older.size == 1) "" else "s"} into a summary"
+        return appContext.resources.getQuantityString(
+            R.plurals.chat_error_compacted_messages,
+            older.size,
+            older.size
+        )
     }
 
     /** Invalidate the compaction digest when the user edits a summarized turn. */
@@ -992,14 +986,14 @@ class ChatViewModel @Inject constructor(
         val state = _uiState.value
         if (state.generation == GenerationState.GENERATING) return
         if (state.model !is ModelChipState.Ready) {
-            _uiState.update { it.copy(error = ChatError("Model is still loading")) }
+            _uiState.update { it.copy(error = ChatError(appContext.getString(R.string.chat_error_model_still_loading))) }
             return
         }
         // Block photo sends on text-only engines up-front: the native side has
         // no vision encoder, so an image part would fail the turn anyway.
         // Text-only prompts fall through normally.
         if (imageUri != null && !modelManager.isVisionModelLoaded) {
-            // Photo skipped silently on text-only models (no snackbar).
+            _uiState.update { it.copy(error = ChatError(appContext.getString(ModelVisionSupport.visionUnsupportedMessageRes()))) }
             return
         }
         var chatId = state.activeChatId
@@ -1040,7 +1034,7 @@ class ChatViewModel @Inject constructor(
                     it.copy(
                         generation = GenerationState.IDLE,
                         streamingMessageId = null,
-                        error = ChatError("Couldn't read that photo — try another image")
+                        error = ChatError(appContext.getString(R.string.chat_error_photo_unreadable))
                     )
                 }
                 return@launch
@@ -1093,7 +1087,7 @@ class ChatViewModel @Inject constructor(
 
             TinyLog.i(TAG, "JOURNEY: starting generation (assistantId=$assistantId)")
             val prompt = maybeAugmentWithSearch(activeChatId, text)
-                .ifBlank { "What do you see in this image?" }
+                .ifBlank { appContext.getString(R.string.chat_default_photo_prompt) }
             runGeneration(activeChatId, assistantId, prompt, listOfNotNull(savedImagePath))
         }
     }
@@ -1207,7 +1201,7 @@ class ChatViewModel @Inject constructor(
         val activeSession = session
         if (activeSession == null) {
             _uiState.update {
-                it.copy(generation = GenerationState.IDLE, error = ChatError("No active conversation"))
+                it.copy(generation = GenerationState.IDLE, error = ChatError(appContext.getString(R.string.chat_error_no_active_conversation)))
             }
             return
         }
@@ -1332,7 +1326,7 @@ class ChatViewModel @Inject constructor(
         val lastUser = messages.lastOrNull { it.isUser } ?: return
         val activeSession = session
         if (state.model !is ModelChipState.Ready || activeSession == null) {
-            _uiState.update { it.copy(error = ChatError("Model is not ready")) }
+            _uiState.update { it.copy(error = ChatError(appContext.getString(R.string.chat_error_model_not_ready))) }
             return
         }
 
@@ -1380,7 +1374,7 @@ class ChatViewModel @Inject constructor(
         val chatId = state.activeChatId ?: return
         val activeSession = session
         if (state.model !is ModelChipState.Ready || activeSession == null) {
-            _uiState.update { it.copy(error = ChatError("Model is not ready")) }
+            _uiState.update { it.copy(error = ChatError(appContext.getString(R.string.chat_error_model_not_ready))) }
             return
         }
 
@@ -1487,7 +1481,7 @@ class ChatViewModel @Inject constructor(
      * large input Id" — translate that into actionable guidance.
      */
     private fun friendlyGenerationError(throwable: Throwable): String {
-        val raw = throwable.message ?: return "Generation failed"
+        val raw = throwable.message ?: return appContext.getString(R.string.chat_error_generation_failed)
         // Photo sent to a text-only model (or vision init skipped): the
         // native side reports a null vision executor / unavailable image input.
         if (raw.contains("vision executor", ignoreCase = true) ||
@@ -1496,12 +1490,10 @@ class ChatViewModel @Inject constructor(
             raw.contains("TF_LITE_VISION_ENCODER") ||
             raw.contains("vision encoder", ignoreCase = true)
         ) {
-            return "This model can't read photos. Load a vision-capable model " +
-                "(e.g. Gemma 3) to analyze images."
+            return appContext.getString(R.string.chat_error_vision_photos)
         }
         return if (raw.contains("Status code 13") || raw.contains("large input", ignoreCase = true)) {
-            "Prompt or chat history is too long for this model's context window. " +
-                "Start a new chat or reduce max context tokens in session settings."
+            appContext.getString(R.string.chat_error_context_too_long)
         } else raw
     }
 
@@ -1512,28 +1504,28 @@ class ChatViewModel @Inject constructor(
      */
     private fun friendlyConversationError(throwable: Throwable): String {
         if (ModelVisionSupport.isVisionEncoderError(throwable)) {
-            return ModelVisionSupport.visionUnsupportedMessage()
+            return appContext.getString(ModelVisionSupport.visionUnsupportedMessageRes())
         }
-        val raw = throwable.message?.takeIf { it.isNotBlank() } ?: return "Couldn't start the conversation"
+        val raw = throwable.message?.takeIf { it.isNotBlank() }
+            ?: return appContext.getString(R.string.chat_error_couldnt_start_conversation)
         return if (raw.contains("Status code 13") || raw.contains("large input", ignoreCase = true)) {
-            "Chat history is too long for this model's context window. " +
-                "Start a new chat or compact the conversation."
+            appContext.getString(R.string.chat_error_history_too_long)
         } else if (raw.length > 200) {
-            "Couldn't start the conversation. Try reopening the chat or reloading the model."
+            appContext.getString(R.string.chat_error_couldnt_start_conversation_retry)
         } else {
             raw
         }
     }
 
     private fun friendlyError(error: InferenceError): String = when (error) {
-        is InferenceError.OutOfMemory -> "Not enough free memory. Close other apps and retry."
-        is InferenceError.ModelFileMissing -> "Model file missing. Re-download the model."
-        is InferenceError.BackendUnavailable -> "No supported backend on this device."
-        is InferenceError.LoadFailed -> error.message ?: "Failed to load model"
-        is InferenceError.GenerationFailed -> error.message ?: "Generation failed"
+        is InferenceError.OutOfMemory -> appContext.getString(R.string.chat_error_out_of_memory)
+        is InferenceError.ModelFileMissing -> appContext.getString(R.string.chat_error_model_file_missing_short)
+        is InferenceError.BackendUnavailable -> appContext.getString(R.string.chat_error_no_backend)
+        is InferenceError.LoadFailed -> error.message ?: appContext.getString(R.string.chat_error_failed_to_load)
+        is InferenceError.GenerationFailed -> error.message ?: appContext.getString(R.string.chat_error_generation_failed)
         is InferenceError.UnsupportedFormat ->
-            error.message ?: "${error.format} files aren't supported by the on-device runtime yet."
-        InferenceError.NoModelLoaded -> "No model loaded"
+            error.message ?: appContext.getString(R.string.chat_error_unsupported_format, error.format)
+        InferenceError.NoModelLoaded -> appContext.getString(R.string.chat_error_no_model_loaded)
     }
 
     private fun updateInferenceSettings(settings: InferenceSettings) {

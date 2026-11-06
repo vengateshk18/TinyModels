@@ -1,5 +1,6 @@
 package com.ai.tinymodels.feature.chat
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,20 +21,29 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -46,10 +56,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ai.tinymodels.R
+import com.ai.tinymodels.core.ui.Formatters
 import com.ai.tinymodels.core.ui.components.EmptyState
 import com.ai.tinymodels.feature.chat.model.ChatListItem
 import java.text.SimpleDateFormat
@@ -71,6 +92,7 @@ fun ChatTabScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var showSnackbar by remember { mutableStateOf<String?>(null) }
     var pendingDelete by remember { mutableStateOf<ChatListItem?>(null) }
+    var renaming by remember { mutableStateOf<ChatListItem?>(null) }
 
     LaunchedEffect(showSnackbar) {
         showSnackbar?.let {
@@ -89,7 +111,7 @@ fun ChatTabScreen(
         contentWindowInsets = safeTopHorizontal,
         topBar = {
             TopAppBar(
-                title = { Text("Chats") },
+                title = { Text(stringResource(R.string.chat_tab_title)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer
                 )
@@ -106,7 +128,7 @@ fun ChatTabScreen(
                     )
                 }
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "New chat")
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.chat_new_chat))
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -120,8 +142,8 @@ fun ChatTabScreen(
                     .padding(padding)
             ) {
                 EmptyState(
-                    title = "No conversations yet",
-                    message = "Tap + to start a new chat"
+                    title = stringResource(R.string.chat_no_conversations),
+                    message = stringResource(R.string.chat_tap_plus_to_start)
                 )
             }
         } else {
@@ -138,13 +160,34 @@ fun ChatTabScreen(
                     bottom = 88.dp
                 )
             ) {
-                items(chats, key = { it.id }) { chat ->
-                    ChatSessionRow(
-                        chat = chat,
-                        onClick = { onOpenChat(chat.id) },
-                        onDelete = { pendingDelete = chat }
-                    )
-                    HorizontalDivider()
+                val pinned = chats.filter { it.isPinned }
+                val unpinned = chats.filterNot { it.isPinned }
+
+                if (pinned.isNotEmpty()) {
+                    item(key = "header-pinned") { ListSectionLabel(stringResource(R.string.chat_section_pinned)) }
+                    items(pinned, key = { it.id }) { chat ->
+                        ChatSessionRow(
+                            chat = chat,
+                            onClick = { onOpenChat(chat.id) },
+                            onTogglePin = { viewModel.togglePin(chat) },
+                            onRename = { renaming = chat },
+                            onDelete = { pendingDelete = chat }
+                        )
+                    }
+                }
+                if (unpinned.isNotEmpty()) {
+                    if (pinned.isNotEmpty()) {
+                        item(key = "header-recent") { ListSectionLabel(stringResource(R.string.chat_section_recent)) }
+                    }
+                    items(unpinned, key = { it.id }) { chat ->
+                        ChatSessionRow(
+                            chat = chat,
+                            onClick = { onOpenChat(chat.id) },
+                            onTogglePin = { viewModel.togglePin(chat) },
+                            onRename = { renaming = chat },
+                            onDelete = { pendingDelete = chat }
+                        )
+                    }
                 }
             }
         }
@@ -154,116 +197,291 @@ fun ChatTabScreen(
     pendingDelete?.let { chat ->
         AlertDialog(
             onDismissRequest = { pendingDelete = null },
-            title = { Text("Delete chat?") },
+            title = { Text(stringResource(R.string.chat_delete_title)) },
             text = {
                 Text(
-                    "\"${chat.title.ifBlank { "Untitled" }}\" will be permanently deleted. " +
-                        "This action cannot be undone."
+                    stringResource(
+                        R.string.chat_delete_body,
+                        chat.title.ifBlank { stringResource(R.string.chat_untitled) }
+                    )
                 )
             },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteChat(chat.id)
                     pendingDelete = null
-                }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
+                }) { Text(stringResource(R.string.common_delete), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(onClick = { pendingDelete = null }) { Text("Cancel") }
+                TextButton(onClick = { pendingDelete = null }) { Text(stringResource(R.string.common_cancel)) }
+            }
+        )
+    }
+
+    // Rename dialog
+    renaming?.let { chat ->
+        RenameChatDialog(
+            chat = chat,
+            onDismiss = { renaming = null },
+            onConfirm = { newTitle ->
+                viewModel.renameChat(chat.id, newTitle)
+                renaming = null
             }
         )
     }
 }
 
+/**
+ * Selection used when the rename dialog opens.
+ *
+ * Selecting the whole title means the user can start typing to replace it
+ * immediately, instead of hunting for the end of the existing text.
+ */
+internal fun renameSelection(title: String): TextRange = TextRange(0, title.length)
+
+@Composable
+private fun ListSectionLabel(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(start = 20.dp, top = 12.dp, bottom = 6.dp)
+    )
+}
+
+@Composable
+private fun RenameChatDialog(
+    chat: ChatListItem,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var text by remember(chat.id) {
+        mutableStateOf(
+            TextFieldValue(
+                text = chat.title,
+                selection = renameSelection(chat.title)
+            )
+        )
+    }
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(chat.id) { focusRequester.requestFocus() }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.chat_rename_title)) },
+        text = {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { new ->
+                    text = if (new.text.length <= MAX_CHAT_TITLE_LENGTH) {
+                        new
+                    } else {
+                        new.copy(
+                            text = new.text.take(MAX_CHAT_TITLE_LENGTH),
+                            selection = TextRange(MAX_CHAT_TITLE_LENGTH)
+                        )
+                    }
+                },
+                label = { Text(stringResource(R.string.chat_rename_label)) },
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
+                supportingText = {
+                    Text("${text.text.length}/$MAX_CHAT_TITLE_LENGTH")
+                }
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(text.text) },
+                enabled = text.text.isNotBlank()
+            ) { Text(stringResource(R.string.common_save)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
+        }
+    )
+}
+
 @Composable
 private fun ChatSessionRow(
-    chat: com.ai.tinymodels.feature.chat.model.ChatListItem,
+    chat: ChatListItem,
     onClick: () -> Unit,
+    onTogglePin: () -> Unit,
+    onRename: () -> Unit,
     onDelete: () -> Unit
 ) {
-    Row(
+    var menuOpen by remember { mutableStateOf(false) }
+
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(18.dp),
+        color = if (chat.isPinned) {
+            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f)
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerLow
+        },
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = 16.dp, vertical = 4.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(end = 8.dp)
+        Row(
+            modifier = Modifier.padding(start = 14.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Title
-            Text(
-                text = chat.title,
-                style = MaterialTheme.typography.bodyLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            // Last message preview
-            chat.preview?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(top = 2.dp)
+            // Leading chat glyph
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Outlined.ChatBubbleOutline,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
-            // Metadata: time • message count • last used model
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.padding(top = 4.dp)
-            ) {
-                Text(
-                    text = formatRelativeTime(chat.updatedAt),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                if (chat.messageCount > 0) {
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (chat.isPinned) {
+                        Icon(
+                            Icons.Filled.PushPin,
+                            contentDescription = stringResource(R.string.chat_pinned_content_description),
+                            modifier = Modifier.size(13.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
                     Text(
-                        text = "${chat.messageCount} messages",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                chat.modelId?.let { modelId ->
-                    Icon(
-                        Icons.Filled.Memory,
-                        contentDescription = null,
-                        modifier = Modifier.size(12.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = modelId.substringAfterLast('/'),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        text = chat.title.ifBlank { stringResource(R.string.chat_untitled) },
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
+
+                chat.preview?.takeIf { it.isNotBlank() }?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(top = 6.dp)
+                ) {
+                    Text(
+                        text = Formatters.formatRelativeTime(
+                            chat.updatedAt,
+                            LocalContext.current.resources
+                        ),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    if (chat.messageCount > 0) {
+                        Text(
+                            text = pluralStringResource(
+                                R.plurals.chat_message_count,
+                                chat.messageCount,
+                                chat.messageCount
+                            ),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    chat.modelId?.let { modelId ->
+                        Icon(
+                            Icons.Filled.Memory,
+                            contentDescription = null,
+                            modifier = Modifier.size(12.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = modelId.substringAfterLast('/'),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
             }
-        }
-        Spacer(modifier = Modifier.width(8.dp))
-        IconButton(onClick = onDelete) {
-            Icon(
-                Icons.Filled.DeleteOutline,
-                contentDescription = "Delete chat",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+
+            Box {
+                IconButton(onClick = { menuOpen = true }) {
+                    Icon(
+                        Icons.Filled.MoreVert,
+                        contentDescription = stringResource(R.string.chat_options_content_description),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                DropdownMenu(
+                    expanded = menuOpen,
+                    onDismissRequest = { menuOpen = false }
+                ) {
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                stringResource(
+                                    if (chat.isPinned) R.string.chat_unpin else R.string.chat_pin
+                                )
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Filled.PushPin, contentDescription = null)
+                        },
+                        onClick = {
+                            menuOpen = false
+                            onTogglePin()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.chat_rename)) },
+                        leadingIcon = {
+                            Icon(Icons.Filled.Edit, contentDescription = null)
+                        },
+                        onClick = {
+                            menuOpen = false
+                            onRename()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                stringResource(R.string.common_delete),
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Filled.DeleteOutline,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        },
+                        onClick = {
+                            menuOpen = false
+                            onDelete()
+                        }
+                    )
+                }
+            }
         }
     }
 }
 
-private fun formatRelativeTime(epochMillis: Long): String {
-    val now = System.currentTimeMillis()
-    val diff = now - epochMillis
-    return when {
-        diff < 60_000 -> "now"
-        diff < 3_600_000 -> "${diff / 60_000}m"
-        diff < 86_400_000 -> "${diff / 3_600_000}h"
-        diff < 604_800_000 -> "${diff / 86_400_000}d"
-        else -> SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(epochMillis))
-    }
-}

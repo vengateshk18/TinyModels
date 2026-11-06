@@ -36,9 +36,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.ui.components.bottomSheetTopSafePadding
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -83,6 +86,7 @@ fun ChatRoomScreen(
     val downloadedFiles by viewModel.downloadedFiles.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val copyScope = rememberCoroutineScope()
+    val copiedToClipboardMessage = stringResource(R.string.chat_room_copied_to_clipboard)
     var editingMessage by remember { mutableStateOf<Pair<String, String>?>(null) }
     var showModelPicker by remember { mutableStateOf(false) }
     var showContextSheet by remember { mutableStateOf(false) }
@@ -120,7 +124,7 @@ fun ChatRoomScreen(
                         Text(
                             text = uiState.chats
                                 .firstOrNull { it.id == uiState.activeChatId }?.title
-                                ?: "New chat",
+                                ?: stringResource(R.string.chat_new_chat),
                             maxLines = 1,
                             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                         )
@@ -133,7 +137,7 @@ fun ChatRoomScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.chat_room_back_content_description))
                     }
                 },
                 actions = {
@@ -148,7 +152,7 @@ fun ChatRoomScreen(
                             onClick = { showContextSheet = true }
                         )
                         IconButton(onClick = { viewModel.onEvent(ChatEvent.OpenInferenceSettings) }) {
-                            Icon(Icons.Filled.Tune, contentDescription = "Session settings")
+                            Icon(Icons.Filled.Tune, contentDescription = stringResource(R.string.chat_room_session_settings_content_description))
                         }
                     }
                 },
@@ -172,27 +176,27 @@ fun ChatRoomScreen(
                 when {
                     !uiState.hasDownloadedModels ->
                         ChatRoomEmpty(
-                            title = "No models yet",
-                            body = "Download a model to start chatting."
+                            title = stringResource(R.string.chat_room_no_models_title),
+                            body = stringResource(R.string.chat_room_no_models_body)
                         )
                     uiState.model is ModelChipState.NotSelected ->
                         ChatRoomEmpty(
-                            title = "Pick a model",
-                            body = "Choose a downloaded model to begin.",
-                            actionLabel = "Choose",
+                            title = stringResource(R.string.chat_room_pick_model_title),
+                            body = stringResource(R.string.chat_room_pick_model_body),
+                            actionLabel = stringResource(R.string.chat_room_choose),
                             onAction = { showModelPicker = true }
                         )
                     uiState.messages.isEmpty() ->
                         ChatRoomEmpty(
-                            title = "Say hello",
-                            body = "Your conversation stays on this device."
+                            title = stringResource(R.string.chat_room_say_hello_title),
+                            body = stringResource(R.string.chat_room_say_hello_body)
                         )
                     else -> MessageListRoom(
                         uiState = uiState,
                         onEvent = viewModel::onEvent,
                         onEditMessage = { id, text -> editingMessage = id to text },
                         onCopied = {
-                            copyScope.launch { snackbarHostState.showSnackbar("Copied to clipboard") }
+                            copyScope.launch { snackbarHostState.showSnackbar(copiedToClipboardMessage) }
                         }
                     )
                 }
@@ -365,7 +369,7 @@ private fun MessageListRoom(
         uiState.compactedSummary?.let { summary ->
             androidx.compose.material3.AlertDialog(
                 onDismissRequest = { showSummary = false },
-                title = { Text("Summarized conversation") },
+                title = { Text(stringResource(R.string.chat_room_summarized_conversation)) },
                 text = {
                     Text(
                         text = summary,
@@ -375,7 +379,7 @@ private fun MessageListRoom(
                 },
                 confirmButton = {
                     androidx.compose.material3.TextButton(onClick = { showSummary = false }) {
-                        Text("Close")
+                        Text(stringResource(R.string.common_close))
                     }
                 }
             )
@@ -407,7 +411,7 @@ private fun ContextUsageIcon(
                 color = color
             )
             Text(
-                text = "${(ratio * 100).toInt()}%",
+                text = stringResource(R.string.common_percent, (ratio * 100).toInt()),
                 // "100%" is a character wider than "9%" — step the size down
                 // at full usage so the text stays inside the 28dp ring
                 // instead of overlapping the stroke.
@@ -459,7 +463,7 @@ private fun ContextMetricsSheet(
                 )
                 .padding(top = 8.dp, bottom = 24.dp)
         ) {
-            Text("Context usage", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.chat_room_context_usage_title), style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(20.dp))
 
             // Big circular gauge.
@@ -484,7 +488,11 @@ private fun ContextMetricsSheet(
                     // (thousands separators included) so the line can never
                     // touch or cross the ring stroke — big GGUF windows
                     // ("used / 131,072") previously overflowed onto it.
-                    val usageText = "%,d / %,d".format(Locale.US, usedTokens, maxTokens)
+                    val usageText = stringResource(
+                        R.string.chat_room_tokens_used_of_total,
+                        usedTokens,
+                        maxTokens
+                    )
                     val usageFontSize = (96f / (0.62f * usageText.length))
                         .coerceIn(9f, 15f).sp
                     Column(
@@ -492,7 +500,7 @@ private fun ContextMetricsSheet(
                         modifier = Modifier.padding(horizontal = 14.dp)
                     ) {
                         Text(
-                            "${(ratio * 100).toInt()}%",
+                            stringResource(R.string.common_percent, (ratio * 100).toInt()),
                             style = MaterialTheme.typography.headlineSmall,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
@@ -511,23 +519,33 @@ private fun ContextMetricsSheet(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Metrics rows — observability only, no user knobs.
-            ContextMetricRow("Tokens in context", "$usedTokens")
-            ContextMetricRow("Context budget", "$maxTokens tokens")
+            ContextMetricRow(stringResource(R.string.chat_room_tokens_in_context), "$usedTokens")
             ContextMetricRow(
-                "Compactions run",
-                "$compactionCount time${if (compactionCount == 1) "" else "s"}"
+                stringResource(R.string.chat_room_context_budget),
+                stringResource(R.string.chat_room_tokens_label, maxTokens)
             )
             ContextMetricRow(
-                "Compacted summary",
-                if (compactedSummary != null) "Present (${compactedSummary.length} chars)"
-                else "None yet"
+                stringResource(R.string.chat_room_compactions_run),
+                pluralStringResource(
+                    R.plurals.chat_room_compactions_count,
+                    compactionCount,
+                    compactionCount
+                )
+            )
+            ContextMetricRow(
+                stringResource(R.string.chat_room_compacted_summary),
+                if (compactedSummary != null) {
+                    stringResource(R.string.chat_room_summary_present, compactedSummary.length)
+                } else {
+                    stringResource(R.string.chat_room_summary_none)
+                }
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             // Auto-compaction note — its own quiet block, not a cramped row.
             Text(
-                "Older messages are summarized automatically when usage reaches 90% of the budget.",
+                stringResource(R.string.chat_room_context_explainer, 90),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -547,9 +565,9 @@ private fun ContextMetricsSheet(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Compacting…")
+                    Text(stringResource(R.string.chat_room_compacting))
                 } else {
-                    Text("Compact conversation")
+                    Text(stringResource(R.string.chat_room_compact_conversation))
                 }
             }
             if (compactionMessage != null) {
@@ -561,7 +579,7 @@ private fun ContextMetricsSheet(
                 )
             } else {
                 Text(
-                    "Summarizes older messages into a digest to free context space.",
+                    stringResource(R.string.chat_room_compact_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 6.dp)
@@ -605,7 +623,7 @@ private fun CompactionChip(onClick: () -> Unit) {
         modifier = Modifier.padding(top = 4.dp)
     ) {
         Text(
-            text = "Older messages were summarized to fit the context window",
+            text = stringResource(R.string.chat_room_compacted_notice),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)

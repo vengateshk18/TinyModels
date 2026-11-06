@@ -28,11 +28,13 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.Column
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -45,6 +47,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.network.NetworkMonitor
 import com.ai.tinymodels.feature.benchmark.BenchmarkScreen
 import com.ai.tinymodels.feature.chat.ChatListViewModel
@@ -55,6 +58,7 @@ import com.ai.tinymodels.feature.models.screens.DownloadedModelsScreen
 import com.ai.tinymodels.feature.models.screens.ModelDetailsScreen
 import com.ai.tinymodels.feature.models.screens.ModelListScreen
 import com.ai.tinymodels.feature.models.screens.ModelsTabScreen
+import com.ai.tinymodels.feature.onboarding.OnboardingScreen
 import com.ai.tinymodels.feature.home.DeviceInfoScreen
 import com.ai.tinymodels.feature.home.HomeScreen
 import com.ai.tinymodels.feature.settings.SettingsScreen
@@ -67,7 +71,9 @@ import com.ai.tinymodels.feature.settings.SettingsScreen
 @Composable
 fun TinyModelsApp(
     navController: NavHostController = rememberNavController(),
-    networkMonitor: NetworkMonitor
+    networkMonitor: NetworkMonitor,
+    /** Called once Home has real data on screen (used to end the launch splash). */
+    onHomeReady: () -> Unit = {}
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -110,10 +116,10 @@ fun TinyModelsApp(
                                     selected = selected,
                                     selectedIcon = item.selectedIcon,
                                     unselectedIcon = item.icon,
-                                    label = item.label
+                                    label = stringResource(item.labelRes)
                                 )
                             },
-                            label = { Text(item.label) }
+                            label = { Text(stringResource(item.labelRes)) }
                         )
                     }
                 }
@@ -144,7 +150,8 @@ fun TinyModelsApp(
                             )
                         },
                         onManageModels = { navController.navigate(Routes.DOWNLOADED_MODELS) },
-                        onOpenSettings = { navController.navigate(Routes.SETTINGS) }
+                        onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+                        onContentReady = onHomeReady
                     )
                 }
 
@@ -170,7 +177,16 @@ fun TinyModelsApp(
                         onManageModels = { navController.navigate(Routes.MODELS) },
                         onDownloadedModels = { navController.navigate(Routes.DOWNLOADED_MODELS) },
                         onDeviceInfo = { navController.navigate(Routes.DEVICE_INFO) },
-                        onBenchmark = { navController.navigate(Routes.BENCHMARK) }
+                        onBenchmark = { navController.navigate(Routes.BENCHMARK) },
+                        onViewIntro = { navController.navigate(Routes.ONBOARDING) }
+                    )
+                }
+
+                composable(Routes.ONBOARDING) {
+                    OnboardingScreen(
+                        onFinish = { navController.popBackStack() },
+                        onSkip = { navController.popBackStack() },
+                        isReplay = true
                     )
                 }
 
@@ -257,16 +273,16 @@ fun TinyModelsApp(
 
 private data class BottomNavItem(
     val route: String,
-    val label: String,
+    @StringRes val labelRes: Int,
     val icon: ImageVector,
     val selectedIcon: ImageVector
 )
 
 private val bottomNavItems = listOf(
-    BottomNavItem(Routes.HOME, "Home", Icons.Outlined.Home, Icons.Filled.Home),
-    BottomNavItem(Routes.CHAT, "Chat", Icons.Outlined.Chat, Icons.Filled.Chat),
-    BottomNavItem(Routes.MODELS, "Models", Icons.Outlined.Download, Icons.Filled.Download),
-    BottomNavItem(Routes.SETTINGS, "Settings", Icons.Outlined.Settings, Icons.Filled.Settings)
+    BottomNavItem(Routes.HOME, R.string.nav_home, Icons.Outlined.Home, Icons.Filled.Home),
+    BottomNavItem(Routes.CHAT, R.string.nav_chat, Icons.Outlined.Chat, Icons.Filled.Chat),
+    BottomNavItem(Routes.MODELS, R.string.nav_models, Icons.Outlined.Download, Icons.Filled.Download),
+    BottomNavItem(Routes.SETTINGS, R.string.nav_settings, Icons.Outlined.Settings, Icons.Filled.Settings)
 )
 
 /**

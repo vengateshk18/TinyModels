@@ -1,5 +1,7 @@
 package com.ai.tinymodels.domain.model
 
+import com.ai.tinymodels.core.common.TinyConstants
+
 /** A browsable model from the HuggingFace catalog. */
 data class ModelSummary(
     val id: String,
@@ -119,7 +121,7 @@ data class ModelDetails(
 ) {
     /** Files that can be run by the LiteRT-LM runtime. */
     val liteRtFiles: List<String>
-        get() = siblings.filter { it.endsWith(".litertlm", ignoreCase = true) }
+        get() = siblings.filter { it.endsWith(TinyConstants.MODEL_FILE_EXTENSION, ignoreCase = true) }
 
     /** MediaPipe .task files (single-file bundles with tokenizer + chat template). */
     val taskFiles: List<String>
@@ -145,7 +147,7 @@ data class ModelDetails(
 
     /** Only .litertlm files - the only format supported by LiteRT-LM runtime. */
     val runtimeFiles: List<String>
-        get() = siblings.filter { it.endsWith(".litertlm", ignoreCase = true) }
+        get() = siblings.filter { it.endsWith(TinyConstants.MODEL_FILE_EXTENSION, ignoreCase = true) }
 
     /** All runnable model files across all supported formats. */
     val allRunnableFiles: List<String>
@@ -198,6 +200,8 @@ data class DownloadedModel(
 enum class FileDownloadStatus {
     NOT_DOWNLOADED,
     DOWNLOADING,
+    /** Stopped by the user; the partial file is kept so Resume continues it. */
+    PAUSED,
     DOWNLOADED,
     FAILED
 }

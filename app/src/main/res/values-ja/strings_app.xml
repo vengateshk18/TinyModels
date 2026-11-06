@@ -1,0 +1,221 @@
+<resources>
+    <!-- ================= Settings ================= -->
+    <string name="settings_title">設定</string>
+    <string name="settings_section_appearance">外観</string>
+    <string name="settings_theme">テーマ</string>
+    <string name="settings_dynamic_color">ダイナミックカラー</string>
+    <string name="settings_dynamic_color_subtitle">壁紙ベースの色を使用 (Android 12+)</string>
+    <string name="settings_font_size">フォントサイズ</string>
+    <string name="settings_font">フォント</string>
+    <string name="settings_change_font_content_description">フォントを変更</string>
+    <string name="settings_font_sheet_title">フォントを選択</string>
+    <string name="settings_font_default">デフォルト</string>
+    <string name="settings_font_google">Google フォント</string>
+
+    <!-- Language picker -->
+    <string name="language_system">システムデフォルト</string>
+    <!-- Native names: always shown in the language's own script, never translated. -->
+    <!-- English names: the readable hint shown in parentheses. -->
+    <!-- Renders as "<native name> (<English name>)". -->
+    <string name="language_option_format">%1$s (%2$s)</string>
+
+    <string name="settings_section_inference">推論</string>
+    <string name="settings_default_backend">デフォルトバックエンド</string>
+    <string name="settings_web_search">ウェブ検索</string>
+    <string name="settings_web_search_subtitle">チャットでモデルのウェブ検索ツールを有効化。検索クエリはデバイス外に送信されます。</string>
+    <string name="settings_web_search_note">チャットで有効にすると（チャットの + メニュー経由）、モデルが必要に応じてウェブを検索します。</string>
+
+    <string name="settings_section_downloads">ダウンロード</string>
+    <string name="settings_wifi_only_downloads">Wi-Fi のみでダウンロード</string>
+    <string name="settings_wifi_only_downloads_subtitle">従量課金接続でのダウンロードを避けるため、無制限接続を待機</string>
+    <string name="settings_downloads_note">モデルファイルは数 GB — モバイルデータプランを守ります。</string>
+
+    <string name="settings_section_chat">チャット</string>
+    <string name="settings_auto_load_last_model">最後に使用したモデルを自動読み込み</string>
+    <string name="settings_auto_load_last_model_subtitle">チャットを開くときに前回使用したモデルを読み込む</string>
+    <string name="settings_keep_screen_on">画面をオンのまま保持</string>
+    <string name="settings_keep_screen_on_subtitle">モデル生成中にスリープを防ぐ</string>
+    <string name="settings_show_token_counts">トークン数を表示</string>
+    <string name="settings_show_token_counts_subtitle">各バブルの下にメッセージごとのトークン数を表示</string>
+
+    <string name="settings_section_hugging_face">Hugging Face</string>
+    <string name="settings_access_token">アクセストークン</string>
+    <string name="settings_token_not_set">未設定 — 任意。ゲート付きモデルのみ必要</string>
+    <string name="settings_token_set">設定済み — %1$s••••••••%2$s</string>
+    <string name="settings_token_help">ゲート付きモデル（例: Gemma）のダウンロードには無料のアクセストークンが必要です。huggingface.co/settings/tokens で作成し、モデルのページでライセンスに同意してください。</string>
+    <string name="settings_token_dialog_title">Hugging Face アクセストークン</string>
+    <string name="settings_token_dialog_body">読み取りアクセス権のあるトークンを貼り付け。huggingface.co/settings/tokens で作成できます。</string>
+    <string name="settings_token_save">保存</string>
+    <string name="settings_token_remove">削除</string>
+
+    <string name="settings_section_support">サポート</string>
+    <string name="settings_star_on_github">GitHub でスター</string>
+    <string name="settings_star_on_github_subtitle">無料のオンデバイス AI をすべての人に</string>
+    <string name="settings_report_bug">バグを報告</string>
+    <string name="settings_report_bug_subtitle">問題を見つけましたか？お知らせください</string>
+
+    <string name="settings_section_about">アプリについて</string>
+    <string name="settings_benchmark">ベンチマーク</string>
+    <string name="settings_benchmark_subtitle">読み込み時間、TTFT、トークン/秒を計測</string>
+    <string name="settings_device_information">デバイス情報</string>
+    <string name="settings_device_information_subtitle">デバイスの AI 能力を確認</string>
+    <string name="settings_clear_chat_history">チャット履歴を消去</string>
+    <string name="settings_clear_chat_history_subtitle">すべての会話を削除</string>
+    <string name="settings_clear_chat_history_title">チャット履歴を消去</string>
+    <string name="settings_clear_chat_history_body">すべてのチャット会話を削除しますか？この操作は元に戻せません。</string>
+
+    <string name="settings_section_model_management">モデル管理</string>
+    <string name="settings_token_removed">アクセストークンを削除しました</string>
+    <string name="settings_token_saved">アクセストークンを保存しました</string>
+    <string name="settings_chat_history_cleared">チャット履歴を消去しました</string>
+    <string name="settings_model_imported">モデルをインポートしました: %1$s</string>
+    <string name="settings_import_failed">インポートに失敗しました: %1$s</string>
+    <string name="model_import_invalid_file_type">ファイル形式が無効です。.litertlm ファイルのみサポートされます。</string>
+    <string name="model_import_file_not_found">デバイスにファイルが見つかりません: %1$s</string>
+    <string name="model_import_create_failed">保存先ファイルの作成に失敗しました: %1$s</string>
+    <string name="model_import_write_failed">保存先ファイルに書き込めません: %1$s</string>
+    <string name="model_import_no_file_name">ファイル名を特定できません</string>
+    <string name="model_import_already_exists">このモデルファイルは既にライブラリに存在します</string>
+    <string name="model_import_open_failed">ソースファイルを開けません</string>
+    <string name="benchmark_error_model_file_missing">デバイスにモデルファイルがありません</string>
+    <string name="benchmark_error_not_enough_ram">このモデルを読み込むのに十分な空き RAM がありません（約 %1$d MB 必要、%2$d MB 利用可能）。他のアプリを閉じて再試行してください。</string>
+    <string name="benchmark_error_failed_to_load">モデルの読み込みに失敗しました</string>
+    <string name="settings_import_model">モデルをインポート</string>
+    <string name="settings_import_model_subtitle">.litertlm・.task・.tflite・.gguf ファイルをインポート</string>
+    <string name="settings_import_model_note">インポートしたモデルは「インポート済み」タグ付きでライブラリに表示されます。ダウンロード済みファイルを共有するには、開いてエクスポートを使用してください。</string>
+
+    <!-- ================= Theme / backend choices ================= -->
+
+    <!-- ================= Fonts ================= -->    <string name="font_system">システム</string>
+
+    <!-- ================= Bottom navigation ================= -->
+    <string name="nav_home">ホーム</string>
+    <string name="nav_chat">チャット</string>
+    <string name="nav_models">モデル</string>
+    <string name="nav_settings">設定</string>
+
+    <!-- ================= Benchmark ================= -->
+    <string name="benchmark_title">ベンチマーク</string>
+    <string name="benchmark_loading_title">モデルを読み込み中…</string>
+    <string name="benchmark_loading_subtitle">コールドロード — 計測中。</string>
+    <string name="benchmark_failed_title">ベンチマークに失敗しました</string>
+    <string name="benchmark_back_to_models">モデルに戻る</string>
+    <string name="benchmark_stop_title">ベンチマークを停止しますか？</string>
+    <string name="benchmark_stop_body">実行がキャンセルされ、結果は破棄されます。</string>
+    <string name="benchmark_stop">停止</string>
+    <string name="benchmark_continue">続行</string>
+    <string name="benchmark_choose_model">モデルを選択</string>
+    <string name="benchmark_run">ベンチマークを実行</string>
+    <string name="benchmark_progress_prompt">%1$s プロンプト</string>
+    <string name="benchmark_progress_warmup"> • ウォームアップ</string>
+    <string name="benchmark_stat_prompt">プロンプト</string>
+    <string name="benchmark_stat_tokens">トークン</string>
+    <string name="benchmark_section_model">モデル</string>
+    <string name="benchmark_stat_peak_memory">ピークメモリ (PSS)</string>
+    <string name="benchmark_stat_backend">バックエンド</string>
+    <string name="benchmark_stat_device">デバイス</string>
+    <string name="benchmark_token_note">トークンはストリームの出力からカウントされます（1出力につき1トークン）。プリフィル速度はプロンプトトークン数 / TTFT で、最初のデコードステップを含みます。</string>
+    <string name="benchmark_rerun">再実行</string>
+    <string name="benchmark_summary_header">TinyModels ベンチマーク — %1$s (%2$s, %3$s)</string>
+    <string name="benchmark_summary_device">デバイス: %1$s</string>
+
+    <!-- ================= Download notifications ================= -->
+    <string name="notification_channel_downloads">モデルのダウンロード</string>
+    <string name="notification_downloading_title">モデルをダウンロード中</string>
+    <string name="notification_download_complete">ダウンロード完了</string>
+    <string name="notification_download_failed">ダウンロードに失敗しました</string>
+    <string name="notification_failed_with_reason">%1$s — %2$s</string>
+    <string name="download_error_gated">HTTP 401 — このモデルはゲート付きです。設定で Hugging Face アクセストークンを追加するか、huggingface.co でモデルのライセンスに同意してください。</string>
+
+    <!-- リソース抽出で追加された新しい文字列 -->
+    <string name="settings_importing_model">モデルをインポート中…</string>
+    <string name="settings_font_reset">既定に戻す</string>
+    <string name="settings_font_preview_body">チャットはこのように表示されます。</string>
+    <string name="settings_font_preview_small">小さい文字も読みやすいままです。</string>
+    <string name="settings_bug_report_subject">TinyModels バグレポート</string>
+    <string name="settings_theme_system">システム</string>
+    <string name="settings_theme_light">ライト</string>
+    <string name="settings_theme_dark">ダーク</string>
+    <string name="settings_backend_auto">自動</string>
+    <string name="benchmark_state_result">結果</string>
+    <string name="benchmark_state_measuring">測定中</string>
+    <string name="benchmark_state_loading">モデルを読み込み中</string>
+    <string name="benchmark_state_subtitle">このデバイスでの推論速度</string>
+    <string name="benchmark_no_models_title">モデルがまだありません</string>
+    <string name="benchmark_no_models_body">モデルタブからモデルをダウンロードしてから、戻って測定してください。</string>
+    <string name="benchmark_files_available">%1$d 件利用可能</string>
+    <string name="benchmark_what_gets_measured">測定項目</string>
+    <string name="benchmark_metric_decode">デコード</string>
+    <string name="benchmark_metric_decode_sub">トークン / 秒</string>
+    <string name="benchmark_metric_ttft">最初のトークンまでの時間</string>
+    <string name="benchmark_metric_ttft_sub">応答性</string>
+    <string name="benchmark_metric_prefill">プリフィル</string>
+    <string name="benchmark_metric_prefill_sub">プロンプト処理</string>
+    <string name="benchmark_metric_memory">ピークメモリ</string>
+    <string name="benchmark_metric_memory_sub">フットプリント</string>
+    <string name="benchmark_run_measuring">%1$s を測定中</string>
+    <string name="benchmark_run_duration">通常 3〜10 分（モデルによります）</string>
+    <string name="benchmark_hero_title">このスマホは実際どれくらい速い？</string>
+    <string name="benchmark_hero_body">同じ 3 つのプロンプトを貪欲法で実行し、ウォームアップを 1 回捨ててから、定常状態の速度・メモリ・熱低下を測定します。</string>
+    <string name="benchmark_hero_chip_prompts">プロンプト %1$d 件</string>
+    <string name="benchmark_hero_chip_runs">各 %1$d 回</string>
+    <string name="benchmark_hero_chip_temp">temp 0</string>
+    <string name="benchmark_selected_content_description">選択済み</string>
+    <string name="benchmark_methodology">測定方法</string>
+    <string name="benchmark_method_prompts">最初のトークンまでの時間とプリフィル性能を分けるため、%1$d 件のプロンプト（短い → 長い）</string>
+    <string name="benchmark_method_runs">ウォームアップ 1 回 + 各 %1$d 回の測定、ウォームアップは破棄</string>
+    <string name="benchmark_method_greedy">再現性のため貪欲法（temperature 0、top-k 1）</string>
+    <string name="benchmark_method_sustained">熱スロットリングを検出する %1$d 秒の連続ループ</string>
+    <string name="benchmark_method_memory">ピークメモリを 250 ms ごとにサンプリング、出力は %1$d トークンまで</string>
+    <string name="benchmark_progress_seconds_left">残り %1$d 秒</string>
+    <string name="benchmark_progress_measuring">測定中</string>
+    <string name="benchmark_thermal_check">熱チェック</string>
+    <string name="benchmark_progress_run_of">%2$d 回中 %1$d 回目</string>
+    <string name="benchmark_sustained_watching">連続負荷 — スロットリングを監視中</string>
+    <string name="benchmark_section_thermal">熱</string>
+    <string name="benchmark_phase_prompt_suite">プロンプトスイート</string>
+    <string name="benchmark_phase_thermal">熱</string>
+    <string name="benchmark_result_score">スコア</string>
+    <string name="benchmark_result_grade">グレード %1$s</string>
+    <string name="benchmark_result_median_decode">中央値デコード %1$.1f tok/s</string>
+    <string name="benchmark_stat_decode_p50">デコード p50</string>
+    <string name="benchmark_stat_ttft_p50">TTFT p50</string>
+    <string name="benchmark_stat_prefill_p50">プリフィル p50</string>
+    <string name="benchmark_section_by_prompt">プロンプト別</string>
+    <string name="benchmark_section_by_prompt_hint">p50 · p95</string>
+    <string name="benchmark_section_thermal_hint">連続負荷</string>
+    <string name="benchmark_stat_sustained_speed">持続速度</string>
+    <string name="benchmark_stat_change_over_run">実行中の変化</string>
+    <string name="benchmark_stat_spread">実行間のばらつき</string>
+    <string name="benchmark_stability_value">%1$s (%2$.1f%%)</string>
+    <string name="benchmark_info_cold_load">コールドロード</string>
+    <string name="benchmark_info_model_size">モデルサイズ</string>
+    <string name="benchmark_info_memory_ratio">メモリ / モデル</string>
+    <string name="benchmark_copy">コピー</string>
+    <string name="benchmark_prompt_short">短い</string>
+    <string name="benchmark_prompt_medium">中程度</string>
+    <string name="benchmark_prompt_long">長い</string>
+    <string name="benchmark_thermal_holds">最高速度を維持</string>
+    <string name="benchmark_thermal_slight">わずかな熱低下</string>
+    <string name="benchmark_thermal_noticeable">明らかなスロットリング</string>
+    <string name="benchmark_thermal_heavy">強いスロットリング</string>
+    <string name="benchmark_stability_stable">安定</string>
+    <string name="benchmark_stability_fair">普通</string>
+    <string name="benchmark_stability_unstable">不安定</string>
+    <string name="benchmark_throttle_drop">%1$.1f%% 低下</string>
+    <string name="benchmark_throttle_faster">%1$.1f%% 高速</string>
+    <string name="benchmark_throttle_none">変化なし</string>
+    <string name="benchmark_summary_score">スコア: %1$d (%2$s) · 中央値デコード %3$.1f tok/s</string>
+    <string name="benchmark_summary_prompt_line">%1$s: TTFT %2$.0fms (p95 %3$.0f)、デコード %4$.1f tok/s (p95 %5$.1f、sd %6$.1f)、プリフィル %7$.0f tok/s</string>
+    <string name="benchmark_summary_sustained">持続: %1$.1f tok/s、%2$s (%3$s)</string>
+    <string name="benchmark_summary_load">読み込み %1$.1f秒 · ピーク PSS %2$s · モデル %3$s</string>
+    <string name="splash_tagline">小さなモデルで、大きな可能性。</string>
+    <string name="splash_pillars">非公開 · オフライン · あなたのもの</string>
+    <string name="notification_progress_bytes">%1$s / %2$s · %3$d%%</string>
+    <string name="notification_progress_downloading">%1$s · ダウンロード中</string>
+    <string name="notification_speed">%1$s/s</string>
+    <string name="settings_view_intro">イントロを見る</string>
+    <string name="settings_view_intro_subtitle">TinyModels のツアーをもう一度</string>
+    <string name="benchmark_ttft_line">TTFT %1$.0f ms · p95 %2$.0f ms</string>
+    <string name="model_import_projector_not_model">これはビジョンプロジェクター（mmproj）であり、言語モデルではありません。メインの .gguf モデルをインポートしてください。プロジェクターは自動的にダウンロードされ、モデルとペアになります。</string>
+</resources>

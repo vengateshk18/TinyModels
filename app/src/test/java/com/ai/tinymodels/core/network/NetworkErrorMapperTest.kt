@@ -1,5 +1,6 @@
 package com.ai.tinymodels.core.network
 
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.AppError
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -72,29 +73,61 @@ class NetworkErrorMapperTest {
         assertTrue(error is AppError.Network)
     }
 
-    // ---- friendlyMessage ----
+    // ---- friendlyMessageRes ----
 
     @Test
-    fun `NoConnection copy mentions being offline`() {
-        val message = NetworkErrorMapper.friendlyMessage(AppError.NoConnection())
-        assertTrue(message.contains("offline", ignoreCase = true))
+    fun `NoConnection copy is the offline resource`() {
+        assertEquals(
+            R.string.error_no_connection,
+            NetworkErrorMapper.friendlyMessageRes(AppError.NoConnection())
+        )
     }
 
     @Test
-    fun `Auth copy mentions the token`() {
-        val message = NetworkErrorMapper.friendlyMessage(AppError.Auth())
-        assertTrue(message.contains("token", ignoreCase = true))
+    fun `401 copy points at the access token`() {
+        assertEquals(
+            R.string.error_gated,
+            NetworkErrorMapper.friendlyMessageRes(AppError.Auth(code = 401))
+        )
     }
 
     @Test
-    fun `NotFound copy mentions the model`() {
-        val message = NetworkErrorMapper.friendlyMessage(AppError.NotFound())
-        assertTrue(message.contains("not found", ignoreCase = true))
+    fun `403 copy says access was refused`() {
+        assertEquals(
+            R.string.error_no_access,
+            NetworkErrorMapper.friendlyMessageRes(AppError.Auth(code = 403))
+        )
     }
 
     @Test
-    fun `custom message overrides default copy`() {
-        val message = NetworkErrorMapper.friendlyMessage(AppError.Network("custom reason"))
-        assertEquals("custom reason", message)
+    fun `NotFound copy is the not-found resource`() {
+        assertEquals(
+            R.string.error_not_found,
+            NetworkErrorMapper.friendlyMessageRes(AppError.NotFound())
+        )
+    }
+
+    @Test
+    fun `429 copy is the rate-limit resource`() {
+        assertEquals(
+            R.string.error_too_many_requests,
+            NetworkErrorMapper.friendlyMessageRes(AppError.ServerError(code = 429))
+        )
+    }
+
+    @Test
+    fun `5xx copy is the server resource`() {
+        assertEquals(
+            R.string.error_server,
+            NetworkErrorMapper.friendlyMessageRes(AppError.ServerError(code = 500))
+        )
+    }
+
+    @Test
+    fun `Storage copy is the storage resource`() {
+        assertEquals(
+            R.string.error_storage,
+            NetworkErrorMapper.friendlyMessageRes(AppError.Storage())
+        )
     }
 }

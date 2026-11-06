@@ -1,0 +1,219 @@
+<resources>
+    <!-- ================= Settings ================= -->
+    <string name="settings_title">सेटिंग्स</string>
+    <string name="settings_section_appearance">रूप-रंग</string>
+    <string name="settings_theme">थीम</string>
+    <string name="settings_dynamic_color">डायनामिक रंग</string>
+    <string name="settings_dynamic_color_subtitle">वॉलपेपर के रंगों का उपयोग करें (Android 12+)</string>
+    <string name="settings_font_size">फ़ॉन्ट आकार</string>
+    <string name="settings_font">फ़ॉन्ट</string>
+    <string name="settings_change_font_content_description">फ़ॉन्ट बदलें</string>
+    <string name="settings_font_sheet_title">फ़ॉन्ट चुनें</string>
+    <string name="settings_font_default">डिफ़ॉल्ट</string>
+    <string name="settings_font_google">Google फ़ॉन्ट</string>
+
+    <!-- Language picker -->
+    <string name="language_system">सिस्टम के अनुसार</string>
+    <string name="language_option_format">%1$s (%2$s)</string>
+
+    <string name="settings_section_inference">इन्फ़रेंस</string>
+    <string name="settings_default_backend">डिफ़ॉल्ट बैकएंड</string>
+    <string name="settings_web_search">वेब सर्च</string>
+    <string name="settings_web_search_subtitle">चैट को मॉडल का वेब सर्च टूल चालू करने दें। खोज क्वेरी डिवाइस से बाहर जाती हैं।</string>
+    <string name="settings_web_search_note">किसी चैट के लिए चालू होने पर (चैट के + मेन्यू से), मॉडल को ज़रूरत पड़ने पर वेब पर खोज सकता है।</string>
+
+    <string name="settings_section_downloads">डाउनलोड</string>
+    <string name="settings_wifi_only_downloads">केवल Wi-Fi पर डाउनलोड</string>
+    <string name="settings_wifi_only_downloads_subtitle">मॉडल डाउनलोड करने से पहले असीमित कनेक्शन की प्रतीक्षा करें</string>
+    <string name="settings_downloads_note">मॉडल फ़ाइलें गिगाबाइट होती हैं — इससे आपका मोबाइल डेटा बचता है।</string>
+
+    <string name="settings_section_chat">चैट</string>
+    <string name="settings_auto_load_last_model">पिछला मॉडल अपने आप लोड करें</string>
+    <string name="settings_auto_load_last_model_subtitle">चैट खोलते समय पहले से इस्तेमाल किया गया मॉडल लोड करें</string>
+    <string name="settings_keep_screen_on">स्क्रीन चालू रखें</string>
+    <string name="settings_keep_screen_on_subtitle">मॉडल के जवाब देने के दौरान डिवाइस को न सोने दें</string>
+    <string name="settings_show_token_counts">टोकन की संख्या दिखाएँ</string>
+    <string name="settings_show_token_counts_subtitle">हर संदेश के नीचे टोकन की संख्या दिखाएँ</string>
+
+    <string name="settings_section_hugging_face">Hugging Face</string>
+    <string name="settings_access_token">एक्सेस टोकन</string>
+    <string name="settings_token_not_set">सेट नहीं है — वैकल्पिक; केवल गेट किए गए मॉडलों के लिए ज़रूरी</string>
+    <string name="settings_token_set">सेट है — %1$s••••••••%2$s</string>
+    <string name="settings_token_help">गेट किए गए मॉडल (जैसे Gemma) को डाउनलोड करने के लिए मुफ़्त एक्सेस टोकन चाहिए। huggingface.co/settings/tokens पर इसे बनाएँ, फिर मॉडल के पेज पर उसकी लाइसेंस स्वीकार करें।</string>
+    <string name="settings_token_dialog_title">Hugging Face एक्सेस टोकन</string>
+    <string name="settings_token_dialog_body">रीड एक्सेस वाला टोकन पेस्ट करें। इसे huggingface.co/settings/tokens पर बनाएँ।</string>
+    <string name="settings_token_save">सहेजें</string>
+    <string name="settings_token_remove">हटाएँ</string>
+
+    <string name="settings_section_support">सहायता</string>
+    <string name="settings_star_on_github">GitHub पर स्टार दें</string>
+    <string name="settings_star_on_github_subtitle">सबके लिए मुफ़्त, डिवाइस पर चलने वाले AI का समर्थन करें</string>
+    <string name="settings_report_bug">बग की सूचना दें</string>
+    <string name="settings_report_bug_subtitle">कुछ टूटा मिला? हमें बताएँ</string>
+
+    <string name="settings_section_about">परिचय</string>
+    <string name="settings_benchmark">बेंचमार्क</string>
+    <string name="settings_benchmark_subtitle">लोड समय, TTFT और टोकन/सेकंड मापें</string>
+    <string name="settings_device_information">डिवाइस की जानकारी</string>
+    <string name="settings_device_information_subtitle">अपने डिवाइस की AI क्षमता देखें</string>
+    <string name="settings_clear_chat_history">चैट इतिहास मिटाएँ</string>
+    <string name="settings_clear_chat_history_subtitle">सभी बातचीतें हटाएँ</string>
+    <string name="settings_clear_chat_history_title">चैट इतिहास मिटाएँ</string>
+    <string name="settings_clear_chat_history_body">सभी चैट बातचीतें हटाएँ? यह कार्रवाई वापस नहीं की जा सकती।</string>
+
+    <string name="settings_section_model_management">मॉडल प्रबंधन</string>
+    <string name="settings_token_removed">एक्सेस टोकन हटा दिया गया</string>
+    <string name="settings_token_saved">एक्सेस टोकन सहेज लिया गया</string>
+    <string name="settings_chat_history_cleared">चैट इतिहास मिटा दिया गया</string>
+    <string name="settings_model_imported">मॉडल आयातित: %1$s</string>
+    <string name="settings_import_failed">आयात विफल: %1$s</string>
+    <string name="model_import_invalid_file_type">अमान्य फ़ाइल प्रकार। केवल .litertlm फ़ाइलें समर्थित हैं।</string>
+    <string name="model_import_file_not_found">डिवाइस पर फ़ाइल नहीं मिली: %1$s</string>
+    <string name="model_import_create_failed">गंतव्य फ़ाइल नहीं बनाई जा सकी: %1$s</string>
+    <string name="model_import_write_failed">गंतव्य फ़ाइल में लिखा नहीं जा सका: %1$s</string>
+    <string name="model_import_no_file_name">फ़ाइल का नाम तय नहीं हो सका</string>
+    <string name="model_import_already_exists">यह मॉडल फ़ाइल आपकी लाइब्रेरी में पहले से है</string>
+    <string name="model_import_open_failed">स्रोत फ़ाइल नहीं खोली जा सकी</string>
+    <string name="benchmark_error_model_file_missing">डिवाइस पर मॉडल फ़ाइल नहीं मिली</string>
+    <string name="benchmark_error_not_enough_ram">इस मॉडल को लोड करने के लिए पर्याप्त खाली RAM नहीं है (~%1$d MB चाहिए, %2$d MB उपलब्ध है)। दूसरे ऐप बंद करके फिर कोशिश करें।</string>
+    <string name="benchmark_error_failed_to_load">मॉडल लोड नहीं हो सका</string>
+    <string name="settings_import_model">मॉडल आयात करें</string>
+    <string name="settings_import_model_subtitle">एक .litertlm, .task, .tflite या .gguf फ़ाइल आयात करें</string>
+    <string name="settings_import_model_note">आयातित मॉडल आपकी लाइब्रेरी में «आयातित» टैग के साथ दिखते हैं। किसी डाउनलोड की गई फ़ाइल साझा करने के लिए उसे खोलें और निर्यात करें।</string>
+
+    <!-- ================= Theme / backend choices ================= -->
+
+    <!-- ================= Fonts ================= -->
+    <string name="font_system">सिस्टम</string>
+
+    <!-- ================= Bottom navigation ================= -->
+    <string name="nav_home">होम</string>
+    <string name="nav_chat">चैट</string>
+    <string name="nav_models">मॉडल</string>
+    <string name="nav_settings">सेटिंग्स</string>
+
+    <!-- ================= Benchmark ================= -->
+    <string name="benchmark_title">बेंचमार्क</string>
+    <string name="benchmark_loading_title">मॉडल लोड हो रहा है…</string>
+    <string name="benchmark_loading_subtitle">कोल्ड लोड — इसी का समय मापा जा रहा है।</string>
+    <string name="benchmark_failed_title">बेंचमार्क विफल रहा</string>
+    <string name="benchmark_back_to_models">मॉडल पर वापस जाएँ</string>
+    <string name="benchmark_stop_title">बेंचमार्क रोकें?</string>
+    <string name="benchmark_stop_body">यह रन रद्द हो जाएगा और नतीजे फेंक दिए जाएँगे।</string>
+    <string name="benchmark_stop">रोकें</string>
+    <string name="benchmark_continue">जारी रखें</string>
+    <string name="benchmark_choose_model">कोई मॉडल चुनें</string>
+    <string name="benchmark_run">बेंचमार्क चलाएँ</string>
+    <string name="benchmark_progress_prompt">%1$s प्रॉम्प्ट</string>
+    <string name="benchmark_progress_warmup"> • वार्म-अप</string>
+    <string name="benchmark_stat_prompt">प्रॉम्प्ट</string>
+    <string name="benchmark_stat_tokens">टोकन</string>
+    <string name="benchmark_section_model">मॉडल</string>
+    <string name="benchmark_stat_peak_memory">अधिकतम मेमोरी (PSS)</string>
+    <string name="benchmark_stat_backend">बैकएंड</string>
+    <string name="benchmark_stat_device">डिवाइस</string>
+    <string name="benchmark_token_note">टोकन स्ट्रीम से आने वाले उत्सर्जनों से गिने जाते हैं (हर उत्सर्जन पर एक टोकन)। प्रीफ़िल गति = प्रॉम्प्ट टोकन / TTFT, और इसमें पहला डिकोड चरण भी शामिल है।</string>
+    <string name="benchmark_rerun">दोबारा चलाएँ</string>
+    <string name="benchmark_summary_header">TinyModels बेंचमार्क — %1$s (%2$s, %3$s)</string>
+    <string name="benchmark_summary_device">डिवाइस: %1$s</string>
+
+    <!-- ================= Download notifications ================= -->
+    <string name="notification_channel_downloads">मॉडल डाउनलोड</string>
+    <string name="notification_downloading_title">मॉडल डाउनलोड हो रहा है</string>
+    <string name="notification_download_complete">डाउनलोड पूरा हुआ</string>
+    <string name="notification_download_failed">डाउनलोड विफल रहा</string>
+    <string name="notification_failed_with_reason">%1$s — %2$s</string>
+    <string name="download_error_gated">HTTP 401 — इस मॉडल के लिए लाइसेंस ज़रूरी है। सेटिंग्स में अपना Hugging Face एक्सेस टोकन जोड़ें, या पहले huggingface.co पर मॉडल की लाइसेंस स्वीकार करें।</string>
+
+    <!-- संसाधन निष्कर्षण से जुड़े नए स्ट्रिंग -->
+    <string name="settings_importing_model">मॉडल आयात किया जा रहा है…</string>
+    <string name="settings_font_reset">डिफ़ॉल्ट पर रीसेट करें</string>
+    <string name="settings_font_preview_body">आपकी चैट ऐसी दिखेंगी।</string>
+    <string name="settings_font_preview_small">छोटा टेक्स्ट भी पढ़ने योग्य रहता है।</string>
+    <string name="settings_bug_report_subject">TinyModels बग रिपोर्ट</string>
+    <string name="settings_theme_system">सिस्टम</string>
+    <string name="settings_theme_light">हल्का</string>
+    <string name="settings_theme_dark">गहरा</string>
+    <string name="settings_backend_auto">स्वचालित</string>
+    <string name="benchmark_state_result">परिणाम</string>
+    <string name="benchmark_state_measuring">माप रहे हैं</string>
+    <string name="benchmark_state_loading">मॉडल लोड हो रहा है</string>
+    <string name="benchmark_state_subtitle">इस डिवाइस पर इन्फ़रेंस की गति</string>
+    <string name="benchmark_no_models_title">अभी कोई मॉडल नहीं</string>
+    <string name="benchmark_no_models_body">मॉडल टैब से एक मॉडल डाउनलोड करें, फिर मापने के लिए वापस आएँ।</string>
+    <string name="benchmark_files_available">%1$d उपलब्ध</string>
+    <string name="benchmark_what_gets_measured">क्या मापा जाता है</string>
+    <string name="benchmark_metric_decode">डिकोड</string>
+    <string name="benchmark_metric_decode_sub">टोकन / सेकंड</string>
+    <string name="benchmark_metric_ttft">पहले टोकन तक का समय</string>
+    <string name="benchmark_metric_ttft_sub">प्रतिक्रियाशीलता</string>
+    <string name="benchmark_metric_prefill">प्रीफ़िल</string>
+    <string name="benchmark_metric_prefill_sub">प्रॉम्प्ट प्रोसेसिंग</string>
+    <string name="benchmark_metric_memory">अधिकतम मेमोरी</string>
+    <string name="benchmark_metric_memory_sub">फ़ुटप्रिंट</string>
+    <string name="benchmark_run_measuring">%1$s मापा जा रहा है</string>
+    <string name="benchmark_run_duration">आमतौर पर 3–10 मिनट, मॉडल पर निर्भर</string>
+    <string name="benchmark_hero_title">यह फ़ोन असल में कितना तेज़ है?</string>
+    <string name="benchmark_hero_body">वही तीन प्रॉम्प्ट ग्रीडी डिकोडिंग पर चलाता है, एक वार्म-अप पास छोड़ देता है, फिर स्थिर गति, मेमोरी और थर्मल गिरावट मापता है।</string>
+    <string name="benchmark_hero_chip_prompts">%1$d प्रॉम्प्ट</string>
+    <string name="benchmark_hero_chip_runs">हर एक के %1$d रन</string>
+    <string name="benchmark_hero_chip_temp">temp 0</string>
+    <string name="benchmark_selected_content_description">चयनित</string>
+    <string name="benchmark_methodology">कार्यप्रणाली</string>
+    <string name="benchmark_method_prompts">पहले टोकन तक के समय को प्रीफ़िल थ्रूपुट से अलग करने के लिए %1$d प्रॉम्प्ट (छोटे → लंबे)</string>
+    <string name="benchmark_method_runs">1 वार्म-अप + हर एक के %1$d मापे गए रन, वार्म-अप छोड़ा गया</string>
+    <string name="benchmark_method_greedy">ग्रीडी डिकोडिंग (तापमान 0, top-k 1) ताकि रन दोहराए जा सकें</string>
+    <string name="benchmark_method_sustained">थर्मल थ्रॉटलिंग पकड़ने के लिए %1$d सेकंड का लगातार लूप</string>
+    <string name="benchmark_method_memory">अधिकतम मेमोरी हर 250 ms पर सैंपल की जाती है; आउटपुट %1$d टोकन तक सीमित</string>
+    <string name="benchmark_progress_seconds_left">%1$d सेकंड बाकी</string>
+    <string name="benchmark_progress_measuring">माप रहे हैं</string>
+    <string name="benchmark_thermal_check">थर्मल जाँच</string>
+    <string name="benchmark_progress_run_of">रन %1$d / %2$d</string>
+    <string name="benchmark_sustained_watching">लगातार लोड — थ्रॉटलिंग पर नज़र</string>
+    <string name="benchmark_section_thermal">थर्मल</string>
+    <string name="benchmark_phase_prompt_suite">प्रॉम्प्ट सूट</string>
+    <string name="benchmark_phase_thermal">थर्मल</string>
+    <string name="benchmark_result_score">स्कोर</string>
+    <string name="benchmark_result_grade">ग्रेड %1$s</string>
+    <string name="benchmark_result_median_decode">%1$.1f tok/s माध्यिका डिकोड</string>
+    <string name="benchmark_stat_decode_p50">डिकोड p50</string>
+    <string name="benchmark_stat_ttft_p50">TTFT p50</string>
+    <string name="benchmark_stat_prefill_p50">प्रीफ़िल p50</string>
+    <string name="benchmark_section_by_prompt">प्रॉम्प्ट के अनुसार</string>
+    <string name="benchmark_section_by_prompt_hint">p50 · p95</string>
+    <string name="benchmark_section_thermal_hint">लगातार लोड</string>
+    <string name="benchmark_stat_sustained_speed">स्थिर गति</string>
+    <string name="benchmark_stat_change_over_run">रन के दौरान बदलाव</string>
+    <string name="benchmark_stat_spread">रन-दर-रन फैलाव</string>
+    <string name="benchmark_stability_value">%1$s (%2$.1f%%)</string>
+    <string name="benchmark_info_cold_load">कोल्ड लोड</string>
+    <string name="benchmark_info_model_size">मॉडल का आकार</string>
+    <string name="benchmark_info_memory_ratio">मेमोरी / मॉडल</string>
+    <string name="benchmark_copy">कॉपी करें</string>
+    <string name="benchmark_prompt_short">छोटा</string>
+    <string name="benchmark_prompt_medium">मध्यम</string>
+    <string name="benchmark_prompt_long">लंबा</string>
+    <string name="benchmark_thermal_holds">पूरी गति बनाए रखता है</string>
+    <string name="benchmark_thermal_slight">हल्की थर्मल गिरावट</string>
+    <string name="benchmark_thermal_noticeable">ध्यान देने योग्य थ्रॉटलिंग</string>
+    <string name="benchmark_thermal_heavy">भारी थ्रॉटलिंग</string>
+    <string name="benchmark_stability_stable">स्थिर</string>
+    <string name="benchmark_stability_fair">ठीक</string>
+    <string name="benchmark_stability_unstable">अस्थिर</string>
+    <string name="benchmark_throttle_drop">%1$.1f%% गिरावट</string>
+    <string name="benchmark_throttle_faster">%1$.1f%% तेज़</string>
+    <string name="benchmark_throttle_none">कोई बदलाव नहीं</string>
+    <string name="benchmark_summary_score">स्कोर: %1$d (%2$s) · %3$.1f tok/s माध्यिका डिकोड</string>
+    <string name="benchmark_summary_prompt_line">%1$s: TTFT %2$.0fms (p95 %3$.0f), डिकोड %4$.1f tok/s (p95 %5$.1f, sd %6$.1f), प्रीफ़िल %7$.0f tok/s</string>
+    <string name="benchmark_summary_sustained">स्थिर: %1$.1f tok/s, %2$s (%3$s)</string>
+    <string name="benchmark_summary_load">लोड %1$.1fs · शिखर PSS %2$s · मॉडल %3$s</string>
+    <string name="splash_tagline">छोटे मॉडल। बड़े अवसर।</string>
+    <string name="splash_pillars">निजी · ऑफ़लाइन · आपका अपना</string>
+    <string name="notification_progress_bytes">%1$s / %2$s · %3$d%%</string>
+    <string name="notification_progress_downloading">%1$s · डाउनलोड हो रहा है</string>
+    <string name="notification_speed">%1$s/s</string>
+    <string name="settings_view_intro">इंट्रो देखें</string>
+    <string name="settings_view_intro_subtitle">TinyModels का दौरा फिर से लें</string>
+    <string name="benchmark_ttft_line">TTFT %1$.0f ms · p95 %2$.0f ms</string>
+    <string name="model_import_projector_not_model">यह एक विज़न प्रोजेक्टर (mmproj) है, भाषा मॉडल नहीं। मुख्य .gguf मॉडल आयात करें — प्रोजेक्टर स्वचालित रूप से डाउनलोड होकर उसके साथ जुड़ जाते हैं।</string>
+</resources>

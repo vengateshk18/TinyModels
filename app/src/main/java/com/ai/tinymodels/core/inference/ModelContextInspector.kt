@@ -5,11 +5,11 @@ import java.io.File
 
 object ModelContextInspector {
 
-    /** Regexes tried (in order) against the file name. Allows an optional
-     *  separator (space or -, _, .) before the value, e.g. "ekv 1280". */
+    /** Regexes tried (in order) against the file name. Allows up to five
+     *  separator characters (space, -, _, ., ,) before the value, e.g. "ekv 1280". */
     private val FILENAME_PATTERNS = listOf(
-        Regex("""ekv\s{0,5}(\d{3,6})""", RegexOption.IGNORE_CASE),
-        Regex("""ctx\s{0,5}(\d{3,6})""", RegexOption.IGNORE_CASE)
+        Regex("""ekv[\s_.\-,]{0,5}(\d{3,6})""", RegexOption.IGNORE_CASE),
+        Regex("""ctx[\s_.\-,]{0,5}(\d{3,6})""", RegexOption.IGNORE_CASE)
     )
 
     fun detectContext(file: File): Int? {

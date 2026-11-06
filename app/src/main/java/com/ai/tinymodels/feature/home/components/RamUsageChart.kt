@@ -35,9 +35,12 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import com.ai.tinymodels.R
 import androidx.compose.ui.unit.dp
 import com.ai.tinymodels.core.ui.Formatters
 
@@ -73,7 +76,8 @@ fun RamUsageChart(
         label = "ramChartDraw"
     )
 
-    val usage = remember(samples, totalRam) { usageStats(samples, totalRam) }
+    val res = LocalContext.current.resources
+    val usage = remember(samples, totalRam, res) { usageStats(samples, totalRam, res) }
 
     // Status level drives pill + line colors through theme roles.
     val level = when {
@@ -114,7 +118,7 @@ fun RamUsageChart(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "Live RAM usage",
+                    stringResource(R.string.device_ram_usage_live_title),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f)
@@ -134,7 +138,11 @@ fun RamUsageChart(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            if (usage != null) "%.2f%% used".format(usage.usedPercent) else "—",
+                            if (usage != null) {
+                                stringResource(R.string.device_ram_usage_percent_used, usage.usedPercent)
+                            } else {
+                                "—"
+                            },
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = pillContent
@@ -218,7 +226,7 @@ fun RamUsageChart(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            "Collecting samples…",
+                            stringResource(R.string.device_ram_usage_collecting),
                             style = MaterialTheme.typography.bodySmall,
                             color = scheme.onSurfaceVariant
                         )
@@ -234,12 +242,16 @@ fun RamUsageChart(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    "Used ${usage?.usedLabel ?: "—"}",
+                    stringResource(R.string.device_ram_usage_used, usage?.usedLabel ?: "—"),
                     style = MaterialTheme.typography.bodySmall,
                     color = scheme.onSurfaceVariant
                 )
                 Text(
-                    "Free ${usage?.freeLabel ?: "—"} of ${usage?.totalLabel ?: "—"}",
+                    stringResource(
+                        R.string.device_ram_usage_free_of,
+                        usage?.freeLabel ?: "—",
+                        usage?.totalLabel ?: "—"
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = scheme.onSurfaceVariant
                 )
@@ -256,15 +268,15 @@ private data class UsageLabels(
     val totalLabel: String
 )
 
-private fun usageStats(samples: List<Long>, totalRam: Long): UsageLabels? {
+private fun usageStats(samples: List<Long>, totalRam: Long, res: android.content.res.Resources): UsageLabels? {
     if (samples.isEmpty() || totalRam <= 0) return null
     val available = samples.last().coerceIn(0L, totalRam)
     val used = totalRam - available
     return UsageLabels(
         usedPercent = (used.toFloat() / totalRam) * 100f,
-        usedLabel = Formatters.formatBytes(used),
-        freeLabel = Formatters.formatBytes(available),
-        totalLabel = Formatters.formatBytes(totalRam)
+        usedLabel = Formatters.formatBytes(used, res),
+        freeLabel = Formatters.formatBytes(available, res),
+        totalLabel = Formatters.formatBytes(totalRam, res)
     )
 }
 

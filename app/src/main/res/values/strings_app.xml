@@ -1,0 +1,243 @@
+<resources>
+    <!-- ================= Settings ================= -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_dynamic_color">Dynamic color</string>
+    <string name="settings_dynamic_color_subtitle">Use wallpaper-based colors (Android 12+)</string>
+    <string name="settings_font_size">Font size</string>
+    <string name="settings_font">Font</string>
+    <string name="settings_change_font_content_description">Change font</string>
+    <string name="settings_font_sheet_title">Choose font</string>
+    <string name="settings_font_default">Default</string>
+    <string name="settings_font_google">Google Font</string>
+
+    <!-- Language picker -->
+    <string name="language_system">System default</string>
+    <string name="language_english" translatable="false">English</string>
+    <!-- Native names: always shown in the language's own script, never translated. -->
+    <string name="language_native_spanish" translatable="false">Espa\u00f1ol</string>
+    <string name="language_native_french" translatable="false">Fran\u00e7ais</string>
+    <string name="language_native_japanese" translatable="false">\u65e5\u672c\u8a9e</string>
+    <string name="language_native_tamil" translatable="false">\u0ba4\u0bae\u0bbf\u0bb4\u0bcd</string>
+    <string name="language_native_hindi" translatable="false">\u0939\u093f\u0928\u094d\u0926\u0940</string>
+    <!-- English names: the readable hint shown in parentheses. -->
+    <string name="language_name_spanish" translatable="false">Spanish</string>
+    <string name="language_name_french" translatable="false">French</string>
+    <string name="language_name_japanese" translatable="false">Japanese</string>
+    <string name="language_name_tamil" translatable="false">Tamil</string>
+    <string name="language_name_hindi" translatable="false">Hindi</string>
+    <!-- Renders as "<native name> (<English name>)". -->
+    <string name="language_option_format">%1$s (%2$s)</string>
+
+    <string name="settings_section_inference">Inference</string>
+    <string name="settings_default_backend">Default backend</string>
+    <string name="settings_web_search">Web search</string>
+    <string name="settings_web_search_subtitle">Let chats enable the model’s web search tool. Search queries leave the device.</string>
+    <string name="settings_web_search_note">When enabled for a chat (via the + menu in the chat), the model may search the web when it needs current information.</string>
+
+    <string name="settings_section_downloads">Downloads</string>
+    <string name="settings_wifi_only_downloads">Wi-Fi only downloads</string>
+    <string name="settings_wifi_only_downloads_subtitle">Wait for an unmetered connection before downloading models</string>
+    <string name="settings_downloads_note">Model files are gigabytes — this guards your mobile data plan.</string>
+
+    <string name="settings_section_chat">Chat</string>
+    <string name="settings_auto_load_last_model">Auto-load last model</string>
+    <string name="settings_auto_load_last_model_subtitle">Load the previously used model when opening chat</string>
+    <string name="settings_keep_screen_on">Keep screen on</string>
+    <string name="settings_keep_screen_on_subtitle">Prevent sleep while the model is generating</string>
+    <string name="settings_show_token_counts">Show token counts</string>
+    <string name="settings_show_token_counts_subtitle">Show per-message token counts under each bubble</string>
+
+    <string name="settings_section_hugging_face">Hugging Face</string>
+    <string name="settings_access_token">Access token</string>
+    <string name="settings_token_not_set">Not set — optional; only gated models need one</string>
+    <string name="settings_token_set">Set — %1$s••••••••%2$s</string>
+    <string name="settings_token_help">Gated models (e.g. Gemma) need a free access token to download. Create one at huggingface.co/settings/tokens, then accept the model’s license on its page.</string>
+    <string name="settings_token_dialog_title">Hugging Face access token</string>
+    <string name="settings_token_dialog_body">Paste a token with read access. Create one at huggingface.co/settings/tokens.</string>
+    <string name="settings_token_placeholder" translatable="false">hf_xxxxxxxxxxxxxxxx</string>
+    <string name="settings_token_save">Save</string>
+    <string name="settings_token_remove">Remove</string>
+
+    <string name="settings_section_support">Support</string>
+    <string name="settings_star_on_github">Star on GitHub</string>
+    <string name="settings_star_on_github_subtitle">Support free, on-device AI for everyone</string>
+    <string name="settings_report_bug">Report a bug</string>
+    <string name="settings_report_bug_subtitle">Found something broken? Let us know</string>
+
+    <string name="settings_section_about">About</string>
+    <string name="settings_benchmark">Benchmark</string>
+    <string name="settings_benchmark_subtitle">Score speed, memory, and thermal behaviour</string>
+    <string name="settings_device_information">Device information</string>
+    <string name="settings_device_information_subtitle">See your device’s AI capability</string>
+    <string name="settings_clear_chat_history">Clear chat history</string>
+    <string name="settings_clear_chat_history_subtitle">Delete all conversations</string>
+    <string name="settings_clear_chat_history_title">Clear chat history</string>
+    <string name="settings_clear_chat_history_body">Delete all chat conversations? This cannot be undone.</string>
+
+    <string name="settings_section_model_management">Model Management</string>
+    <string name="settings_token_removed">Access token removed</string>
+    <string name="settings_token_saved">Access token saved</string>
+    <string name="settings_chat_history_cleared">Chat history cleared</string>
+    <string name="settings_model_imported">Model imported: %1$s</string>
+    <string name="settings_import_failed">Import failed: %1$s</string>
+    <string name="model_import_invalid_file_type">Invalid file type. Only .litertlm files are supported.</string>
+    <string name="model_import_file_not_found">File not found on device: %1$s</string>
+    <string name="model_import_create_failed">Failed to create destination file: %1$s</string>
+    <string name="model_import_write_failed">Cannot write to destination file: %1$s</string>
+    <string name="model_import_no_file_name">Cannot determine file name</string>
+    <string name="model_import_projector_not_model">This is a vision projector (mmproj), not a language model. Import the main .gguf model — projectors are downloaded and paired with it automatically.</string>
+    <string name="model_import_already_exists">This model file already exists in your library</string>
+    <string name="model_import_open_failed">Cannot open source file</string>
+    <string name="benchmark_error_model_file_missing">Model file missing on device</string>
+    <string name="benchmark_error_not_enough_ram">Not enough free RAM to load this model (need ~%1$d MB, have %2$d MB). Close other apps and try again.</string>
+    <string name="benchmark_error_failed_to_load">Failed to load model</string>
+    <string name="settings_import_model">Import Model</string>
+    <string name="settings_import_model_subtitle">Import a .litertlm, .task, .tflite or .gguf file</string>
+    <string name="settings_import_model_note">Imported models appear in your library with an ‘Imported’ tag. To share a downloaded file, open it and use Export.</string>
+
+    <!-- ================= Theme / backend choices ================= -->
+
+    <!-- ================= Fonts ================= -->    <string name="font_system">System</string>
+    <string name="font_abel" translatable="false">Abel</string>
+    <string name="font_inter" translatable="false">Inter</string>
+    <string name="font_roboto" translatable="false">Roboto</string>
+    <string name="font_pacifico" translatable="false">Pacifico</string>
+    <string name="font_abril_fatface" translatable="false">Abril Fatface</string>
+
+    <!-- ================= Bottom navigation ================= -->
+    <string name="nav_home">Home</string>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_models">Models</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- ================= Benchmark ================= -->
+    <string name="benchmark_title">Benchmark</string>
+    <string name="benchmark_loading_title">Loading model…</string>
+    <string name="benchmark_loading_subtitle">Cold load — this time is part of the score.</string>
+    <string name="benchmark_failed_title">Benchmark failed</string>
+    <string name="benchmark_back_to_models">Back to models</string>
+    <string name="benchmark_stop_title">Stop benchmark?</string>
+    <string name="benchmark_stop_body">The run will be cancelled and results discarded.</string>
+    <string name="benchmark_stop">Stop</string>
+    <string name="benchmark_continue">Continue</string>
+    <string name="benchmark_choose_model">Choose a model</string>
+    <string name="benchmark_run">Run benchmark</string>
+    <string name="benchmark_progress_prompt">%1$s prompt</string>
+    <string name="benchmark_progress_warmup">" · warm-up (discarded)"</string>
+    <string name="benchmark_stat_prompt">Prompt</string>
+    <string name="benchmark_stat_tokens">Tokens</string>
+    <string name="benchmark_section_model">Model</string>
+    <string name="benchmark_stat_peak_memory">Peak memory</string>
+    <string name="benchmark_stat_backend">Backend</string>
+    <string name="benchmark_stat_device">Device</string>
+    <string name="benchmark_token_note">Tokens are counted from stream emissions. Prefill is prompt tokens / time-to-first-token and includes the first decode step. Scores are relative to a reference phone, not absolute quality.</string>
+    <string name="benchmark_rerun">Re-run</string>
+    <string name="benchmark_summary_header">TinyModels benchmark — %1$s (%2$s, %3$s)</string>
+    <string name="benchmark_summary_device">Device: %1$s</string>
+
+    <!-- ================= Download notifications ================= -->
+    <string name="notification_channel_downloads">Model downloads</string>
+    <!-- Splash -->
+    <string name="splash_tagline">Small models. Big possibilities.</string>
+    <string name="splash_pillars">Private · Offline · Yours</string>
+    <string name="notification_progress_bytes">%1$s / %2$s · %3$d%%</string>
+    <string name="notification_progress_downloading">%1$s · downloading</string>
+    <string name="notification_speed">%1$s/s</string>
+    <string name="notification_downloading_title">Downloading model</string>
+    <string name="notification_download_complete">Download complete</string>
+    <string name="notification_download_failed">Download failed</string>
+    <string name="notification_failed_with_reason">%1$s — %2$s</string>
+    <string name="download_error_gated">HTTP 401 — this model is gated. Add your Hugging Face access token in Settings, or accept the model’s license on huggingface.co first.</string>
+
+    <!-- New strings surfaced by the settings redesign -->
+    <string name="settings_view_intro">View intro</string>
+    <string name="settings_view_intro_subtitle">Take the TinyModels tour again</string>
+    <string name="settings_importing_model">Importing model…</string>
+    <string name="settings_font_reset">Reset to default</string>
+    <string name="settings_font_preview_body">This is how your chats will look.</string>
+    <string name="settings_font_preview_small">Small print stays readable.</string>
+    <string name="settings_bug_report_subject">TinyModels bug report</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_backend_auto">Auto</string>
+    <string name="settings_backend_gpu" translatable="false">GPU</string>
+    <string name="settings_backend_cpu" translatable="false">CPU</string>
+
+    <!-- Benchmark redesign -->
+    <string name="benchmark_ttft_line">TTFT %1$.0f ms · p95 %2$.0f ms</string>
+    <string name="benchmark_state_result">Result</string>
+    <string name="benchmark_state_measuring">Measuring</string>
+    <string name="benchmark_state_loading">Loading model</string>
+    <string name="benchmark_state_subtitle">Inference speed on this device</string>
+    <string name="benchmark_no_models_title">No models yet</string>
+    <string name="benchmark_no_models_body">Download a model from the Models tab, then come back to measure it.</string>
+    <string name="benchmark_files_available">%1$d available</string>
+    <string name="benchmark_what_gets_measured">What gets measured</string>
+    <string name="benchmark_metric_decode">Decode</string>
+    <string name="benchmark_metric_decode_sub">tokens / second</string>
+    <string name="benchmark_metric_ttft">Time to first token</string>
+    <string name="benchmark_metric_ttft_sub">responsiveness</string>
+    <string name="benchmark_metric_prefill">Prefill</string>
+    <string name="benchmark_metric_prefill_sub">prompt processing</string>
+    <string name="benchmark_metric_memory">Peak memory</string>
+    <string name="benchmark_metric_memory_sub">footprint</string>
+    <string name="benchmark_run_measuring">Measuring %1$s</string>
+    <string name="benchmark_run_duration">Usually 3–10 min, depending on the model</string>
+    <string name="benchmark_hero_title">How fast is this phone, really?</string>
+    <string name="benchmark_hero_body">Runs the same three prompts at greedy decoding, discards a warm-up pass, then measures steady-state speed, memory, and thermal drop.</string>
+    <string name="benchmark_hero_chip_prompts">%1$d prompts</string>
+    <string name="benchmark_hero_chip_runs">%1$d runs each</string>
+    <string name="benchmark_hero_chip_temp">temp 0</string>
+    <string name="benchmark_selected_content_description">Selected</string>
+    <string name="benchmark_methodology">Methodology</string>
+    <string name="benchmark_method_prompts">%1$d prompts (short → long) to separate time-to-first-token from prefill throughput</string>
+    <string name="benchmark_method_runs">1 warm-up + %1$d measured runs each, warm-up discarded</string>
+    <string name="benchmark_method_greedy">Greedy decoding (temperature 0, top-k 1) so runs are repeatable</string>
+    <string name="benchmark_method_sustained">%1$d s sustained loop to catch thermal throttling</string>
+    <string name="benchmark_method_memory">Peak memory sampled every 250 ms; output capped at %1$d tokens</string>
+    <string name="benchmark_progress_seconds_left">%1$d s left</string>
+    <string name="benchmark_progress_measuring">measuring</string>
+    <string name="benchmark_thermal_check">Thermal check</string>
+    <string name="benchmark_progress_run_of">Run %1$d of %2$d</string>
+    <string name="benchmark_sustained_watching">Sustained load — watching for throttling</string>
+    <string name="benchmark_section_thermal">Thermal</string>
+    <string name="benchmark_phase_prompt_suite">Prompt suite</string>
+    <string name="benchmark_phase_thermal">Thermal</string>
+    <string name="benchmark_result_score">score</string>
+    <string name="benchmark_result_grade">Grade %1$s</string>
+    <string name="benchmark_result_median_decode">%1$.1f tok/s median decode</string>
+    <string name="benchmark_stat_decode_p50">Decode p50</string>
+    <string name="benchmark_stat_ttft_p50">TTFT p50</string>
+    <string name="benchmark_stat_prefill_p50">Prefill p50</string>
+    <string name="benchmark_section_by_prompt">By prompt</string>
+    <string name="benchmark_section_by_prompt_hint">p50 · p95</string>
+    <string name="benchmark_section_thermal_hint">sustained load</string>
+    <string name="benchmark_stat_sustained_speed">Sustained speed</string>
+    <string name="benchmark_stat_change_over_run">Change over run</string>
+    <string name="benchmark_stat_spread">Run-to-run spread</string>
+    <string name="benchmark_stability_value">%1$s (%2$.1f%%)</string>
+    <string name="benchmark_info_cold_load">Cold load</string>
+    <string name="benchmark_info_model_size">Model size</string>
+    <string name="benchmark_info_memory_ratio">Memory / model</string>
+    <string name="benchmark_copy">Copy</string>
+    <string name="benchmark_prompt_short">Short</string>
+    <string name="benchmark_prompt_medium">Medium</string>
+    <string name="benchmark_prompt_long">Long</string>
+    <string name="benchmark_thermal_holds">Holds full speed</string>
+    <string name="benchmark_thermal_slight">Slight thermal drop</string>
+    <string name="benchmark_thermal_noticeable">Noticeable throttling</string>
+    <string name="benchmark_thermal_heavy">Heavy throttling</string>
+    <string name="benchmark_stability_stable">Stable</string>
+    <string name="benchmark_stability_fair">Fair</string>
+    <string name="benchmark_stability_unstable">Unstable</string>
+    <string name="benchmark_throttle_drop">%1$.1f%% drop</string>
+    <string name="benchmark_throttle_faster">%1$.1f%% faster</string>
+    <string name="benchmark_throttle_none">No change</string>
+    <string name="benchmark_summary_score">Score: %1$d (%2$s) · %3$.1f tok/s median decode</string>
+    <string name="benchmark_summary_prompt_line">  %1$s: TTFT %2$.0fms (p95 %3$.0f), decode %4$.1f tok/s (p95 %5$.1f, sd %6$.1f), prefill %7$.0f tok/s</string>
+    <string name="benchmark_summary_sustained">Sustained: %1$.1f tok/s, %2$s (%3$s)</string>
+    <string name="benchmark_summary_load">Load %1$.1fs · peak PSS %2$s · model %3$s</string>
+</resources>

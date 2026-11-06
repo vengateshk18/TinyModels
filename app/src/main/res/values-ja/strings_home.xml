@@ -1,0 +1,146 @@
+<resources>
+    <!-- ================= Home: onboarding (first-time) ================= -->
+    <string name="home_hero_title">AI モデルを電話だけで完全に実行。</string>
+    <string name="home_hero_subtitle">インターネット不要。クラウド不要。データはデバイス外に出ません。</string>
+    <string name="home_storage_note">モデルは 600 MB から 2 GB です。空き容量 %1$s。</string>
+    <string name="home_browse_all_models">すべてのモデルを閲覧</string>
+
+    <!-- ================= Home: device capability card ================= -->
+    <string name="home_device_card_title">デバイス</string>
+    <string name="home_device_capability_value">%1$s —</string>
+    <string name="home_device_can_run_models">最大 %1$s 個のモデルを快適に実行できます</string>
+    <string name="home_device_model_tier">%1$s: %2$s (%3$s)</string>
+
+    <!-- ================= Home: three-step strip ================= -->
+    <string name="home_step_download_title">ダウンロード</string>
+    <string name="home_step_download_caption">数分かかります</string>
+    <string name="home_step_load_title">読み込み</string>
+    <string name="home_step_load_caption">初回読み込みは遅い場合があります</string>
+    <string name="home_step_chat_title">オフラインでチャット</string>
+    <string name="home_step_chat_caption">デバイスに留まります</string>
+
+    <!-- ================= Home: recommended model card ================= -->
+    <string name="home_recommended_title">デバイスにおすすめ</string>
+    <string name="home_recommended_meta">%1$s ティア • %2$s • %3$s</string>
+    <string name="home_download_button">ダウンロード (%1$s)</string>
+    <string name="home_downloaded_opening">ダウンロード完了！ダッシュボードを開いています…</string>
+    <string name="home_download_failed">ダウンロードに失敗しました。接続を確認して再試行してください。</string>
+    <string name="home_add_token">トークンを追加</string>
+    <string name="home_model_page">モデルページ</string>
+    <string name="home_waiting_for_connection">接続を待機中…ダウンロードは自動的に開始されます。</string>
+    <string name="home_download_progress">%1$d%%</string>
+    <string name="home_download_progress_with_speed">%1$d%% • %2$s/s</string>
+
+    <!-- ================= Home: dashboard ================= -->
+    <string name="home_thermal_advisory">大きなモデルはデバイスを温め、バッテリーを多く消費する場合があります。</string>
+    <string name="home_section_your_models">モデル</string>
+    <string name="home_manage_models">モデルを管理</string>
+    <string name="home_section_your_usage">使用状況</string>
+    <string name="home_stat_chats">チャット</string>
+    <string name="home_stat_tokens">トークン</string>
+    <string name="home_stat_models_tried">試したモデル</string>
+    <string name="home_stat_messages">メッセージ</string>
+    <string name="home_stat_chats_this_week">今週のチャット</string>
+    <string name="home_stat_compactions">コンパクション</string>
+    <string name="home_last_session_tps">前回のセッション: ~%1$s トークン/秒</string>
+    <string name="home_most_chatted">最もチャットした</string>
+    <string name="home_chat_with_model">%1$s とチャット</string>
+
+    <!-- ================= Home: last-used model card ================= -->
+    <string name="home_ready_to_chat">チャットの準備完了</string>
+    <string name="home_your_model">モデル</string>
+    <string name="home_this_model">このモデル</string>
+    <string name="home_model_context">%1$s • コンテキスト %2$d</string>
+    <string name="home_resume_chat">チャットを再開</string>
+    <string name="home_new_chat">新しいチャット</string>
+    <string name="home_new_chat_with_model">%1$s と新しいチャット</string>
+
+    <!-- ================= Model tiers ================= -->
+    <string name="model_tier_small">小</string>
+    <string name="model_tier_medium">中</string>
+    <string name="model_tier_high">高</string>
+
+    <!-- Recommended catalog model names (product names — not translated) -->
+
+    <!-- ================= Device information screen ================= -->
+    <string name="device_info_title">デバイス情報</string>
+    <string name="device_info_ready_title">オンデバイス AI の準備完了</string>
+    <string name="device_info_ai_capability">AI 能力</string>
+    <string name="device_info_recommended_up_to">最大 %1$s モデルを推奨</string>
+    <string name="device_info_memory_section">メモリ</string>
+    <string name="device_info_available">利用可能</string>
+    <string name="device_info_recommended_for_ai">AI 用推奨</string>
+    <string name="device_info_live_ram_usage">ライブ RAM 使用量</string>
+    <string name="device_info_browse_models">モデルを閲覧</string>
+
+    <!-- ================= RAM usage chart ================= -->
+    <string name="device_ram_usage_live_title">ライブ RAM 使用量</string>
+    <string name="device_ram_usage_percent_used">%1$.2f%% 使用中</string>
+    <string name="device_ram_usage_collecting">サンプルを収集中…</string>
+    <string name="device_ram_usage_used">使用済み %1$s</string>
+    <string name="device_ram_usage_free_of">空き %1$s / %2$s</string>
+
+    <!-- ================= AI capability levels ================= -->
+    <string name="device_capability_excellent">優秀</string>
+    <string name="device_capability_good">良好</string>
+    <string name="device_capability_limited">限定</string>
+    <string name="device_capability_low">低</string>
+    <string name="device_capability_unknown">不明</string>
+
+    <!-- ================= Device insights card ================= -->
+    <string name="device_insights_title">デバイス情報</string>
+    <string name="device_insights_thermal">温度</string>
+    <string name="device_insights_thermal_state">状態 %1$d</string>
+    <string name="device_insights_battery">バッテリー</string>
+    <string name="device_insights_battery_percent">%1$d%%</string>
+    <string name="device_insights_gpu_renderer">GPU レンダラー</string>
+    <string name="device_insights_storage">ストレージ</string>
+    <string name="device_insights_storage_used">使用済み %1$s</string>
+    <string name="device_insights_storage_free">空き %1$s</string>
+    <string name="device_insights_processor">プロセッサ</string>
+    <string name="device_insights_cores">コア</string>
+    <string name="device_insights_architecture">アーキテクチャ</string>
+    <string name="device_insights_64bit">64 ビット</string>
+
+    <!-- Thermal status labels -->
+    <string name="device_thermal_normal">正常</string>
+    <string name="device_thermal_light">軽度</string>
+    <string name="device_thermal_moderate">中程度</string>
+    <string name="device_thermal_severe">重大</string>
+    <string name="device_thermal_critical">危機的</string>
+    <string name="device_thermal_emergency">緊急</string>
+    <string name="device_thermal_shutdown">シャットダウン</string>
+    <string name="device_thermal_unknown">不明</string>
+
+    <!-- Battery status labels -->
+    <string name="device_battery_unknown">不明</string>
+    <string name="device_battery_charging">充電中</string>
+    <string name="device_battery_discharging">放電中</string>
+    <string name="device_battery_not_charging">充電されていません</string>
+    <string name="device_battery_full">フル</string>
+
+    <!-- ================= RAM recommendations ================= -->
+    <string name="ram_recommendations_title">推奨事項</string>
+    <string name="ram_rec_plenty_capacity">3B–7B モデルを快適に読み込めます</string>
+    <string name="ram_rec_plenty_context">大きなコンテキストウィンドウでの長時間会話に最適</string>
+    <string name="ram_rec_moderate_capacity">中程度の空き — 1B–3B モデルを推奨</string>
+    <string name="ram_rec_moderate_compaction">長いチャットは早めにコンパクションが必要になる場合があります</string>
+    <string name="ram_rec_limited_capacity">限定 — 小さなモデル（&lt;1B）のみ対応</string>
+    <string name="ram_rec_limited_close_apps">他のアプリを閉じて RAM を解放してください</string>
+    <string name="ram_rec_critical_close_apps">危機的 — モデルを読み込む前に他のアプリを閉じてください</string>
+    <string name="ram_rec_critical_no_models">現在モデルを読み込めません</string>
+    <string name="ram_rec_thermal_throttling">デバイスがサーマルスロットリング中 — パフォーマンスが低下します</string>
+    <string name="ram_rec_battery_low">バッテリー残量低下 — 大きなモデルの読み込みには充電器を近くに</string>
+    <plurals name="home_model_files_last_used">
+        <item quantity="other">%1$s • %2$d ファイル • 最後に使用</item>
+    </plurals>
+    <plurals name="home_model_files_relative">
+        <item quantity="other">%1$s • %2$d ファイル • %3$s</item>
+    </plurals>
+    <plurals name="home_show_more_models">
+        <item quantity="other">%1$d 個のモデルをさらに表示</item>
+    </plurals>
+    <plurals name="home_web_search_chats">
+        <item quantity="other">ウェブ検索を %1$d 件のチャットで使用</item>
+    </plurals>
+</resources>

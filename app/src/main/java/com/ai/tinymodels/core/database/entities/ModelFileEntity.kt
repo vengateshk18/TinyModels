@@ -16,7 +16,7 @@ import com.ai.tinymodels.domain.model.ModelFormat
 data class ModelFileEntity(
     val modelId: String,          // FK -> downloaded_models.modelId
     val fileName: String,         // e.g. "model_G5.litertlm"
-    val status: String,           // NOT_DOWNLOADED | DOWNLOADING | DOWNLOADED | FAILED
+    val status: String,           // NOT_DOWNLOADED | DOWNLOADING | PAUSED | DOWNLOADED | FAILED
     val sizeBytes: Long,          // per-file size (from HEAD or actual)
     val localPath: String?,       // directory path, set when DOWNLOADED
     val error: String?,           // set when FAILED

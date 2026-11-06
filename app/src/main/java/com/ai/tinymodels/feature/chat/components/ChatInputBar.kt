@@ -51,6 +51,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,8 +60,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.ai.tinymodels.R
+import com.ai.tinymodels.core.common.TinyConstants
 import com.ai.tinymodels.feature.chat.model.GenerationState
 import com.ai.tinymodels.feature.chat.model.PlusMenuItem
 import com.ai.tinymodels.feature.chat.model.buildPlusMenuItems
@@ -98,9 +102,11 @@ fun ChatInputBar(
     /** Whether the loaded model has a vision encoder (hides photo entry when false). */
     supportsVision: Boolean = false
 ) {
-    var text by remember { mutableStateOf("") }
+    // Saved across configuration changes (rotation, dark-mode switch, resize)
+    // so an in-progress message and its attached photo are never dropped.
+    var text by rememberSaveable { mutableStateOf("") }
     var menuExpanded by remember { mutableStateOf(false) }
-    var pickedImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    var pickedImageUri by rememberSaveable { mutableStateOf<android.net.Uri?>(null) }
     val isGenerating = generation == GenerationState.GENERATING
     val keyboard = LocalSoftwareKeyboardController.current
     val sendEnabled = canSend && (text.isNotBlank() || pickedImageUri != null) && !isGenerating
@@ -151,7 +157,7 @@ fun ChatInputBar(
             ) {
                 Icon(
                     Icons.Filled.Add,
-                    contentDescription = "Chat options",
+                    contentDescription = stringResource(R.string.chat_options_content_description),
                     tint = if (webSearchEnabled) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -164,14 +170,14 @@ fun ChatInputBar(
                     when (item) {
                         is PlusMenuItem.AttachPhoto -> {
                             if (index > 0) HorizontalDivider()
-                            MenuSectionLabel("Media")
+                            MenuSectionLabel(stringResource(R.string.chat_options_media_section))
                             DropdownMenuItem(
                                 text = {
                                     Column {
-                                        Text("Attach photo")
-                                        item.disabledReason?.let { reason ->
+                                        Text(stringResource(R.string.chat_options_attach_photo))
+                                        item.disabledReasonRes?.let { reasonRes ->
                                             Text(
-                                                reason,
+                                                stringResource(reasonRes),
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                                                 maxLines = 2,
@@ -182,7 +188,7 @@ fun ChatInputBar(
                                 },
                                 onClick = {
                                     if (item.enabled) {
-                                        pickPhoto.launch("image/*")
+                                        pickPhoto.launch(TinyConstants.MIME_TYPE_IMAGE_ANY)
                                         menuExpanded = false
                                     }
                                 },
@@ -196,9 +202,9 @@ fun ChatInputBar(
                         }
                         is PlusMenuItem.WebSearch -> {
                             if (index > 0) HorizontalDivider()
-                            MenuSectionLabel("Tools")
+                            MenuSectionLabel(stringResource(R.string.chat_options_tools_section))
                             DropdownMenuItem(
-                                text = { Text("Web search") },
+                                text = { Text(stringResource(R.string.chat_options_web_search)) },
                                 onClick = {
                                     onToggleWebSearch(!webSearchEnabled)
                                     menuExpanded = false
@@ -234,7 +240,11 @@ fun ChatInputBar(
                 .heightIn(min = 52.dp, max = 160.dp),
             placeholder = {
                 Text(
-                    if (isModelReady) "Message\u2026" else "Load a model to chat",
+                    if (isModelReady) {
+                        stringResource(R.string.chat_input_hint_ready)
+                    } else {
+                        stringResource(R.string.chat_input_hint_load_model)
+                    },
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
@@ -272,7 +282,7 @@ fun ChatInputBar(
                         contentColor = MaterialTheme.colorScheme.onErrorContainer
                     )
                 ) {
-                    Icon(Icons.Filled.Stop, contentDescription = "Stop generating")
+                    Icon(Icons.Filled.Stop, contentDescription = stringResource(R.string.chat_stop_generating_content_description))
                 }
             } else {
                 // Circular send button with a filled background circle.
@@ -288,7 +298,7 @@ fun ChatInputBar(
                         else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send")
+                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = stringResource(R.string.chat_send_content_description))
                 }
             }
         }
@@ -368,7 +378,7 @@ private fun PhotoPreviewRow(
         if (bitmap != null) {
             Image(
                 bitmap = bitmap.asImageBitmap(),
-                contentDescription = "Photo to send",
+                contentDescription = stringResource(R.string.chat_photo_to_send_content_description),
                 modifier = Modifier
                     .size(64.dp)
                     .clip(RoundedCornerShape(12.dp)),
@@ -377,7 +387,7 @@ private fun PhotoPreviewRow(
         }
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            "Photo attached",
+            stringResource(R.string.chat_photo_attached),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(1f)
@@ -385,7 +395,7 @@ private fun PhotoPreviewRow(
         IconButton(onClick = onRemove, modifier = Modifier.size(32.dp)) {
             Icon(
                 Icons.Filled.Close,
-                contentDescription = "Remove photo",
+                contentDescription = stringResource(R.string.chat_remove_photo_content_description),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }

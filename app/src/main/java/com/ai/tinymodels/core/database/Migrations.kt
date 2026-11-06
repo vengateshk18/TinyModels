@@ -73,12 +73,42 @@ object Migrations {
     }
 
     /**
-     * v10 → v11: adds `format` to `model_files` — tracks the model file format
-     * (LITERTLM, TASK, TFLITE, GGUF). Defaults to LITERTLM for existing files.
+     * v10 → v11: adds `isPinned` to `chats` so the history list can group
+     * pinned conversations at the top. Existing chats default to unpinned.
      */
     val MIGRATION_10_11 = object : Migration(10, 11) {
         override fun migrate(db: SupportSQLiteDatabase) {
-            db.execSQL("ALTER TABLE model_files ADD COLUMN format TEXT NOT NULL DEFAULT 'LITERTLM'")
+            db.execSQL("ALTER TABLE chats ADD COLUMN isPinned INTEGER NOT NULL DEFAULT 0")
+        }
+    }
+
+    /**
+     * v11 → v12: adds `format` to `model_files` for multi-format support
+     * (LITERTLM, TASK, TFLITE, GGUF).
+     *
+     * Two release lines shipped their own v11 (one pinned chats, one added
+     * the format column), so this migration adds each column only if it is
+     * missing — it must not crash a user upgrading from either.
+     */
+    val MIGRATION_11_12 = object : Migration(11, 12) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            if (!hasColumn(db, "model_files", "format")) {
+                db.execSQL("ALTER TABLE model_files ADD COLUMN format TEXT NOT NULL DEFAULT 'LITERTLM'")
+            }
+            if (!hasColumn(db, "chats", "isPinned")) {
+                db.execSQL("ALTER TABLE chats ADD COLUMN isPinned INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        private fun hasColumn(db: SupportSQLiteDatabase, table: String, column: String): Boolean {
+            val cursor = db.query("PRAGMA table_info($table)")
+            return cursor.use { c ->
+                val nameIdx = c.getColumnIndexOrThrow("name")
+                while (c.moveToNext()) {
+                    if (c.getString(nameIdx) == column) return true
+                }
+                false
+            }
         }
     }
 

@@ -22,22 +22,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.ai.tinymodels.R
 
 /**
  * Shared, app-wide state views: error, offline, and empty. All screens route
  * their non-content states through these so iconography, copy, and layout
  * stay consistent everywhere.
+ *
+ * Default copy comes from `strings.xml`; callers may override per screen.
  */
 
 /** Generic failure state — icon, title, message, and optional retry/secondary actions. */
 @Composable
 fun ErrorState(
     message: String,
-    title: String = "Something went wrong",
+    title: String = stringResource(R.string.state_error_title),
     onRetry: (() -> Unit)? = null,
-    retryLabel: String = "Retry",
+    retryLabel: String = stringResource(R.string.state_error_retry),
     secondaryActionLabel: String? = null,
     onSecondaryAction: (() -> Unit)? = null,
     modifier: Modifier = Modifier
@@ -59,8 +63,8 @@ fun ErrorState(
 @Composable
 fun OfflineState(
     onRetry: (() -> Unit)? = null,
-    title: String = "You're offline",
-    message: String = "Check your internet connection and try again.",
+    title: String = stringResource(R.string.state_offline_title),
+    message: String = stringResource(R.string.state_offline_message),
     modifier: Modifier = Modifier
 ) {
     StateView(
@@ -68,7 +72,7 @@ fun OfflineState(
         iconTint = MaterialTheme.colorScheme.onSurfaceVariant,
         title = title,
         message = message,
-        actionLabel = if (onRetry != null) "Retry" else null,
+        actionLabel = if (onRetry != null) stringResource(R.string.state_error_retry) else null,
         onAction = onRetry,
         modifier = modifier
     )

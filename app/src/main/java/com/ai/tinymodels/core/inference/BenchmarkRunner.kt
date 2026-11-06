@@ -43,7 +43,13 @@ data class PromptResult(
     val medianDecodeTokensPerSec: Double,
     val decodeMinTokensPerSec: Double,
     val decodeMaxTokensPerSec: Double,
-    val medianPrefillTokensPerSec: Double
+    val medianPrefillTokensPerSec: Double,
+    /** 95th-percentile decode speed — the slow tail, not the typical run. */
+    val decodeP95TokensPerSec: Double = 0.0,
+    /** Population standard deviation of decode speed across measured runs. */
+    val decodeStdDev: Double = 0.0,
+    /** 95th-percentile time to first token. */
+    val ttftP95Ms: Double = 0.0
 )
 
 /** Full benchmark output for one model on this device. */
@@ -58,7 +64,18 @@ data class BenchmarkResult(
     /** Median decode speed across ALL measured runs (both prompts). */
     val overallDecodeTokensPerSec: Double,
     val deviceName: String,
-    val completedAt: Long
+    val completedAt: Long,
+    /** Composite 0-100 score and its letter grade. */
+    val score: Int = 0,
+    val grade: String = "",
+    /** Size of the model file on disk — the denominator of the memory ratio. */
+    val modelFileBytes: Long = 0L,
+    /** Run-to-run spread of decode speed, and the matching human label. */
+    val decodeCoefficientOfVariation: Double = 0.0,
+    val stability: BenchmarkMath.Stability = BenchmarkMath.Stability.STABLE,
+    /** Result of the sustained loop: steady-state speed and thermal drop. */
+    val sustainedTokensPerSec: Double = 0.0,
+    val sustainedThrottlePercent: Double = 0.0
 )
 
 /**
@@ -130,6 +147,29 @@ class BenchmarkRunner @Inject constructor(
             outputTokens = tokens,
             durationMs = (endNs - startNs) / 1_000_000.0
         )
+    }
+
+    /**
+     * Sustained (thermal) phase: repeats the medium prompt until [durationMs]
+     * has elapsed and returns the decode speed of each run, in order.
+     *
+     * Each run gets a fresh session through [runOnce], so the KV cache is
+     * clean and a falling tail is the device throttling rather than history.
+     */
+    suspend fun runSustained(
+        durationMs: Long = BenchmarkProtocol.SUSTAIN_DURATION_MS,
+        onProgress: (elapsedMs: Long, tokensPerSec: Double) -> Unit = { _, _ -> }
+    ): List<Double> {
+        val prompt = PROMPTS.first { it.id == "medium" }
+        val samples = mutableListOf<Double>()
+        val startedNs = System.nanoTime()
+        while ((System.nanoTime() - startedNs) / 1_000_000L < durationMs) {
+            val metrics = runOnce(prompt, runIndex = BenchmarkProtocol.WARM_UP_RUNS)
+            val tps = metrics.decodeTokensPerSec ?: continue
+            samples += tps
+            onProgress((System.nanoTime() - startedNs) / 1_000_000L, tps)
+        }
+        return samples
     }
 
     companion object {

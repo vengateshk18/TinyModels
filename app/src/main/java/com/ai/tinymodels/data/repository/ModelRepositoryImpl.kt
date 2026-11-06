@@ -4,9 +4,11 @@ import android.content.Context
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.MediaStore
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.AppError
 import com.ai.tinymodels.core.common.AppResult
 import com.ai.tinymodels.core.common.DispatcherProvider
+import com.ai.tinymodels.core.common.TinyConstants
 import com.ai.tinymodels.core.database.DownloadedModelDao
 import com.ai.tinymodels.core.database.ModelFileDao
 import com.ai.tinymodels.core.database.entities.DownloadedModelEntity
@@ -215,7 +217,22 @@ class ModelRepositoryImpl @Inject constructor(
         localPath: String?,
         error: String?
     ) = withContext(dispatchers.io) {
-        modelFileDao.updateStatus(modelId, fileName, status.name, sizeBytes, localPath, error)
+        val updated = modelFileDao.updateStatus(modelId, fileName, status.name, sizeBytes, localPath, error)
+        if (updated == 0) {
+            // The tracking row is gone — e.g. a discarding cleanup removed it
+            // while the screen was open. Re-create it, or the row has nothing
+            // to attach live progress to and downloads look stuck.
+            modelFileDao.insert(
+                ModelFileEntity(
+                    modelId = modelId,
+                    fileName = fileName,
+                    status = status.name,
+                    sizeBytes = sizeBytes ?: 0L,
+                    localPath = localPath,
+                    error = error
+                )
+            )
+        }
     }
 
     override suspend fun deleteModelFile(modelId: String, fileName: String) =
@@ -258,10 +275,10 @@ class ModelRepositoryImpl @Inject constructor(
                 val baseName = fileName.substringAfterLast("/")
                 val sourceFile = File(
                     context.filesDir,
-                    "models/${modelId.replace("/", "_")}/$baseName"
+                    "${TinyConstants.MODEL_DOWNLOAD_PATH_PREFIX}${modelId.replace("/", "_")}/$baseName"
                 )
                 if (!sourceFile.exists()) {
-                    throw IllegalStateException("File not found on device: $baseName")
+                    throw IllegalStateException(context.getString(R.string.model_import_file_not_found, baseName))
                 }
 
                 val resolver = context.contentResolver
@@ -271,13 +288,13 @@ class ModelRepositoryImpl @Inject constructor(
                     DocumentsContract.getTreeDocumentId(destinationUri)
                 )
                 val destUri = DocumentsContract.createDocument(
-                    resolver, parentDocUri, "application/octet-stream", baseName
-                ) ?: throw IllegalStateException("Failed to create destination file: $baseName")
+                    resolver, parentDocUri, TinyConstants.MIME_TYPE_OCTET_STREAM, baseName
+                ) ?: throw IllegalStateException(context.getString(R.string.model_import_create_failed, baseName))
                 resolver.openOutputStream(destUri)?.use { output ->
                     sourceFile.inputStream().use { input ->
                         input.copyTo(output)
                     }
-                } ?: throw IllegalStateException("Cannot write to destination file: $baseName")
+                } ?: throw IllegalStateException(context.getString(R.string.model_import_write_failed, baseName))
 
                 destUri
             }
@@ -288,12 +305,12 @@ class ModelRepositoryImpl @Inject constructor(
             AppResult.runCatching(
                 errorMapper = { e -> AppError.Unknown(e.message, e) }
             ) {
-                val fileName = getFileNameFromUri(sourceUri)
-                    ?: throw IllegalStateException("Cannot determine file name")
+                                val fileName = getFileNameFromUri(sourceUri)
+                    ?: throw IllegalStateException(context.getString(R.string.model_import_no_file_name))
 
                 if (!fileName.isModelFile()) {
                     throw IllegalArgumentException(
-                        "Unsupported file type. Supported: .litertlm, .task, .tflite, .gguf"
+                        context.getString(R.string.model_import_invalid_file_type)
                     )
                 }
                 // A projector alone is not runnable. It is fetched automatically
@@ -301,9 +318,7 @@ class ModelRepositoryImpl @Inject constructor(
                 // would only create an unloadable entry in the library.
                 if (fileName.isVisionProjectorFile()) {
                     throw IllegalArgumentException(
-                        "This is a vision projector (mmproj), not a language model. " +
-                            "Import the main .gguf model — projectors are downloaded " +
-                            "and paired with it automatically."
+                        context.getString(R.string.model_import_projector_not_model)
                     )
                 }
                 val format = ModelFormat.fromFileName(fileName)
@@ -316,11 +331,11 @@ class ModelRepositoryImpl @Inject constructor(
                 val existingFiles = modelFileDao.getByModelId(modelId).map { it.fileName }.toSet()
 
                 if (existingModel != null && existingFiles.contains(fileName)) {
-                    throw IllegalStateException("This model file already exists in your library")
+                    throw IllegalStateException(context.getString(R.string.model_import_already_exists))
                 }
 
                 // Copy to internal storage
-                val modelDir = File(context.filesDir, "models/${modelId.replace("/", "_")}")
+                val modelDir = File(context.filesDir, "${TinyConstants.MODEL_DIRECTORY_NAME}/${modelId.replace("/", "_")}")
                 modelDir.mkdirs()
                 val targetFile = File(modelDir, fileName)
 
@@ -328,7 +343,7 @@ class ModelRepositoryImpl @Inject constructor(
                     targetFile.outputStream().use { output ->
                         input.copyTo(output)
                     }
-                } ?: throw IllegalStateException("Cannot open source file")
+                } ?: throw IllegalStateException(context.getString(R.string.model_import_open_failed))
 
                 val fileSize = targetFile.length()
                 val now = System.currentTimeMillis()

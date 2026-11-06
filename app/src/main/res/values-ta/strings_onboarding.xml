@@ -1,0 +1,18 @@
+<resources>
+
+    <!-- New strings surfaced by the latest main -->
+    <string name="onboarding_privacy_title">வடிவமைப்பிலேயே தனியுரிமை</string>
+    <string name="onboarding_privacy_body">ஒவ்வொரு மாதிரியும் உங்கள் போனிலேயே இயங்குகிறது. உங்கள் அரட்டைகள் சாதனத்தை விட்டு வெளியேறவே மாட்டா — கணக்கு இல்லை, கிளவுட் இல்லை, கண்காணிப்பு இல்லை.</string>
+    <string name="onboarding_download_title">ஒருமுறை பதிவிறக்குங்கள், ஆஃப்லைனில் அரட்டையடியுங்கள்</string>
+    <string name="onboarding_download_body">உரை, விஷன் மற்றும் குறியீடு மாதிரிகளை உலாவி, Wi-Fi இல் பின்னணியில் பதிவிறக்கி, விமானத்திலும் அல்லது இடஞ்செல்லாத இடத்திலும் அரட்டை அதியுங்கள்.</string>
+    <string name="onboarding_chat_title">இயல்பான உணர்வைத் தரும் அரட்டை</string>
+    <string name="onboarding_chat_body">ஸ்ட்ரீமிங் பதில்கள், அரட்டைக்குரிய அமைப்புகள், விஷன் மாதிரிகளுக்கு புகைப்படம் உள்ளீடு, மற்றும் நீங்கள் அணைக்கக்கூடிய வலைத் தேடல் கருவி.</string>
+    <string name="onboarding_device_title">உங்கள் சாதனத்திற்கு ஏற்ற அளவு</string>
+    <string name="onboarding_device_body">TinyModels உங்கள் RAM மற்றும் சேமிப்பைப் படித்து, உண்மையாகப் பொருந்தும் மாதிரிகளை பரிந்துரைக்கிறது — யூகம் இல்லை, 4 GB தவறு இல்லை.</string>
+    <string name="onboarding_tuning_title">அளவிடுங்கள், சீரமைங்கள், உங்களுடையதாக்குங்கள்</string>
+    <string name="onboarding_tuning_body">உண்மையான வேகம் மற்றும் வெப்பத்தை அளவிடும் பெஞ்ச்மார்க், தீம் மற்றும் எழுத்துரு தேர்வு, பதிவிறக்கிய அனைத்து மாதிரிகளையும் ஒரே இடத்தில் மேலாண்மை.</string>
+    <string name="onboarding_skip">தவிர்</string>
+    <string name="onboarding_done">முடிந்தது</string>
+    <string name="onboarding_get_started">தொடங்கு</string>
+    <string name="onboarding_next">அடுத்து</string>
+</resources>

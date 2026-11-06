@@ -63,7 +63,10 @@ sealed class AppError(open val message: String?) {
     data class Network(override val message: String?) : AppError(message)
 
     /** HTTP 401/403 — gated model or missing/invalid Hugging Face token. */
-    data class Auth(override val message: String? = null) : AppError(message)
+    data class Auth(
+        override val message: String? = null,
+        val code: Int? = null
+    ) : AppError(message)
 
     /** HTTP 4xx/5xx server-side failure. */
     data class ServerError(

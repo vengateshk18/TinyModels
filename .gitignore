@@ -2,7 +2,6 @@
 build/
 app/release/
 release/
-releases/
 .vscode/
 .idea/
 local.properties
@@ -10,8 +9,34 @@ local.properties
 *.apk
 *.ap_
 *.aab
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Signing material — never commit
+Release.jks
+release.properties
 *.jks
 *.keystore
-release.properties
-.DS_Store
-app/.DS_Store
+
+# Local tooling / agent config
+.opencode/
+
+# Local build & release helpers
+scripts/
+gradle/release-tasks.gradle.kts
+
+# Local research + planning notes
+LITERT_SAMPLES_NOTES.md
+MULTI_FORMAT_PLAN.md
+RAG_SYSTEM_RESEARCH.md
+SECURITY_AUDIT.md
+PLAY_PRODUCTION_ACCESS_NOTES.md
+release-management.md
+.github/SECRETS_SETUP.md
+
+# Local generated output
+graphify-out/
+play-assets/
+promo/

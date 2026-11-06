@@ -19,10 +19,12 @@ interface ChatDao {
     @Query("SELECT * FROM chats WHERE chatId = :chatId")
     suspend fun getChat(chatId: String): ChatEntity?
 
-    @Query(
-        "UPDATE chats SET title = :title, updatedAt = :updatedAt WHERE chatId = :chatId"
-    )
+    @Query("UPDATE chats SET title = :title, updatedAt = :updatedAt WHERE chatId = :chatId")
     suspend fun updateChatTitle(chatId: String, title: String, updatedAt: Long)
+
+    /** Pin / unpin a chat (DB v11). Does not touch `updatedAt` — pinning is not activity. */
+    @Query("UPDATE chats SET isPinned = :pinned WHERE chatId = :chatId")
+    suspend fun updateChatPinned(chatId: String, pinned: Boolean)
 
     @Query("UPDATE chats SET updatedAt = :updatedAt WHERE chatId = :chatId")
     suspend fun touchChat(chatId: String, updatedAt: Long)
@@ -64,7 +66,7 @@ interface ChatDao {
     @Query(
         """
         SELECT c.chatId AS id, c.title AS title, c.modelId AS modelId,
-               c.updatedAt AS updatedAt,
+               c.updatedAt AS updatedAt, c.isPinned AS isPinned,
                (SELECT m.content FROM messages m
                   WHERE m.chatId = c.chatId
                   ORDER BY m.createdAt DESC LIMIT 1) AS lastMessagePreview,
@@ -72,7 +74,7 @@ interface ChatDao {
                   WHERE m.chatId = c.chatId) AS messageCount
         FROM chats c
         WHERE c.isArchived = 0
-        ORDER BY c.updatedAt DESC
+        ORDER BY c.isPinned DESC, c.updatedAt DESC
         """
     )
     fun observeChatSummaries(): Flow<List<ChatSummaryRow>>
@@ -160,5 +162,6 @@ data class ChatSummaryRow(
     val modelId: String,
     val lastMessagePreview: String?,
     val updatedAt: Long,
-    val messageCount: Int
+    val messageCount: Int,
+    val isPinned: Boolean
 )

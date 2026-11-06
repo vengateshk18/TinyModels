@@ -53,7 +53,9 @@ data class ChatListItem(
     /** The model this chat was last used with (for the history row metadata). */
     val modelId: String? = null,
     /** Total number of messages in this chat. */
-    val messageCount: Int = 0
+    val messageCount: Int = 0,
+    /** Pinned chats are grouped at the top of the history list. */
+    val isPinned: Boolean = false
 )
 
 /** Transient, user-facing error surfaced via snackbar/banner. */

@@ -39,8 +39,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.ui.components.bottomSheetTopSafePadding
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.InferenceSettings
@@ -93,12 +95,12 @@ fun InferenceSettingsSheet(
         ) {
             // Header
             Text(
-                text = "Session settings",
+                text = stringResource(R.string.chat_settings_title),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "Changes apply to this chat only.",
+                text = stringResource(R.string.chat_settings_subtitle),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp)
@@ -108,7 +110,7 @@ fun InferenceSettingsSheet(
 
             // Temperature
             SliderSetting(
-                label = "Temperature",
+                label = stringResource(R.string.chat_settings_temperature),
                 value = temperature,
                 valueRange = 0f..2f,
                 steps = 39,
@@ -120,7 +122,7 @@ fun InferenceSettingsSheet(
 
             // Top-P
             SliderSetting(
-                label = "Top-P",
+                label = stringResource(R.string.chat_settings_top_p),
                 value = topP,
                 valueRange = 0f..1f,
                 steps = 19,
@@ -136,7 +138,7 @@ fun InferenceSettingsSheet(
                 onValueChange = { raw ->
                     raw.toIntOrNull()?.let { v -> if (v in 1..200) topK = v }
                 },
-                label = { Text("Top-K", style = MaterialTheme.typography.bodyMedium) },
+                label = { Text(stringResource(R.string.chat_settings_top_k), style = MaterialTheme.typography.bodyMedium) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
@@ -156,10 +158,10 @@ fun InferenceSettingsSheet(
             OutlinedTextField(
                 value = systemInstruction,
                 onValueChange = { systemInstruction = it },
-                label = { Text("System instruction", style = MaterialTheme.typography.bodyMedium) },
+                label = { Text(stringResource(R.string.chat_settings_system_instruction), style = MaterialTheme.typography.bodyMedium) },
                 placeholder = {
                     Text(
-                        "You are a helpful assistant.",
+                        stringResource(R.string.chat_settings_default_system_instruction),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -180,7 +182,7 @@ fun InferenceSettingsSheet(
                     onClick = onDismiss,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Discard", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.chat_settings_discard), style = MaterialTheme.typography.labelLarge)
                 }
                 Button(
                     onClick = {
@@ -199,7 +201,7 @@ fun InferenceSettingsSheet(
                         containerColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
-                    Text("Save", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.chat_settings_save), style = MaterialTheme.typography.labelLarge)
                 }
             }
 
@@ -207,7 +209,7 @@ fun InferenceSettingsSheet(
 
             // Context window is managed automatically — no user knob anymore.
             Text(
-                text = "Context window is managed automatically — older messages are summarized when the conversation outgrows it.",
+                text = stringResource(R.string.chat_settings_context_window_note),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -271,7 +273,7 @@ private fun BackendDropdown(
             value = selected.name,
             onValueChange = {},
             readOnly = true,
-            label = { Text("Backend", style = MaterialTheme.typography.bodyMedium) },
+            label = { Text(stringResource(R.string.chat_settings_backend), style = MaterialTheme.typography.bodyMedium) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
                 .menuAnchor()

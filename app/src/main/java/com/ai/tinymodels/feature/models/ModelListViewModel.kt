@@ -1,5 +1,6 @@
 package com.ai.tinymodels.feature.models
 
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ai.tinymodels.core.common.AppError
@@ -41,9 +42,10 @@ class ModelListViewModel @Inject constructor(
         /** True while "Load more" is fetching; the current list stays visible. */
         val isLoadingMore: Boolean = false
     ) {
-        /** Friendly, user-presentable copy for [error]. */
-        val errorMessage: String?
-            get() = error?.let(NetworkErrorMapper::friendlyMessage)
+        /** Friendly, user-presentable copy for [error], as a localized resource. */
+        @get:StringRes
+        val errorMessageRes: Int?
+            get() = error?.let(NetworkErrorMapper::friendlyMessageRes)
 
         /** True when the current error is simply "no connection". */
         val isOfflineError: Boolean

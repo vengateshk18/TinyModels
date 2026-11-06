@@ -2,8 +2,10 @@ package com.ai.tinymodels.feature.models
 
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.AppError
 import com.ai.tinymodels.core.common.AppResult
+import com.ai.tinymodels.core.common.fakeStringContext
 import com.ai.tinymodels.core.inference.ModelManager
 import com.ai.tinymodels.domain.model.DownloadedModel
 import com.ai.tinymodels.domain.model.DownloadedModelFile
@@ -71,7 +73,10 @@ class DownloadedFileDetailViewModelTest {
             error = null
         )
 
+    private val context = fakeStringContext()
+
     private fun vm(fileName: String) = DownloadedFileDetailViewModel(
+        context,
         SavedStateHandle(mapOf("modelId" to "m", "fileName" to fileName)),
         repo,
         settingsRepository,
@@ -112,7 +117,7 @@ class DownloadedFileDetailViewModelTest {
         val viewModel = vm("nope.litertlm")
 
         awaitLoaded(viewModel)
-        assertEquals("File not found", viewModel.uiState.value.error)
+        assertEquals(R.string.downloaded_file_error_not_found.toString(), viewModel.uiState.value.error)
     }
 
     @Test
@@ -137,7 +142,8 @@ class DownloadedFileDetailViewModelTest {
         viewModel.onStartChat { navigated = it }
         assertNull(navigated)
         assertTrue(
-            viewModel.uiState.value.loadModelError?.contains("not found") == true
+            viewModel.uiState.value.loadModelError
+                ?.contains(R.string.downloaded_file_error_not_on_disk.toString()) == true
         )
     }
 
@@ -150,7 +156,10 @@ class DownloadedFileDetailViewModelTest {
         awaitLoaded(viewModel)
 
         viewModel.exportFile(mockk<Uri>())
-        assertEquals("Exported f.litertlm", awaitMessage(viewModel))
+        assertEquals(
+            "${R.string.downloaded_file_exported}(f.litertlm)",
+            awaitMessage(viewModel)
+        )
 
         viewModel.consumeExportMessage()
         assertNull(viewModel.uiState.value.exportMessage)
@@ -165,7 +174,7 @@ class DownloadedFileDetailViewModelTest {
         awaitLoaded(viewModel)
 
         viewModel.exportFile(mockk<Uri>())
-        assertTrue(awaitMessage(viewModel).startsWith("Export failed:"))
+        assertTrue(awaitMessage(viewModel).startsWith(R.string.downloaded_file_export_failed.toString()))
     }
 
     @Test

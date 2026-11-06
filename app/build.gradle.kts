@@ -82,10 +82,15 @@ android {
         applicationId = "com.ai.tinymodels"
         minSdk = 29
         targetSdk = 37
-        versionCode = versionCodeOverride ?: 2
-        versionName = versionNameOverride ?: "1.0.1"
+        versionCode = versionCodeOverride ?: 4
+        versionName = versionNameOverride ?: "1.0.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Ship only the languages we actually translate (English default +
+        // Spanish, French, Hindi, Japanese, Tamil). Keeps the APK small and
+        // stops Android from offering a language the app has no strings for.
+        resourceConfigurations += listOf("en", "es", "fr", "hi", "ja", "ta")
 
         // Real phones are arm64; shipping x86/x86_64/armeabi-v7a doubles the
         // native-lib size (LiteRT-LM's .so is ~22MB per ABI). Emulators can
@@ -114,6 +119,15 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    // The app ships every translation in one APK and lets the user switch
+    // language in-app (Settings → Appearance → Language). Play must therefore
+    // NOT split the bundle per language, or the other translations would be
+    // missing at runtime.
+    bundle {
+        language {
+            enableSplit = false
+        }
     }
     testOptions {
         unitTests {

@@ -1,0 +1,127 @@
+<resources>
+    <!-- ================= Model catalog (browse) ================= -->
+    <string name="models_title">मॉडल</string>
+    <string name="models_browse_tab">ब्राउज़ करें</string>
+    <string name="models_downloaded_tab">डाउनलोड किए गए (%1$d)</string>
+    <string name="models_search_content_description">खोजें</string>
+    <string name="models_search_placeholder">मॉडल खोजें…</string>
+    <string name="models_error_failed_to_load">मॉडल लोड नहीं हो सके</string>
+    <string name="models_empty_title">कोई मॉडल नहीं मिला</string>
+    <string name="models_empty_message">कोई दूसरी खोज या फ़िल्टर आज़माएँ।</string>
+    <string name="models_by_author">%1$s द्वारा</string>
+    <string name="models_downloads_count">⬇ %1$s</string>
+    <string name="models_likes_count">♥ %1$s</string>
+
+    <!-- ================= Downloaded models ================= -->
+    <string name="downloaded_models_title">डाउनलोड किए गए मॉडल</string>
+    <string name="downloaded_models_empty_title">कोई मॉडल डाउनलोड नहीं किया गया</string>
+    <string name="downloaded_models_empty_message">आपके डाउनलोड किए मॉडल ऑफ़लाइन उपयोग के लिए यहाँ दिखाई देंगे।</string>
+    <string name="downloaded_models_storage_used">उपयोग किया गया स्टोरेज: %1$s</string>
+    <string name="downloaded_models_imported_badge">आयातित</string>
+
+    <!-- ================= Model details ================= -->
+    <string name="model_details_title">मॉडल की जानकारी</string>
+    <string name="model_details_file_too_large_title">यह फ़ाइल इस डिवाइस के लिए बहुत बड़ी है</string>
+    <string name="model_details_file_too_large_body">इस फ़ाइल (%1$s) को आपके डिवाइस से ज़्यादा RAM चाहिए (%2$s)। आप इसे डाउनलोड कर सकते हैं, लेकिन इस डिवाइस पर चैट या बेंचमार्क के लिए इस्तेमाल नहीं हो सकेगी।</string>
+    <string name="model_details_file_too_large_body_unknown_size">इस फ़ाइल को आपके डिवाइस से ज़्यादा RAM चाहिए (%1$s)। आप इसे डाउनलोड कर सकते हैं, लेकिन इस डिवाइस पर चैट या बेंचमार्क के लिए इस्तेमाल नहीं हो सकेगी।</string>
+    <string name="model_details_download_anyway">फिर भी डाउनलोड करें</string>
+    <string name="model_details_error_failed_to_load">जानकारी लोड नहीं हो सकी</string>
+    <string name="model_details_add_hf_token">Hugging Face टोकन जोड़ें</string>
+    <string name="model_details_stat_downloads">डाउनलोड</string>
+    <string name="model_details_stat_likes">पसंदीदा</string>
+    <string name="model_details_stat_repo_size">रिपॉज़िटरी का आकार</string>
+    <string name="model_details_stat_downloaded">डाउनलोड किए गए</string>
+    <string name="model_details_try_it">आज़माएँ</string>
+    <string name="model_details_sample_prompts">इस मॉडल के लिए नमूना प्रॉम्प्ट</string>
+    <string name="model_details_about">परिचय</string>
+    <string name="model_details_base_model">बेस मॉडल</string>
+    <string name="model_details_revision">रिवीज़न</string>
+    <string name="model_details_tags">टैग</string>
+    <string name="model_details_files">फ़ाइलें</string>
+    <string name="model_details_files_hint">फ़ाइलें अलग-अलग डाउनलोड करें — कई एक साथ चल सकती हैं।</string>
+    <string name="model_details_fits_device">✓ आपके डिवाइस में फ़िट है</string>
+    <string name="model_details_too_large_short">⚠ इस डिवाइस के लिए बहुत बड़ा है</string>
+    <string name="model_details_status_downloaded">डाउनलोड किया गया</string>
+    <string name="model_details_updated">अपडेट किया गया</string>
+    <string name="model_details_created">बनाया गया</string>
+    <string name="model_details_error_not_enough_storage_file">इस फ़ाइल के लिए पर्याप्त खाली स्टोरेज नहीं है।</string>
+    <string name="model_details_error_not_enough_storage_model">इस मॉडल के लिए पर्याप्त खाली स्टोरेज नहीं है।</string>
+
+    <!-- ================= Downloaded file detail ================= -->
+    <string name="downloaded_file_title">डाउनलोड की गई फ़ाइल</string>
+    <string name="downloaded_file_not_found_title">फ़ाइल नहीं मिली</string>
+    <string name="downloaded_file_go_back">वापस जाएँ</string>
+    <string name="downloaded_file_delete_title">फ़ाइल हटाएँ?</string>
+    <string name="downloaded_file_delete_body">इससे यह फ़ाइल आपके डिवाइस से स्थायी रूप से हट जाएगी। यह कार्रवाई वापस नहीं की जा सकती।</string>
+    <string name="downloaded_file_model_id">मॉडल ID</string>
+    <string name="downloaded_file_size">आकार</string>
+    <string name="downloaded_file_location">स्थान</string>
+    <string name="downloaded_file_error_failed_to_load">मॉडल लोड नहीं हो सका</string>
+    <string name="downloaded_file_loading_model">मॉडल लोड हो रहा है…</string>
+    <string name="downloaded_file_start_chat">चैट शुरू करें</string>
+    <string name="downloaded_file_export">फ़ाइल निर्यात करें</string>
+    <string name="downloaded_file_exporting">निर्यात हो रहा है…</string>
+    <string name="downloaded_file_delete">फ़ाइल हटाएँ</string>
+    <string name="downloaded_file_deleting">हटाया जा रहा है…</string>
+    <string name="downloaded_file_error_not_found">फ़ाइल नहीं मिली</string>
+    <string name="downloaded_file_error_not_on_disk">फ़ाइल डिस्क पर नहीं मिली। कृपया फिर से डाउनलोड करें।</string>
+    <string name="downloaded_file_error_delete_failed">फ़ाइल हटाई नहीं जा सकी</string>
+    <string name="downloaded_file_exported">%1$s निर्यात किया गया</string>
+    <string name="downloaded_file_export_failed">निर्यात विफल: %1$s</string>
+
+    <!-- ================= Active downloads ================= -->
+    <string name="downloads_active_title">चल रही डाउनलोड (%1$d)</string>
+    <string name="downloads_cancel_content_description">डाउनलोड रद्द करें</string>
+    <string name="downloads_waiting_for_network">नेटवर्क की प्रतीक्षा हो रही है…</string>
+    <string name="downloads_speed_only">%1$s/से</string>
+    <string name="downloads_button_with_size">डाउनलोड करें · %1$s</string>
+    <string name="downloads_button">डाउनलोड करें</string>
+
+    <!-- ================= Filters ================= -->
+    <string name="model_filter_all">सभी</string>
+
+    <!-- ================= Shared state views ================= -->
+    <string name="state_error_title">कुछ गड़बड़ हो गई</string>
+    <string name="state_error_retry">पुनः प्रयास करें</string>
+    <string name="state_offline_title">आप ऑफ़लाइन हैं</string>
+    <string name="state_offline_message">अपना इंटरनेट कनेक्शन जाँचें और फिर कोशिश करें।</string>
+    <string name="downloads_progress_bytes">%1$s / %2$s</string>
+    <string name="downloads_progress_percent">(%1$d%%)</string>
+    <string name="downloads_progress_speed"> • %1$s/s</string>
+    <plurals name="models_file_count">
+        <item quantity="one">%1$d फ़ाइल</item>
+        <item quantity="other">%1$d फ़ाइलें</item>
+    </plurals>
+    <string name="model_details_discard_title">डाउनलोड छोड़ दें?</string>
+    <string name="model_details_discard_body_notification">डाउनलोड रुक जाएगा और आंशिक डेटा हटा दिया जाएगा। यह काम वापस नहीं ले सकते।</string>
+    <string name="model_details_discard_bytes_deleted">अब तक डाउनलोड किए गए %1$s हटा दिए जाएंगे।</string>
+    <string name="model_details_discard_partial_deleted">इस फ़ाइल का आंशिक डेटा हटा दिया जाएगा।</string>
+    <string name="model_details_discard_body_end">डाउनलोड फिर से शुरू करना होगा और इसे वापस नहीं लिया जा सकता।</string>
+    <string name="model_details_discard">छोड़ दें</string>
+    <string name="model_details_keep">रहने दें</string>
+    <string name="model_details_size_loading">आकार लोड हो रहा है…</string>
+    <string name="model_details_size_unknown">आकार तय नहीं किया जा सकता</string>
+    <string name="model_details_downloaded_bytes">%1$s डाउनलोड हुए</string>
+    <string name="model_details_paused_resumable">रोका गया · फिर शुरू हो सकता है</string>
+    <string name="model_details_download_desc">डाउनलोड करें</string>
+    <string name="model_details_cancel_queued_desc">कतार में लगी डाउनलोड रद्द करें</string>
+    <string name="model_details_discard_desc">डाउनलोड छोड़ दें</string>
+    <string name="model_details_resume_desc">डाउनलोड फिर शुरू करें</string>
+    <string name="model_details_retry_desc">डाउनलोड दोबारा कोशिश करें</string>
+    <string name="model_details_pause_desc">डाउनलोड रोकें</string>
+    <string name="downloaded_file_reading_context">कॉन्टेक्स्ट विंडो पढ़ी जा रही है…</string>
+    <string name="downloaded_file_detecting_vision">विज़न समर्थन जाँचा जा रहा है…</string>
+    <string name="downloaded_file_context_window">कॉन्टेक्स्ट विंडो</string>
+    <string name="downloaded_file_context_tokens">%1$d टोकन (मॉडल मेटाडेटा से)</string>
+    <string name="downloaded_file_vision">विज़न</string>
+    <string name="downloaded_file_vision_supported">समर्थित (mmproj डाउनलोड किया गया)</string>
+    <string name="downloaded_file_vision_text_only">केवल टेक्स्ट</string>
+    <string name="downloaded_file_projector_title">विज़न प्रोजेक्टर</string>
+    <string name="downloaded_file_projector_body">यह फ़ाइल उस इमेज एनकोडर (mmproj) है जो मल्टीमोडल मॉडल इस्तेमाल करता है। इसे अकेले लोड नहीं किया जा सकता — विज़न के साथ चैट करने के लिए उसी फ़ोल्डर की मुख्य .gguf फ़ाइल खोलें।</string>
+    <string name="downloaded_file_projector_error">यह एक विज़न प्रोजेक्टर (mmproj) है, भाषा मॉडल नहीं। मुख्य .gguf मॉडल खोलें — वही इस प्रोजेक्टर से विज़न उपयोग करता है।</string>
+    <string name="model_details_vision_banner">इसमें विज़न प्रोजेक्टर (mmproj) शामिल है — आपके चुने किसी भी GGUF मॉडल के साथ यह अपने आप डाउनलोड होता है।</string>
+    <string name="model_details_vision_supported">विज़न: समर्थित (प्रोजेक्टर शामिल)</string>
+    <string name="model_details_vision_text_only">विज़न: केवल टेक्स्ट</string>
+    <string name="model_details_context_after_download">कॉन्टेक्स्ट विंडो: डाउनलोड के बाद पहचानी जाती है</string>
+    <string name="models_updated_on">%1$s को अपडेट किया गया</string>
+</resources>

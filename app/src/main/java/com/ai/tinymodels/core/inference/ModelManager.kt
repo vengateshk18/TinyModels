@@ -2,6 +2,7 @@ package com.ai.tinymodels.core.inference
 
 import android.content.ComponentCallbacks2
 import android.content.Context
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.TinyLog
 import com.ai.tinymodels.core.common.AppError
 import com.ai.tinymodels.core.common.AppResult
@@ -330,7 +331,24 @@ class ModelManager @Inject constructor(
         }
     }
 
-    private fun InferenceError.asAppError(): AppError = AppError.Unknown(this.message)
+    /**
+     * Collapse the typed inference error into a user-presentable AppError.
+     * The copy here is what the chat UI renders when the friendly engine-state
+     * banner is not enough, so it must be localized — not the raw native text.
+     */
+    private fun InferenceError.asAppError(): AppError {
+        val localized: String = when (this) {
+            is InferenceError.OutOfMemory -> context.getString(R.string.chat_error_out_of_memory)
+            is InferenceError.ModelFileMissing -> context.getString(R.string.chat_error_model_file_missing_short)
+            is InferenceError.BackendUnavailable -> context.getString(R.string.chat_error_no_backend)
+            is InferenceError.LoadFailed -> context.getString(R.string.chat_error_failed_to_load)
+            is InferenceError.GenerationFailed -> context.getString(R.string.chat_error_generation_failed)
+            is InferenceError.UnsupportedFormat ->
+                context.getString(R.string.chat_error_unsupported_format, format)
+            InferenceError.NoModelLoaded -> context.getString(R.string.chat_error_no_model_loaded)
+        }
+        return AppError.Unknown(localized)
+    }
 }
 
 /** Thrown when an operation requires a loaded model but none is present. */

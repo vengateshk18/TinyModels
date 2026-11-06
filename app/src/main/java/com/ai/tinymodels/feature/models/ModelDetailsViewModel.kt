@@ -1,6 +1,7 @@
 package com.ai.tinymodels.feature.models
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.content.Context
@@ -15,15 +16,21 @@ import com.ai.tinymodels.domain.model.FileDownloadStatus
 import com.ai.tinymodels.domain.model.ModelDetails
 import com.ai.tinymodels.domain.repository.ModelRepository
 import com.ai.tinymodels.domain.usecase.model.DownloadModelUseCase
+import com.ai.tinymodels.domain.usecase.model.DownloadPaths
 import com.ai.tinymodels.domain.usecase.model.DownloadState
 import com.ai.tinymodels.domain.usecase.model.DownloadStatus
+import com.ai.tinymodels.domain.usecase.model.FileRowPhase
+import com.ai.tinymodels.domain.usecase.model.FileRowState
+import com.ai.tinymodels.domain.usecase.model.FileSizeStatus
+import com.ai.tinymodels.domain.usecase.model.fileRowState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.ai.tinymodels.R
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -50,8 +57,10 @@ class ModelDetailsViewModel @Inject constructor(
         // Per-file state
         val modelFiles: List<DownloadedModelFile> = emptyList(),
         val fileSizes: Map<String, Long> = emptyMap(),
-        val selectedFile: String? = null,
-        val fileDownload: DownloadState = DownloadState(),
+        /** Per-file size resolution: still asking, known, or undetermined. */
+        val fileSizeStatuses: Map<String, FileSizeStatus> = emptyMap(),
+        /** Render-ready state for every file row, keyed by file name. */
+        val fileStates: Map<String, FileRowState> = emptyMap(),
         /** Total device RAM — used for the per-file capacity indicator. */
         val deviceRamBytes: Long = 0L
     ) {
@@ -67,15 +76,32 @@ class ModelDetailsViewModel @Inject constructor(
         fun getFileSize(fileName: String): Long = fileSizes[fileName] ?: 0L
 
         /**
+         * Whether [fileName]'s size is still being fetched, known, or cannot be
+         * determined. Until the first resolution every file is LOADING, so a
+         * row never has to guess from a zero byte count.
+         */
+        fun fileSizeStatus(fileName: String): FileSizeStatus =
+            fileSizeStatuses[fileName] ?: FileSizeStatus.LOADING
+
+        /** Live state of one file row; idle until the first DB emission. */
+        fun fileState(fileName: String): FileRowState =
+            fileStates[fileName] ?: FileRowState(FileRowPhase.IDLE)
+
+        /** Last error recorded for a failed file, if any. */
+        fun fileError(fileName: String): String? =
+            modelFiles.firstOrNull { it.fileName == fileName }?.error
+
+        /**
          * True when this file can realistically be loaded and used on this
          * device (based on total RAM). Unknown sizes are assumed loadable.
          */
         fun isFileLoadable(fileName: String): Boolean =
             MemoryUtils.canLoadModelOfSize(getFileSize(fileName), deviceRamBytes)
 
-        /** Friendly, user-presentable copy for [error]. */
-        val errorMessage: String?
-            get() = error?.let(NetworkErrorMapper::friendlyMessage)
+        /** Friendly, user-presentable copy for [error], as a localized resource. */
+        @get:StringRes
+        val errorMessageRes: Int?
+            get() = error?.let(NetworkErrorMapper::friendlyMessageRes)
 
         /** True when the current error is simply "no connection". */
         val isOfflineError: Boolean
@@ -90,7 +116,7 @@ class ModelDetailsViewModel @Inject constructor(
     init {
         load()
         observeDownloaded()
-        observeModelFiles()
+        observeFileStates()
         resumeActiveDownload()
         observeConnectivity()
     }
@@ -113,13 +139,7 @@ class ModelDetailsViewModel @Inject constructor(
         downloadJob?.cancel()
         downloadJob = null
         // Reset state to prevent stale UI
-        _uiState.update { 
-            it.copy(
-                download = DownloadState(),
-                fileDownload = DownloadState(),
-                selectedFile = null
-            ) 
-        }
+        _uiState.update { it.copy(download = DownloadState()) }
     }
 
     fun load() {
@@ -155,51 +175,98 @@ class ModelDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun observeModelFiles() {
+    /**
+     * Merges persisted status with every live WorkManager job for this model.
+     *
+     * This is the whole reason progress survives navigation: the jobs outlive
+     * the ViewModel, and this flow re-attaches to all of them on re-entry —
+     * not just the one the user last tapped.
+     */
+    private fun observeFileStates() {
         viewModelScope.launch {
-            modelRepository.observeModelFiles(modelId).collect { files ->
-                _uiState.update { it.copy(modelFiles = files) }
-                // Resume any in-flight download
-                resumeFileDownload(files)
+            combine(
+                modelRepository.observeModelFiles(modelId),
+                downloadModel.observeActiveDownloads()
+            ) { files, active ->
+                val activeByFile = active
+                    .filter { it.modelId == modelId && it.fileName != null }
+                    .associateBy { it.fileName!! }
+                files to files.associate { file ->
+                    // Only unfinished files can have bytes on disk. The `.part`
+                    // path is a single File.length() — no dedicated dispatcher
+                    // needed for a stat.
+                    val partialBytes = if (activeByFile[file.fileName] == null &&
+                        file.status in setOf(FileDownloadStatus.PAUSED, FileDownloadStatus.FAILED)
+                    ) {
+                        runCatching {
+                            DownloadPaths.partFile(appContext.filesDir, modelId, file.fileName).length()
+                        }.getOrDefault(0L)
+                    } else {
+                        0L
+                    }
+                    file.fileName to fileRowState(
+                        dbStatus = file.status,
+                        active = activeByFile[file.fileName],
+                        partialBytes = partialBytes,
+                        totalBytes = _uiState.value.getFileSize(file.fileName)
+                    )
+                }
+            }.collect { (files, states) ->
+                _uiState.update { it.copy(modelFiles = files, fileStates = states) }
             }
         }
     }
 
+    /**
+     * HEAD-requests each file's size in turn, publishing Known/Unknown per file
+     * as it goes. Sizes already resolved are skipped — there is no reason to
+     * ask the server a second time, and the row only needs it once.
+     */
     private fun calculateFileSizes(model: ModelDetails) {
+        val files = model.allRunnableFiles
+
+        // Each size is a HEAD request — no network means no size, so say so
+        // instead of leaving the row on "Loading…" forever.
+        if (!networkMonitor.isOnline.value) {
+            val current = _uiState.value
+            _uiState.update {
+                it.copy(
+                    fileSizeStatuses = files.associateWith { fileName ->
+                        if (current.fileSizeStatus(fileName) == FileSizeStatus.KNOWN) {
+                            FileSizeStatus.KNOWN
+                        } else {
+                            FileSizeStatus.UNKNOWN
+                        }
+                    }
+                )
+            }
+            return
+        }
+
         viewModelScope.launch {
-            // Each size is a HEAD request — skip entirely when offline.
-            // Rows keep showing "—" until a later successful load fills them in.
-            if (!networkMonitor.isOnline.value) return@launch
-            val files = model.allRunnableFiles
-            val sizes = mutableMapOf<String, Long>()
             files.forEach { fileName ->
+                // Already resolved in this session — don't re-ask the server.
+                if (_uiState.value.fileSizeStatus(fileName) != FileSizeStatus.LOADING) return@forEach
                 try {
                     val size = downloadModel.calculateFileSize(model, fileName)
-                    sizes[fileName] = size
-                    _uiState.update { it.copy(fileSizes = sizes.toMap()) }
+                    _uiState.update {
+                        it.copy(
+                            fileSizes = it.fileSizes + (fileName to size),
+                            fileSizeStatuses = it.fileSizeStatuses + (fileName to FileSizeStatus.KNOWN)
+                        )
+                    }
                 } catch (_: Exception) {
-                    // Size calculation failed, keep as 0
+                    _uiState.update {
+                        it.copy(
+                            fileSizeStatuses = it.fileSizeStatuses + (fileName to FileSizeStatus.UNKNOWN)
+                        )
+                    }
                 }
             }
         }
     }
 
-    private fun resumeFileDownload(files: List<DownloadedModelFile>) {
-        // Find any DOWNLOADING file and bind to its WorkManager job
-        val downloading = files.firstOrNull { it.status == FileDownloadStatus.DOWNLOADING }
-        if (downloading != null) {
-            val existing = downloadModel.observeExistingFile(modelId, downloading.fileName)
-            if (existing != null) {
-                downloadJob?.cancel()
-                downloadJob = viewModelScope.launch {
-                    existing.collect { state -> _uiState.update { it.copy(fileDownload = state) } }
-                }
-                _uiState.update { it.copy(selectedFile = downloading.fileName) }
-            }
-        }
-    }
-
-    /** If a download for this model is already running (e.g. screen re-entry), bind to it. */
+    /** If a whole-model download is already running (e.g. screen re-entry), bind to it. */
     private fun resumeActiveDownload() {
         val existing = downloadModel.observeExisting(modelId) ?: return
         downloadJob?.cancel()
@@ -208,99 +275,60 @@ class ModelDetailsViewModel @Inject constructor(
         }
     }
 
-    fun onFileSelected(fileName: String) {
-        val status = _uiState.value.getFileStatus(fileName)
-        when (status) {
-            FileDownloadStatus.DOWNLOADED -> {
-                // User tapped a downloaded file - handled by UI navigation
-            }
-            FileDownloadStatus.DOWNLOADING -> {
-                // Bind to existing download
-                val existing = downloadModel.observeExistingFile(modelId, fileName)
-                if (existing != null) {
-                    downloadJob?.cancel()
-                    downloadJob = viewModelScope.launch {
-                        existing.collect { state -> _uiState.update { it.copy(fileDownload = state) } }
-                    }
-                }
-                _uiState.update { it.copy(selectedFile = fileName) }
-            }
-            FileDownloadStatus.NOT_DOWNLOADED, FileDownloadStatus.FAILED -> {
-                // Select this file for download
-                _uiState.update { it.copy(selectedFile = fileName, fileDownload = DownloadState()) }
-            }
-        }
-    }
+    /**
+     * Starts (or resumes) one file. Resuming is the same call as starting: the
+     * worker finds the `.part` file and asks the server to continue from it.
+     */
+    fun onDownloadFileClicked(fileName: String) = startFileDownload(fileName, replace = false)
 
-    fun onDownloadFileClick() {
+    fun onResumeFile(fileName: String) = startFileDownload(fileName, replace = true)
+
+    private fun startFileDownload(fileName: String, replace: Boolean) {
         val model = _uiState.value.model ?: return
-        val fileName = _uiState.value.selectedFile ?: return
-        val size = _uiState.value.getFileSize(fileName)
-
-        // Storage pre-check
-        // Storage pre-check
-        if (size > 0 && !storageUtils.hasSpaceFor(size)) {
-            _uiState.update {
-                it.copy(
-                    fileDownload = DownloadState(
-                        status = DownloadStatus.FAILED,
-                        error = "Not enough free storage for this file."
-                    )
-                )
-            }
-            return
-        }
-
-        // Update DB status to DOWNLOADING
         viewModelScope.launch {
+            // The background size sweep may not have reached this file yet; a
+            // missing size would make the row's progress bar meaningless.
+            val size = _uiState.value.getFileSize(fileName).takeIf { it > 0 }
+                ?: runCatching { downloadModel.calculateFileSize(model, fileName) }
+                    .getOrDefault(0L)
+            if (size > 0 && !storageUtils.hasSpaceFor(size)) {
+                modelRepository.updateFileStatus(
+                    modelId, fileName, FileDownloadStatus.FAILED,
+                    error = appContext.getString(R.string.model_details_error_not_enough_storage_file)
+                )
+                return@launch
+            }
             modelRepository.updateFileStatus(modelId, fileName, FileDownloadStatus.DOWNLOADING)
+            // Enqueueing is the side effect; progress is observed centrally.
+            downloadModel.executeFile(model, fileName, size, replace)
         }
+    }
 
-        // Start download
-        _uiState.update { it.copy(fileDownload = DownloadState(status = DownloadStatus.CHECKING_SIZE, totalBytes = size)) }
-        
-        downloadJob?.cancel()
-        downloadJob = viewModelScope.launch {
-            downloadModel.executeFile(model, fileName, size).collect { state ->
-                _uiState.update { it.copy(fileDownload = state) }
-                // On completion, update DB status
-                if (state.status == DownloadStatus.COMPLETED) {
-                    modelRepository.updateFileStatus(
-                        modelId, fileName, FileDownloadStatus.DOWNLOADED,
-                        sizeBytes = state.totalBytes
-                    )
-                } else if (state.status == DownloadStatus.FAILED) {
-                    modelRepository.updateFileStatus(
-                        modelId, fileName, FileDownloadStatus.FAILED,
-                        error = state.error
-                    )
-                }
+    /**
+     * Stops the job but keeps the partial file. The worker also writes PAUSED
+     * when it unwinds; writing it here too makes the row respond immediately.
+     */
+    fun onPauseFile(fileName: String) {
+        downloadModel.cancelFile(modelId, fileName)
+        viewModelScope.launch {
+            // The last chunk may have landed before the cancel did — never
+            // downgrade a finished file to Paused.
+            val current = modelRepository.getModelFile(modelId, fileName)?.status
+            if (current != FileDownloadStatus.DOWNLOADED) {
+                modelRepository.updateFileStatus(modelId, fileName, FileDownloadStatus.PAUSED)
             }
         }
     }
 
-    fun onCancelFileDownload() {
-        val fileName = _uiState.value.selectedFile ?: return
+    /** Throws away a paused/failed partial download and frees its disk space. */
+    fun onDiscardFile(fileName: String) {
         downloadModel.cancelFile(modelId, fileName)
-        downloadJob?.cancel()
-        downloadJob = null
         viewModelScope.launch {
-            // Reset this file back to NOT_DOWNLOADED
+            downloadModel.discardPartial(modelId, fileName)
+            // The tracking rows stay. They are the only thing the row's live
+            // progress attaches to — deleting them would make the next download
+            // run (and show in the notification) while the row looks idle.
             modelRepository.updateFileStatus(modelId, fileName, FileDownloadStatus.NOT_DOWNLOADED)
-            // If no other files are fully downloaded, remove the parent model entry entirely
-            // so the model does not appear in the "Downloaded" section
-            val hasAnyDownloaded = _uiState.value.modelFiles.any {
-                it.fileName != fileName && it.status == FileDownloadStatus.DOWNLOADED
-            }
-            if (!hasAnyDownloaded) {
-                modelRepository.deleteDownloadedModel(modelId)
-            }
-        }
-        _uiState.update {
-            it.copy(
-                fileDownload = DownloadState(status = DownloadStatus.IDLE),
-                selectedFile = null
-            )
         }
     }
 
@@ -335,7 +363,7 @@ class ModelDetailsViewModel @Inject constructor(
                 it.copy(
                     download = DownloadState(
                         status = DownloadStatus.FAILED,
-                        error = "Not enough free storage for this model."
+                        error = appContext.getString(R.string.model_details_error_not_enough_storage_model)
                     )
                 )
             }

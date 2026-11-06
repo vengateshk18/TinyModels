@@ -1,0 +1,36 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- App -->
+
+    <!-- Shared UI actions and labels (usable from any feature) -->
+    <string name="common_cancel">Annuler</string>
+    <string name="common_retry">Réessayer</string>
+    <string name="common_back">Retour</string>
+    <string name="common_dismiss">Ignorer</string>
+    <string name="common_delete">Supprimer</string>
+    <string name="common_close">Fermer</string>
+    <string name="common_yes">Oui</string>
+    <string name="common_no">Non</string>
+    <string name="common_unknown">Inconnu</string>
+    <string name="common_percent">%1$d%%</string>
+
+    <!-- Shared relative-time wording (Formatters) -->
+    <string name="common_time_just_now">à l\'instant</string>
+    <string name="common_time_minutes_ago">il y a %1$dm</string>
+    <string name="common_time_hours_ago">il y a %1$dh</string>
+    <string name="common_time_days_ago">il y a %1$dj</string>
+
+    <!-- Nouvelles chaînes issues de l’extraction des ressources -->
+    <string name="common_save">Enregistrer</string>
+    <string name="error_no_connection">Vous êtes hors ligne. Vérifiez votre connexion Internet et réessayez.</string>
+    <string name="error_timeout">La connexion a expiré. Réessayez.</string>
+    <string name="error_gated">Ce modèle est soumis à autorisation. Ajoutez un jeton d’accès Hugging Face dans les paramètres ou acceptez d’abord sa licence sur huggingface.co.</string>
+    <string name="error_no_access">Vous n’avez pas accès à ce modèle. Il est peut-être soumis à autorisation : vérifiez sa licence sur huggingface.co.</string>
+    <string name="error_too_many_requests">Trop de requêtes. Patientez un instant et réessayez.</string>
+    <string name="error_server">Hugging Face rencontre des difficultés en ce moment. Réessayez plus tard.</string>
+    <string name="error_not_found">Modèle introuvable. Il a peut-être été retiré de Hugging Face.</string>
+    <string name="error_network">Erreur réseau. Vérifiez votre connexion et réessayez.</string>
+    <string name="error_storage">Espace de stockage insuffisant.</string>
+    <string name="error_unknown">Une erreur est survenue. Réessayez.</string>
+    <string name="notification_pause">Pause</string>
+    <string name="notification_cancel">Annuler</string>
+</resources>

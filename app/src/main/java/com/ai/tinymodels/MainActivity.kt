@@ -15,18 +15,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import com.ai.tinymodels.core.common.AppLocale
+import com.ai.tinymodels.core.common.AppLocaleStore
 import com.ai.tinymodels.core.network.NetworkMonitor
 import com.ai.tinymodels.core.ui.theme.TinyModelsTheme
 import com.ai.tinymodels.core.ui.theme.resolveColorScheme
-import com.ai.tinymodels.domain.model.AppSettings
 import com.ai.tinymodels.domain.model.ThemeMode
 import com.ai.tinymodels.domain.repository.SettingsRepository
-import com.ai.tinymodels.feature.navigation.TinyModelsApp
+import com.ai.tinymodels.feature.startup.AppRoot
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -47,6 +50,23 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var networkMonitor: NetworkMonitor
+
+    /**
+     * Applies the user's chosen app language before any resource is resolved.
+     *
+     * On API 33+ the platform owns per-app locales (set via [AppLocale.apply]),
+     * so we must not override the configuration here or we would fight the
+     * system-level per-app language setting. Below API 33 there is no such
+     * API, so the stored locale is applied to the base context instead.
+     */
+    override fun attachBaseContext(newBase: android.content.Context) {
+        val tag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ""
+        } else {
+            AppLocaleStore.currentTag(newBase)
+        }
+        super.attachBaseContext(AppLocale.wrapContext(newBase, tag))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -152,7 +172,18 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    TinyModelsApp(networkMonitor = networkMonitor)
+                    val scope = rememberCoroutineScope()
+                    AppRoot(
+                        onboardingCompletedInitially = initialSettings.onboardingCompleted,
+                        onOnboardingFinished = {
+                            // Persist once, as soon as the tour is finished or
+                            // skipped, so it never opens automatically again.
+                            scope.launch {
+                                settingsRepository.setOnboardingCompleted(true)
+                            }
+                        },
+                        networkMonitor = networkMonitor
+                    )
                 }
             }
         }

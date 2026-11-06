@@ -62,7 +62,7 @@ interface ModelFileDao {
         sizeBytes: Long?,
         localPath: String?,
         error: String?
-    )
+    ): Int
 
     @Query("DELETE FROM model_files WHERE modelId = :modelId AND fileName = :fileName")
     suspend fun delete(modelId: String, fileName: String)

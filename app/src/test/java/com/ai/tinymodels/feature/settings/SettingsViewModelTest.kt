@@ -1,8 +1,11 @@
 package com.ai.tinymodels.feature.settings
 
 import android.net.Uri
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.AppError
 import com.ai.tinymodels.core.common.AppResult
+import com.ai.tinymodels.core.common.AppLocaleStore
+import com.ai.tinymodels.core.common.fakeStringContext
 import com.ai.tinymodels.domain.model.AppSettings
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.DownloadedModel
@@ -55,7 +58,12 @@ class SettingsViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun vm() = SettingsViewModel(settingsRepo, chatRepo, modelRepo)
+    private val context = fakeStringContext()
+
+    /** Real store over a mocked Context — the language preference has no bearing here. */
+    private val appLocaleStore = AppLocaleStore(context)
+
+    private fun vm() = SettingsViewModel(context, appLocaleStore, settingsRepo, chatRepo, modelRepo)
 
     private suspend fun awaitResult(viewModel: SettingsViewModel): String {
         val start = System.currentTimeMillis()
@@ -74,7 +82,10 @@ class SettingsViewModelTest {
         val viewModel = vm()
 
         viewModel.importModel(mockk<Uri>())
-        assertEquals("Model imported: a/b", awaitResult(viewModel))
+        assertEquals(
+            "${R.string.settings_model_imported}(a/b)",
+            awaitResult(viewModel)
+        )
     }
 
     @Test
@@ -83,7 +94,7 @@ class SettingsViewModelTest {
         val viewModel = vm()
 
         viewModel.importModel(mockk<Uri>())
-        assertTrue(awaitResult(viewModel).startsWith("Import failed:"))
+        assertTrue(awaitResult(viewModel).startsWith(R.string.settings_import_failed.toString()))
     }
 
     @Test
@@ -102,7 +113,7 @@ class SettingsViewModelTest {
         val viewModel = vm()
 
         viewModel.setHuggingFaceToken("hf_test123")
-        assertEquals("Access token saved", awaitResult(viewModel))
+        assertEquals(R.string.settings_token_saved.toString(), awaitResult(viewModel))
         assertEquals("hf_test123", settingsRepo.savedToken)
     }
 
@@ -111,7 +122,7 @@ class SettingsViewModelTest {
         val viewModel = vm()
 
         viewModel.setHuggingFaceToken(null)
-        assertEquals("Access token removed", awaitResult(viewModel))
+        assertEquals(R.string.settings_token_removed.toString(), awaitResult(viewModel))
         assertNull(settingsRepo.savedToken)
     }
 
@@ -120,7 +131,7 @@ class SettingsViewModelTest {
         val viewModel = vm()
 
         viewModel.clearChatHistory()
-        assertEquals("Chat history cleared", awaitResult(viewModel))
+        assertEquals(R.string.settings_chat_history_cleared.toString(), awaitResult(viewModel))
         coVerify { chatRepo.clearAllChats() }
     }
 }
@@ -151,6 +162,9 @@ private class FakeSettingsRepository : SettingsRepository {
     override suspend fun setAutoLoadLastModel(enabled: Boolean) {}
     override suspend fun setKeepScreenOn(enabled: Boolean) {}
     override suspend fun setShowTokenCounts(enabled: Boolean) {}
+    override suspend fun setOnboardingCompleted(completed: Boolean) {
+        settingsFlow.value = settingsFlow.value.copy(onboardingCompleted = completed)
+    }
     override suspend fun getLastUsedModelId(): String? = null
     override suspend fun setLastUsedModelId(modelId: String) {}
 }
