@@ -38,7 +38,7 @@
     <string name="model_details_revision">திருத்தம்</string>
     <string name="model_details_tags">குறிச்சொற்கள்</string>
     <string name="model_details_files">கோப்புகள்</string>
-    <string name="model_details_files_hint">ஒரு கோப்பைத் தனியாகப் பதிவிறக்க அம்புத்தவும்.</string>
+    <string name="model_details_files_hint">கோப்புகளைத் தனித்தனியாகப் பதிவிறக்கவும் — பலவற்றை ஒரே நேரத்தில் இயக்கலாம்.</string>
     <string name="model_details_fits_device">✓ உங்கள் சாதனத்தில் அடங்கும்</string>
     <string name="model_details_too_large_short">⚠ இந்தச் சாதனத்திற்கு மிகப்பெரியது</string>
     <string name="model_details_status_downloaded">பதிவிறக்கப்பட்டது</string>

@@ -322,5 +322,6 @@ private class FakeHomeSettingsRepository : com.ai.tinymodels.domain.repository.S
     override suspend fun setAutoLoadLastModel(enabled: Boolean) {}
     override suspend fun setKeepScreenOn(enabled: Boolean) {}
     override suspend fun setShowTokenCounts(enabled: Boolean) {}
+    override suspend fun setOnboardingCompleted(completed: Boolean) {}
     override suspend fun setLastUsedModelId(modelId: String) {}
 }

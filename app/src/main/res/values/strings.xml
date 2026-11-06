@@ -32,4 +32,6 @@
     <string name="error_network">Network error. Check your connection and try again.</string>
     <string name="error_storage">Not enough free storage.</string>
     <string name="error_unknown">Something went wrong. Try again.</string>
+<string name="notification_pause">Pause</string>
+<string name="notification_cancel">Cancel</string>
 </resources>

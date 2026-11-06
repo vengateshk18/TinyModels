@@ -112,8 +112,23 @@ class ChatViewModel @Inject constructor(
      */
     private val lastSearchSources = mutableMapOf<String, List<WebSearchResult>>()
 
-    /** Simulated progress ticker running while a model loads (see [selectModel]). */
-    private var progressTickerJob: Job? = null
+    /**
+     * Track loading progress. The native engine reports only discrete
+     * milestones (10% → 30% → blocking call → 50% → 100%), and there is no
+     * honest way to measure the blocking span — the dialog renders millstones
+     * determinately and the blocking span indeterminately. Nothing here is
+     * advanced artificially.
+     */
+    private fun onLoadProgress(modelId: String, progress: Float, stage: ModelLoadProgress.LoadStage) {
+        _uiState.update {
+            it.copy(
+                modelLoadProgress = it.modelLoadProgress?.copy(
+                    progress = progress.coerceIn(0f, 1f),
+                    stage = stage
+                )
+            )
+        }
+    }
 
     /** The chatId for this screen, passed via nav arguments (SavedStateHandle). */
     val chatId: String? get() = savedStateHandle["chatId"]
@@ -347,36 +362,24 @@ class ChatViewModel @Inject constructor(
             }
 
             // The native engine reports only a few discrete milestones (10% → 30% → 50%)
-            // around one long-blocking initialize() call, so the bar would otherwise
-            // stall and then jump to 100%. Run a simulated ticker alongside the real
-            // load: it creeps asymptotically toward 90% and never reaches it, while
-            // real milestones are merged in as a floor. Completion snaps to 100%.
-            startProgressTicker(modelId)
-
+            // around one long-blocking initialize() call. They are passed through
+            // untouched — the dialog animates to them naturally and renders the
+            // unmeasurable blocking span indeterminately. Nothing moves that the
+            // engine did not move.
             val result = modelManager.loadModel(
                 modelId = modelId,
                 modelFile = modelFile,
                 backend = inference.backend,
                 maxNumTokens = effectiveMaxTokens,
                 onProgress = { progress, stage ->
-                    _uiState.update { currentState ->
-                        val uiStage = when (stage) {
-                            ModelManager.ModelLoadStage.INITIALIZING -> ModelLoadProgress.LoadStage.INITIALIZING
-                            ModelManager.ModelLoadStage.LOADING_WEIGHTS -> ModelLoadProgress.LoadStage.LOADING_WEIGHTS
-                            ModelManager.ModelLoadStage.READY -> ModelLoadProgress.LoadStage.READY
-                        }
-                        currentState.copy(
-                            modelLoadProgress = currentState.modelLoadProgress?.copy(
-                                // Never regress below the simulated value.
-                                progress = maxOf(simulatedProgress, progress),
-                                stage = uiStage
-                            )
-                        )
+                    val uiStage = when (stage) {
+                        ModelManager.ModelLoadStage.INITIALIZING -> ModelLoadProgress.LoadStage.INITIALIZING
+                        ModelManager.ModelLoadStage.LOADING_WEIGHTS -> ModelLoadProgress.LoadStage.LOADING_WEIGHTS
+                        ModelManager.ModelLoadStage.READY -> ModelLoadProgress.LoadStage.READY
                     }
+                    onLoadProgress(modelId, progress, uiStage)
                 }
             )
-            progressTickerJob?.cancel()
-            progressTickerJob = null
             when (result) {
                 is com.ai.tinymodels.core.common.AppResult.Success -> {
                     activeModel = downloaded
@@ -408,50 +411,7 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Simulated progress for the loading dialog. [simulatedProgress] is the current
-     * fake value; the ticker nudges it toward [SIMULATED_PROGRESS_CEILING] (~90%)
-     * with decreasing steps so it never actually arrives while the real load runs.
-     */
-    private var simulatedProgress = 0f
-
-    private fun startProgressTicker(modelId: String) {
-        progressTickerJob?.cancel()
-        simulatedProgress = 0.05f
-        progressTickerJob = viewModelScope.launch(Dispatchers.Default) {
-            while (true) {
-                delay(150)
-                simulatedProgress += (SIMULATED_PROGRESS_CEILING - simulatedProgress) * 0.06f
-                val stage = if (simulatedProgress < 0.35f) {
-                    ModelLoadProgress.LoadStage.INITIALIZING
-                } else {
-                    ModelLoadProgress.LoadStage.LOADING_WEIGHTS
-                }
-                _uiState.update { state ->
-                    val current = state.modelLoadProgress ?: return@update state
-                    if (current.stage == ModelLoadProgress.LoadStage.READY) return@update state
-                    // Stage is monotonic: never regress from LOADING_WEIGHTS to INITIALIZING.
-                    val mergedStage = if (stage == ModelLoadProgress.LoadStage.LOADING_WEIGHTS ||
-                        current.stage == ModelLoadProgress.LoadStage.LOADING_WEIGHTS
-                    ) {
-                        ModelLoadProgress.LoadStage.LOADING_WEIGHTS
-                    } else {
-                        ModelLoadProgress.LoadStage.INITIALIZING
-                    }
-                    state.copy(
-                        modelLoadProgress = current.copy(
-                            progress = maxOf(current.progress, simulatedProgress),
-                            stage = mergedStage
-                        )
-                    )
-                }
-            }
-        }
-    }
-
     private companion object {
-        /** The simulated ticker approaches but never reaches this value. */
-        const val SIMULATED_PROGRESS_CEILING = 0.90f
 
         /** Compaction triggers when usage crosses this fraction of the budget. */
         const val COMPACTION_HEADROOM = 0.90

@@ -61,11 +61,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.annotation.StringRes
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.annotation.StringRes
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -1083,7 +1083,7 @@ private fun PromptBar(result: PromptResult, maxDecode: Double, accent: Color) {
         }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            "TTFT %.0f ms · p95 %.0f ms".format(result.medianTtftMs, result.ttftP95Ms),
+            stringResource(R.string.benchmark_ttft_line, result.medianTtftMs, result.ttftP95Ms),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

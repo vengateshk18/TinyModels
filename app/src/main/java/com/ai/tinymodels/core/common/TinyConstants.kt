@@ -110,6 +110,7 @@ object TinyConstants {
     const val PREFS_AUTO_LOAD_LAST_MODEL = "auto_load_last_model"
     const val PREFS_KEEP_SCREEN_ON = "keep_screen_on"
     const val PREFS_SHOW_TOKEN_COUNTS = "show_token_counts"
+    const val PREFS_ONBOARDING_COMPLETED = "onboarding_completed"
     const val PREFS_LAST_USED_MODEL_ID = "last_used_model_id"
     const val PREFS_HUGGING_FACE_TOKEN = "hugging_face_token"
 

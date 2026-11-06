@@ -38,7 +38,7 @@
     <string name="model_details_revision">रिवीज़न</string>
     <string name="model_details_tags">टैग</string>
     <string name="model_details_files">फ़ाइलें</string>
-    <string name="model_details_files_hint">किसी फ़ाइल को अलग से डाउनलोड करने के लिए उस पर टैप करें।</string>
+    <string name="model_details_files_hint">फ़ाइलें अलग-अलग डाउनलोड करें — कई एक साथ चल सकती हैं।</string>
     <string name="model_details_fits_device">✓ आपके डिवाइस में फ़िट है</string>
     <string name="model_details_too_large_short">⚠ इस डिवाइस के लिए बहुत बड़ा है</string>
     <string name="model_details_status_downloaded">डाउनलोड किया गया</string>

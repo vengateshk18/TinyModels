@@ -86,6 +86,7 @@ fun SettingsScreen(
     onDownloadedModels: () -> Unit,
     onDeviceInfo: () -> Unit,
     onBenchmark: () -> Unit = {},
+    onViewIntro: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -160,7 +161,8 @@ fun SettingsScreen(
             AboutSection(
                 onBenchmark = onBenchmark,
                 onDeviceInfo = onDeviceInfo,
-                onClearHistory = { showClearDialog = true }
+                onClearHistory = { showClearDialog = true },
+                onViewIntro = onViewIntro
             )
             SectionDivider()
             SupportSection()
@@ -545,9 +547,15 @@ private fun reportBug(context: Context) {
 private fun AboutSection(
     onBenchmark: () -> Unit,
     onDeviceInfo: () -> Unit,
-    onClearHistory: () -> Unit
+    onClearHistory: () -> Unit,
+    onViewIntro: () -> Unit
 ) {
     SectionHeader(stringResource(R.string.settings_section_about))
+    NavigationRow(
+        label = stringResource(R.string.settings_view_intro),
+        subtitle = stringResource(R.string.settings_view_intro_subtitle),
+        onClick = onViewIntro
+    )
     NavigationRow(
         label = stringResource(R.string.settings_benchmark),
         subtitle = stringResource(R.string.settings_benchmark_subtitle),

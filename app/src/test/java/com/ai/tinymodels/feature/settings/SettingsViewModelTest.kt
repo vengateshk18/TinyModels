@@ -161,6 +161,9 @@ private class FakeSettingsRepository : SettingsRepository {
     override suspend fun setAutoLoadLastModel(enabled: Boolean) {}
     override suspend fun setKeepScreenOn(enabled: Boolean) {}
     override suspend fun setShowTokenCounts(enabled: Boolean) {}
+    override suspend fun setOnboardingCompleted(completed: Boolean) {
+        settingsFlow.value = settingsFlow.value.copy(onboardingCompleted = completed)
+    }
     override suspend fun getLastUsedModelId(): String? = null
     override suspend fun setLastUsedModelId(modelId: String) {}
 }

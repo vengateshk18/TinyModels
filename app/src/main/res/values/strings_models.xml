@@ -40,7 +40,7 @@
     <string name="model_details_revision">Revision</string>
     <string name="model_details_tags">Tags</string>
     <string name="model_details_files">Files</string>
-    <string name="model_details_files_hint">Tap a file to download it individually.</string>
+    <string name="model_details_files_hint">Download files individually — several can run at once.</string>
     <string name="model_details_fits_device">✓ Fits your device</string>
     <string name="model_details_too_large_short">⚠ Too large for this device</string>
     <string name="model_details_status_downloaded">Downloaded</string>
@@ -103,4 +103,23 @@
         <item quantity="one">%1$d file</item>
         <item quantity="other">%1$d files</item>
     </plurals>
+
+    <!-- Model details: discard-download dialog and file-row actions -->
+    <string name="model_details_discard_title">Discard download?</string>
+    <string name="model_details_discard_body_notification">The download will stop and the partial data will be deleted. This cannot be undone.</string>
+    <string name="model_details_discard_bytes_deleted">%1$s downloaded so far will be deleted.</string>
+    <string name="model_details_discard_partial_deleted">The partial data for this file will be deleted.</string>
+    <string name="model_details_discard_body_end">The download will have to start over, and this cannot be undone.</string>
+    <string name="model_details_discard">Discard</string>
+    <string name="model_details_keep">Keep</string>
+    <string name="model_details_size_loading">Loading size…</string>
+    <string name="model_details_size_unknown">Size can’t be determined</string>
+    <string name="model_details_downloaded_bytes">%1$s downloaded</string>
+    <string name="model_details_paused_resumable">Paused · resumable</string>
+    <string name="model_details_download_desc">Download</string>
+    <string name="model_details_cancel_queued_desc">Cancel queued download</string>
+    <string name="model_details_discard_desc">Discard download</string>
+    <string name="model_details_resume_desc">Resume download</string>
+    <string name="model_details_retry_desc">Retry download</string>
+    <string name="model_details_pause_desc">Pause download</string>
 </resources>

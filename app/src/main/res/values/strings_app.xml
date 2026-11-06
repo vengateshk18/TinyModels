@@ -138,6 +138,12 @@
 
     <!-- ================= Download notifications ================= -->
     <string name="notification_channel_downloads">Model downloads</string>
+    <!-- Splash -->
+    <string name="splash_tagline">Small models. Big possibilities.</string>
+    <string name="splash_pillars">Private · Offline · Yours</string>
+    <string name="notification_progress_bytes">%1$s / %2$s · %3$d%%</string>
+    <string name="notification_progress_downloading">%1$s · downloading</string>
+    <string name="notification_speed">%1$s/s</string>
     <string name="notification_downloading_title">Downloading model</string>
     <string name="notification_download_complete">Download complete</string>
     <string name="notification_download_failed">Download failed</string>
@@ -145,6 +151,8 @@
     <string name="download_error_gated">HTTP 401 — this model is gated. Add your Hugging Face access token in Settings, or accept the model’s license on huggingface.co first.</string>
 
     <!-- New strings surfaced by the settings redesign -->
+    <string name="settings_view_intro">View intro</string>
+    <string name="settings_view_intro_subtitle">Take the TinyModels tour again</string>
     <string name="settings_importing_model">Importing model…</string>
     <string name="settings_font_reset">Reset to default</string>
     <string name="settings_font_preview_body">This is how your chats will look.</string>
@@ -158,6 +166,7 @@
     <string name="settings_backend_cpu" translatable="false">CPU</string>
 
     <!-- Benchmark redesign -->
+    <string name="benchmark_ttft_line">TTFT %1$.0f ms · p95 %2$.0f ms</string>
     <string name="benchmark_state_result">Result</string>
     <string name="benchmark_state_measuring">Measuring</string>
     <string name="benchmark_state_loading">Loading model</string>

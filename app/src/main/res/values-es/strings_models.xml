@@ -38,7 +38,7 @@
     <string name="model_details_revision">Revisión</string>
     <string name="model_details_tags">Etiquetas</string>
     <string name="model_details_files">Archivos</string>
-    <string name="model_details_files_hint">Toca un archivo para descargarlo por separado.</string>
+    <string name="model_details_files_hint">Descarga los archivos de uno en uno: varios pueden descargarse a la vez.</string>
     <string name="model_details_fits_device">✓ Cabe en tu dispositivo</string>
     <string name="model_details_too_large_short">⚠ Demasiado grande para este dispositivo</string>
     <string name="model_details_status_downloaded">Descargado</string>

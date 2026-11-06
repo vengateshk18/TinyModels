@@ -40,7 +40,7 @@
     <string name="model_details_revision">リビジョン</string>
     <string name="model_details_tags">タグ</string>
     <string name="model_details_files">ファイル</string>
-    <string name="model_details_files_hint">ファイルをタップして個別にダウンロード。</string>
+    <string name="model_details_files_hint">ファイルを個別にダウンロードできます。複数を同時に実行できます。</string>
     <string name="model_details_fits_device">✓ デバイスに適合</string>
     <string name="model_details_too_large_short">⚠ このデバイスには大きすぎます</string>
     <string name="model_details_status_downloaded">ダウンロード済み</string>

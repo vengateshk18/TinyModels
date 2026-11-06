@@ -118,11 +118,24 @@ class DownloadModelUseCase @Inject constructor(
             api.contentLength(api.fileUrl(model.id, fileName))
         }
 
-    /** Enqueue a single-file download (or observe the active one) and stream progress. */
-    fun executeFile(model: ModelDetails, fileName: String, fileSize: Long): Flow<DownloadState> {
-        // KEEP discards the new request when a job already exists — observe
-        // THAT job instead of the stillborn request id (which would read IDLE).
-        observeExistingFile(model.id, fileName)?.let { return it }
+    /**
+     * Enqueue a single-file download (or observe the active one) and stream progress.
+     *
+     * [replace] is for Resume: cancellation is asynchronous, so the previous job
+     * often still exists when the user taps. KEEP would silently discard the new
+     * request and Resume would do nothing at all.
+     */
+    fun executeFile(
+        model: ModelDetails,
+        fileName: String,
+        fileSize: Long,
+        replace: Boolean = false
+    ): Flow<DownloadState> {
+        if (!replace) {
+            // KEEP discards the new request when a job already exists — observe
+            // THAT job instead of the stillborn request id (which would read IDLE).
+            observeExistingFile(model.id, fileName)?.let { return it }
+        }
         val request = OneTimeWorkRequestBuilder<ModelDownloadWorker>()
             .setConstraints(downloadConstraints())
             .setInputData(
@@ -143,7 +156,7 @@ class DownloadModelUseCase @Inject constructor(
 
         workManager.enqueueUniqueWork(
             fileUniqueName(model.id, fileName),
-            ExistingWorkPolicy.KEEP,
+            if (replace) ExistingWorkPolicy.REPLACE else ExistingWorkPolicy.KEEP,
             request
         )
         return observe(request.id)
@@ -162,6 +175,15 @@ class DownloadModelUseCase @Inject constructor(
     fun cancelFile(modelId: String, fileName: String) {
         workManager.cancelUniqueWork(fileUniqueName(modelId, fileName))
     }
+
+    /**
+     * Deletes the partial bytes of a paused/failed file. The final file is left
+     * alone — this is "throw away what I did not finish", not "delete a model".
+     */
+    suspend fun discardPartial(modelId: String, fileName: String) =
+        withContext(Dispatchers.IO) {
+            DownloadPaths.partFile(context.filesDir, modelId, fileName).delete()
+        }
 
     /** Compute total download size on demand (user-initiated, avoids extra calls on view). */
     suspend fun calculateSize(model: ModelDetails): Long = withContext(Dispatchers.IO) {

@@ -40,7 +40,7 @@
     <string name="model_details_revision">Révision</string>
     <string name="model_details_tags">Tags</string>
     <string name="model_details_files">Fichiers</string>
-    <string name="model_details_files_hint">Appuyez sur un fichier pour le télécharger individuellement.</string>
+    <string name="model_details_files_hint">Téléchargez les fichiers individuellement — plusieurs en même temps.</string>
     <string name="model_details_fits_device">✓ Convient à votre appareil</string>
     <string name="model_details_too_large_short">⚠ Trop volumineux pour cet appareil</string>
     <string name="model_details_status_downloaded">Téléchargé</string>
