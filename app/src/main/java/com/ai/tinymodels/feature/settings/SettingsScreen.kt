@@ -1,6 +1,5 @@
 package com.ai.tinymodels.feature.settings
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -47,34 +46,33 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.ai.tinymodels.core.common.AppLocale
-import com.ai.tinymodels.R
-import com.ai.tinymodels.core.common.TinyConstants
-import com.ai.tinymodels.domain.model.AppLanguage
 import com.ai.tinymodels.domain.model.AppSettings
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.FontChoice
 import com.ai.tinymodels.domain.model.ThemeMode
-import com.ai.tinymodels.core.ui.components.bottomSheetTopSafePadding
 import com.ai.tinymodels.core.ui.theme.fontFamilyFor
 import kotlin.math.roundToInt
 
@@ -123,10 +121,10 @@ fun SettingsScreen(
         contentWindowInsets = safeTopHorizontal,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.settings_title)) },
+                title = { Text("Settings") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -154,7 +152,7 @@ fun SettingsScreen(
             HuggingFaceSection(viewModel)
             SectionDivider()
             ModelManagementSection(
-                onImportClick = { importLauncher.launch(arrayOf(TinyConstants.MIME_TYPE_ANY)) }
+                onImportClick = { importLauncher.launch(arrayOf("*/*")) }
             )
             SectionDivider()
             AboutSection(
@@ -196,17 +194,17 @@ fun SettingsScreen(
     if (showClearDialog) {
         AlertDialog(
             onDismissRequest = { showClearDialog = false },
-            title = { Text(stringResource(R.string.settings_clear_chat_history_title)) },
-            text = { Text(stringResource(R.string.settings_clear_chat_history_body)) },
+            title = { Text("Clear chat history") },
+            text = { Text("Delete all chat conversations? This cannot be undone.") },
             confirmButton = {
                 androidx.compose.material3.TextButton(onClick = {
                     viewModel.clearChatHistory()
                     showClearDialog = false
-                }) { Text(stringResource(R.string.common_delete)) }
+                }) { Text("Delete") }
             },
             dismissButton = {
                 androidx.compose.material3.TextButton(onClick = { showClearDialog = false }) {
-                    Text(stringResource(R.string.common_cancel))
+                    Text("Cancel")
                 }
             }
         )
@@ -215,8 +213,8 @@ fun SettingsScreen(
 
 @Composable
 private fun AppearanceSection(settings: AppSettings, viewModel: SettingsViewModel) {
-    SectionHeader(stringResource(R.string.settings_section_appearance))
-    Text(stringResource(R.string.settings_theme), style = MaterialTheme.typography.bodyMedium)
+    SectionHeader("Appearance")
+    Text("Theme", style = MaterialTheme.typography.bodyMedium)
     Spacer(modifier = Modifier.height(8.dp))
     val modes = listOf(ThemeMode.SYSTEM, ThemeMode.LIGHT, ThemeMode.DARK)
     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
@@ -226,20 +224,14 @@ private fun AppearanceSection(settings: AppSettings, viewModel: SettingsViewMode
                 onClick = { viewModel.setThemeMode(mode) },
                 shape = SegmentedButtonDefaults.itemShape(index = index, count = modes.size)
             ) {
-                Text(
-                    when (mode) {
-                        ThemeMode.SYSTEM -> stringResource(R.string.theme_mode_system)
-                        ThemeMode.LIGHT -> stringResource(R.string.theme_mode_light)
-                        ThemeMode.DARK -> stringResource(R.string.theme_mode_dark)
-                    }
-                )
+                Text(mode.name.lowercase().replaceFirstChar { it.uppercase() })
             }
         }
     }
     Spacer(modifier = Modifier.height(12.dp))
     SwitchRow(
-        label = stringResource(R.string.settings_dynamic_color),
-        subtitle = stringResource(R.string.settings_dynamic_color_subtitle),
+        label = "Dynamic color",
+        subtitle = "Use wallpaper-based colors (Android 12+)",
         checked = settings.useDynamicColor,
         onCheckedChange = { viewModel.setDynamicColor(it) }
     )
@@ -259,45 +251,102 @@ private fun AppearanceSection(settings: AppSettings, viewModel: SettingsViewMode
             onDismiss = { showFontSheet = false }
         )
     }
-    Spacer(modifier = Modifier.height(12.dp))
-    var showLanguageSheet by remember { mutableStateOf(false) }
-    val context = LocalContext.current
-    val storedLanguage by viewModel.language.collectAsStateWithLifecycle()
-    val selectedLanguage = remember(storedLanguage, context) {
-        AppLocale.currentLanguage(context, storedLanguage)
-    }
-    NavigationRow(
-        label = stringResource(R.string.settings_language),
-        subtitle = selectedLanguage.displayLabel(),
-        onClick = { showLanguageSheet = true }
-    )
-    if (showLanguageSheet) {
-        LanguageBottomSheet(
-            selected = selectedLanguage,
-            onSelect = { language ->
-                viewModel.setLanguage(language)
-                showLanguageSheet = false
-                // Applies the locale and recreates the activity so every
-                // string (and the system bars) pick up the new language.
-                (context as? Activity)?.let { AppLocale.apply(it, language) }
-            },
-            onDismiss = { showLanguageSheet = false }
-        )
-    }
     Spacer(modifier = Modifier.height(4.dp))
+    FontSizeSetting(settings = settings, viewModel = viewModel)
+}
+
+/** Slider bounds for the app font scale. */
+private const val FONT_SCALE_MIN = 0.85f
+private const val FONT_SCALE_MAX = 1.30f
+
+/**
+ * 0.05 increments across 0.85..1.30 -> nine intervals, so eight interior steps.
+ */
+private const val FONT_SCALE_STEPS = 8
+
+/**
+ * Font-size control.
+ *
+ * The slider keeps its own local state, so dragging is instant: moving the
+ * thumb never writes to DataStore and never rebuilds the app-wide [Typography].
+ * The chosen scale is committed once — when the user lifts their finger — so
+ * the app re-lays out a single time instead of dozens of times per drag.
+ *
+ * A preview card below the slider shows the selected size immediately, which is
+ * how system Settings-style font pickers let you judge the result before
+ * committing to it.
+ */
+@Composable
+private fun FontSizeSetting(settings: AppSettings, viewModel: SettingsViewModel) {
+    val appliedScale = settings.fontScale
+    // Reset the local value whenever the persisted value changes underneath us.
+    var pendingScale by remember(appliedScale) { mutableStateOf(appliedScale) }
+
     SliderRow(
-        label = stringResource(R.string.settings_font_size),
-        valueText = "%.2f×".format(settings.fontScale),
-        value = settings.fontScale,
-        valueRange = 0.85f..1.30f,
-        onValueChange = { viewModel.setFontScale(it) }
+        label = "Font size",
+        valueText = "%.2f×".format(pendingScale),
+        value = pendingScale,
+        valueRange = FONT_SCALE_MIN..FONT_SCALE_MAX,
+        steps = FONT_SCALE_STEPS,
+        onValueChange = { pendingScale = it },
+        onValueChangeFinished = {
+            if (pendingScale != appliedScale) viewModel.setFontScale(pendingScale)
+        }
     )
+
+    FontSizePreview(scale = pendingScale, fontChoice = settings.fontChoice)
+
+    if (pendingScale != 1.0f) {
+        TextButton(onClick = { viewModel.setFontScale(1.0f) }) {
+            Text("Reset to default")
+        }
+    }
+}
+
+/** Live preview of the chosen scale, rendered at [scale] without touching the theme. */
+@Composable
+private fun FontSizePreview(scale: Float, fontChoice: FontChoice) {
+    val family = remember(fontChoice) { fontFamilyFor(fontChoice) }
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shape = MaterialTheme.shapes.medium,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "TinyModels",
+                fontFamily = family,
+                fontSize = (20f * scale).sp,
+                lineHeight = (26f * scale).sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "This is how your chats will look.",
+                fontFamily = family,
+                fontSize = (14f * scale).sp,
+                lineHeight = (20f * scale).sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Small print stays readable.",
+                fontFamily = family,
+                fontSize = (12f * scale).sp,
+                lineHeight = (16f * scale).sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
 }
 
 @Composable
 private fun InferenceSection(settings: AppSettings, viewModel: SettingsViewModel) {
-    SectionHeader(stringResource(R.string.settings_section_inference))
-    Text(stringResource(R.string.settings_default_backend), style = MaterialTheme.typography.bodyMedium)
+    SectionHeader("Inference")
+    Text("Default backend", style = MaterialTheme.typography.bodyMedium)
     Spacer(modifier = Modifier.height(8.dp))
     val backends = listOf(BackendPreference.AUTO, BackendPreference.GPU, BackendPreference.CPU)
     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
@@ -307,25 +356,19 @@ private fun InferenceSection(settings: AppSettings, viewModel: SettingsViewModel
                 onClick = { viewModel.setDefaultBackend(backend) },
                 shape = SegmentedButtonDefaults.itemShape(index = index, count = backends.size)
             ) {
-                Text(
-                    when (backend) {
-                        BackendPreference.AUTO -> stringResource(R.string.backend_auto)
-                        BackendPreference.GPU -> stringResource(R.string.backend_gpu)
-                        BackendPreference.CPU -> stringResource(R.string.backend_cpu)
-                    }
-                )
+                Text(backend.name.lowercase().replaceFirstChar { it.uppercase() })
             }
         }
     }
     Spacer(modifier = Modifier.height(12.dp))
     SwitchRow(
-        label = stringResource(R.string.settings_web_search),
-        subtitle = stringResource(R.string.settings_web_search_subtitle),
+        label = "Web search",
+        subtitle = "Let chats enable the model's web search tool. Search queries leave the device.",
         checked = settings.webSearchEnabled,
         onCheckedChange = { viewModel.setWebSearchEnabled(it) }
     )
     Text(
-        stringResource(R.string.settings_web_search_note),
+        "When enabled for a chat (via the + menu in the chat), the model may search the web when it needs current information.",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
@@ -333,15 +376,15 @@ private fun InferenceSection(settings: AppSettings, viewModel: SettingsViewModel
 
 @Composable
 private fun DownloadsSection(settings: AppSettings, viewModel: SettingsViewModel) {
-    SectionHeader(stringResource(R.string.settings_section_downloads))
+    SectionHeader("Downloads")
     SwitchRow(
-        label = stringResource(R.string.settings_wifi_only_downloads),
-        subtitle = stringResource(R.string.settings_wifi_only_downloads_subtitle),
+        label = "Wi-Fi only downloads",
+        subtitle = "Wait for an unmetered connection before downloading models",
         checked = settings.wifiOnlyDownloads,
         onCheckedChange = { viewModel.setWifiOnlyDownloads(it) }
     )
     Text(
-        stringResource(R.string.settings_downloads_note),
+        "Model files are gigabytes — this guards your mobile data plan.",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
@@ -349,24 +392,24 @@ private fun DownloadsSection(settings: AppSettings, viewModel: SettingsViewModel
 
 @Composable
 private fun ChatSection(settings: AppSettings, viewModel: SettingsViewModel) {
-    SectionHeader(stringResource(R.string.settings_section_chat))
+    SectionHeader("Chat")
     SwitchRow(
-        label = stringResource(R.string.settings_auto_load_last_model),
-        subtitle = stringResource(R.string.settings_auto_load_last_model_subtitle),
+        label = "Auto-load last model",
+        subtitle = "Load the previously used model when opening chat",
         checked = settings.autoLoadLastModel,
         onCheckedChange = { viewModel.setAutoLoadLastModel(it) }
     )
     Spacer(modifier = Modifier.height(12.dp))
     SwitchRow(
-        label = stringResource(R.string.settings_keep_screen_on),
-        subtitle = stringResource(R.string.settings_keep_screen_on_subtitle),
+        label = "Keep screen on",
+        subtitle = "Prevent sleep while the model is generating",
         checked = settings.keepScreenOn,
         onCheckedChange = { viewModel.setKeepScreenOn(it) }
     )
     Spacer(modifier = Modifier.height(12.dp))
     SwitchRow(
-        label = stringResource(R.string.settings_show_token_counts),
-        subtitle = stringResource(R.string.settings_show_token_counts_subtitle),
+        label = "Show token counts",
+        subtitle = "Show per-message token counts under each bubble",
         checked = settings.showTokenCounts,
         onCheckedChange = { viewModel.setShowTokenCounts(it) }
     )
@@ -377,18 +420,16 @@ private fun HuggingFaceSection(viewModel: SettingsViewModel) {
     val token by viewModel.huggingFaceToken.collectAsStateWithLifecycle()
     var showTokenDialog by remember { mutableStateOf(false) }
 
-    SectionHeader(stringResource(R.string.settings_section_hugging_face))
+    SectionHeader("Hugging Face")
     NavigationRow(
-        label = stringResource(R.string.settings_access_token),
-        subtitle = if (token.isNullOrBlank()) {
-            stringResource(R.string.settings_token_not_set)
-        } else {
-            stringResource(R.string.settings_token_set, token!!.take(6), token!!.takeLast(4))
-        },
+        label = "Access token",
+        subtitle = if (token.isNullOrBlank()) "Not set — optional; only gated models need one"
+        else "Set — ${token!!.take(6)}••••••••${token!!.takeLast(4)}",
         onClick = { showTokenDialog = true }
     )
     Text(
-        stringResource(R.string.settings_token_help),
+        "Gated models (e.g. Gemma) need a free access token to download. " +
+            "Create one at huggingface.co/settings/tokens, then accept the model's license on its page.",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
@@ -420,11 +461,11 @@ private fun TokenDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.settings_token_dialog_title)) },
+        title = { Text("Hugging Face access token") },
         text = {
             Column {
                 Text(
-                    stringResource(R.string.settings_token_dialog_body),
+                    "Paste a token with read access. Create one at huggingface.co/settings/tokens.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -433,7 +474,7 @@ private fun TokenDialog(
                     value = text,
                     onValueChange = { text = it },
                     singleLine = true,
-                    placeholder = { Text(stringResource(R.string.settings_token_placeholder)) },
+                    placeholder = { Text("hf_xxxxxxxxxxxxxxxx") },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -442,14 +483,14 @@ private fun TokenDialog(
             androidx.compose.material3.TextButton(
                 onClick = { onSave(text) },
                 enabled = text.isNotBlank()
-            ) { Text(stringResource(R.string.settings_token_save)) }
+            ) { Text("Save") }
         },
         dismissButton = {
             Row {
                 if (current != null) {
-                    androidx.compose.material3.TextButton(onClick = onRemove) { Text(stringResource(R.string.settings_token_remove)) }
+                    androidx.compose.material3.TextButton(onClick = onRemove) { Text("Remove") }
                 }
-                androidx.compose.material3.TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
+                androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Cancel") }
             }
         }
     )
@@ -461,15 +502,15 @@ private fun TokenDialog(
 @Composable
 private fun SupportSection() {
     val context = LocalContext.current
-    SectionHeader(stringResource(R.string.settings_section_support))
+    SectionHeader("Support")
     NavigationRow(
-        label = stringResource(R.string.settings_star_on_github),
-        subtitle = stringResource(R.string.settings_star_on_github_subtitle),
-        onClick = { openUrl(context, TinyConstants.SUPPORT_GITHUB_URL) }
+        label = "Star on GitHub",
+        subtitle = "Support free, on-device AI for everyone",
+        onClick = { openUrl(context, "https://github.com/vengateshk18/TinyModels") }
     )
     NavigationRow(
-        label = stringResource(R.string.settings_report_bug),
-        subtitle = stringResource(R.string.settings_report_bug_subtitle),
+        label = "Report a bug",
+        subtitle = "Found something broken? Let us know",
         onClick = { reportBug(context) }
     )
 }
@@ -488,9 +529,9 @@ private fun reportBug(context: Context) {
         context.startActivity(
             Intent(
                 Intent.ACTION_SENDTO,
-                Uri.parse(TinyConstants.SUPPORT_EMAIL_ADDRESS)
+                Uri.parse("mailto:vengatesh00014@gamil.com")
             ).apply {
-                putExtra(Intent.EXTRA_SUBJECT, TinyConstants.SUPPORT_EMAIL_SUBJECT)
+                putExtra(Intent.EXTRA_SUBJECT, "TinyModels bug report")
             }.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         )
     }
@@ -502,20 +543,20 @@ private fun AboutSection(
     onDeviceInfo: () -> Unit,
     onClearHistory: () -> Unit
 ) {
-    SectionHeader(stringResource(R.string.settings_section_about))
+    SectionHeader("About")
     NavigationRow(
-        label = stringResource(R.string.settings_benchmark),
-        subtitle = stringResource(R.string.settings_benchmark_subtitle),
+        label = "Benchmark",
+        subtitle = "Score speed, memory, and thermal behaviour",
         onClick = onBenchmark
     )
     NavigationRow(
-        label = stringResource(R.string.settings_device_information),
-        subtitle = stringResource(R.string.settings_device_information_subtitle),
+        label = "Device information",
+        subtitle = "See your device's AI capability",
         onClick = onDeviceInfo
     )
     NavigationRow(
-        label = stringResource(R.string.settings_clear_chat_history),
-        subtitle = stringResource(R.string.settings_clear_chat_history_subtitle),
+        label = "Clear chat history",
+        subtitle = "Delete all conversations",
         onClick = onClearHistory
     )
 }
@@ -557,7 +598,9 @@ private fun SliderRow(
     valueText: String,
     value: Float,
     valueRange: ClosedFloatingPointRange<Float>,
-    onValueChange: (Float) -> Unit
+    onValueChange: (Float) -> Unit,
+    steps: Int = 0,
+    onValueChangeFinished: (() -> Unit)? = null
 ) {
     Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
         Row(modifier = Modifier.fillMaxWidth()) {
@@ -565,7 +608,13 @@ private fun SliderRow(
             Text(valueText, style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Slider(value = value, onValueChange = onValueChange, valueRange = valueRange)
+        Slider(
+            value = value,
+            onValueChange = onValueChange,
+            valueRange = valueRange,
+            steps = steps,
+            onValueChangeFinished = onValueChangeFinished
+        )
     }
 }
 
@@ -603,7 +652,7 @@ private fun FontRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(stringResource(R.string.settings_font), style = MaterialTheme.typography.bodyMedium)
+            Text("Font", style = MaterialTheme.typography.bodyMedium)
             Text(
                 stringResource(selected.labelRes),
                 style = MaterialTheme.typography.bodySmall,
@@ -614,7 +663,7 @@ private fun FontRow(
         }
         Icon(
             Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            contentDescription = stringResource(R.string.settings_change_font_content_description),
+            contentDescription = "Change font",
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
@@ -647,7 +696,7 @@ private fun FontBottomSheet(
                 .padding(bottom = 16.dp)
         ) {
             Text(
-                stringResource(R.string.settings_font_sheet_title),
+                "Choose font",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
@@ -673,82 +722,9 @@ private fun FontBottomSheet(
                         modifier = Modifier.weight(1f)
                     )
                     Text(
-                        text = if (choice == FontChoice.SYSTEM) {
-                            stringResource(R.string.settings_font_default)
-                        } else {
-                            stringResource(R.string.settings_font_google)
-                        },
+                        text = if (choice == FontChoice.SYSTEM) "Default" else "Google Font",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-    }
-}
-
-/**
- * Test tag for the language sheet's content column, so the instrumented inset
- * test can measure the content's laid-out rect against the window insets.
- */
-internal const val LANGUAGE_SHEET_CONTENT_TAG = "language_sheet_content"
-
-/**
- * Bottom sheet listing the languages the app is translated into.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-internal fun LanguageBottomSheet(
-    selected: AppLanguage,
-    onSelect: (AppLanguage) -> Unit,
-    onDismiss: () -> Unit
-) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        // Suppress the sheet's built-in inset handling so we control it precisely.
-        contentWindowInsets = { WindowInsets(0) },
-        // Keep the sheet surface below the status bar when it grows tall
-        // (short screens in landscape).
-        modifier = Modifier
-            .fillMaxWidth()
-            .bottomSheetTopSafePadding()
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .testTag(LANGUAGE_SHEET_CONTENT_TAG)
-                .padding(horizontal = 24.dp)
-                .windowInsetsPadding(
-                    WindowInsets.systemBars
-                        .union(WindowInsets.displayCutout)
-                        .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
-                )
-                .padding(bottom = 16.dp)
-        ) {
-            Text(
-                stringResource(R.string.settings_language_sheet_title),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-            AppLanguage.entries.forEach { language ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onSelect(language) }
-                        .padding(vertical = 12.dp, horizontal = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    RadioButton(
-                        selected = language == selected,
-                        onClick = { onSelect(language) }
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = language.displayLabel(),
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -764,17 +740,18 @@ internal fun LanguageBottomSheet(
 private fun ModelManagementSection(
     onImportClick: () -> Unit
 ) {
-    SectionHeader(stringResource(R.string.settings_section_model_management))
+    SectionHeader("Model Management")
 
     // Import Model
     NavigationRow(
-        label = stringResource(R.string.settings_import_model),
-        subtitle = stringResource(R.string.settings_import_model_subtitle),
+        label = "Import Model",
+        subtitle = "Add a .litertlm file from external storage",
         onClick = onImportClick
     )
 
     Text(
-        stringResource(R.string.settings_import_model_note),
+        "Imported models appear in your library with an 'Imported' tag. " +
+            "To share a downloaded file, open it and use Export.",
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(top = 4.dp)

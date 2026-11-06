@@ -5,7 +5,8 @@ import android.content.Context
 import android.os.Debug
 import android.os.Process
 import android.util.Log
-import com.ai.tinymodels.domain.model.SamplerSettings
+import com.google.ai.edge.litertlm.Engine
+import com.ai.tinymodels.domain.model.EngineLoadConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -41,7 +42,13 @@ data class PromptResult(
     val medianDecodeTokensPerSec: Double,
     val decodeMinTokensPerSec: Double,
     val decodeMaxTokensPerSec: Double,
-    val medianPrefillTokensPerSec: Double
+    val medianPrefillTokensPerSec: Double,
+    /** 95th-percentile decode speed — the slow tail, not the typical run. */
+    val decodeP95TokensPerSec: Double = 0.0,
+    /** Population standard deviation of decode speed across measured runs. */
+    val decodeStdDev: Double = 0.0,
+    /** 95th-percentile time to first token. */
+    val ttftP95Ms: Double = 0.0
 )
 
 /** Full benchmark output for one model on this device. */
@@ -56,7 +63,18 @@ data class BenchmarkResult(
     /** Median decode speed across ALL measured runs (both prompts). */
     val overallDecodeTokensPerSec: Double,
     val deviceName: String,
-    val completedAt: Long
+    val completedAt: Long,
+    /** Composite 0-100 score and its letter grade. */
+    val score: Int = 0,
+    val grade: String = "",
+    /** Size of the model file on disk — the denominator of the memory ratio. */
+    val modelFileBytes: Long = 0L,
+    /** Run-to-run spread of decode speed, and the matching human label. */
+    val decodeCoefficientOfVariation: Double = 0.0,
+    val stability: String = "",
+    /** Result of the sustained loop: steady-state speed and thermal drop. */
+    val sustainedTokensPerSec: Double = 0.0,
+    val sustainedThrottlePercent: Double = 0.0
 )
 
 /**
@@ -83,14 +101,56 @@ class BenchmarkRunner @Inject constructor(
     suspend fun runOnce(
         prompt: PromptSpec,
         runIndex: Int,
-        maxOutputTokens: Int = MAX_OUTPUT_TOKENS,
+        maxOutputTokens: Int = BenchmarkProtocol.MAX_OUTPUT_TOKENS,
         onToken: (Int) -> Unit = {}
     ): RunMetrics = modelManager.withEngine { engine, config ->
+        execute(engine, config, prompt, runIndex, maxOutputTokens, onToken)
+    }
+
+    /**
+     * Sustained (thermal) phase: repeats the medium prompt until [durationMs]
+     * has elapsed and returns the decode speed of each run, in order.
+     *
+     * The engine is held for the whole phase, so no model swap can perturb it,
+     * and a falling tail is the device throttling rather than a cold cache.
+     */
+    suspend fun runSustained(
+        durationMs: Long = BenchmarkProtocol.SUSTAIN_DURATION_MS,
+        onProgress: (elapsedMs: Long, tokensPerSec: Double) -> Unit = { _, _ -> }
+    ): List<Double> = modelManager.withEngine { engine, config ->
+        val prompt = BenchmarkProtocol.PROMPTS.first { it.id == "medium" }
+        val samples = mutableListOf<Double>()
+        val startedNs = System.nanoTime()
+        while ((System.nanoTime() - startedNs) / 1_000_000L < durationMs) {
+            // Every sustained run is measured: there is no warm-up left to do.
+            val metrics = execute(
+                engine = engine,
+                config = config,
+                prompt = prompt,
+                runIndex = BenchmarkProtocol.WARM_UP_RUNS,
+                maxOutputTokens = BenchmarkProtocol.MAX_OUTPUT_TOKENS,
+                onToken = {}
+            )
+            val tps = metrics.decodeTokensPerSec ?: continue
+            samples += tps
+            onProgress((System.nanoTime() - startedNs) / 1_000_000L, tps)
+        }
+        samples
+    }
+
+    private suspend fun execute(
+        engine: Engine,
+        config: EngineLoadConfig,
+        prompt: PromptSpec,
+        runIndex: Int,
+        maxOutputTokens: Int,
+        onToken: (Int) -> Unit
+    ): RunMetrics {
         val session = ConversationSession.create(
             engine = engine,
             systemInstruction = null,
             history = emptyList(),
-            sampler = BENCHMARK_SAMPLER,
+            sampler = BenchmarkProtocol.SAMPLER,
             maxContextTokens = config.maxNumTokens
         )
         Log.i(
@@ -116,10 +176,10 @@ class BenchmarkRunner @Inject constructor(
             val endNs = System.nanoTime()
 
             val ttftMs = BenchmarkMath.ttftMs(startNs, firstEmissionNs, endNs)
-            RunMetrics(
+            return RunMetrics(
                 promptId = prompt.id,
                 runIndex = runIndex,
-                isWarmUp = runIndex == 0,
+                isWarmUp = BenchmarkProtocol.isWarmUp(runIndex),
                 ttftMs = ttftMs,
                 decodeTokensPerSec = BenchmarkMath.decodeTokensPerSec(
                     tokens, firstEmissionNs, lastEmissionNs
@@ -139,38 +199,6 @@ class BenchmarkRunner @Inject constructor(
         // Same tag as ChatViewModel/WebSearchToolSet so one logcat filter
         // (adb logcat -s TinyModelsJourney) shows the entire turn.
         private const val JOURNEY_TAG = "TinyModelsJourney"
-
-        /** Fixed sampler so every run/model is measured identically. */
-        val BENCHMARK_SAMPLER = SamplerSettings(temperature = 0.7, topK = 40, topP = 0.95)
-
-        const val MAX_OUTPUT_TOKENS = 256
-        const val RUNS_PER_PROMPT = 3
-
-        /**
-         * The fixed prompt set: a short (~9 token) and a medium (~120 token)
-         * prompt, so every model/device does the same work.
-         */
-        val PROMPTS = listOf(
-            PromptSpec(
-                id = "short",
-                label = "Short",
-                text = "Describe the sky in one sentence."
-            ),
-            PromptSpec(
-                id = "medium",
-                label = "Medium",
-                text = "Summarize the following in three sentences: " +
-                    "The industrial revolution began in Britain in the late eighteenth century " +
-                    "and spread across Europe and North America over the following hundred years. " +
-                    "Steam power, new iron production techniques, and the factory system transformed " +
-                    "economies that had previously relied on agriculture and handcrafts. Cities grew " +
-                    "rapidly as workers moved from rural areas, and new social classes emerged. " +
-                    "Railways and steamships connected distant markets, while advances in communication " +
-                    "such as the telegraph accelerated trade. Living conditions for many workers were " +
-                    "difficult, with long hours, child labor, and crowded housing, but wages and " +
-                    "literacy gradually improved over the following decades."
-            )
-        )
     }
 }
 

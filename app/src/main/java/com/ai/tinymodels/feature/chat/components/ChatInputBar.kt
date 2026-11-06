@@ -51,6 +51,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -101,9 +102,11 @@ fun ChatInputBar(
     /** Whether the loaded model has a vision encoder (hides photo entry when false). */
     supportsVision: Boolean = false
 ) {
-    var text by remember { mutableStateOf("") }
+    // Saved across configuration changes (rotation, dark-mode switch, resize)
+    // so an in-progress message and its attached photo are never dropped.
+    var text by rememberSaveable { mutableStateOf("") }
     var menuExpanded by remember { mutableStateOf(false) }
-    var pickedImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    var pickedImageUri by rememberSaveable { mutableStateOf<android.net.Uri?>(null) }
     val isGenerating = generation == GenerationState.GENERATING
     val keyboard = LocalSoftwareKeyboardController.current
     val sendEnabled = canSend && (text.isNotBlank() || pickedImageUri != null) && !isGenerating

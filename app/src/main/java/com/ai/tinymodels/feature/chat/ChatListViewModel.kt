@@ -34,10 +34,10 @@ class ChatListViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
-    /** Chat sessions for the list, most recently active first. */
+    /** Chat sessions for the list: pinned first, then most recently active. */
     val chats: StateFlow<List<ChatListItem>> =
         chatRepository.observeChatSummaries()
-            .map { summaries -> summaries.map { it.toListItem() } }
+            .map { summaries -> summaries.map { it.toListItem() }.sortedForDisplay() }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /** Downloaded models — needed to pick a default model for new chats. */
@@ -77,12 +77,51 @@ class ChatListViewModel @Inject constructor(
         viewModelScope.launch { chatRepository.deleteChat(chatId) }
     }
 
+    fun renameChat(chatId: String, title: String) {
+        val sanitized = sanitizeChatTitle(title) ?: return
+        viewModelScope.launch { chatRepository.renameChat(chatId, sanitized) }
+    }
+
+    fun togglePin(chat: ChatListItem) {
+        viewModelScope.launch { chatRepository.setChatPinned(chat.id, !chat.isPinned) }
+    }
+
     private fun ChatSummary.toListItem() = ChatListItem(
         id = id,
         title = title,
         preview = lastMessagePreview,
         updatedAt = updatedAt,
         modelId = modelId,
-        messageCount = messageCount
+        messageCount = messageCount,
+        isPinned = isPinned
     )
 }
+
+/** Maximum length of a user-entered chat title. */
+internal const val MAX_CHAT_TITLE_LENGTH = 60
+
+/**
+ * Normalize a user-entered chat title for storage.
+ *
+ * Trims the ends, collapses any run of whitespace (including newlines) into a
+ * single space, caps the length, and returns null when nothing is left — so
+ * callers can reject blank input without persisting an empty title.
+ */
+internal fun sanitizeChatTitle(raw: String): String? {
+    val normalized = raw.trim().replace(Regex("\\s+"), " ")
+    if (normalized.isEmpty()) return null
+    return normalized.take(MAX_CHAT_TITLE_LENGTH).trimEnd()
+}
+
+/**
+ * Pinned chats first, then most recently active within each group.
+ *
+ * Kept here (rather than only in SQL) so the ordering is unit-testable, and so
+ * a pin toggle reorders the list immediately without a database round-trip
+ * being required to observe the change.
+ */
+internal fun List<ChatListItem>.sortedForDisplay(): List<ChatListItem> =
+    sortedWith(
+        compareByDescending<ChatListItem> { it.isPinned }
+            .thenByDescending { it.updatedAt }
+    )

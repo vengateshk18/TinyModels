@@ -29,7 +29,10 @@ data class ChatEntity(
     val compactionCount: Int = 0,
     // ---- Web search tool (DB v8) ----
     /** Per-chat opt-in for the model's web_search tool (global setting gates availability). */
-    val webSearchEnabled: Boolean = false
+    val webSearchEnabled: Boolean = false,
+    // ---- Pinning (DB v11) ----
+    /** Pinned chats are grouped at the top of the history list. */
+    val isPinned: Boolean = false
 )
 
 @Entity(

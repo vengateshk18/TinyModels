@@ -33,7 +33,8 @@ class ChatRepositoryImpl @Inject constructor(
                     modelId = row.modelId,
                     lastMessagePreview = row.lastMessagePreview,
                     updatedAt = row.updatedAt,
-                    messageCount = row.messageCount
+                    messageCount = row.messageCount,
+                    isPinned = row.isPinned
                 )
             }
         }
@@ -71,6 +72,11 @@ class ChatRepositoryImpl @Inject constructor(
     override suspend fun renameChat(chatId: String, title: String) =
         withContext(dispatchers.io) {
             chatDao.updateChatTitle(chatId, title, System.currentTimeMillis())
+        }
+
+    override suspend fun setChatPinned(chatId: String, pinned: Boolean) =
+        withContext(dispatchers.io) {
+            chatDao.updateChatPinned(chatId, pinned)
         }
 
     override suspend fun saveCompaction(chatId: String, summary: String?, cutoffCreatedAt: Long?) =
@@ -172,6 +178,7 @@ class ChatRepositoryImpl @Inject constructor(
                 compactedUpToCreatedAt = compactedUpToCreatedAt,
                 compactionCount = compactionCount,
                 webSearchEnabled = webSearchEnabled,
+                isPinned = isPinned,
                 inferenceSettings = InferenceSettings(
             backend = runCatching { BackendPreference.valueOf(backend) }.getOrDefault(BackendPreference.AUTO),
             temperature = temperature,
