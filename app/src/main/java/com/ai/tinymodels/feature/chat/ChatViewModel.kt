@@ -1043,7 +1043,7 @@ class ChatViewModel @Inject constructor(
 
             android.util.Log.i(TAG, "JOURNEY: starting generation (assistantId=$assistantId)")
             val prompt = maybeAugmentWithSearch(activeChatId, text)
-                .ifBlank { "What do you see in this image?" }
+                .ifBlank { appContext.getString(R.string.chat_default_photo_prompt) }
             runGeneration(activeChatId, assistantId, prompt, listOfNotNull(savedImagePath))
         }
     }

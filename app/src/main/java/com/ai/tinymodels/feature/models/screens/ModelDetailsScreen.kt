@@ -212,7 +212,8 @@ fun ModelDetailsScreen(
                 uiState.isOfflineError ->
                     OfflineState(onRetry = viewModel::load)
                 uiState.error != null -> ErrorState(
-                    message = uiState.errorMessage ?: stringResource(R.string.model_details_error_failed_to_load),
+                    message = uiState.errorMessageRes?.let { stringResource(it) }
+                        ?: stringResource(R.string.model_details_error_failed_to_load),
                     onRetry = viewModel::load,
                     // Gated model — offer a direct path to add a token.
                     secondaryActionLabel = if (uiState.error is AppError.Auth)

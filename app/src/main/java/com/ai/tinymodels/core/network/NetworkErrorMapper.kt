@@ -1,5 +1,7 @@
 package com.ai.tinymodels.core.network
 
+import androidx.annotation.StringRes
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.AppError
 import java.io.IOException
 import java.net.ConnectException
@@ -24,48 +26,30 @@ object NetworkErrorMapper {
     /** Raw throwable → typed error. */
     fun toAppError(throwable: Throwable): AppError = when (throwable) {
         is HttpException -> when (throwable.code) {
-            401, 403 -> AppError.Auth(gatedMessage(throwable.code))
+            401, 403 -> AppError.Auth(code = throwable.code)
             404 -> AppError.NotFound()
-            429 -> AppError.ServerError(
-                "Too many requests. Wait a moment and try again.",
-                throwable.code
-            )
-            in 500..599 -> AppError.ServerError(
-                "Hugging Face is having trouble right now. Try again later.",
-                throwable.code
-            )
-            else -> AppError.Network(throwable.message)
+            429 -> AppError.ServerError(code = throwable.code)
+            in 500..599 -> AppError.ServerError(code = throwable.code)
+            else -> AppError.Network(null)
         }
         is UnknownHostException -> AppError.NoConnection()
         is ConnectException -> AppError.NoConnection()
         is SocketTimeoutException -> AppError.Timeout()
-        else -> AppError.Network(throwable.message)
+        else -> AppError.Network(null)
     }
 
-    /** Typed error → canonical user-facing copy. */
-    fun friendlyMessage(error: AppError): String = when (error) {
-        is AppError.NoConnection ->
-            error.message ?: "You're offline. Check your internet connection and try again."
-        is AppError.Timeout ->
-            error.message ?: "Connection timed out. Try again."
+    /** Typed error → string resource with canonical, localized user-facing copy. */
+    @StringRes
+    fun friendlyMessageRes(error: AppError): Int = when (error) {
+        is AppError.NoConnection -> R.string.error_no_connection
+        is AppError.Timeout -> R.string.error_timeout
         is AppError.Auth ->
-            error.message ?: "This model is gated. Add a Hugging Face access token in Settings."
+            if (error.code == 403) R.string.error_no_access else R.string.error_gated
         is AppError.ServerError ->
-            error.message ?: "Something went wrong. Try again in a moment."
-        is AppError.NotFound ->
-            error.message ?: "Model not found. It may have been removed from Hugging Face."
-        is AppError.Network ->
-            error.message ?: "Network error. Check your connection and try again."
-        is AppError.Storage ->
-            error.message ?: "Not enough free storage."
-        is AppError.Unknown ->
-            error.message ?: "Something went wrong. Try again."
-    }
-
-    private fun gatedMessage(code: Int) = when (code) {
-        401 -> "This model is gated. Add a Hugging Face access token in Settings, " +
-            "or accept its license on huggingface.co first."
-        else -> "You don't have access to this model. It may be gated — " +
-            "check its license on huggingface.co."
+            if (error.code == 429) R.string.error_too_many_requests else R.string.error_server
+        is AppError.NotFound -> R.string.error_not_found
+        is AppError.Network -> R.string.error_network
+        is AppError.Storage -> R.string.error_storage
+        is AppError.Unknown -> R.string.error_unknown
     }
 }

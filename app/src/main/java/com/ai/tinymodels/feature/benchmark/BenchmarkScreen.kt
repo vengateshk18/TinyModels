@@ -65,6 +65,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.annotation.StringRes
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -72,6 +73,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -80,6 +82,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.inference.BenchmarkMath
 import com.ai.tinymodels.core.inference.BenchmarkProtocol
 import com.ai.tinymodels.core.inference.BenchmarkResult
@@ -121,13 +124,13 @@ fun BenchmarkScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Benchmark", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.benchmark_title), fontWeight = FontWeight.Bold)
                         Text(
                             text = when (state) {
-                                is BenchmarkUiState.Completed -> "Result"
-                                is BenchmarkUiState.Running -> "Measuring"
-                                is BenchmarkUiState.LoadingModel -> "Loading model"
-                                else -> "Inference speed on this device"
+                                is BenchmarkUiState.Completed -> stringResource(R.string.benchmark_state_result)
+                                is BenchmarkUiState.Running -> stringResource(R.string.benchmark_state_measuring)
+                                is BenchmarkUiState.LoadingModel -> stringResource(R.string.benchmark_state_loading)
+                                else -> stringResource(R.string.benchmark_state_subtitle)
                             },
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -138,7 +141,7 @@ fun BenchmarkScreen(
                     IconButton(onClick = {
                         if (running) showCancelDialog = true else onBack()
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -194,10 +197,10 @@ fun BenchmarkScreen(
             )
 
             is BenchmarkUiState.Failed -> ErrorState(
-                title = "Benchmark failed",
+                title = stringResource(R.string.benchmark_failed_title),
                 message = s.message,
                 onRetry = viewModel::backToPicker,
-                retryLabel = "Back to models",
+                retryLabel = stringResource(R.string.benchmark_back_to_models),
                 modifier = Modifier.fillMaxSize().padding(padding)
             )
         }
@@ -206,16 +209,16 @@ fun BenchmarkScreen(
     if (showCancelDialog) {
         AlertDialog(
             onDismissRequest = { showCancelDialog = false },
-            title = { Text("Stop benchmark?") },
-            text = { Text("The run will be cancelled and results discarded.") },
+            title = { Text(stringResource(R.string.benchmark_stop_title)) },
+            text = { Text(stringResource(R.string.benchmark_stop_body)) },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.cancel()
                     showCancelDialog = false
-                }) { Text("Stop") }
+                }) { Text(stringResource(R.string.benchmark_stop)) }
             },
             dismissButton = {
-                TextButton(onClick = { showCancelDialog = false }) { Text("Continue") }
+                TextButton(onClick = { showCancelDialog = false }) { Text(stringResource(R.string.benchmark_continue)) }
             }
         )
     }
@@ -251,13 +254,13 @@ private fun PickerContent(
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
                     Text(
-                        "No models yet",
+                        stringResource(R.string.benchmark_no_models_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        "Download a model from the Models tab, then come back to measure it.",
+                        stringResource(R.string.benchmark_no_models_body),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -267,7 +270,10 @@ private fun PickerContent(
             return@Column
         }
 
-        SectionHeading("Choose a model", "${state.files.size} available")
+        SectionHeading(
+            stringResource(R.string.benchmark_choose_model),
+            stringResource(R.string.benchmark_files_available, state.files.size)
+        )
         Spacer(modifier = Modifier.height(10.dp))
 
         state.files.forEach { file ->
@@ -281,14 +287,30 @@ private fun PickerContent(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        SectionHeading("What gets measured", null)
+        SectionHeading(stringResource(R.string.benchmark_what_gets_measured), null)
         Spacer(modifier = Modifier.height(10.dp))
         MetricGrid(
             tiles = listOf(
-                MetricTileData(Icons.Filled.Speed, "Decode", "tokens / second"),
-                MetricTileData(Icons.Filled.Timer, "Time to first token", "responsiveness"),
-                MetricTileData(Icons.Filled.Bolt, "Prefill", "prompt processing"),
-                MetricTileData(Icons.Filled.Memory, "Peak memory", "footprint")
+                MetricTileData(
+                    Icons.Filled.Speed,
+                    stringResource(R.string.benchmark_metric_decode),
+                    stringResource(R.string.benchmark_metric_decode_sub)
+                ),
+                MetricTileData(
+                    Icons.Filled.Timer,
+                    stringResource(R.string.benchmark_metric_ttft),
+                    stringResource(R.string.benchmark_metric_ttft_sub)
+                ),
+                MetricTileData(
+                    Icons.Filled.Bolt,
+                    stringResource(R.string.benchmark_metric_prefill),
+                    stringResource(R.string.benchmark_metric_prefill_sub)
+                ),
+                MetricTileData(
+                    Icons.Filled.Memory,
+                    stringResource(R.string.benchmark_metric_memory),
+                    stringResource(R.string.benchmark_metric_memory_sub)
+                )
             )
         )
 
@@ -322,7 +344,10 @@ private fun RunBar(
         ) {
             selectedFile?.let {
                 Text(
-                    "Measuring ${it.fileName.substringAfterLast("/")}",
+                    stringResource(
+                        R.string.benchmark_run_measuring,
+                        it.fileName.substringAfterLast("/")
+                    ),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -342,11 +367,11 @@ private fun RunBar(
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Run benchmark", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.benchmark_run), fontWeight = FontWeight.SemiBold)
             }
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                "Usually 3–10 min, depending on the model",
+                stringResource(R.string.benchmark_run_duration),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.fillMaxWidth(),
@@ -382,7 +407,7 @@ private fun HeroCard() {
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    "How fast is this phone, really?",
+                    stringResource(R.string.benchmark_hero_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -390,16 +415,15 @@ private fun HeroCard() {
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                "Runs the same three prompts at greedy decoding, discards a warm-up " +
-                    "pass, then measures steady-state speed, memory, and thermal drop.",
+                stringResource(R.string.benchmark_hero_body),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             Spacer(modifier = Modifier.height(14.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                HeroChip("${BenchmarkProtocol.PROMPTS.size} prompts")
-                HeroChip("${BenchmarkProtocol.MEASURED_RUNS} runs each")
-                HeroChip("temp 0")
+                HeroChip(stringResource(R.string.benchmark_hero_chip_prompts, BenchmarkProtocol.PROMPTS.size))
+                HeroChip(stringResource(R.string.benchmark_hero_chip_runs, BenchmarkProtocol.MEASURED_RUNS))
+                HeroChip(stringResource(R.string.benchmark_hero_chip_temp))
             }
         }
     }
@@ -481,7 +505,7 @@ private fun ModelOptionCard(
             if (selected) {
                 Icon(
                     Icons.Filled.CheckCircle,
-                    contentDescription = "Selected",
+                    contentDescription = stringResource(R.string.benchmark_selected_content_description),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(22.dp)
                 )
@@ -509,27 +533,37 @@ private fun ProtocolCard() {
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    "Methodology",
+                    stringResource(R.string.benchmark_methodology),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold
                 )
             }
             Spacer(modifier = Modifier.height(10.dp))
             BulletPoint(
-                "${BenchmarkProtocol.PROMPTS.size} prompts (short → long) to separate " +
-                    "time-to-first-token from prefill throughput"
+                stringResource(
+                    R.string.benchmark_method_prompts,
+                    BenchmarkProtocol.PROMPTS.size
+                )
             )
             BulletPoint(
-                "1 warm-up + ${BenchmarkProtocol.MEASURED_RUNS} measured runs each, " +
-                    "warm-up discarded"
+                stringResource(
+                    R.string.benchmark_method_runs,
+                    BenchmarkProtocol.MEASURED_RUNS
+                )
             )
-            BulletPoint("Greedy decoding (temperature 0, top-k 1) so runs are repeatable")
+            BulletPoint(stringResource(R.string.benchmark_method_greedy))
             BulletPoint(
-                "${BenchmarkProtocol.SUSTAIN_DURATION_MS / 1000}s sustained loop to catch " +
-                    "thermal throttling"
+                stringResource(
+                    R.string.benchmark_method_sustained,
+                    (BenchmarkProtocol.SUSTAIN_DURATION_MS / 1000).toInt()
+                )
             )
-            BulletPoint("Peak memory sampled every 250 ms; output capped at " +
-                "${BenchmarkProtocol.MAX_OUTPUT_TOKENS} tokens")
+            BulletPoint(
+                stringResource(
+                    R.string.benchmark_method_memory,
+                    BenchmarkProtocol.MAX_OUTPUT_TOKENS
+                )
+            )
         }
     }
 }
@@ -565,10 +599,10 @@ private fun LoadingModelContent(modifier: Modifier = Modifier) {
     ) {
         CircularProgressIndicator(modifier = Modifier.size(44.dp), strokeWidth = 3.dp)
         Spacer(modifier = Modifier.height(20.dp))
-        Text("Loading model", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.benchmark_loading_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(6.dp))
         Text(
-            "Cold load — this time is part of the score.",
+            stringResource(R.string.benchmark_loading_subtitle),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -593,8 +627,15 @@ private fun RunningContent(
 
         ScoreRing(
             fraction = progress.overallFraction,
-            primaryText = "${(progress.overallFraction * 100).toInt()}%",
-            secondaryText = if (sustained) "${progress.sustainedRemainingSec}s left" else "measuring",
+            primaryText = stringResource(
+                R.string.common_percent,
+                (progress.overallFraction * 100).toInt()
+            ),
+            secondaryText = if (sustained) {
+                stringResource(R.string.benchmark_progress_seconds_left, progress.sustainedRemainingSec)
+            } else {
+                stringResource(R.string.benchmark_progress_measuring)
+            },
             accent = MaterialTheme.colorScheme.primary,
             size = 168.dp
         )
@@ -602,17 +643,28 @@ private fun RunningContent(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            if (sustained) "Thermal check" else "${progress.promptLabel} prompt",
+            if (sustained) {
+                stringResource(R.string.benchmark_thermal_check)
+            } else {
+                stringResource(R.string.benchmark_progress_prompt, stringResource(progress.promptLabelRes))
+            },
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             if (sustained) {
-                "Sustained load — watching for throttling"
+                stringResource(R.string.benchmark_sustained_watching)
             } else {
-                "Run ${progress.runIndex + 1} of ${progress.runTotal}" +
-                    if (progress.isWarmUp) " · warm-up (discarded)" else ""
+                stringResource(
+                    R.string.benchmark_progress_run_of,
+                    progress.runIndex + 1,
+                    progress.runTotal
+                ) + if (progress.isWarmUp) {
+                    stringResource(R.string.benchmark_progress_warmup)
+                } else {
+                    ""
+                }
             },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -630,13 +682,13 @@ private fun RunningContent(
         ) {
             StatTile(
                 icon = Icons.Filled.Speed,
-                label = "Tokens",
+                label = stringResource(R.string.benchmark_stat_tokens),
                 value = if (sustained) "—" else "${progress.tokensSoFar}",
                 modifier = Modifier.weight(1f)
             )
             StatTile(
                 icon = Icons.Filled.Timer,
-                label = "Prompt",
+                label = stringResource(R.string.benchmark_stat_prompt),
                 value = "${progress.promptIndex + 1}/${progress.promptTotal}",
                 modifier = Modifier.weight(1f)
             )
@@ -649,7 +701,7 @@ private fun RunningContent(
             modifier = Modifier.fillMaxWidth().height(48.dp),
             shape = RoundedCornerShape(14.dp)
         ) {
-            Text("Cancel")
+            Text(stringResource(R.string.common_cancel))
         }
         Spacer(modifier = Modifier.height(28.dp))
     }
@@ -662,8 +714,18 @@ private fun PhaseTimeline(sustained: Boolean) {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        PhaseStep("Prompt suite", done = sustained, active = !sustained, modifier = Modifier.weight(1f))
-        PhaseStep("Thermal", done = false, active = sustained, modifier = Modifier.weight(1f))
+        PhaseStep(
+            stringResource(R.string.benchmark_phase_prompt_suite),
+            done = sustained,
+            active = !sustained,
+            modifier = Modifier.weight(1f)
+        )
+        PhaseStep(
+            stringResource(R.string.benchmark_phase_thermal),
+            done = false,
+            active = sustained,
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 
@@ -749,14 +811,14 @@ private fun ResultContent(
                 ScoreRing(
                     fraction = result.score / 100f,
                     primaryText = "${result.score}",
-                    secondaryText = "score",
+                    secondaryText = stringResource(R.string.benchmark_result_score),
                     accent = accent,
                     size = 156.dp
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Surface(color = accent, shape = RoundedCornerShape(50)) {
                     Text(
-                        "Grade ${result.grade}",
+                        stringResource(R.string.benchmark_result_grade, result.grade),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
@@ -765,7 +827,10 @@ private fun ResultContent(
                 }
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    "%.1f tok/s median decode".format(result.overallDecodeTokensPerSec),
+                    stringResource(
+                        R.string.benchmark_result_median_decode,
+                        result.overallDecodeTokensPerSec
+                    ),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -788,14 +853,14 @@ private fun ResultContent(
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             StatTile(
                 icon = Icons.Filled.Speed,
-                label = "Decode p50",
+                label = stringResource(R.string.benchmark_stat_decode_p50),
                 value = "%.1f".format(p50Decode),
                 suffix = "tok/s",
                 modifier = Modifier.weight(1f)
             )
             StatTile(
                 icon = Icons.Filled.Timer,
-                label = "TTFT p50",
+                label = stringResource(R.string.benchmark_stat_ttft_p50),
                 value = "%.0f".format(ttft),
                 suffix = "ms",
                 modifier = Modifier.weight(1f)
@@ -805,14 +870,14 @@ private fun ResultContent(
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             StatTile(
                 icon = Icons.Filled.Bolt,
-                label = "Prefill p50",
+                label = stringResource(R.string.benchmark_stat_prefill_p50),
                 value = "%.0f".format(prefill),
                 suffix = "tok/s",
                 modifier = Modifier.weight(1f)
             )
             StatTile(
                 icon = Icons.Filled.Memory,
-                label = "Peak memory",
+                label = stringResource(R.string.benchmark_stat_peak_memory),
                 value = Formatters.formatBytes(result.peakPssBytes, LocalContext.current.resources),
                 suffix = null,
                 modifier = Modifier.weight(1f)
@@ -822,7 +887,10 @@ private fun ResultContent(
         Spacer(modifier = Modifier.height(24.dp))
 
         // ---- Per-prompt breakdown ----
-        SectionHeading("By prompt", "p50 · p95")
+        SectionHeading(
+            stringResource(R.string.benchmark_section_by_prompt),
+            stringResource(R.string.benchmark_section_by_prompt_hint)
+        )
         Spacer(modifier = Modifier.height(12.dp))
         val maxDecode = result.promptResults.maxOfOrNull { it.medianDecodeTokensPerSec } ?: 1.0
         result.promptResults.forEach { pr ->
@@ -833,7 +901,10 @@ private fun ResultContent(
         Spacer(modifier = Modifier.height(6.dp))
 
         // ---- Thermal ----
-        SectionHeading("Thermal", "sustained load")
+        SectionHeading(
+            stringResource(R.string.benchmark_section_thermal),
+            stringResource(R.string.benchmark_section_thermal_hint)
+        )
         Spacer(modifier = Modifier.height(10.dp))
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -852,23 +923,38 @@ private fun ResultContent(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        thermalVerdict(result.sustainedThrottlePercent),
+                        stringResource(thermalVerdictRes(result.sustainedThrottlePercent)),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 InfoRow(
-                    "Sustained speed",
+                    stringResource(R.string.benchmark_stat_sustained_speed),
                     "%.1f tok/s".format(result.sustainedTokensPerSec)
                 )
                 InfoRow(
-                    "Change over run",
-                    BenchmarkMath.throttleLabel(result.sustainedThrottlePercent)
+                    stringResource(R.string.benchmark_stat_change_over_run),
+                    when (BenchmarkMath.throttleFor(result.sustainedThrottlePercent)) {
+                        BenchmarkMath.ThrottleTrend.DROPPED ->
+                            stringResource(
+                                R.string.benchmark_throttle_drop,
+                                result.sustainedThrottlePercent
+                            )
+                        BenchmarkMath.ThrottleTrend.FASTER ->
+                            stringResource(
+                                R.string.benchmark_throttle_faster,
+                                -result.sustainedThrottlePercent
+                            )
+                        BenchmarkMath.ThrottleTrend.NONE ->
+                            stringResource(R.string.benchmark_throttle_none)
+                    }
                 )
                 InfoRow(
-                    "Run-to-run spread",
-                    "${result.stability} (%.1f%%)".format(
+                    stringResource(R.string.benchmark_stat_spread),
+                    stringResource(
+                        R.string.benchmark_stability_value,
+                        stringResource(stabilityRes(result.stability)),
                         result.decodeCoefficientOfVariation * 100
                     )
                 )
@@ -878,7 +964,7 @@ private fun ResultContent(
         Spacer(modifier = Modifier.height(20.dp))
 
         // ---- Model + device ----
-        SectionHeading("Model", null)
+        SectionHeading(stringResource(R.string.benchmark_section_model), null)
         Spacer(modifier = Modifier.height(10.dp))
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -888,13 +974,22 @@ private fun ResultContent(
             )
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                InfoRow("Cold load", "%.1f s".format(result.loadTimeMs / 1000.0))
-                InfoRow("Model size", Formatters.formatBytes(result.modelFileBytes, LocalContext.current.resources))
-                InfoRow("Peak memory", Formatters.formatBytes(result.peakPssBytes, LocalContext.current.resources))
+                InfoRow(
+                    stringResource(R.string.benchmark_info_cold_load),
+                    "%.1f s".format(result.loadTimeMs / 1000.0)
+                )
+                InfoRow(
+                    stringResource(R.string.benchmark_info_model_size),
+                    Formatters.formatBytes(result.modelFileBytes, LocalContext.current.resources)
+                )
+                InfoRow(
+                    stringResource(R.string.benchmark_stat_peak_memory),
+                    Formatters.formatBytes(result.peakPssBytes, LocalContext.current.resources)
+                )
                 // Peak-vs-model ratio is stable; a same-process "baseline" is not,
                 // because freed weight buffers are not returned to the OS.
                 InfoRow(
-                    "Memory / model",
+                    stringResource(R.string.benchmark_info_memory_ratio),
                     if (result.modelFileBytes > 0L) {
                         "%.2f×".format(
                             result.peakPssBytes.toDouble() / result.modelFileBytes
@@ -903,16 +998,14 @@ private fun ResultContent(
                         "—"
                     }
                 )
-                InfoRow("Backend", result.backendUsed)
-                InfoRow("Device", result.deviceName)
+                InfoRow(stringResource(R.string.benchmark_stat_backend), result.backendUsed)
+                InfoRow(stringResource(R.string.benchmark_stat_device), result.deviceName)
             }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            "Tokens are counted from stream emissions. Prefill is prompt tokens / " +
-                "time-to-first-token and includes the first decode step. Scores are relative " +
-                "to a reference phone, not absolute quality.",
+            stringResource(R.string.benchmark_token_note),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -926,7 +1019,7 @@ private fun ResultContent(
             ) {
                 Icon(Icons.Filled.ContentCopy, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Copy")
+                Text(stringResource(R.string.benchmark_copy))
             }
             Button(
                 onClick = onRerun,
@@ -935,12 +1028,12 @@ private fun ResultContent(
             ) {
                 Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Re-run")
+                Text(stringResource(R.string.benchmark_rerun))
             }
         }
         Spacer(modifier = Modifier.height(4.dp))
         TextButton(onClick = onBackToPicker, modifier = Modifier.fillMaxWidth()) {
-            Text("Back to models")
+            Text(stringResource(R.string.benchmark_back_to_models))
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -956,7 +1049,7 @@ private fun PromptBar(result: PromptResult, maxDecode: Double, accent: Color) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                result.prompt.label,
+                stringResource(promptLabelRes(result.prompt.id)),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium
             )
@@ -1204,24 +1297,56 @@ private fun gradeColor(grade: String): Color {
     }
 }
 
-private fun thermalVerdict(throttlePercent: Double): String = when {
-    throttlePercent <= 2.0 -> "Holds full speed"
-    throttlePercent <= 8.0 -> "Slight thermal drop"
-    throttlePercent <= 18.0 -> "Noticeable throttling"
-    else -> "Heavy throttling"
+@StringRes
+private fun thermalVerdictRes(throttlePercent: Double): Int = when {
+    throttlePercent <= 2.0 -> R.string.benchmark_thermal_holds
+    throttlePercent <= 8.0 -> R.string.benchmark_thermal_slight
+    throttlePercent <= 18.0 -> R.string.benchmark_thermal_noticeable
+    else -> R.string.benchmark_thermal_heavy
+}
+
+/** Localized stability wording for a [BenchmarkMath.Stability] tier. */
+@StringRes
+private fun stabilityRes(stability: BenchmarkMath.Stability): Int = when (stability) {
+    BenchmarkMath.Stability.STABLE -> R.string.benchmark_stability_stable
+    BenchmarkMath.Stability.FAIR -> R.string.benchmark_stability_fair
+    BenchmarkMath.Stability.UNSTABLE -> R.string.benchmark_stability_unstable
+}
+
+/** Prompt names live in resources; the protocol keeps an English-free id. */
+@StringRes
+private fun promptLabelRes(promptId: String): Int = when (promptId) {
+    "short" -> R.string.benchmark_prompt_short
+    "medium" -> R.string.benchmark_prompt_medium
+    else -> R.string.benchmark_prompt_long
 }
 
 private fun copySummary(context: Context, result: BenchmarkResult) {
+    val res = context.resources
     val sb = StringBuilder()
     sb.append(
-        "TinyModels benchmark — ${result.modelId.substringAfterLast('/')} " +
-            "(${result.fileName.substringAfterLast('/')}, ${result.backendUsed})\n"
+        res.getString(
+            R.string.benchmark_summary_header,
+            result.modelId.substringAfterLast('/'),
+            result.fileName.substringAfterLast('/'),
+            result.backendUsed
+        )
     )
-    sb.append("Score: ${result.score} (${result.grade}) · " +
-        "%.1f tok/s median decode\n".format(result.overallDecodeTokensPerSec))
+    sb.append("\n")
+    sb.append(
+        res.getString(
+            R.string.benchmark_summary_score,
+            result.score,
+            result.grade,
+            result.overallDecodeTokensPerSec
+        )
+    )
+    sb.append("\n")
     result.promptResults.forEach { pr ->
         sb.append(
-            "  ${pr.prompt.label}: TTFT %.0fms (p95 %.0f), decode %.1f tok/s (p95 %.1f, sd %.1f), prefill %.0f tok/s".format(
+            res.getString(
+                R.string.benchmark_summary_prompt_line,
+                res.getString(promptLabelRes(pr.prompt.id)),
                 pr.medianTtftMs,
                 pr.ttftP95Ms,
                 pr.medianDecodeTokensPerSec,
@@ -1232,21 +1357,36 @@ private fun copySummary(context: Context, result: BenchmarkResult) {
         )
         sb.append("\n")
     }
+    val trend = when (BenchmarkMath.throttleFor(result.sustainedThrottlePercent)) {
+        BenchmarkMath.ThrottleTrend.DROPPED -> res.getString(
+            R.string.benchmark_throttle_drop,
+            result.sustainedThrottlePercent
+        )
+        BenchmarkMath.ThrottleTrend.FASTER -> res.getString(
+            R.string.benchmark_throttle_faster,
+            -result.sustainedThrottlePercent
+        )
+        BenchmarkMath.ThrottleTrend.NONE -> res.getString(R.string.benchmark_throttle_none)
+    }
     sb.append(
-        "Sustained: %.1f tok/s, %s (%s)\n".format(
+        res.getString(
+            R.string.benchmark_summary_sustained,
             result.sustainedTokensPerSec,
-            BenchmarkMath.throttleLabel(result.sustainedThrottlePercent),
-            result.stability
+            trend,
+            res.getString(stabilityRes(result.stability))
         )
     )
+    sb.append("\n")
     sb.append(
-        "Load %.1fs · peak PSS %s · model %s".format(
+        res.getString(
+            R.string.benchmark_summary_load,
             result.loadTimeMs / 1000.0,
-            Formatters.formatBytes(result.peakPssBytes, context.resources),
-            Formatters.formatBytes(result.modelFileBytes, context.resources)
+            Formatters.formatBytes(result.peakPssBytes, res),
+            Formatters.formatBytes(result.modelFileBytes, res)
         )
     )
-    sb.append("Device: ${result.deviceName}")
+    sb.append("\n")
+    sb.append(res.getString(R.string.benchmark_summary_device, result.deviceName))
 
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     clipboard.setPrimaryClip(ClipData.newPlainText("benchmark", sb.toString()))

@@ -123,7 +123,6 @@ object TinyConstants {
     const val SUPPORT_EMAIL_ADDRESS = "mailto:vengatesh00014@gamil.com"
 
     /** Subject line used for the bug-report email. */
-    const val SUPPORT_EMAIL_SUBJECT = "TinyModels bug report"
 
     // ------------------------------------------------------------------
     // Misc

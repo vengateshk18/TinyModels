@@ -11,10 +11,6 @@
     <string name="models_by_author">par %1$s</string>
     <string name="models_downloads_count">⬇ %1$s</string>
     <string name="models_likes_count">♥ %1$s</string>
-    <plurals name="models_file_count">
-        <item quantity="one">%1$d fichier</item>
-        <item quantity="other">%1$d fichiers</item>
-    </plurals>
     <string name="models_pipeline_default" translatable="false">text-generation</string>
 
     <!-- ================= Downloaded models ================= -->
@@ -103,4 +99,8 @@
     <string name="state_error_retry">Réessayer</string>
     <string name="state_offline_title">Vous êtes hors ligne</string>
     <string name="state_offline_message">Vérifiez votre connexion internet et réessayez.</string>
+    <plurals name="models_file_count">
+        <item quantity="one">%1$d fichier</item>
+        <item quantity="other">%1$d fichiers</item>
+    </plurals>
 </resources>

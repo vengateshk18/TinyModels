@@ -11,11 +11,6 @@
     <string name="models_by_author">de %1$s</string>
     <string name="models_downloads_count">⬇ %1$s</string>
     <string name="models_likes_count">♥ %1$s</string>
-    <plurals name="models_file_count">
-        <item quantity="one">%1$d archivo</item>
-        <item quantity="other">%1$d archivos</item>
-            <item quantity="many">%1$d archivos</item>
-    </plurals>
 
     <!-- ================= Downloaded models ================= -->
     <string name="downloaded_models_title">Modelos descargados</string>
@@ -102,4 +97,9 @@
     <string name="downloads_progress_bytes">%1$s / %2$s</string>
     <string name="downloads_progress_percent">(%1$d%%)</string>
     <string name="downloads_progress_speed"> • %1$s/s</string>
+    <plurals name="models_file_count">
+        <item quantity="one">%1$d archivo</item>
+        <item quantity="other">%1$d archivos</item>
+            <item quantity="many">%1$d archivos</item>
+    </plurals>
 </resources>

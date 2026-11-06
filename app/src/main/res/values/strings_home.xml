@@ -34,10 +34,6 @@
     <!-- ================= Home: dashboard ================= -->
     <string name="home_thermal_advisory">Large models may warm your device and use more battery.</string>
     <string name="home_section_your_models">Your models</string>
-    <plurals name="home_show_more_models">
-        <item quantity="one">Show %1$d more model</item>
-        <item quantity="other">Show %1$d more models</item>
-    </plurals>
     <string name="home_manage_models">Manage models</string>
     <string name="home_section_your_usage">Your usage</string>
     <string name="home_stat_chats">chats</string>
@@ -48,18 +44,6 @@
     <string name="home_stat_compactions">compactions</string>
     <string name="home_last_session_tps">Last session: ~%1$s tok/s</string>
     <string name="home_most_chatted">Most chatted</string>
-    <plurals name="home_web_search_chats">
-        <item quantity="one">Web search on in %1$d chat</item>
-        <item quantity="other">Web search on in %1$d chats</item>
-    </plurals>
-    <plurals name="home_model_files_relative">
-        <item quantity="one">%1$s • %2$d file • %3$s</item>
-        <item quantity="other">%1$s • %2$d files • %3$s</item>
-    </plurals>
-    <plurals name="home_model_files_last_used">
-        <item quantity="one">%1$s • %2$d file • last used</item>
-        <item quantity="other">%1$s • %2$d files • last used</item>
-    </plurals>
     <string name="home_chat_with_model">Chat with %1$s</string>
 
     <!-- ================= Home: last-used model card ================= -->
@@ -151,4 +135,20 @@
     <string name="ram_rec_critical_no_models">No models can load right now</string>
     <string name="ram_rec_thermal_throttling">Device is thermal throttling — performance will be reduced</string>
     <string name="ram_rec_battery_low">Battery low — keep charger nearby for large model loads</string>
+    <plurals name="home_model_files_last_used">
+        <item quantity="one">%1$s • %2$d file • last used</item>
+        <item quantity="other">%1$s • %2$d files • last used</item>
+    </plurals>
+    <plurals name="home_model_files_relative">
+        <item quantity="one">%1$s • %2$d file • %3$s</item>
+        <item quantity="other">%1$s • %2$d files • %3$s</item>
+    </plurals>
+    <plurals name="home_show_more_models">
+        <item quantity="one">Show %1$d more model</item>
+        <item quantity="other">Show %1$d more models</item>
+    </plurals>
+    <plurals name="home_web_search_chats">
+        <item quantity="one">Web search on in %1$d chat</item>
+        <item quantity="other">Web search on in %1$d chats</item>
+    </plurals>
 </resources>

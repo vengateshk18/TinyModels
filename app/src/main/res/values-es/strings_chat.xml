@@ -144,4 +144,16 @@
     <string name="chat_message_token_count">• %1$d tok</string>
     <string name="chat_duration_seconds">%1$.1fs</string>
     <string name="chat_duration_minutes_seconds">%1$dm %2$02ds</string>
+
+    <!-- Cadenas nuevas de la extracción de recursos -->
+    <string name="chat_section_pinned">Fijados</string>
+    <string name="chat_section_recent">Recientes</string>
+    <string name="chat_rename_title">Cambiar nombre del chat</string>
+    <string name="chat_rename_label">Nombre del chat</string>
+    <string name="chat_rename">Cambiar nombre</string>
+    <string name="chat_pin">Fijar</string>
+    <string name="chat_unpin">Desfijar</string>
+    <string name="chat_pinned_content_description">Fijado</string>
+    <string name="chat_default_photo_prompt">¿Qué ves en esta imagen?</string>
+    <string name="chat_room_compacted_notice">Los mensajes anteriores se resumieron para ajustarse a la ventana de contexto</string>
 </resources>

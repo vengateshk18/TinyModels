@@ -141,4 +141,16 @@
     <string name="chat_error_model_file_missing_short">Fichier de modèle manquant. Re-téléchargez le modèle.</string>
     <string name="chat_error_no_backend">Aucun backend pris en charge sur cet appareil.</string>
     <string name="chat_error_no_model_loaded">Aucun modèle chargé</string>
+
+    <!-- Nouvelles chaînes issues de l’extraction des ressources -->
+    <string name="chat_section_pinned">Épinglées</string>
+    <string name="chat_section_recent">Récentes</string>
+    <string name="chat_rename_title">Renommer la conversation</string>
+    <string name="chat_rename_label">Nom de la conversation</string>
+    <string name="chat_rename">Renommer</string>
+    <string name="chat_pin">Épingler</string>
+    <string name="chat_unpin">Désépingler</string>
+    <string name="chat_pinned_content_description">Épinglée</string>
+    <string name="chat_default_photo_prompt">Que voyez-vous sur cette image ?</string>
+    <string name="chat_room_compacted_notice">Les messages plus anciens ont été résumés pour tenir dans la fenêtre de contexte</string>
 </resources>

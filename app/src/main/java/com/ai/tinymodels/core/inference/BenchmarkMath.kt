@@ -124,11 +124,13 @@ object BenchmarkMath {
         else -> "D"
     }
 
-    /** Human label for the run-to-run spread. */
-    fun stabilityLabel(coefficientOfVariation: Double): String = when {
-        coefficientOfVariation < 0.05 -> "Stable"
-        coefficientOfVariation < 0.15 -> "Fair"
-        else -> "Unstable"
+    /** Run-to-run spread tier; the UI supplies the localized wording. */
+    enum class Stability { STABLE, FAIR, UNSTABLE }
+
+    fun stabilityFor(coefficientOfVariation: Double): Stability = when {
+        coefficientOfVariation < 0.05 -> Stability.STABLE
+        coefficientOfVariation < 0.15 -> Stability.FAIR
+        else -> Stability.UNSTABLE
     }
 
     /**
@@ -137,10 +139,12 @@ object BenchmarkMath {
      * A negative [throttlePercent] means the device sped up, which must not be
      * rendered as a negative "drop". Sub-half-percent movement is noise.
      */
-    fun throttleLabel(throttlePercent: Double): String = when {
-        throttlePercent > NOISE_PERCENT -> "%.1f%% drop".format(throttlePercent)
-        throttlePercent < -NOISE_PERCENT -> "%.1f%% faster".format(-throttlePercent)
-        else -> "No change"
+    enum class ThrottleTrend { DROPPED, FASTER, NONE }
+
+    fun throttleFor(throttlePercent: Double): ThrottleTrend = when {
+        throttlePercent > NOISE_PERCENT -> ThrottleTrend.DROPPED
+        throttlePercent < -NOISE_PERCENT -> ThrottleTrend.FASTER
+        else -> ThrottleTrend.NONE
     }
 
     /** Movement below this counts as measurement noise, not thermal behaviour. */
@@ -197,7 +201,7 @@ object BenchmarkMath {
             grade = gradeFor(score),
             modelFileBytes = modelFileBytes,
             decodeCoefficientOfVariation = variation,
-            stability = stabilityLabel(variation),
+            stability = stabilityFor(variation),
             sustainedTokensPerSec = sustainedTokensPerSec,
             sustainedThrottlePercent = sustainedThrottlePercent
         )

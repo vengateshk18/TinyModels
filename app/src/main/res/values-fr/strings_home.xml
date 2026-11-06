@@ -34,10 +34,6 @@
     <!-- ================= Home: dashboard ================= -->
     <string name="home_thermal_advisory">Les grands modèles peuvent chauffer votre appareil et consommer plus de batterie.</string>
     <string name="home_section_your_models">Vos modèles</string>
-    <plurals name="home_show_more_models">
-        <item quantity="one">Afficher %1$d modèle de plus</item>
-        <item quantity="other">Afficher %1$d modèles de plus</item>
-    </plurals>
     <string name="home_manage_models">Gérer les modèles</string>
     <string name="home_section_your_usage">Votre utilisation</string>
     <string name="home_stat_chats">conversations</string>
@@ -48,18 +44,6 @@
     <string name="home_stat_compactions">compactions</string>
     <string name="home_last_session_tps">Dernière session : ~%1$s tok/s</string>
     <string name="home_most_chatted">Le plus discuté</string>
-    <plurals name="home_web_search_chats">
-        <item quantity="one">Recherche web activée dans %1$d conversation</item>
-        <item quantity="other">Recherche web activée dans %1$d conversations</item>
-    </plurals>
-    <plurals name="home_model_files_relative">
-        <item quantity="one">%1$s • %2$d fichier • %3$s</item>
-        <item quantity="other">%1$s • %2$d fichiers • %3$s</item>
-    </plurals>
-    <plurals name="home_model_files_last_used">
-        <item quantity="one">%1$s • %2$d fichier • dernière utilisation</item>
-        <item quantity="other">%1$s • %2$d fichiers • dernière utilisation</item>
-    </plurals>
     <string name="home_chat_with_model">Discuter avec %1$s</string>
 
     <!-- ================= Home: last-used model card ================= -->
@@ -151,4 +135,20 @@
     <string name="ram_rec_critical_no_models">Aucun modèle ne peut se charger pour l\'instant</string>
     <string name="ram_rec_thermal_throttling">L\'appareil est en limitation thermique — les performances seront réduites</string>
     <string name="ram_rec_battery_low">Batterie faible — gardez le chargeur à proximité pour charger de gros modèles</string>
+    <plurals name="home_model_files_last_used">
+        <item quantity="one">%1$s • %2$d fichier • dernière utilisation</item>
+        <item quantity="other">%1$s • %2$d fichiers • dernière utilisation</item>
+    </plurals>
+    <plurals name="home_model_files_relative">
+        <item quantity="one">%1$s • %2$d fichier • %3$s</item>
+        <item quantity="other">%1$s • %2$d fichiers • %3$s</item>
+    </plurals>
+    <plurals name="home_show_more_models">
+        <item quantity="one">Afficher %1$d modèle de plus</item>
+        <item quantity="other">Afficher %1$d modèles de plus</item>
+    </plurals>
+    <plurals name="home_web_search_chats">
+        <item quantity="one">Recherche web activée dans %1$d conversation</item>
+        <item quantity="other">Recherche web activée dans %1$d conversations</item>
+    </plurals>
 </resources>

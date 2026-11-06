@@ -32,11 +32,6 @@
     <!-- ================= Home: dashboard ================= -->
     <string name="home_thermal_advisory">Los modelos grandes pueden calentar tu dispositivo y consumir más batería.</string>
     <string name="home_section_your_models">Tus modelos</string>
-    <plurals name="home_show_more_models">
-        <item quantity="one">Mostrar %1$d modelo más</item>
-        <item quantity="other">Mostrar %1$d modelos más</item>
-            <item quantity="many">Mostrar %1$d modelos más</item>
-    </plurals>
     <string name="home_manage_models">Gestionar modelos</string>
     <string name="home_section_your_usage">Tu uso</string>
     <string name="home_stat_chats">chats</string>
@@ -47,21 +42,6 @@
     <string name="home_stat_compactions">compactaciones</string>
     <string name="home_last_session_tps">Última sesión: ~%1$s tok/s</string>
     <string name="home_most_chatted">Más usado</string>
-    <plurals name="home_web_search_chats">
-        <item quantity="one">Búsqueda web activada en %1$d chat</item>
-        <item quantity="other">Búsqueda web activada en %1$d chats</item>
-            <item quantity="many">Búsqueda web activada en %1$d chats</item>
-    </plurals>
-    <plurals name="home_model_files_relative">
-        <item quantity="one">%1$s • %2$d archivo • %3$s</item>
-        <item quantity="other">%1$s • %2$d archivos • %3$s</item>
-            <item quantity="many">%1$s • %2$d archivos • %3$s</item>
-    </plurals>
-    <plurals name="home_model_files_last_used">
-        <item quantity="one">%1$s • %2$d archivo • último uso</item>
-        <item quantity="other">%1$s • %2$d archivos • último uso</item>
-            <item quantity="many">%1$s • %2$d archivos • último uso</item>
-    </plurals>
     <string name="home_chat_with_model">Chatear con %1$s</string>
 
     <!-- ================= Home: last-used model card ================= -->
@@ -149,4 +129,24 @@
     <string name="home_download_progress">%1$d%%</string>
     <string name="home_device_model_tier">%1$s: %2$s (%3$s)</string>
     <string name="device_insights_battery_percent">%1$d%%</string>
+    <plurals name="home_model_files_last_used">
+        <item quantity="one">%1$s • %2$d archivo • último uso</item>
+        <item quantity="other">%1$s • %2$d archivos • último uso</item>
+            <item quantity="many">%1$s • %2$d archivos • último uso</item>
+    </plurals>
+    <plurals name="home_model_files_relative">
+        <item quantity="one">%1$s • %2$d archivo • %3$s</item>
+        <item quantity="other">%1$s • %2$d archivos • %3$s</item>
+            <item quantity="many">%1$s • %2$d archivos • %3$s</item>
+    </plurals>
+    <plurals name="home_show_more_models">
+        <item quantity="one">Mostrar %1$d modelo más</item>
+        <item quantity="other">Mostrar %1$d modelos más</item>
+            <item quantity="many">Mostrar %1$d modelos más</item>
+    </plurals>
+    <plurals name="home_web_search_chats">
+        <item quantity="one">Búsqueda web activada en %1$d chat</item>
+        <item quantity="other">Búsqueda web activada en %1$d chats</item>
+            <item quantity="many">Búsqueda web activada en %1$d chats</item>
+    </plurals>
 </resources>

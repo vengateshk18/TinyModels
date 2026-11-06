@@ -609,7 +609,7 @@ private fun CompactionChip(onClick: () -> Unit) {
         modifier = Modifier.padding(top = 4.dp)
     ) {
         Text(
-            text = "Older messages were summarized to fit the context window",
+            text = stringResource(R.string.chat_room_compacted_notice),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)

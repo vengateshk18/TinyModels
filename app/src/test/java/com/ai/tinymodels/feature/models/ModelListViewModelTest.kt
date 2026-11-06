@@ -78,7 +78,7 @@ class ModelListViewModelTest {
         val state = viewModel.uiState.value
         assertNotNull(state.error)
         assertFalse(state.isOfflineError)
-        assertTrue(state.errorMessage!!.contains("Hugging Face"))
+        assertEquals(com.ai.tinymodels.R.string.error_server, state.errorMessageRes)
     }
 
     @Test

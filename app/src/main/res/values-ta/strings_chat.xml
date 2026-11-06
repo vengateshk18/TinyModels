@@ -1,144 +1,156 @@
 <resources>
     <!-- ================= Chat list / history ================= -->
-    <string name="chat_tab_title">\u0b9a\u0bbe\u0b9f\u0bcd\u0b95\u0bb3\u0bcd</string>
-    <string name="chat_new_chat">\u0baa\u0bc1\u0ba4\u0bbf\u0baf \u0b9a\u0bbe\u0b9f\u0bcd</string>
-    <string name="chat_no_conversations">\u0b87\u0ba9\u0bcd\u0ba9\u0bc1\u0bae\u0bcd \u0b9a\u0bbe\u0b9f\u0bcd\u0b95\u0bb3\u0bcd \u0b87\u0bb2\u0bcd\u0bb2\u0bc8</string>
-    <string name="chat_tap_plus_to_start">\u0baa\u0bc1\u0ba4\u0bbf\u0baf \u0b9a\u0bbe\u0b9f\u0bcd\u0b9f\u0bc8\u0ba4\u0bcd \u0ba4\u0bca\u0b9f\u0b99\u0bcd\u0b95 + \u0b85\u0bae\u0bcd\u0baa\u0bc1\u0ba4\u0bcd\u0ba4\u0bb5\u0bc1\u0bae\u0bcd</string>
-    <string name="chat_untitled">\u0ba4\u0bb2\u0bc8\u0baa\u0bcd\u0baa\u0bbf\u0bb2\u0bcd\u0bb2\u0bbe</string>
-    <string name="chat_delete_title">\u0b9a\u0bbe\u0b9f\u0bcd\u0b9f\u0bc8 \u0ba8\u0bc0\u0b95\u0bcd\u0b95\u0bb5\u0bbe?</string>
-    <string name="chat_delete_body">\u00ab%1$s\u00bb \u0bae\u0bc1\u0bb1\u0bcd\u0bb1\u0bbe\u0b95\u0bb5\u0bc7 \u0ba8\u0bc0\u0b95\u0bcd\u0b95\u0baa\u0bcd\u0baa\u0b9f\u0bc1\u0bae\u0bcd. \u0b87\u0ba8\u0bcd\u0ba4\u0b9a\u0bcd \u0b9a\u0bc6\u0baf\u0bb2\u0bc8\u0b9a\u0bcd \u0b9a\u0bc6\u0baf\u0bb2\u0bbe\u0b95 \u0bae\u0bbe\u0b9f\u0bcd\u0b9f \u0bae\u0bc1\u0b9f\u0bbf\u0baf\u0bbe\u0ba4\u0bc1.</string>
+    <string name="chat_tab_title">சாட்கள்</string>
+    <string name="chat_new_chat">புதிய சாட்</string>
+    <string name="chat_no_conversations">இன்னும் சாட்கள் இல்லை</string>
+    <string name="chat_tap_plus_to_start">புதிய சாட்டைத் தொடங்க + அம்புத்தவும்</string>
+    <string name="chat_untitled">தலைப்பில்லா</string>
+    <string name="chat_delete_title">சாட்டை நீக்கவா?</string>
+    <string name="chat_delete_body">«%1$s» முற்றாகவே நீக்கப்படும். இந்தச் செயலைச் செயலாக மாட்ட முடியாது.</string>
     <plurals name="chat_message_count">
-        <item quantity="one">%1$d \u0b9a\u0bc6\u0baf\u0bcd\u0ba4\u0bbf</item>
-        <item quantity="other">%1$d \u0b9a\u0bc6\u0baf\u0bcd\u0ba4\u0bbf\u0b95\u0bb3\u0bcd</item>
+        <item quantity="one">%1$d செய்தி</item>
+        <item quantity="other">%1$d செய்திகள்</item>
     </plurals>
-    <string name="chat_delete_content_description">\u0b9a\u0bbe\u0b9f\u0bcd\u0b9f\u0bc8 \u0ba8\u0bc0\u0b95\u0bcd\u0b95\u0bc1</string>
+    <string name="chat_delete_content_description">சாட்டை நீக்கு</string>
 
     <!-- ================= Chat room ================= -->
-    <string name="chat_room_back_content_description">\u0baa\u0bbf\u0ba9\u0bcd\u0b9a\u0bc6\u0bb2\u0bcd</string>
-    <string name="chat_room_session_settings_content_description">\u0b85\u0bae\u0bb0\u0bcd\u0bb5\u0bc1 \u0b85\u0bae\u0bc8\u0baa\u0bcd\u0baa\u0bc1\u0b95\u0bb3\u0bcd</string>
-    <string name="chat_room_no_models_title">\u0b87\u0ba9\u0bcd\u0ba9\u0bc1\u0bae\u0bcd \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0b95\u0bb3\u0bcd \u0b87\u0bb2\u0bcd\u0bb2\u0bc8</string>
-    <string name="chat_room_no_models_body">\u0b9a\u0bbe\u0b9f\u0bcd \u0b9a\u0bc6\u0baf\u0bcd\u0baf \u0b92\u0bb0\u0bc1 \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bc8\u0baa\u0bcd \u0baa\u0ba4\u0bbf\u0bb5\u0bbf\u0bb1\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd.</string>
-    <string name="chat_room_pick_model_title">\u0b92\u0bb0\u0bc1 \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bc8\u0ba4\u0bcd \u0ba4\u0bc7\u0bb0\u0bcd\u0ba8\u0bcd\u0ba4\u0bc6\u0b9f\u0bc1\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd</string>
-    <string name="chat_pick_model_title">\u0b92\u0bb0\u0bc1 \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bc8\u0ba4\u0bcd \u0ba4\u0bc7\u0bb0\u0bcd\u0ba8\u0bcd\u0ba4\u0bc6\u0b9f\u0bc1\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd</string>
-    <string name="chat_room_pick_model_body">\u0ba4\u0bca\u0b9f\u0b99\u0bcd\u0b95 \u0b92\u0bb0\u0bc1 \u0baa\u0ba4\u0bbf\u0bb5\u0bbf\u0bb1\u0b95\u0bcd\u0b95\u0baa\u0bcd\u0baa\u0b9f\u0bcd\u0b9f \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bc8\u0ba4\u0bcd \u0ba4\u0bc7\u0bb0\u0bcd\u0ba8\u0bcd\u0ba4\u0bc6\u0b9f\u0bc1\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd.</string>
-    <string name="chat_room_choose">\u0ba4\u0bc7\u0bb0\u0bcd\u0ba8\u0bcd\u0ba4\u0bc6\u0b9f\u0bc1</string>
-    <string name="chat_room_say_hello_title">\u0bb5\u0ba3\u0b95\u0bcd\u0b95\u0bae\u0bcd \u0b9a\u0bca\u0bb2\u0bcd\u0bb2\u0bc1\u0b99\u0bcd\u0b95\u0bb3\u0bcd</string>
-    <string name="chat_room_say_hello_body">\u0b89\u0b99\u0bcd\u0b95\u0bb3\u0bcd \u0b9a\u0bae\u0bb5\u0b9a\u0bae\u0bcd \u0b87\u0ba8\u0bcd\u0ba4\u0b9a\u0bcd \u0b9a\u0bbe\u0ba4\u0ba9\u0ba4\u0bcd\u0ba4\u0bbf\u0bb2\u0bc7\u0baf\u0bc7 \u0b87\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bc1\u0bae\u0bcd.</string>
-    <string name="chat_room_copied_to_clipboard">\u0b95\u0bbf\u0bb3\u0bbf\u0baa\u0bcd\u0baa\u0bcb\u0bb0\u0bcd\u0b9f\u0bbf\u0bb2\u0bcd \u0ba8\u0b95\u0bb2\u0bc6\u0b9f\u0bc1\u0b95\u0bcd\u0b95\u0baa\u0bcd\u0baa\u0b9f\u0bcd\u0b9f\u0ba4\u0bc1</string>
-    <string name="chat_room_summarized_conversation">\u0b9a\u0bc1\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0baa\u0bcd\u0baa\u0b9f\u0bcd\u0b9f \u0b9a\u0bae\u0bb5\u0b9a\u0bae\u0bcd</string>
-    <string name="chat_room_context_usage_title">\u0b9a\u0bc2\u0bb4\u0bb2\u0bcd \u0baa\u0baf\u0ba9\u0bcd\u0baa\u0bbe\u0b9f\u0bc1</string>
-    <string name="chat_room_tokens_in_context">\u0b9a\u0bc2\u0bb4\u0bb2\u0bbf\u0bb2\u0bcd \u0b89\u0bb3\u0bcd\u0bb3 \u0b9f\u0bcb\u0b95\u0bcd\u0b95\u0ba9\u0bcd\u0b95\u0bb3\u0bcd</string>
-    <string name="chat_room_context_budget">\u0b9a\u0bc2\u0bb4\u0bb2\u0bcd \u0bb5\u0bb0\u0bae\u0bcd\u0baa\u0bc1</string>
-    <string name="chat_room_compactions_run">\u0b9a\u0bc1\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0b99\u0bcd\u0b95\u0bb3\u0bcd</string>
+    <string name="chat_room_back_content_description">பின்செல்</string>
+    <string name="chat_room_session_settings_content_description">அமர்வு அமைப்புகள்</string>
+    <string name="chat_room_no_models_title">இன்னும் மாதிரிகள் இல்லை</string>
+    <string name="chat_room_no_models_body">சாட் செய்ய ஒரு மாதிரியைப் பதிவிறக்கவும்.</string>
+    <string name="chat_room_pick_model_title">ஒரு மாதிரியைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="chat_pick_model_title">ஒரு மாதிரியைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="chat_room_pick_model_body">தொடங்க ஒரு பதிவிறக்கப்பட்ட மாதிரியைத் தேர்ந்தெடுக்கவும்.</string>
+    <string name="chat_room_choose">தேர்ந்தெடு</string>
+    <string name="chat_room_say_hello_title">வணக்கம் சொல்லுங்கள்</string>
+    <string name="chat_room_say_hello_body">உங்கள் சமவசம் இந்தச் சாதனத்திலேயே இருக்கும்.</string>
+    <string name="chat_room_copied_to_clipboard">கிளிப்போர்டில் நகலெடுக்கப்பட்டது</string>
+    <string name="chat_room_summarized_conversation">சுருக்கப்பட்ட சமவசம்</string>
+    <string name="chat_room_context_usage_title">சூழல் பயன்பாடு</string>
+    <string name="chat_room_tokens_in_context">சூழலில் உள்ள டோக்கன்கள்</string>
+    <string name="chat_room_context_budget">சூழல் வரம்பு</string>
+    <string name="chat_room_compactions_run">சுருக்கங்கள்</string>
     <plurals name="chat_room_compactions_count">
-        <item quantity="one">%1$d \u0bae\u0bc1\u0bb1\u0bc8</item>
-        <item quantity="other">%1$d \u0bae\u0bc1\u0bb1\u0bc8\u0b95\u0bb3\u0bcd</item>
+        <item quantity="one">%1$d முறை</item>
+        <item quantity="other">%1$d முறைகள்</item>
     </plurals>
-    <string name="chat_room_compacted_summary">\u0b9a\u0bc1\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0baa\u0bcd\u0baa\u0b9f\u0bcd\u0b9f \u0b9a\u0bc1\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bae\u0bcd</string>
-    <string name="chat_room_summary_present">\u0b89\u0bb3\u0bcd\u0bb3\u0ba4\u0bc1 (%1$d \u0b8e\u0bb4\u0bc1\u0ba4\u0bcd\u0ba4\u0bc1\u0b95\u0bb3\u0bcd)</string>
-    <string name="chat_room_summary_none">\u0b87\u0ba9\u0bcd\u0ba9\u0bc1\u0bae\u0bcd \u0b87\u0bb2\u0bcd\u0bb2\u0bc8</string>
-    <string name="chat_room_tokens_used_of_total">%1$d / %2$d \u0b9f\u0bcb\u0b95\u0bcd\u0b95\u0ba9\u0bcd\u0b95\u0bb3\u0bcd</string>
-    <string name="chat_room_context_explainer">\u0baa\u0baf\u0ba9\u0bcd\u0baa\u0bbe\u0b9f\u0bc1 \u0bb5\u0bb0\u0bae\u0bcd\u0baa\u0bbf\u0ba9\u0bcd %1$d%% \u0b8e\u0b9f\u0bcd\u0b9f\u0bc1\u0bae\u0bcd\u0baa\u0bcb\u0ba4\u0bc1 \u0baa\u0bb4\u0bc8\u0baf \u0b9a\u0bc6\u0baf\u0bcd\u0ba4\u0bbf\u0b95\u0bb3\u0bcd \u0ba4\u0bbe\u0ba9\u0bbe\u0b95\u0b9a\u0bcd \u0b9a\u0bc1\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0baa\u0bcd\u0baa\u0b9f\u0bc1\u0bae\u0bcd.</string>
-    <string name="chat_room_tokens_label">%1$d \u0b9f\u0bcb\u0b95\u0bcd\u0b95\u0ba9\u0bcd\u0b95\u0bb3\u0bcd</string>
-    <string name="chat_room_compact_hint">\u0b9a\u0bc2\u0bb4\u0bb2\u0bcd \u0b87\u0b9f\u0ba4\u0bcd\u0ba4\u0bc8 \u0bb5\u0bbf\u0b9f\u0bc1\u0bb5\u0bbf\u0b95\u0bcd\u0b95 \u0baa\u0bb4\u0bc8\u0baf \u0b9a\u0bc6\u0baf\u0bcd\u0ba4\u0bbf\u0b95\u0bb3\u0bc8\u0b9a\u0bcd \u0b9a\u0bc1\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bae\u0bbe\u0b95\u0bcd\u0b95\u0bc1\u0b95\u0bbf\u0bb1\u0ba4\u0bc1.</string>
-    <string name="chat_room_compacting">\u0b9a\u0bc1\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bc1\u0b95\u0bbf\u0bb1\u0ba4\u0bc1\u2026</string>
-    <string name="chat_room_compact_conversation">\u0b9a\u0bae\u0bb5\u0b9a\u0ba4\u0bcd\u0ba4\u0bc8\u0b9a\u0bcd \u0b9a\u0bc1\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bc1</string>
+    <string name="chat_room_compacted_summary">சுருக்கப்பட்ட சுருக்கம்</string>
+    <string name="chat_room_summary_present">உள்ளது (%1$d எழுத்துகள்)</string>
+    <string name="chat_room_summary_none">இன்னும் இல்லை</string>
+    <string name="chat_room_tokens_used_of_total">%1$d / %2$d டோக்கன்கள்</string>
+    <string name="chat_room_context_explainer">பயன்பாடு வரம்பின் %1$d%% எட்டும்போது பழைய செய்திகள் தானாகச் சுருக்கப்படும்.</string>
+    <string name="chat_room_tokens_label">%1$d டோக்கன்கள்</string>
+    <string name="chat_room_compact_hint">சூழல் இடத்தை விடுவிக்க பழைய செய்திகளைச் சுருக்கமாக்குகிறது.</string>
+    <string name="chat_room_compacting">சுருக்குகிறது…</string>
+    <string name="chat_room_compact_conversation">சமவசத்தைச் சுருக்கு</string>
 
     <!-- ================= Chat screen (empty states) ================= -->
-    <string name="chat_open_chats_content_description">\u0b9a\u0bbe\u0b9f\u0bcd\u0b95\u0bb3\u0bc8\u0ba4\u0bcd \u0ba4\u0bbf\u0bb1</string>
-    <string name="chat_settings_content_description">\u0b85\u0bae\u0bc8\u0baa\u0bcd\u0baa\u0bc1\u0b95\u0bb3\u0bcd</string>
-    <string name="chat_no_models_title">\u0b87\u0ba9\u0bcd\u0ba9\u0bc1\u0bae\u0bcd \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0b95\u0bb3\u0bcd \u0b87\u0bb2\u0bcd\u0bb2\u0bc8</string>
-    <string name="chat_no_models_body">\u0b87\u0ba3\u0bcd\u0b9f\u0bb0\u0bcd\u0ba9\u0bc6\u0b9f\u0bcd \u0b87\u0bb2\u0bcd\u0bb2\u0bbe\u0bae\u0bb2\u0bcd \u0b9a\u0bbe\u0b9f\u0bcd \u0b9a\u0bc6\u0baf\u0bcd\u0baf LiteRT-LM \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bc8\u0baa\u0bcd \u0baa\u0ba4\u0bbf\u0bb5\u0bbf\u0bb1\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd.</string>
-    <string name="chat_browse_models">\u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0b95\u0bb3\u0bc8\u0baa\u0bcd \u0baa\u0bbe\u0bb0\u0bcd\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd</string>
-    <string name="chat_choose_downloaded_model_body">\u0ba4\u0bca\u0b9f\u0b99\u0bcd\u0b95 \u0bae\u0bc7\u0bb2\u0bc7 \u0b92\u0bb0\u0bc1 \u0baa\u0ba4\u0bbf\u0bb5\u0bbf\u0bb1\u0b95\u0bcd\u0b95\u0baa\u0bcd\u0baa\u0b9f\u0bcd\u0b9f \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bc8\u0ba4\u0bcd \u0ba4\u0bc7\u0bb0\u0bcd\u0ba8\u0bcd\u0ba4\u0bc6\u0b9f\u0bc1\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd.</string>
+    <string name="chat_open_chats_content_description">சாட்களைத் திற</string>
+    <string name="chat_settings_content_description">அமைப்புகள்</string>
+    <string name="chat_no_models_title">இன்னும் மாதிரிகள் இல்லை</string>
+    <string name="chat_no_models_body">இண்டர்னெட் இல்லாமல் சாட் செய்ய LiteRT-LM மாதிரியைப் பதிவிறக்கவும்.</string>
+    <string name="chat_browse_models">மாதிரிகளைப் பார்க்கவும்</string>
+    <string name="chat_choose_downloaded_model_body">தொடங்க மேலே ஒரு பதிவிறக்கப்பட்ட மாதிரியைத் தேர்ந்தெடுக்கவும்.</string>
 
     <!-- ================= Chat input bar ================= -->
-    <string name="chat_options_content_description">\u0b9a\u0bbe\u0b9f\u0bcd\u0b9f\u0bc1 \u0bb5\u0bbf\u0bb0\u0bc1\u0baa\u0bcd\u0baa\u0b99\u0bcd\u0b95\u0bb3\u0bcd</string>
-    <string name="chat_options_media_section">\u0bae\u0bc0\u0b9f\u0bbf\u0baf\u0bbe</string>
-    <string name="chat_options_attach_photo">\u0baa\u0b9f\u0ba4\u0bcd\u0ba4\u0bc8 \u0b87\u0ba3\u0bc8\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd</string>
-    <string name="chat_options_tools_section">\u0b95\u0bb0\u0bc1\u0bb5\u0bbf\u0b95\u0bb3\u0bcd</string>
-    <string name="chat_options_web_search">\u0b87\u0ba3\u0bc8\u0baf \u0ba4\u0bc7\u0b9f\u0bb2\u0bcd</string>
-    <string name="chat_input_hint_ready">\u0b9a\u0bc6\u0baf\u0bcd\u0ba4\u0bbf\u2026</string>
-    <string name="chat_input_hint_load_model">\u0b9a\u0bbe\u0b9f\u0bcd \u0b9a\u0bc6\u0baf\u0bcd\u0baf \u0b92\u0bb0\u0bc1 \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bc8 \u0b8f\u0bb1\u0bcd\u0bb1\u0bb5\u0bc1\u0bae\u0bcd</string>
-    <string name="chat_stop_generating_content_description">\u0b89\u0bb0\u0bc1\u0bb5\u0bbe\u0b95\u0bcd\u0b95\u0ba4\u0bcd\u0ba4\u0bc8 \u0ba8\u0bbf\u0bb1\u0bc1\u0ba4\u0bcd\u0ba4\u0bb5\u0bc1\u0bae\u0bcd</string>
-    <string name="chat_send_content_description">\u0b85\u0ba9\u0bc1\u0baa\u0bcd\u0baa\u0bc1</string>
-    <string name="chat_photo_to_send_content_description">\u0b85\u0ba9\u0bc1\u0baa\u0bcd\u0baa\u0baa\u0bcd\u0baa\u0b9f\u0bc1\u0bae\u0bcd \u0baa\u0b9f\u0bae\u0bcd</string>
-    <string name="chat_photo_attached">\u0baa\u0b9f\u0bae\u0bcd \u0b87\u0ba3\u0bc8\u0b95\u0bcd\u0b95\u0baa\u0bcd\u0baa\u0b9f\u0bcd\u0b9f\u0ba4\u0bc1</string>
-    <string name="chat_remove_photo_content_description">\u0baa\u0b9f\u0ba4\u0bcd\u0ba4\u0bc8 \u0ba8\u0bc0\u0b95\u0bcd\u0b95\u0bc1</string>
+    <string name="chat_options_content_description">சாட்டு விருப்பங்கள்</string>
+    <string name="chat_options_media_section">மீடியா</string>
+    <string name="chat_options_attach_photo">படத்தை இணைக்கவும்</string>
+    <string name="chat_options_tools_section">கருவிகள்</string>
+    <string name="chat_options_web_search">இணைய தேடல்</string>
+    <string name="chat_input_hint_ready">செய்தி…</string>
+    <string name="chat_input_hint_load_model">சாட் செய்ய ஒரு மாதிரியை ஏற்றவும்</string>
+    <string name="chat_stop_generating_content_description">உருவாக்கத்தை நிறுத்தவும்</string>
+    <string name="chat_send_content_description">அனுப்பு</string>
+    <string name="chat_photo_to_send_content_description">அனுப்பப்படும் படம்</string>
+    <string name="chat_photo_attached">படம் இணைக்கப்பட்டது</string>
+    <string name="chat_remove_photo_content_description">படத்தை நீக்கு</string>
 
     <!-- ================= Edit message dialog ================= -->
-    <string name="chat_edit_title">\u0b9a\u0bc6\u0baf\u0bcd\u0ba4\u0bbf\u0baf\u0bc8\u0ba4\u0bcd \u0ba4\u0bbf\u0bb0\u0bc1\u0ba4\u0bcd\u0ba4\u0bc1</string>
-    <string name="chat_edit_body">\u0ba4\u0bbf\u0bb0\u0bc1\u0ba4\u0bcd\u0ba4\u0bbf\u0ba9\u0bbe\u0bb2\u0bcd \u0b87\u0ba8\u0bcd\u0ba4\u0b9a\u0bcd \u0b9a\u0bc6\u0baf\u0bcd\u0ba4\u0bbf \u0bae\u0bbe\u0bb1\u0bcd\u0bb1\u0baa\u0bcd\u0baa\u0b9f\u0bcd\u0b9f\u0bc1, \u0baa\u0ba4\u0bbf\u0bb2\u0bcd \u0bae\u0bc0\u0ba3\u0bcd\u0b9f\u0bc1\u0bae\u0bcd \u0b89\u0bb0\u0bc1\u0bb5\u0bbe\u0b95\u0bcd\u0b95\u0baa\u0bcd\u0baa\u0b9f\u0bc1\u0bae\u0bcd.</string>
-    <string name="chat_edit_placeholder">\u0b9a\u0bc6\u0baf\u0bcd\u0ba4\u0bbf</string>
-    <string name="chat_edit_save_send">\u0b9a\u0bc7\u0bae\u0bbf\u0ba4\u0bcd\u0ba4\u0bc1 \u0b85\u0ba9\u0bc1\u0baa\u0bcd\u0baa\u0bc1</string>
+    <string name="chat_edit_title">செய்தியைத் திருத்து</string>
+    <string name="chat_edit_body">திருத்தினால் இந்தச் செய்தி மாற்றப்பட்டு, பதில் மீண்டும் உருவாக்கப்படும்.</string>
+    <string name="chat_edit_placeholder">செய்தி</string>
+    <string name="chat_edit_save_send">சேமித்து அனுப்பு</string>
 
     <!-- ================= Inference settings sheet ================= -->
-    <string name="chat_settings_title">\u0b85\u0bae\u0bb0\u0bcd\u0bb5\u0bc1 \u0b85\u0bae\u0bc8\u0baa\u0bcd\u0baa\u0bc1\u0b95\u0bb3\u0bcd</string>
-    <string name="chat_settings_subtitle">\u0bae\u0bbe\u0bb1\u0bcd\u0bb1\u0b99\u0bcd\u0b95\u0bb3\u0bcd \u0b87\u0ba8\u0bcd\u0ba4\u0b9a\u0bcd \u0b9a\u0bbe\u0b9f\u0bcd\u0b9f\u0bbf\u0bb1\u0bcd\u0b95\u0bc1 \u0bae\u0b9f\u0bcd\u0b9f\u0bc1\u0bae\u0bc7 \u0baa\u0bca\u0bb0\u0bc1\u0ba8\u0bcd\u0ba4\u0bc1\u0bae\u0bcd.</string>
-    <string name="chat_settings_temperature">\u0bb5\u0bc6\u0baa\u0bcd\u0baa\u0ba8\u0bbf\u0bb2\u0bc8</string>
+    <string name="chat_settings_title">அமர்வு அமைப்புகள்</string>
+    <string name="chat_settings_subtitle">மாற்றங்கள் இந்தச் சாட்டிற்கு மட்டுமே பொருந்தும்.</string>
+    <string name="chat_settings_temperature">வெப்பநிலை</string>
     <string name="chat_settings_top_p">Top-P</string>
     <string name="chat_settings_top_k">Top-K</string>
-    <string name="chat_settings_system_instruction">\u0b95\u0ba3\u0bbf\u0ba9\u0bbf \u0bb5\u0bb4\u0bbf\u0b95\u0bbe\u0b9f\u0bcd\u0b9f\u0bb2\u0bcd</string>
-    <string name="chat_settings_default_system_instruction">\u0ba8\u0bc0\u0b99\u0bcd\u0b95\u0bb3\u0bcd \u0b89\u0ba4\u0bb5\u0bbf\u0baf\u0bbe\u0ba9 \u0b89\u0ba4\u0bb5\u0bbf\u0baf\u0bbe\u0bb3\u0bb0\u0bcd.</string>
-    <string name="chat_settings_discard">\u0b95\u0bc8\u0bb5\u0bbf\u0b9f\u0bc1</string>
-    <string name="chat_settings_save">\u0b9a\u0bc7\u0bae\u0bbf</string>
-    <string name="chat_settings_context_window_note">\u0b9a\u0bc2\u0bb4\u0bb2\u0bcd \u0b9c\u0ba9\u0bcd\u0ba9\u0bb2\u0bcd \u0ba4\u0bbe\u0ba9\u0bbe\u0b95\u0bb5\u0bc7 \u0ba8\u0bbf\u0bb0\u0bcd\u0bb5\u0b95\u0bbf\u0b95\u0bcd\u0b95\u0baa\u0bcd\u0baa\u0b9f\u0bc1\u0b95\u0bbf\u0bb1\u0ba4\u0bc1 \u2014 \u0b9a\u0bae\u0bb5\u0b9a\u0bae\u0bcd \u0bb5\u0bb3\u0bb0\u0bcd\u0ba8\u0bcd\u0ba4\u0ba4\u0bc1\u0bae\u0bcd \u0baa\u0bb4\u0bc8\u0baf \u0b9a\u0bc6\u0baf\u0bcd\u0ba4\u0bbf\u0b95\u0bb3\u0bcd \u0b9a\u0bc1\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0baa\u0bcd\u0baa\u0b9f\u0bc1\u0bae\u0bcd.</string>
-    <string name="chat_settings_backend">\u0baa\u0bbf\u0ba9\u0bcd\u0baa\u0b95\u0bc1\u0ba4\u0bbf</string>
+    <string name="chat_settings_system_instruction">கணினி வழிகாட்டல்</string>
+    <string name="chat_settings_default_system_instruction">நீங்கள் உதவியான உதவியாளர்.</string>
+    <string name="chat_settings_discard">கைவிடு</string>
+    <string name="chat_settings_save">சேமி</string>
+    <string name="chat_settings_context_window_note">சூழல் ஜன்னல் தானாகவே நிர்வகிக்கப்படுகிறது — சமவசம் வளர்ந்ததும் பழைய செய்திகள் சுருக்கப்படும்.</string>
+    <string name="chat_settings_backend">பின்பகுதி</string>
 
     <!-- ================= Message bubble ================= -->
-    <string name="chat_message_copy_content_description">\u0ba8\u0b95\u0bb2\u0bc6\u0b9f\u0bc1</string>
-    <string name="chat_message_regenerate_content_description">\u0bae\u0bc0\u0ba3\u0bcd\u0b9f\u0bc1\u0bae\u0bcd \u0b89\u0bb0\u0bc1\u0bb5\u0bbe\u0b95\u0bcd\u0b95\u0bc1</string>
+    <string name="chat_message_copy_content_description">நகலெடு</string>
+    <string name="chat_message_regenerate_content_description">மீண்டும் உருவாக்கு</string>
 
     <!-- ================= Model chip / pickers ================= -->
-    <string name="chat_model_loading">\u0b8f\u0bb1\u0bcd\u0bb1\u0bc1\u0b95\u0bbf\u0bb1\u0ba4\u0bc1\u2026</string>
-    <string name="chat_model_error">\u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf \u0baa\u0bbf\u0bb4\u0bc8</string>
-    <string name="chat_model_select">\u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bc8\u0ba4\u0bcd \u0ba4\u0bc7\u0bb0\u0bcd\u0ba8\u0bcd\u0ba4\u0bc6\u0b9f\u0bc1\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd</string>
-    <string name="chat_model_choose_content_description">\u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bc8\u0ba4\u0bcd \u0ba4\u0bc7\u0bb0\u0bcd\u0ba8\u0bcd\u0ba4\u0bc6\u0b9f\u0bc1\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd</string>
-    <string name="chat_model_choose_title">\u0b92\u0bb0\u0bc1 \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bc8\u0ba4\u0bcd \u0ba4\u0bc7\u0bb0\u0bcd\u0ba8\u0bcd\u0ba4\u0bc6\u0b9f\u0bc1\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd</string>
-    <string name="chat_model_active_content_description">\u0b9a\u0bc6\u0baf\u0bb2\u0bbf\u0bb2\u0bcd</string>
-    <string name="chat_model_files_title">\u0b92\u0bb0\u0bc1 \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bc8\u0ba4\u0bcd \u0ba4\u0bc7\u0bb0\u0bcd\u0ba8\u0bcd\u0ba4\u0bc6\u0b9f\u0bc1\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd</string>
-    <string name="chat_model_files_subtitle">\u0b87\u0ba8\u0bcd\u0ba4\u0b9a\u0bcd \u0b9a\u0bbe\u0ba4\u0ba9\u0ba4\u0bcd\u0ba4\u0bbf\u0bb2\u0bcd \u0baa\u0ba4\u0bbf\u0bb5\u0bbf\u0bb1\u0b95\u0bcd\u0b95\u0baa\u0bcd\u0baa\u0b9f\u0bcd\u0b9f \u0b85\u0ba9\u0bc8\u0ba4\u0bcd\u0ba4\u0bc1 \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf \u0b95\u0bcb\u0baa\u0bcd\u0baa\u0bc1\u0b95\u0bb3\u0bc1\u0bae\u0bcd.</string>
-    <string name="chat_model_files_empty">\u0b87\u0ba9\u0bcd\u0ba9\u0bc1\u0bae\u0bcd \u0baa\u0ba4\u0bbf\u0bb5\u0bbf\u0bb1\u0b95\u0bcd\u0b95\u0baa\u0bcd\u0baa\u0b9f\u0bcd\u0b9f \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf \u0b95\u0bcb\u0baa\u0bcd\u0baa\u0bc1\u0b95\u0bb3\u0bcd \u0b87\u0bb2\u0bcd\u0bb2\u0bc8.</string>
+    <string name="chat_model_loading">ஏற்றுகிறது…</string>
+    <string name="chat_model_error">மாதிரி பிழை</string>
+    <string name="chat_model_select">மாதிரியைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="chat_model_choose_content_description">மாதிரியைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="chat_model_choose_title">ஒரு மாதிரியைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="chat_model_active_content_description">செயலில்</string>
+    <string name="chat_model_files_title">ஒரு மாதிரியைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="chat_model_files_subtitle">இந்தச் சாதனத்தில் பதிவிறக்கப்பட்ட அனைத்து மாதிரி கோப்புகளும்.</string>
+    <string name="chat_model_files_empty">இன்னும் பதிவிறக்கப்பட்ட மாதிரி கோப்புகள் இல்லை.</string>
 
     <!-- ================= Model loading dialog ================= -->
-    <string name="chat_loading_title">\u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf \u0b8f\u0bb1\u0bcd\u0bb1\u0baa\u0bcd\u0baa\u0b9f\u0bc1\u0b95\u0bbf\u0bb1\u0ba4\u0bc1</string>
-    <string name="chat_loading_stage_initializing">\u0b87\u0baf\u0ba8\u0bcd\u0ba4\u0bbf\u0bb0\u0bae\u0bcd \u0ba4\u0bca\u0b9f\u0b99\u0bcd\u0b95\u0bc1\u0b95\u0bbf\u0bb1\u0ba4\u0bc1\u2026</string>
-    <string name="chat_loading_stage_weights">\u0b8e\u0b9f\u0bc8\u0b95\u0bb3\u0bcd \u0b8f\u0bb1\u0bcd\u0bb1\u0baa\u0bcd\u0baa\u0b9f\u0bc1\u0b95\u0bbf\u0ba9\u0bcd\u0bb1\u0ba9\u2026</string>
-    <string name="chat_loading_stage_ready">\u0ba4\u0baf\u0bbe\u0bb0\u0bcd!</string>
+    <string name="chat_loading_title">மாதிரி ஏற்றப்படுகிறது</string>
+    <string name="chat_loading_stage_initializing">இயந்திரம் தொடங்குகிறது…</string>
+    <string name="chat_loading_stage_weights">எடைகள் ஏற்றப்படுகின்றன…</string>
+    <string name="chat_loading_stage_ready">தயார்!</string>
 
     <!-- ================= Chat options menu ================= -->
-    <string name="chat_attach_photo_unavailable">\u0b87\u0ba8\u0bcd\u0ba4 \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf \u0baa\u0b9f\u0b99\u0bcd\u0b95\u0bb3\u0bc8\u0baa\u0bcd \u0baa\u0b9f\u0bbf\u0b95\u0bcd\u0b95 \u0bae\u0bc1\u0b9f\u0bbf\u0baf\u0bbe\u0ba4\u0bc1. \u0baa\u0b9f\u0b99\u0bcd\u0b95\u0bb3\u0bc8 \u0b86\u0baf\u0bcd\u0bb5\u0bc1 \u0b9a\u0bc6\u0baf\u0bcd\u0baf (\u0b8e.\u0b95\u0bbe. Gemma 3) \u0baa\u0bbe\u0bb0\u0bcd\u0bb5\u0bc8\u0b95\u0bcd\u0b95\u0bc1 \u0b89\u0bb3\u0bcd\u0bb3 \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bc8 \u0b8f\u0bb1\u0bcd\u0bb1\u0bb5\u0bc1\u0bae\u0bcd.</string>
+    <string name="chat_attach_photo_unavailable">இந்த மாதிரி படங்களைப் படிக்க முடியாது. படங்களை ஆய்வு செய்ய (எ.கா. Gemma 3) பார்வைக்கு உள்ள மாதிரியை ஏற்றவும்.</string>
 
     <!-- ================= Vision support ================= -->
-    <string name="chat_vision_unsupported">\u0b87\u0ba8\u0bcd\u0ba4 \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bbf\u0bb2\u0bcd \u0baa\u0bbe\u0bb0\u0bcd\u0bb5\u0bc8\u0b95\u0bcd \u0b95\u0bc1\u0bb1\u0bbf\u0baf\u0bbe\u0b95\u0bcd\u0b95\u0bbf \u0b87\u0bb2\u0bcd\u0bb2\u0bc8, \u0b8e\u0ba9\u0bb5\u0bc7 \u0baa\u0b9f\u0b99\u0bcd\u0b95\u0bb3\u0bc8\u0baa\u0bcd \u0baa\u0b9f\u0bbf\u0b95\u0bcd\u0b95 \u0bae\u0bc1\u0b9f\u0bbf\u0baf\u0bbe\u0ba4\u0bc1. \u0baa\u0b9f\u0b99\u0bcd\u0b95\u0bb3\u0bc8 \u0b86\u0baf\u0bcd\u0bb5\u0bc1 \u0b9a\u0bc6\u0baf\u0bcd\u0baf (\u0b8e.\u0b95\u0bbe. Gemma 3) \u0baa\u0bbe\u0bb0\u0bcd\u0bb5\u0bc8\u0b95\u0bcd\u0b95\u0bc1 \u0b89\u0bb3\u0bcd\u0bb3 \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bc8 \u0b8f\u0bb1\u0bcd\u0bb1\u0bb5\u0bc1\u0bae\u0bcd \u2014 \u0b89\u0b99\u0bcd\u0b95\u0bb3\u0bcd \u0b89\u0bb0\u0bc8 \u0ba4\u0b95\u0bcd\u0b95\u0bb5\u0bc8\u0b95\u0bcd\u0b95\u0baa\u0bcd\u0baa\u0b9f\u0bcd\u0b9f\u0ba4\u0bc1, \u0baa\u0b9f \u0b87\u0ba3\u0bc8\u0baa\u0bcd\u0baa\u0bc1\u0b95\u0bb3\u0bcd \u0ba4\u0bb5\u0bbf\u0bb0\u0bcd\u0b95\u0bcd\u0b95\u0baa\u0bcd\u0baa\u0b9f\u0bcd\u0b9f\u0ba9.</string>
+    <string name="chat_vision_unsupported">இந்த மாதிரியில் பார்வைக் குறியாக்கி இல்லை, எனவே படங்களைப் படிக்க முடியாது. படங்களை ஆய்வு செய்ய (எ.கா. Gemma 3) பார்வைக்கு உள்ள மாதிரியை ஏற்றவும் — உங்கள் உரை தக்கவைக்கப்பட்டது, பட இணைப்புகள் தவிர்க்கப்பட்டன.</string>
 
     <!-- ================= Chat errors ================= -->
-    <string name="chat_error_model_not_downloaded">%1$s \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf \u0baa\u0ba4\u0bbf\u0bb5\u0bbf\u0bb1\u0b95\u0bcd\u0b95\u0baa\u0bcd\u0baa\u0b9f\u0bb5\u0bbf\u0bb2\u0bcd\u0bb2\u0bc8</string>
-    <string name="chat_error_model_file_missing">\u0b9a\u0bbe\u0ba4\u0ba9\u0ba4\u0bcd\u0ba4\u0bbf\u0bb2\u0bcd \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf \u0b95\u0bcb\u0baa\u0bcd\u0baa\u0bc1 \u0b87\u0bb2\u0bcd\u0bb2\u0bc8</string>
-    <string name="chat_error_re_download">\u0bae\u0bc0\u0ba3\u0bcd\u0b9f\u0bc1\u0bae\u0bcd \u0baa\u0ba4\u0bbf\u0bb5\u0bbf\u0bb1\u0b95\u0bcd\u0b95\u0bc1</string>
-    <string name="chat_error_failed_to_load">\u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bc8 \u0b8f\u0bb1\u0bcd\u0bb1 \u0bae\u0bc1\u0b9f\u0bbf\u0baf\u0bb5\u0bbf\u0bb2\u0bcd\u0bb2\u0bc8</string>
-    <string name="chat_error_model_still_loading">\u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf \u0b87\u0ba9\u0bcd\u0ba9\u0bc1\u0bae\u0bcd \u0b8f\u0bb1\u0bcd\u0bb1\u0baa\u0bcd\u0baa\u0b9f\u0bc1\u0b95\u0bbf\u0bb1\u0ba4\u0bc1</string>
-    <string name="chat_error_download_model_first">\u0b9a\u0bbe\u0b9f\u0bcd \u0b9a\u0bc6\u0baf\u0bcd\u0baf \u0bae\u0bc1\u0ba4\u0bb2\u0bbf\u0bb2\u0bcd \u0b92\u0bb0\u0bc1 \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bc8\u0baa\u0bcd \u0baa\u0ba4\u0bbf\u0bb5\u0bbf\u0bb1\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd.</string>
-    <string name="chat_error_nothing_to_compact">\u0b9a\u0bc1\u0bb0\u0bc1\u0b95\u0bcd\u0b95 \u0b8e\u0ba4\u0bc1\u0bb5\u0bc1\u0bae\u0bcd \u0b87\u0bb2\u0bcd\u0bb2\u0bc8 \u2014 \u0b9a\u0bae\u0bb5\u0b9a\u0bae\u0bcd \u0b8f\u0bb1\u0bcd\u0b95\u0ba9\u0bb5\u0bc7 \u0b9a\u0bc2\u0bb4\u0bb2\u0bcd \u0b9c\u0ba9\u0bcd\u0ba9\u0bb2\u0bbf\u0bb2\u0bcd \u0b85\u0b9f\u0b99\u0bcd\u0b95\u0bc1\u0b95\u0bbf\u0bb1\u0ba4\u0bc1</string>
-    <string name="chat_error_summarization_failed">\u0b9a\u0bc1\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bae\u0bcd \u0ba4\u0bcb\u0bb2\u0bcd\u0bb5\u0bbf\u0baf\u0b9f\u0bc8\u0ba8\u0bcd\u0ba4\u0ba4\u0bc1 \u2014 \u0b9a\u0bc2\u0bb4\u0bb2\u0bcd \u0b9c\u0ba9\u0bcd\u0ba9\u0bb2\u0bc1\u0b95\u0bcd\u0b95\u0bc1 \u0b8f\u0bb1\u0bcd\u0baa \u0bb5\u0bb0\u0bb2\u0bbe\u0bb1\u0bc1 \u0b95\u0bc1\u0bb1\u0bc8\u0b95\u0bcd\u0b95\u0baa\u0bcd\u0baa\u0b9f\u0bcd\u0b9f\u0ba4\u0bc1</string>
+    <string name="chat_error_model_not_downloaded">%1$s மாதிரி பதிவிறக்கப்படவில்லை</string>
+    <string name="chat_error_model_file_missing">சாதனத்தில் மாதிரி கோப்பு இல்லை</string>
+    <string name="chat_error_re_download">மீண்டும் பதிவிறக்கு</string>
+    <string name="chat_error_failed_to_load">மாதிரியை ஏற்ற முடியவில்லை</string>
+    <string name="chat_error_model_still_loading">மாதிரி இன்னும் ஏற்றப்படுகிறது</string>
+    <string name="chat_error_download_model_first">சாட் செய்ய முதலில் ஒரு மாதிரியைப் பதிவிறக்கவும்.</string>
+    <string name="chat_error_nothing_to_compact">சுருக்க எதுவும் இல்லை — சமவசம் ஏற்கனவே சூழல் ஜன்னலில் அடங்குகிறது</string>
+    <string name="chat_error_summarization_failed">சுருக்கம் தோல்வியடைந்தது — சூழல் ஜன்னலுக்கு ஏற்ப வரலாறு குறைக்கப்பட்டது</string>
     <plurals name="chat_error_compacted_messages">
-        <item quantity="one">%1$d \u0baa\u0bb4\u0bc8\u0baf \u0b9a\u0bc6\u0baf\u0bcd\u0ba4\u0bbf \u0b92\u0bb0\u0bc1 \u0b9a\u0bc1\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bae\u0bbe\u0b95 \u0b9a\u0bc1\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0baa\u0bcd\u0baa\u0b9f\u0bcd\u0b9f\u0ba4\u0bc1</item>
-        <item quantity="other">%1$d \u0baa\u0bb4\u0bc8\u0baf \u0b9a\u0bc6\u0baf\u0bcd\u0ba4\u0bbf\u0b95\u0bb3\u0bcd \u0b92\u0bb0\u0bc1 \u0b9a\u0bc1\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bae\u0bbe\u0b95 \u0b9a\u0bc1\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0baa\u0bcd\u0baa\u0b9f\u0bcd\u0b9f\u0ba9</item>
+        <item quantity="one">%1$d பழைய செய்தி ஒரு சுருக்கமாக சுருக்கப்பட்டது</item>
+        <item quantity="other">%1$d பழைய செய்திகள் ஒரு சுருக்கமாக சுருக்கப்பட்டன</item>
     </plurals>
-    <string name="chat_error_photo_unreadable">\u0b85\u0ba8\u0bcd\u0ba4\u0baa\u0bcd \u0baa\u0b9f\u0ba4\u0bcd\u0ba4\u0bc8\u0baa\u0bcd \u0baa\u0b9f\u0bbf\u0b95\u0bcd\u0b95 \u0bae\u0bc1\u0b9f\u0bbf\u0baf\u0bb5\u0bbf\u0bb2\u0bcd\u0bb2\u0bc8 \u2014 \u0bb5\u0bc7\u0bb1\u0bca\u0bb0\u0bc1 \u0baa\u0b9f\u0ba4\u0bcd\u0ba4\u0bc8 \u0bae\u0bc1\u0baf\u0bb1\u0bcd\u0b9a\u0bbf\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd</string>
-    <string name="chat_error_no_active_conversation">\u0b9a\u0bc6\u0baf\u0bb2\u0bbf\u0bb2\u0bcd \u0b89\u0bb3\u0bcd\u0bb3 \u0b9a\u0bae\u0bb5\u0b9a\u0bae\u0bcd \u0b87\u0bb2\u0bcd\u0bb2\u0bc8</string>
-    <string name="chat_error_model_not_ready">\u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf \u0ba4\u0baf\u0bbe\u0bb0\u0bcd \u0b87\u0bb2\u0bcd\u0bb2\u0bc8</string>
-    <string name="chat_error_generation_failed">\u0b89\u0bb0\u0bc1\u0bb5\u0bbe\u0b95\u0bcd\u0b95\u0bae\u0bcd \u0ba4\u0bcb\u0bb2\u0bcd\u0bb5\u0bbf\u0baf\u0b9f\u0bc8\u0ba8\u0bcd\u0ba4\u0ba4\u0bc1</string>
-    <string name="chat_error_vision_photos">\u0b87\u0ba8\u0bcd\u0ba4 \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf \u0baa\u0b9f\u0b99\u0bcd\u0b95\u0bb3\u0bc8\u0baa\u0bcd \u0baa\u0b9f\u0bbf\u0b95\u0bcd\u0b95 \u0bae\u0bc1\u0b9f\u0bbf\u0baf\u0bbe\u0ba4\u0bc1. \u0baa\u0b9f\u0b99\u0bcd\u0b95\u0bb3\u0bc8 \u0b86\u0baf\u0bcd\u0bb5\u0bc1 \u0b9a\u0bc6\u0baf\u0bcd\u0baf (\u0b8e.\u0b95\u0bbe. Gemma 3) \u0baa\u0bbe\u0bb0\u0bcd\u0bb5\u0bc8\u0b95\u0bcd\u0b95\u0bc1 \u0b89\u0bb3\u0bcd\u0bb3 \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bc8 \u0b8f\u0bb1\u0bcd\u0bb1\u0bb5\u0bc1\u0bae\u0bcd.</string>
-    <string name="chat_error_context_too_long">\u0b87\u0ba8\u0bcd\u0ba4 \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bbf\u0ba9\u0bcd \u0b9a\u0bc2\u0bb4\u0bb2\u0bcd \u0b9c\u0ba9\u0bcd\u0ba9\u0bb2\u0bc1\u0b95\u0bcd\u0b95\u0bc1 \u0b87\u0ba8\u0bcd\u0ba4\u0b95\u0bcd \u0b95\u0bcb\u0bb0\u0bcd\u0baa\u0bcd\u0baa\u0bc1 \u0b85\u0bb2\u0bcd\u0bb2\u0ba4\u0bc1 \u0b9a\u0bbe\u0b9f\u0bcd \u0bb5\u0bb0\u0bb2\u0bbe\u0bb1\u0bc1 \u0bae\u0bbf\u0b95 \u0ba8\u0bc0\u0bb3\u0bae\u0bbe\u0ba9\u0ba4\u0bc1. \u0baa\u0bc1\u0ba4\u0bbf\u0baf \u0b9a\u0bbe\u0b9f\u0bcd\u0b9f\u0bc8\u0ba4\u0bcd \u0ba4\u0bca\u0b9f\u0b99\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd \u0b85\u0bb2\u0bcd\u0bb2\u0ba4\u0bc1 \u0b85\u0bae\u0bb0\u0bcd\u0bb5\u0bc1 \u0b85\u0bae\u0bc8\u0baa\u0bcd\u0baa\u0bc1\u0b95\u0bb3\u0bbf\u0bb2\u0bcd \u0b85\u0ba4\u0bbf\u0b95\u0baa\u0b9f\u0bcd\u0b9a \u0b9a\u0bc2\u0bb4\u0bb2\u0bcd \u0b9f\u0bcb\u0b95\u0bcd\u0b95\u0ba9\u0bcd\u0b95\u0bb3\u0bc8\u0b95\u0bcd \u0b95\u0bc1\u0bb1\u0bc8\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd.</string>
-    <string name="chat_error_couldnt_start_conversation">\u0b9a\u0bae\u0bb5\u0b9a\u0ba4\u0bcd\u0ba4\u0bc8\u0ba4\u0bcd \u0ba4\u0bca\u0b9f\u0b99\u0bcd\u0b95 \u0bae\u0bc1\u0b9f\u0bbf\u0baf\u0bb5\u0bbf\u0bb2\u0bcd\u0bb2\u0bc8</string>
-    <string name="chat_error_couldnt_start_conversation_retry">\u0b9a\u0bae\u0bb5\u0b9a\u0ba4\u0bcd\u0ba4\u0bc8\u0ba4\u0bcd \u0ba4\u0bca\u0b9f\u0b99\u0bcd\u0b95 \u0bae\u0bc1\u0b9f\u0bbf\u0baf\u0bb5\u0bbf\u0bb2\u0bcd\u0bb2\u0bc8. \u0b9a\u0bbe\u0b9f\u0bcd\u0b9f\u0bc8 \u0bae\u0bc0\u0ba3\u0bcd\u0b9f\u0bc1\u0bae\u0bcd \u0ba4\u0bbf\u0bb1\u0ba8\u0bcd\u0ba4\u0bc1 \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bc8 \u0bae\u0bc0\u0ba3\u0bcd\u0b9f\u0bc1\u0bae\u0bcd \u0b8f\u0bb1\u0bcd\u0bb1\u0bbf\u0baa\u0bcd \u0baa\u0bbe\u0bb0\u0bcd\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd.</string>
-    <string name="chat_error_history_too_long">\u0b87\u0ba8\u0bcd\u0ba4 \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bbf\u0ba9\u0bcd \u0b9a\u0bc2\u0bb4\u0bb2\u0bcd \u0b9c\u0ba9\u0bcd\u0ba9\u0bb2\u0bc1\u0b95\u0bcd\u0b95\u0bc1 \u0b9a\u0bbe\u0b9f\u0bcd \u0bb5\u0bb0\u0bb2\u0bbe\u0bb1\u0bc1 \u0bae\u0bbf\u0b95 \u0ba8\u0bc0\u0bb3\u0bae\u0bbe\u0ba9\u0ba4\u0bc1. \u0baa\u0bc1\u0ba4\u0bbf\u0baf \u0b9a\u0bbe\u0b9f\u0bcd\u0b9f\u0bc8\u0ba4\u0bcd \u0ba4\u0bca\u0b9f\u0b99\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd \u0b85\u0bb2\u0bcd\u0bb2\u0ba4\u0bc1 \u0b9a\u0bae\u0bb5\u0b9a\u0ba4\u0bcd\u0ba4\u0bc8\u0b9a\u0bcd \u0b9a\u0bc1\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd.</string>
-    <string name="chat_error_out_of_memory">\u0baa\u0bcb\u0ba4\u0bbf\u0baf\u0bbe\u0ba9 \u0b95\u0b9f\u0bcd\u0b9f\u0bc8 \u0ba8\u0bbf\u0ba9\u0bc8\u0bb5\u0bc1 \u0b87\u0bb2\u0bcd\u0bb2\u0bc8. \u0bae\u0bb1\u0bcd\u0bb1 \u0b9a\u0bc6\u0baf\u0bb2\u0bbf\u0b95\u0bb3\u0bc8 \u0bae\u0bc2\u0b9f\u0bbf \u0bae\u0bc0\u0ba3\u0bcd\u0b9f\u0bc1\u0bae\u0bcd \u0bae\u0bc1\u0baf\u0bb1\u0bcd\u0b9a\u0bbf\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd.</string>
-    <string name="chat_error_model_file_missing_short">\u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf \u0b95\u0bcb\u0baa\u0bcd\u0baa\u0bc1 \u0b87\u0bb2\u0bcd\u0bb2\u0bc8. \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bc8 \u0bae\u0bc0\u0ba3\u0bcd\u0b9f\u0bc1\u0bae\u0bcd \u0baa\u0ba4\u0bbf\u0bb5\u0bbf\u0bb1\u0b95\u0bcd\u0b95\u0bb5\u0bc1\u0bae\u0bcd.</string>
-    <string name="chat_error_no_backend">\u0b87\u0ba8\u0bcd\u0ba4\u0b9a\u0bcd \u0b9a\u0bbe\u0ba4\u0ba9\u0ba4\u0bcd\u0ba4\u0bbf\u0bb2\u0bcd \u0b86\u0ba4\u0bb0\u0bb5\u0bc1\u0bb3\u0bcd\u0bb3 \u0baa\u0bbf\u0ba9\u0bcd\u0baa\u0b95\u0bc1\u0ba4\u0bbf \u0b87\u0bb2\u0bcd\u0bb2\u0bc8.</string>
-    <string name="chat_error_no_model_loaded">\u0b8e\u0ba8\u0bcd\u0ba4 \u0bae\u0bbe\u0ba4\u0bbf\u0bb0\u0bbf\u0baf\u0bc1\u0bae\u0bcd \u0b8f\u0bb1\u0bcd\u0bb1\u0baa\u0bcd\u0baa\u0b9f\u0bb5\u0bbf\u0bb2\u0bcd\u0bb2\u0bc8</string>
+    <string name="chat_error_photo_unreadable">அந்தப் படத்தைப் படிக்க முடியவில்லை — வேறொரு படத்தை முயற்சிக்கவும்</string>
+    <string name="chat_error_no_active_conversation">செயலில் உள்ள சமவசம் இல்லை</string>
+    <string name="chat_error_model_not_ready">மாதிரி தயார் இல்லை</string>
+    <string name="chat_error_generation_failed">உருவாக்கம் தோல்வியடைந்தது</string>
+    <string name="chat_error_vision_photos">இந்த மாதிரி படங்களைப் படிக்க முடியாது. படங்களை ஆய்வு செய்ய (எ.கா. Gemma 3) பார்வைக்கு உள்ள மாதிரியை ஏற்றவும்.</string>
+    <string name="chat_error_context_too_long">இந்த மாதிரியின் சூழல் ஜன்னலுக்கு இந்தக் கோர்ப்பு அல்லது சாட் வரலாறு மிக நீளமானது. புதிய சாட்டைத் தொடங்கவும் அல்லது அமர்வு அமைப்புகளில் அதிகபட்ச சூழல் டோக்கன்களைக் குறைக்கவும்.</string>
+    <string name="chat_error_couldnt_start_conversation">சமவசத்தைத் தொடங்க முடியவில்லை</string>
+    <string name="chat_error_couldnt_start_conversation_retry">சமவசத்தைத் தொடங்க முடியவில்லை. சாட்டை மீண்டும் திறந்து மாதிரியை மீண்டும் ஏற்றிப் பார்க்கவும்.</string>
+    <string name="chat_error_history_too_long">இந்த மாதிரியின் சூழல் ஜன்னலுக்கு சாட் வரலாறு மிக நீளமானது. புதிய சாட்டைத் தொடங்கவும் அல்லது சமவசத்தைச் சுருக்கவும்.</string>
+    <string name="chat_error_out_of_memory">போதியான கட்டை நினைவு இல்லை. மற்ற செயலிகளை மூடி மீண்டும் முயற்சிக்கவும்.</string>
+    <string name="chat_error_model_file_missing_short">மாதிரி கோப்பு இல்லை. மாதிரியை மீண்டும் பதிவிறக்கவும்.</string>
+    <string name="chat_error_no_backend">இந்தச் சாதனத்தில் ஆதரவுள்ள பின்பகுதி இல்லை.</string>
+    <string name="chat_error_no_model_loaded">எந்த மாதிரியும் ஏற்றப்படவில்லை</string>
     <string name="chat_message_token_count">• %1$d tok</string>
     <string name="chat_duration_seconds">%1$.1fs</string>
     <string name="chat_duration_minutes_seconds">%1$dm %2$02ds</string>
+
+    <!-- வளப் பிரித்தெடுப்பில் சேர்க்கப்பட்ட புதிய சரங்கள் -->
+    <string name="chat_section_pinned">பின் செய்யப்பட்டவை</string>
+    <string name="chat_section_recent">சமீபத்தியவை</string>
+    <string name="chat_rename_title">அரட்டை பெயரை மாற்று</string>
+    <string name="chat_rename_label">அரட்டை பெயர்</string>
+    <string name="chat_rename">பெயரை மாற்று</string>
+    <string name="chat_pin">பின் செய்</string>
+    <string name="chat_unpin">பின் நீக்கு</string>
+    <string name="chat_pinned_content_description">பின் செய்யப்பட்டது</string>
+    <string name="chat_default_photo_prompt">இந்தப் படத்தில் என்ன தெரிகிறது?</string>
+    <string name="chat_room_compacted_notice">சூழல் சாளரத்தில் பொருந்த பழைய செய்திகள் சுருக்கப்பட்டன</string>
 </resources>

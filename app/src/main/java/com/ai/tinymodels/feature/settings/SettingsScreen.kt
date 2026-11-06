@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -69,6 +70,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ai.tinymodels.R
 import com.ai.tinymodels.domain.model.AppSettings
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.FontChoice
@@ -121,10 +123,10 @@ fun SettingsScreen(
         contentWindowInsets = safeTopHorizontal,
         topBar = {
             TopAppBar(
-                title = { Text("Settings") },
+                title = { Text(stringResource(R.string.settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -183,7 +185,7 @@ fun SettingsScreen(
                 CircularProgressIndicator()
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    "Importing model…",
+                    stringResource(R.string.settings_importing_model),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -194,17 +196,17 @@ fun SettingsScreen(
     if (showClearDialog) {
         AlertDialog(
             onDismissRequest = { showClearDialog = false },
-            title = { Text("Clear chat history") },
-            text = { Text("Delete all chat conversations? This cannot be undone.") },
+            title = { Text(stringResource(R.string.settings_clear_chat_history_title)) },
+            text = { Text(stringResource(R.string.settings_clear_chat_history_body)) },
             confirmButton = {
                 androidx.compose.material3.TextButton(onClick = {
                     viewModel.clearChatHistory()
                     showClearDialog = false
-                }) { Text("Delete") }
+                }) { Text(stringResource(R.string.common_delete)) }
             },
             dismissButton = {
                 androidx.compose.material3.TextButton(onClick = { showClearDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
         )
@@ -213,8 +215,8 @@ fun SettingsScreen(
 
 @Composable
 private fun AppearanceSection(settings: AppSettings, viewModel: SettingsViewModel) {
-    SectionHeader("Appearance")
-    Text("Theme", style = MaterialTheme.typography.bodyMedium)
+    SectionHeader(stringResource(R.string.settings_section_appearance))
+    Text(stringResource(R.string.settings_theme), style = MaterialTheme.typography.bodyMedium)
     Spacer(modifier = Modifier.height(8.dp))
     val modes = listOf(ThemeMode.SYSTEM, ThemeMode.LIGHT, ThemeMode.DARK)
     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
@@ -224,14 +226,14 @@ private fun AppearanceSection(settings: AppSettings, viewModel: SettingsViewMode
                 onClick = { viewModel.setThemeMode(mode) },
                 shape = SegmentedButtonDefaults.itemShape(index = index, count = modes.size)
             ) {
-                Text(mode.name.lowercase().replaceFirstChar { it.uppercase() })
+                Text(stringResource(themeModeLabel(mode)))
             }
         }
     }
     Spacer(modifier = Modifier.height(12.dp))
     SwitchRow(
-        label = "Dynamic color",
-        subtitle = "Use wallpaper-based colors (Android 12+)",
+        label = stringResource(R.string.settings_dynamic_color),
+        subtitle = stringResource(R.string.settings_dynamic_color_subtitle),
         checked = settings.useDynamicColor,
         onCheckedChange = { viewModel.setDynamicColor(it) }
     )
@@ -283,7 +285,7 @@ private fun FontSizeSetting(settings: AppSettings, viewModel: SettingsViewModel)
     var pendingScale by remember(appliedScale) { mutableStateOf(appliedScale) }
 
     SliderRow(
-        label = "Font size",
+        label = stringResource(R.string.settings_font_size),
         valueText = "%.2f×".format(pendingScale),
         value = pendingScale,
         valueRange = FONT_SCALE_MIN..FONT_SCALE_MAX,
@@ -298,7 +300,7 @@ private fun FontSizeSetting(settings: AppSettings, viewModel: SettingsViewModel)
 
     if (pendingScale != 1.0f) {
         TextButton(onClick = { viewModel.setFontScale(1.0f) }) {
-            Text("Reset to default")
+            Text(stringResource(R.string.settings_font_reset))
         }
     }
 }
@@ -316,7 +318,7 @@ private fun FontSizePreview(scale: Float, fontChoice: FontChoice) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "TinyModels",
+                text = stringResource(R.string.app_name),
                 fontFamily = family,
                 fontSize = (20f * scale).sp,
                 lineHeight = (26f * scale).sp,
@@ -325,7 +327,7 @@ private fun FontSizePreview(scale: Float, fontChoice: FontChoice) {
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "This is how your chats will look.",
+                text = stringResource(R.string.settings_font_preview_body),
                 fontFamily = family,
                 fontSize = (14f * scale).sp,
                 lineHeight = (20f * scale).sp,
@@ -333,7 +335,7 @@ private fun FontSizePreview(scale: Float, fontChoice: FontChoice) {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Small print stays readable.",
+                text = stringResource(R.string.settings_font_preview_small),
                 fontFamily = family,
                 fontSize = (12f * scale).sp,
                 lineHeight = (16f * scale).sp,
@@ -345,8 +347,8 @@ private fun FontSizePreview(scale: Float, fontChoice: FontChoice) {
 
 @Composable
 private fun InferenceSection(settings: AppSettings, viewModel: SettingsViewModel) {
-    SectionHeader("Inference")
-    Text("Default backend", style = MaterialTheme.typography.bodyMedium)
+    SectionHeader(stringResource(R.string.settings_section_inference))
+    Text(stringResource(R.string.settings_default_backend), style = MaterialTheme.typography.bodyMedium)
     Spacer(modifier = Modifier.height(8.dp))
     val backends = listOf(BackendPreference.AUTO, BackendPreference.GPU, BackendPreference.CPU)
     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
@@ -356,19 +358,19 @@ private fun InferenceSection(settings: AppSettings, viewModel: SettingsViewModel
                 onClick = { viewModel.setDefaultBackend(backend) },
                 shape = SegmentedButtonDefaults.itemShape(index = index, count = backends.size)
             ) {
-                Text(backend.name.lowercase().replaceFirstChar { it.uppercase() })
+                Text(stringResource(backendLabel(backend)))
             }
         }
     }
     Spacer(modifier = Modifier.height(12.dp))
     SwitchRow(
-        label = "Web search",
-        subtitle = "Let chats enable the model's web search tool. Search queries leave the device.",
+        label = stringResource(R.string.settings_web_search),
+        subtitle = stringResource(R.string.settings_web_search_subtitle),
         checked = settings.webSearchEnabled,
         onCheckedChange = { viewModel.setWebSearchEnabled(it) }
     )
     Text(
-        "When enabled for a chat (via the + menu in the chat), the model may search the web when it needs current information.",
+        stringResource(R.string.settings_web_search_note),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
@@ -376,15 +378,15 @@ private fun InferenceSection(settings: AppSettings, viewModel: SettingsViewModel
 
 @Composable
 private fun DownloadsSection(settings: AppSettings, viewModel: SettingsViewModel) {
-    SectionHeader("Downloads")
+    SectionHeader(stringResource(R.string.settings_section_downloads))
     SwitchRow(
-        label = "Wi-Fi only downloads",
-        subtitle = "Wait for an unmetered connection before downloading models",
+        label = stringResource(R.string.settings_wifi_only_downloads),
+        subtitle = stringResource(R.string.settings_wifi_only_downloads_subtitle),
         checked = settings.wifiOnlyDownloads,
         onCheckedChange = { viewModel.setWifiOnlyDownloads(it) }
     )
     Text(
-        "Model files are gigabytes — this guards your mobile data plan.",
+        stringResource(R.string.settings_downloads_note),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
@@ -392,24 +394,24 @@ private fun DownloadsSection(settings: AppSettings, viewModel: SettingsViewModel
 
 @Composable
 private fun ChatSection(settings: AppSettings, viewModel: SettingsViewModel) {
-    SectionHeader("Chat")
+    SectionHeader(stringResource(R.string.settings_section_chat))
     SwitchRow(
-        label = "Auto-load last model",
-        subtitle = "Load the previously used model when opening chat",
+        label = stringResource(R.string.settings_auto_load_last_model),
+        subtitle = stringResource(R.string.settings_auto_load_last_model_subtitle),
         checked = settings.autoLoadLastModel,
         onCheckedChange = { viewModel.setAutoLoadLastModel(it) }
     )
     Spacer(modifier = Modifier.height(12.dp))
     SwitchRow(
-        label = "Keep screen on",
-        subtitle = "Prevent sleep while the model is generating",
+        label = stringResource(R.string.settings_keep_screen_on),
+        subtitle = stringResource(R.string.settings_keep_screen_on_subtitle),
         checked = settings.keepScreenOn,
         onCheckedChange = { viewModel.setKeepScreenOn(it) }
     )
     Spacer(modifier = Modifier.height(12.dp))
     SwitchRow(
-        label = "Show token counts",
-        subtitle = "Show per-message token counts under each bubble",
+        label = stringResource(R.string.settings_show_token_counts),
+        subtitle = stringResource(R.string.settings_show_token_counts_subtitle),
         checked = settings.showTokenCounts,
         onCheckedChange = { viewModel.setShowTokenCounts(it) }
     )
@@ -420,16 +422,18 @@ private fun HuggingFaceSection(viewModel: SettingsViewModel) {
     val token by viewModel.huggingFaceToken.collectAsStateWithLifecycle()
     var showTokenDialog by remember { mutableStateOf(false) }
 
-    SectionHeader("Hugging Face")
+    SectionHeader(stringResource(R.string.settings_section_hugging_face))
     NavigationRow(
-        label = "Access token",
-        subtitle = if (token.isNullOrBlank()) "Not set — optional; only gated models need one"
-        else "Set — ${token!!.take(6)}••••••••${token!!.takeLast(4)}",
+        label = stringResource(R.string.settings_access_token),
+        subtitle = if (token.isNullOrBlank()) {
+            stringResource(R.string.settings_token_not_set)
+        } else {
+            stringResource(R.string.settings_token_set, token!!.take(6), token!!.takeLast(4))
+        },
         onClick = { showTokenDialog = true }
     )
     Text(
-        "Gated models (e.g. Gemma) need a free access token to download. " +
-            "Create one at huggingface.co/settings/tokens, then accept the model's license on its page.",
+        stringResource(R.string.settings_token_help),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
@@ -461,11 +465,11 @@ private fun TokenDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Hugging Face access token") },
+        title = { Text(stringResource(R.string.settings_token_dialog_title)) },
         text = {
             Column {
                 Text(
-                    "Paste a token with read access. Create one at huggingface.co/settings/tokens.",
+                    stringResource(R.string.settings_token_dialog_body),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -474,7 +478,7 @@ private fun TokenDialog(
                     value = text,
                     onValueChange = { text = it },
                     singleLine = true,
-                    placeholder = { Text("hf_xxxxxxxxxxxxxxxx") },
+                    placeholder = { Text(stringResource(R.string.settings_token_placeholder)) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -483,14 +487,14 @@ private fun TokenDialog(
             androidx.compose.material3.TextButton(
                 onClick = { onSave(text) },
                 enabled = text.isNotBlank()
-            ) { Text("Save") }
+            ) { Text(stringResource(R.string.settings_token_save)) }
         },
         dismissButton = {
             Row {
                 if (current != null) {
-                    androidx.compose.material3.TextButton(onClick = onRemove) { Text("Remove") }
+                    androidx.compose.material3.TextButton(onClick = onRemove) { Text(stringResource(R.string.settings_token_remove)) }
                 }
-                androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Cancel") }
+                androidx.compose.material3.TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
             }
         }
     )
@@ -502,15 +506,15 @@ private fun TokenDialog(
 @Composable
 private fun SupportSection() {
     val context = LocalContext.current
-    SectionHeader("Support")
+    SectionHeader(stringResource(R.string.settings_section_support))
     NavigationRow(
-        label = "Star on GitHub",
-        subtitle = "Support free, on-device AI for everyone",
+        label = stringResource(R.string.settings_star_on_github),
+        subtitle = stringResource(R.string.settings_star_on_github_subtitle),
         onClick = { openUrl(context, "https://github.com/vengateshk18/TinyModels") }
     )
     NavigationRow(
-        label = "Report a bug",
-        subtitle = "Found something broken? Let us know",
+        label = stringResource(R.string.settings_report_bug),
+        subtitle = stringResource(R.string.settings_report_bug_subtitle),
         onClick = { reportBug(context) }
     )
 }
@@ -531,7 +535,7 @@ private fun reportBug(context: Context) {
                 Intent.ACTION_SENDTO,
                 Uri.parse("mailto:vengatesh00014@gamil.com")
             ).apply {
-                putExtra(Intent.EXTRA_SUBJECT, "TinyModels bug report")
+                putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.settings_bug_report_subject))
             }.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         )
     }
@@ -543,20 +547,20 @@ private fun AboutSection(
     onDeviceInfo: () -> Unit,
     onClearHistory: () -> Unit
 ) {
-    SectionHeader("About")
+    SectionHeader(stringResource(R.string.settings_section_about))
     NavigationRow(
-        label = "Benchmark",
-        subtitle = "Score speed, memory, and thermal behaviour",
+        label = stringResource(R.string.settings_benchmark),
+        subtitle = stringResource(R.string.settings_benchmark_subtitle),
         onClick = onBenchmark
     )
     NavigationRow(
-        label = "Device information",
-        subtitle = "See your device's AI capability",
+        label = stringResource(R.string.settings_device_information),
+        subtitle = stringResource(R.string.settings_device_information_subtitle),
         onClick = onDeviceInfo
     )
     NavigationRow(
-        label = "Clear chat history",
-        subtitle = "Delete all conversations",
+        label = stringResource(R.string.settings_clear_chat_history),
+        subtitle = stringResource(R.string.settings_clear_chat_history_subtitle),
         onClick = onClearHistory
     )
 }
@@ -652,7 +656,7 @@ private fun FontRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text("Font", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.settings_font), style = MaterialTheme.typography.bodyMedium)
             Text(
                 stringResource(selected.labelRes),
                 style = MaterialTheme.typography.bodySmall,
@@ -663,7 +667,7 @@ private fun FontRow(
         }
         Icon(
             Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            contentDescription = "Change font",
+            contentDescription = stringResource(R.string.settings_change_font_content_description),
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
@@ -696,7 +700,7 @@ private fun FontBottomSheet(
                 .padding(bottom = 16.dp)
         ) {
             Text(
-                "Choose font",
+                stringResource(R.string.settings_font_sheet_title),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
@@ -722,7 +726,11 @@ private fun FontBottomSheet(
                         modifier = Modifier.weight(1f)
                     )
                     Text(
-                        text = if (choice == FontChoice.SYSTEM) "Default" else "Google Font",
+                        text = if (choice == FontChoice.SYSTEM) {
+                            stringResource(R.string.settings_font_default)
+                        } else {
+                            stringResource(R.string.settings_font_google)
+                        },
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -740,20 +748,35 @@ private fun FontBottomSheet(
 private fun ModelManagementSection(
     onImportClick: () -> Unit
 ) {
-    SectionHeader("Model Management")
+    SectionHeader(stringResource(R.string.settings_section_model_management))
 
     // Import Model
     NavigationRow(
-        label = "Import Model",
-        subtitle = "Add a .litertlm file from external storage",
+        label = stringResource(R.string.settings_import_model),
+        subtitle = stringResource(R.string.settings_import_model_subtitle),
         onClick = onImportClick
     )
 
     Text(
-        "Imported models appear in your library with an 'Imported' tag. " +
-            "To share a downloaded file, open it and use Export.",
+        stringResource(R.string.settings_import_model_note),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(top = 4.dp)
     )
+}
+
+/** Localized display name for each theme mode. */
+@StringRes
+private fun themeModeLabel(mode: ThemeMode): Int = when (mode) {
+    ThemeMode.SYSTEM -> R.string.settings_theme_system
+    ThemeMode.LIGHT -> R.string.settings_theme_light
+    ThemeMode.DARK -> R.string.settings_theme_dark
+}
+
+/** Localized display name for each inference backend preference. */
+@StringRes
+private fun backendLabel(backend: BackendPreference): Int = when (backend) {
+    BackendPreference.AUTO -> R.string.settings_backend_auto
+    BackendPreference.GPU -> R.string.settings_backend_gpu
+    BackendPreference.CPU -> R.string.settings_backend_cpu
 }

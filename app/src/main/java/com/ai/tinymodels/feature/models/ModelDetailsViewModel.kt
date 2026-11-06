@@ -1,6 +1,7 @@
 package com.ai.tinymodels.feature.models
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.content.Context
@@ -74,9 +75,10 @@ class ModelDetailsViewModel @Inject constructor(
         fun isFileLoadable(fileName: String): Boolean =
             MemoryUtils.canLoadModelOfSize(getFileSize(fileName), deviceRamBytes)
 
-        /** Friendly, user-presentable copy for [error]. */
-        val errorMessage: String?
-            get() = error?.let(NetworkErrorMapper::friendlyMessage)
+        /** Friendly, user-presentable copy for [error], as a localized resource. */
+        @get:StringRes
+        val errorMessageRes: Int?
+            get() = error?.let(NetworkErrorMapper::friendlyMessageRes)
 
         /** True when the current error is simply "no connection". */
         val isOfflineError: Boolean

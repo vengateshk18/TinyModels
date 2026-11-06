@@ -141,4 +141,14 @@
     <string name="chat_error_model_file_missing_short">Model file missing. Re-download the model.</string>
     <string name="chat_error_no_backend">No supported backend on this device.</string>
     <string name="chat_error_no_model_loaded">No model loaded</string>
+    <string name="chat_section_pinned">Pinned</string>
+    <string name="chat_section_recent">Recent</string>
+    <string name="chat_rename_title">Rename chat</string>
+    <string name="chat_rename_label">Chat name</string>
+    <string name="chat_rename">Rename</string>
+    <string name="chat_pin">Pin</string>
+    <string name="chat_unpin">Unpin</string>
+    <string name="chat_pinned_content_description">Pinned</string>
+    <string name="chat_default_photo_prompt">What do you see in this image?</string>
+    <string name="chat_room_compacted_notice">Older messages were summarized to fit the context window</string>
 </resources>

@@ -15,9 +15,18 @@
     <string name="common_time_minutes_ago">hace %1$d min</string>
     <string name="common_time_hours_ago">hace %1$d h</string>
     <string name="common_time_days_ago">hace %1$d d</string>
-    <string name="common_time_now">ahora</string>
-    <string name="common_time_minutes_short">%1$d min</string>
-    <string name="common_time_hours_short">%1$d h</string>
-    <string name="common_time_days_short">%1$d d</string>
     <string name="common_percent">%1$d%%</string>
+
+    <!-- Cadenas nuevas de la extracción de recursos -->
+    <string name="common_save">Guardar</string>
+    <string name="error_no_connection">No tienes conexión. Comprueba tu conexión a internet e inténtalo de nuevo.</string>
+    <string name="error_timeout">Se agotó el tiempo de conexión. Inténtalo de nuevo.</string>
+    <string name="error_gated">Este modelo tiene licencia restringida. Añade un token de acceso de Hugging Face en Ajustes o acepta antes su licencia en huggingface.co.</string>
+    <string name="error_no_access">No tienes acceso a este modelo. Puede tener licencia restringida: comprueba su licencia en huggingface.co.</string>
+    <string name="error_too_many_requests">Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.</string>
+    <string name="error_server">Hugging Face está teniendo problemas ahora mismo. Inténtalo más tarde.</string>
+    <string name="error_not_found">Modelo no encontrado. Puede que se haya eliminado de Hugging Face.</string>
+    <string name="error_network">Error de red. Comprueba tu conexión e inténtalo de nuevo.</string>
+    <string name="error_storage">No hay suficiente almacenamiento libre.</string>
+    <string name="error_unknown">Algo ha salido mal. Inténtalo de nuevo.</string>
 </resources>

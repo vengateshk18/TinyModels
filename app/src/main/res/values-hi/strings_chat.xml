@@ -1,144 +1,156 @@
 <resources>
     <!-- ================= Chat list / history ================= -->
-    <string name="chat_tab_title">\u091a\u0948\u091f</string>
-    <string name="chat_new_chat">\u0928\u0908 \u091a\u0948\u091f</string>
-    <string name="chat_no_conversations">\u0905\u092d\u0940 \u0915\u094b\u0908 \u092c\u093e\u0924\u091a\u0940\u0924 \u0928\u0939\u0940\u0902</string>
-    <string name="chat_tap_plus_to_start">\u0928\u0908 \u091a\u0948\u091f \u0936\u0941\u0930\u0942 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f + \u0926\u092c\u093e\u090f\u0901</string>
-    <string name="chat_untitled">\u092c\u093f\u0928\u093e \u0936\u0940\u0930\u094d\u0937\u0915</string>
-    <string name="chat_delete_title">\u091a\u0948\u091f \u0939\u091f\u093e\u090f\u0901?</string>
-    <string name="chat_delete_body">\u00ab%1$s\u00bb \u0938\u094d\u0925\u093e\u092f\u0940 \u0930\u0942\u092a \u0938\u0947 \u0939\u091f\u093e \u0926\u0940 \u091c\u093e\u090f\u0917\u0940\u0964 \u092f\u0939 \u0915\u093e\u0930\u094d\u0930\u0935\u093e\u0908 \u0935\u093e\u092a\u0938 \u0928\u0939\u0940\u0902 \u0915\u0940 \u091c\u093e \u0938\u0915\u0924\u0940\u0964</string>
+    <string name="chat_tab_title">चैट</string>
+    <string name="chat_new_chat">नई चैट</string>
+    <string name="chat_no_conversations">अभी कोई बातचीत नहीं</string>
+    <string name="chat_tap_plus_to_start">नई चैट शुरू करने के लिए + दबाएँ</string>
+    <string name="chat_untitled">बिना शीर्षक</string>
+    <string name="chat_delete_title">चैट हटाएँ?</string>
+    <string name="chat_delete_body">«%1$s» स्थायी रूप से हटा दी जाएगी। यह कार्रवाई वापस नहीं की जा सकती।</string>
     <plurals name="chat_message_count">
-        <item quantity="one">%1$d \u0938\u0902\u0926\u0947\u0936</item>
-        <item quantity="other">%1$d \u0938\u0902\u0926\u0947\u0936</item>
+        <item quantity="one">%1$d संदेश</item>
+        <item quantity="other">%1$d संदेश</item>
     </plurals>
-    <string name="chat_delete_content_description">\u091a\u0948\u091f \u0939\u091f\u093e\u090f\u0901</string>
+    <string name="chat_delete_content_description">चैट हटाएँ</string>
 
     <!-- ================= Chat room ================= -->
-    <string name="chat_room_back_content_description">\u0935\u093e\u092a\u0938</string>
-    <string name="chat_room_session_settings_content_description">\u0938\u0924\u094d\u0930 \u0938\u0947\u091f\u093f\u0902\u0917\u094d\u0938</string>
-    <string name="chat_room_no_models_title">\u0905\u092d\u0940 \u0915\u094b\u0908 \u092e\u0949\u0921\u0932 \u0928\u0939\u0940\u0902</string>
-    <string name="chat_room_no_models_body">\u091a\u0948\u091f \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0915\u094b\u0908 \u092e\u0949\u0921\u0932 \u0921\u093e\u0909\u0928\u0932\u094b\u0921 \u0915\u0930\u0947\u0902\u0964</string>
-    <string name="chat_room_pick_model_title">\u0915\u094b\u0908 \u092e\u0949\u0921\u0932 \u091a\u0941\u0928\u0947\u0902</string>
-    <string name="chat_pick_model_title">\u0915\u094b\u0908 \u092e\u0949\u0921\u0932 \u091a\u0941\u0928\u0947\u0902</string>
-    <string name="chat_room_pick_model_body">\u0936\u0941\u0930\u0942 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0915\u094b\u0908 \u0921\u093e\u0909\u0928\u0932\u094b\u0921 \u0915\u093f\u092f\u093e \u0917\u092f\u093e \u092e\u0949\u0921\u0932 \u091a\u0941\u0928\u0947\u0902\u0964</string>
-    <string name="chat_room_choose">\u091a\u0941\u0928\u0947\u0902</string>
-    <string name="chat_room_say_hello_title">\u0928\u092e\u0938\u094d\u0924\u0947 \u0915\u0939\u093f\u090f</string>
-    <string name="chat_room_say_hello_body">\u0906\u092a\u0915\u0940 \u092c\u093e\u0924\u091a\u0940\u0924 \u0907\u0938\u0940 \u0921\u093f\u0935\u093e\u0907\u0938 \u092a\u0930 \u0930\u0939\u0924\u0940 \u0939\u0948\u0964</string>
-    <string name="chat_room_copied_to_clipboard">\u0915\u094d\u0932\u093f\u092a\u092c\u094b\u0930\u094d\u0921 \u092a\u0930 \u0915\u0949\u092a\u0940 \u0939\u094b \u0917\u092f\u093e</string>
-    <string name="chat_room_summarized_conversation">\u0938\u0902\u0915\u094d\u0937\u093f\u092a\u094d\u0924 \u092c\u093e\u0924\u091a\u0940\u0924</string>
-    <string name="chat_room_context_usage_title">\u0938\u0902\u0926\u0930\u094d\u092d \u0915\u093e \u0909\u092a\u092f\u094b\u0917</string>
-    <string name="chat_room_tokens_in_context">\u0938\u0902\u0926\u0930\u094d\u092d \u092e\u0947\u0902 \u091f\u094b\u0915\u0928</string>
-    <string name="chat_room_context_budget">\u0938\u0902\u0926\u0930\u094d\u092d \u0938\u0940\u092e\u093e</string>
-    <string name="chat_room_compactions_run">\u0915\u093f\u090f \u0917\u090f \u0938\u0902\u0915\u094d\u0937\u093f\u092a\u094d\u0924\u093f\u0915\u0930\u0923</string>
+    <string name="chat_room_back_content_description">वापस</string>
+    <string name="chat_room_session_settings_content_description">सत्र सेटिंग्स</string>
+    <string name="chat_room_no_models_title">अभी कोई मॉडल नहीं</string>
+    <string name="chat_room_no_models_body">चैट करने के लिए कोई मॉडल डाउनलोड करें।</string>
+    <string name="chat_room_pick_model_title">कोई मॉडल चुनें</string>
+    <string name="chat_pick_model_title">कोई मॉडल चुनें</string>
+    <string name="chat_room_pick_model_body">शुरू करने के लिए कोई डाउनलोड किया गया मॉडल चुनें।</string>
+    <string name="chat_room_choose">चुनें</string>
+    <string name="chat_room_say_hello_title">नमस्ते कहिए</string>
+    <string name="chat_room_say_hello_body">आपकी बातचीत इसी डिवाइस पर रहती है।</string>
+    <string name="chat_room_copied_to_clipboard">क्लिपबोर्ड पर कॉपी हो गया</string>
+    <string name="chat_room_summarized_conversation">संक्षिप्त बातचीत</string>
+    <string name="chat_room_context_usage_title">संदर्भ का उपयोग</string>
+    <string name="chat_room_tokens_in_context">संदर्भ में टोकन</string>
+    <string name="chat_room_context_budget">संदर्भ सीमा</string>
+    <string name="chat_room_compactions_run">किए गए संक्षिप्तिकरण</string>
     <plurals name="chat_room_compactions_count">
-        <item quantity="one">%1$d \u092c\u093e\u0930</item>
-        <item quantity="other">%1$d \u092c\u093e\u0930</item>
+        <item quantity="one">%1$d बार</item>
+        <item quantity="other">%1$d बार</item>
     </plurals>
-    <string name="chat_room_compacted_summary">\u0938\u0902\u0915\u094d\u0937\u093f\u092a\u094d\u0924 \u0938\u093e\u0930\u093e\u0902\u0936</string>
-    <string name="chat_room_summary_present">\u092e\u094c\u091c\u0942\u0926 (%1$d \u0905\u0915\u094d\u0937\u0930)</string>
-    <string name="chat_room_summary_none">\u0905\u092d\u0940 \u0928\u0939\u0940\u0902</string>
-    <string name="chat_room_tokens_used_of_total">%1$d / %2$d \u091f\u094b\u0915\u0928</string>
-    <string name="chat_room_context_explainer">\u0909\u092a\u092f\u094b\u0917 \u0938\u0940\u092e\u093e \u0915\u0947 %1$d%% \u0924\u0915 \u092a\u0939\u0941\u0901\u091a\u0928\u0947 \u092a\u0930 \u092a\u0941\u0930\u093e\u0928\u0947 \u0938\u0902\u0926\u0947\u0936 \u0905\u092a\u0928\u0947 \u0906\u092a \u0938\u0902\u0915\u094d\u0937\u093f\u092a\u094d\u0924 \u0939\u094b \u091c\u093e\u0924\u0947 \u0939\u0948\u0902\u0964</string>
-    <string name="chat_room_tokens_label">%1$d \u091f\u094b\u0915\u0928</string>
-    <string name="chat_room_compact_hint">\u0938\u0902\u0926\u0930\u094d\u092d \u091c\u0917\u0939 \u0916\u093e\u0932\u0940 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u092a\u0941\u0930\u093e\u0928\u0947 \u0938\u0902\u0926\u0947\u0936\u094b\u0902 \u0915\u093e \u0938\u093e\u0930\u093e\u0902\u0936 \u092c\u0928\u093e\u0924\u093e \u0939\u0948\u0964</string>
-    <string name="chat_room_compacting">\u0938\u0902\u0915\u094d\u0937\u093f\u092a\u094d\u0924 \u0939\u094b \u0930\u0939\u093e \u0939\u0948\u2026</string>
-    <string name="chat_room_compact_conversation">\u092c\u093e\u0924\u091a\u0940\u0924 \u0938\u0902\u0915\u094d\u0937\u093f\u092a\u094d\u0924 \u0915\u0930\u0947\u0902</string>
+    <string name="chat_room_compacted_summary">संक्षिप्त सारांश</string>
+    <string name="chat_room_summary_present">मौजूद (%1$d अक्षर)</string>
+    <string name="chat_room_summary_none">अभी नहीं</string>
+    <string name="chat_room_tokens_used_of_total">%1$d / %2$d टोकन</string>
+    <string name="chat_room_context_explainer">उपयोग सीमा के %1$d%% तक पहुँचने पर पुराने संदेश अपने आप संक्षिप्त हो जाते हैं।</string>
+    <string name="chat_room_tokens_label">%1$d टोकन</string>
+    <string name="chat_room_compact_hint">संदर्भ जगह खाली करने के लिए पुराने संदेशों का सारांश बनाता है।</string>
+    <string name="chat_room_compacting">संक्षिप्त हो रहा है…</string>
+    <string name="chat_room_compact_conversation">बातचीत संक्षिप्त करें</string>
 
     <!-- ================= Chat screen (empty states) ================= -->
-    <string name="chat_open_chats_content_description">\u091a\u0948\u091f \u0916\u094b\u0932\u0947\u0902</string>
-    <string name="chat_settings_content_description">\u0938\u0947\u091f\u093f\u0902\u0917\u094d\u0938</string>
-    <string name="chat_no_models_title">\u0905\u092d\u0940 \u0915\u094b\u0908 \u092e\u0949\u0921\u0932 \u0928\u0939\u0940\u0902</string>
-    <string name="chat_no_models_body">\u0911\u092b\u093c\u0932\u093e\u0907\u0928 \u091a\u0948\u091f \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0915\u094b\u0908 LiteRT-LM \u092e\u0949\u0921\u0932 \u0921\u093e\u0909\u0928\u0932\u094b\u0921 \u0915\u0930\u0947\u0902\u0964</string>
-    <string name="chat_browse_models">\u092e\u0949\u0921\u0932 \u0926\u0947\u0916\u0947\u0902</string>
-    <string name="chat_choose_downloaded_model_body">\u0936\u0941\u0930\u0942 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u090a\u092a\u0930 \u090f\u0915 \u0921\u093e\u0909\u0928\u0932\u094b\u0921 \u0915\u093f\u092f\u093e \u0917\u092f\u093e \u092e\u0949\u0921\u0932 \u091a\u0941\u0928\u0947\u0902\u0964</string>
+    <string name="chat_open_chats_content_description">चैट खोलें</string>
+    <string name="chat_settings_content_description">सेटिंग्स</string>
+    <string name="chat_no_models_title">अभी कोई मॉडल नहीं</string>
+    <string name="chat_no_models_body">ऑफ़लाइन चैट करने के लिए कोई LiteRT-LM मॉडल डाउनलोड करें।</string>
+    <string name="chat_browse_models">मॉडल देखें</string>
+    <string name="chat_choose_downloaded_model_body">शुरू करने के लिए ऊपर एक डाउनलोड किया गया मॉडल चुनें।</string>
 
     <!-- ================= Chat input bar ================= -->
-    <string name="chat_options_content_description">\u091a\u0948\u091f \u0935\u093f\u0915\u0932\u094d\u092a</string>
-    <string name="chat_options_media_section">\u092e\u0940\u0921\u093f\u092f\u093e</string>
-    <string name="chat_options_attach_photo">\u092b\u093c\u094b\u091f\u094b \u091c\u094b\u0921\u093c\u0947\u0902</string>
-    <string name="chat_options_tools_section">\u091f\u0942\u0932</string>
-    <string name="chat_options_web_search">\u0935\u0947\u092c \u0938\u0930\u094d\u091a</string>
-    <string name="chat_input_hint_ready">\u0938\u0902\u0926\u0947\u0936\u2026</string>
-    <string name="chat_input_hint_load_model">\u091a\u0948\u091f \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0915\u094b\u0908 \u092e\u0949\u0921\u0932 \u0932\u094b\u0921 \u0915\u0930\u0947\u0902</string>
-    <string name="chat_stop_generating_content_description">\u092c\u0928\u0928\u093e \u0930\u094b\u0915\u0947\u0902</string>
-    <string name="chat_send_content_description">\u092d\u0947\u091c\u0947\u0902</string>
-    <string name="chat_photo_to_send_content_description">\u092d\u0947\u091c\u0940 \u091c\u093e\u0928\u0947 \u0935\u093e\u0932\u0940 \u092b\u093c\u094b\u091f\u094b</string>
-    <string name="chat_photo_attached">\u092b\u093c\u094b\u091f\u094b \u091c\u0941\u0921\u093c\u0940 \u0939\u0941\u0908 \u0939\u0948</string>
-    <string name="chat_remove_photo_content_description">\u092b\u093c\u094b\u091f\u094b \u0939\u091f\u093e\u090f\u0901</string>
+    <string name="chat_options_content_description">चैट विकल्प</string>
+    <string name="chat_options_media_section">मीडिया</string>
+    <string name="chat_options_attach_photo">फ़ोटो जोड़ें</string>
+    <string name="chat_options_tools_section">टूल</string>
+    <string name="chat_options_web_search">वेब सर्च</string>
+    <string name="chat_input_hint_ready">संदेश…</string>
+    <string name="chat_input_hint_load_model">चैट करने के लिए कोई मॉडल लोड करें</string>
+    <string name="chat_stop_generating_content_description">बनना रोकें</string>
+    <string name="chat_send_content_description">भेजें</string>
+    <string name="chat_photo_to_send_content_description">भेजी जाने वाली फ़ोटो</string>
+    <string name="chat_photo_attached">फ़ोटो जुड़ी हुई है</string>
+    <string name="chat_remove_photo_content_description">फ़ोटो हटाएँ</string>
 
     <!-- ================= Edit message dialog ================= -->
-    <string name="chat_edit_title">\u0938\u0902\u0926\u0947\u0936 \u0938\u0902\u092a\u093e\u0926\u093f\u0924 \u0915\u0930\u0947\u0902</string>
-    <string name="chat_edit_body">\u0938\u0902\u092a\u093e\u0926\u093f\u0924 \u0915\u0930\u0928\u0947 \u092a\u0930 \u092f\u0939 \u0938\u0902\u0926\u0947\u0936 \u092c\u0926\u0932 \u091c\u093e\u090f\u0917\u093e \u0914\u0930 \u0909\u0924\u094d\u0924\u0930 \u0926\u094b\u092c\u093e\u0930\u093e \u092c\u0928\u0947\u0917\u093e\u0964</string>
-    <string name="chat_edit_placeholder">\u0938\u0902\u0926\u0947\u0936</string>
-    <string name="chat_edit_save_send">\u0938\u0939\u0947\u091c\u0947\u0902 \u0914\u0930 \u092d\u0947\u091c\u0947\u0902</string>
+    <string name="chat_edit_title">संदेश संपादित करें</string>
+    <string name="chat_edit_body">संपादित करने पर यह संदेश बदल जाएगा और उत्तर दोबारा बनेगा।</string>
+    <string name="chat_edit_placeholder">संदेश</string>
+    <string name="chat_edit_save_send">सहेजें और भेजें</string>
 
     <!-- ================= Inference settings sheet ================= -->
-    <string name="chat_settings_title">\u0938\u0924\u094d\u0930 \u0938\u0947\u091f\u093f\u0902\u0917\u094d\u0938</string>
-    <string name="chat_settings_subtitle">\u092c\u0926\u0932\u093e\u0935 \u0938\u093f\u0930\u094d\u092b\u093c \u0907\u0938\u0940 \u091a\u0948\u091f \u092a\u0930 \u0932\u093e\u0917\u0942 \u0939\u094b\u0924\u0947 \u0939\u0948\u0902\u0964</string>
-    <string name="chat_settings_temperature">\u0924\u093e\u092a\u092e\u093e\u0928</string>
+    <string name="chat_settings_title">सत्र सेटिंग्स</string>
+    <string name="chat_settings_subtitle">बदलाव सिर्फ़ इसी चैट पर लागू होते हैं।</string>
+    <string name="chat_settings_temperature">तापमान</string>
     <string name="chat_settings_top_p">Top-P</string>
     <string name="chat_settings_top_k">Top-K</string>
-    <string name="chat_settings_system_instruction">\u0938\u093f\u0938\u094d\u091f\u092e \u0928\u093f\u0930\u094d\u0926\u0947\u0936</string>
-    <string name="chat_settings_default_system_instruction">\u0906\u092a \u090f\u0915 \u0938\u0939\u093e\u092f\u0915 \u0939\u0948\u0902\u0964</string>
-    <string name="chat_settings_discard">\u091b\u094b\u0921\u093c\u0947\u0902</string>
-    <string name="chat_settings_save">\u0938\u0939\u0947\u091c\u0947\u0902</string>
-    <string name="chat_settings_context_window_note">\u0938\u0902\u0926\u0930\u094d\u092d \u0935\u093f\u0902\u0921\u094b \u0905\u092a\u0928\u0947 \u0906\u092a \u092a\u094d\u0930\u092c\u0902\u0927\u093f\u0924 \u0939\u094b\u0924\u0940 \u0939\u0948 \u2014 \u092c\u093e\u0924\u091a\u0940\u0924 \u092c\u0922\u093c\u0928\u0947 \u092a\u0930 \u092a\u0941\u0930\u093e\u0928\u0947 \u0938\u0902\u0926\u0947\u0936 \u0938\u0902\u0915\u094d\u0937\u093f\u092a\u094d\u0924 \u0939\u094b \u091c\u093e\u0924\u0947 \u0939\u0948\u0902\u0964</string>
-    <string name="chat_settings_backend">\u092c\u0948\u0915\u090f\u0902\u0921</string>
+    <string name="chat_settings_system_instruction">सिस्टम निर्देश</string>
+    <string name="chat_settings_default_system_instruction">आप एक सहायक हैं।</string>
+    <string name="chat_settings_discard">छोड़ें</string>
+    <string name="chat_settings_save">सहेजें</string>
+    <string name="chat_settings_context_window_note">संदर्भ विंडो अपने आप प्रबंधित होती है — बातचीत बढ़ने पर पुराने संदेश संक्षिप्त हो जाते हैं।</string>
+    <string name="chat_settings_backend">बैकएंड</string>
 
     <!-- ================= Message bubble ================= -->
-    <string name="chat_message_copy_content_description">\u0915\u0949\u092a\u0940 \u0915\u0930\u0947\u0902</string>
-    <string name="chat_message_regenerate_content_description">\u0926\u094b\u092c\u093e\u0930\u093e \u092c\u0928\u093e\u090f\u0901</string>
+    <string name="chat_message_copy_content_description">कॉपी करें</string>
+    <string name="chat_message_regenerate_content_description">दोबारा बनाएँ</string>
 
     <!-- ================= Model chip / pickers ================= -->
-    <string name="chat_model_loading">\u0932\u094b\u0921 \u0939\u094b \u0930\u0939\u093e \u0939\u0948\u2026</string>
-    <string name="chat_model_error">\u092e\u0949\u0921\u0932 \u092e\u0947\u0902 \u0924\u094d\u0930\u0941\u091f\u093f</string>
-    <string name="chat_model_select">\u092e\u0949\u0921\u0932 \u091a\u0941\u0928\u0947\u0902</string>
-    <string name="chat_model_choose_content_description">\u092e\u0949\u0921\u0932 \u091a\u0941\u0928\u0947\u0902</string>
-    <string name="chat_model_choose_title">\u0915\u094b\u0908 \u092e\u0949\u0921\u0932 \u091a\u0941\u0928\u0947\u0902</string>
-    <string name="chat_model_active_content_description">\u0938\u0915\u094d\u0930\u093f\u092f</string>
-    <string name="chat_model_files_title">\u0915\u094b\u0908 \u092e\u0949\u0921\u0932 \u091a\u0941\u0928\u0947\u0902</string>
-    <string name="chat_model_files_subtitle">\u0907\u0938 \u0921\u093f\u0935\u093e\u0907\u0938 \u092a\u0930 \u092e\u094c\u091c\u0942\u0926 \u0938\u092d\u0940 \u0921\u093e\u0909\u0928\u0932\u094b\u0921 \u0915\u093f\u090f \u0917\u090f \u092e\u0949\u0921\u0932 \u092b\u093c\u093e\u0907\u0932\u0947\u0902\u0964</string>
-    <string name="chat_model_files_empty">\u0905\u092d\u0940 \u0915\u094b\u0908 \u0921\u093e\u0909\u0928\u0932\u094b\u0921 \u0915\u0940 \u0917\u0908 \u092e\u0949\u0921\u0932 \u092b\u093c\u093e\u0907\u0932 \u0928\u0939\u0940\u0902 \u0939\u0948\u0964</string>
+    <string name="chat_model_loading">लोड हो रहा है…</string>
+    <string name="chat_model_error">मॉडल में त्रुटि</string>
+    <string name="chat_model_select">मॉडल चुनें</string>
+    <string name="chat_model_choose_content_description">मॉडल चुनें</string>
+    <string name="chat_model_choose_title">कोई मॉडल चुनें</string>
+    <string name="chat_model_active_content_description">सक्रिय</string>
+    <string name="chat_model_files_title">कोई मॉडल चुनें</string>
+    <string name="chat_model_files_subtitle">इस डिवाइस पर मौजूद सभी डाउनलोड किए गए मॉडल फ़ाइलें।</string>
+    <string name="chat_model_files_empty">अभी कोई डाउनलोड की गई मॉडल फ़ाइल नहीं है।</string>
 
     <!-- ================= Model loading dialog ================= -->
-    <string name="chat_loading_title">\u092e\u0949\u0921\u0932 \u0932\u094b\u0921 \u0939\u094b \u0930\u0939\u093e \u0939\u0948</string>
-    <string name="chat_loading_stage_initializing">\u0907\u0902\u091c\u0928 \u0936\u0941\u0930\u0942 \u0939\u094b \u0930\u0939\u093e \u0939\u0948\u2026</string>
-    <string name="chat_loading_stage_weights">\u0935\u091c\u093c\u0928 \u0932\u094b\u0921 \u0939\u094b \u0930\u0939\u0947 \u0939\u0948\u0902\u2026</string>
-    <string name="chat_loading_stage_ready">\u0924\u0948\u092f\u093e\u0930!</string>
+    <string name="chat_loading_title">मॉडल लोड हो रहा है</string>
+    <string name="chat_loading_stage_initializing">इंजन शुरू हो रहा है…</string>
+    <string name="chat_loading_stage_weights">वज़न लोड हो रहे हैं…</string>
+    <string name="chat_loading_stage_ready">तैयार!</string>
 
     <!-- ================= Chat options menu ================= -->
-    <string name="chat_attach_photo_unavailable">\u092f\u0939 \u092e\u0949\u0921\u0932 \u092b\u093c\u094b\u091f\u094b \u0928\u0939\u0940\u0902 \u092a\u0922\u093c \u0938\u0915\u0924\u093e\u0964 \u091a\u093f\u0924\u094d\u0930\u094b\u0902 \u0915\u093e \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0935\u0940\u091c\u093c\u0928 \u0935\u093e\u0932\u093e \u092e\u0949\u0921\u0932 \u0932\u094b\u0921 \u0915\u0930\u0947\u0902 (\u091c\u0948\u0938\u0947 Gemma 3)\u0964</string>
+    <string name="chat_attach_photo_unavailable">यह मॉडल फ़ोटो नहीं पढ़ सकता। चित्रों का विश्लेषण करने के लिए वीज़न वाला मॉडल लोड करें (जैसे Gemma 3)।</string>
 
     <!-- ================= Vision support ================= -->
-    <string name="chat_vision_unsupported">\u0907\u0938 \u092e\u0949\u0921\u0932 \u092e\u0947\u0902 \u0935\u093f\u091c\u093c\u0928 \u090f\u0928\u094d\u0915\u094b\u0921\u0930 \u0928\u0939\u0940\u0902 \u0939\u0948, \u0907\u0938\u0932\u093f\u090f \u092f\u0939 \u092b\u093c\u094b\u091f\u094b \u0928\u0939\u0940\u0902 \u092a\u0922\u093c \u0938\u0915\u0924\u093e\u0964 \u091a\u093f\u0924\u094d\u0930\u094b\u0902 \u0915\u093e \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0935\u0940\u091c\u093c\u0928 \u0935\u093e\u0932\u093e \u092e\u0949\u0921\u0932 \u0932\u094b\u0921 \u0915\u0930\u0947\u0902 (\u091c\u0948\u0938\u0947 Gemma 3) \u2014 \u0906\u092a\u0915\u093e \u091f\u0947\u0915\u094d\u0938\u094d\u091f \u0930\u0916\u093e \u0917\u092f\u093e \u0914\u0930 \u092b\u093c\u094b\u091f\u094b \u0905\u091f\u0948\u091a\u092e\u0947\u0902\u091f \u091b\u094b\u0921\u093c \u0926\u093f\u090f \u0917\u090f\u0964</string>
+    <string name="chat_vision_unsupported">इस मॉडल में विज़न एन्कोडर नहीं है, इसलिए यह फ़ोटो नहीं पढ़ सकता। चित्रों का विश्लेषण करने के लिए वीज़न वाला मॉडल लोड करें (जैसे Gemma 3) — आपका टेक्स्ट रखा गया और फ़ोटो अटैचमेंट छोड़ दिए गए।</string>
 
     <!-- ================= Chat errors ================= -->
-    <string name="chat_error_model_not_downloaded">%1$s \u092e\u0949\u0921\u0932 \u0921\u093e\u0909\u0928\u0932\u094b\u0921 \u0928\u0939\u0940\u0902 \u0939\u0948</string>
-    <string name="chat_error_model_file_missing">\u0921\u093f\u0935\u093e\u0907\u0938 \u092a\u0930 \u092e\u0949\u0921\u0932 \u092b\u093c\u093e\u0907\u0932 \u0928\u0939\u0940\u0902 \u092e\u093f\u0932\u0940</string>
-    <string name="chat_error_re_download">\u092b\u093f\u0930 \u0938\u0947 \u0921\u093e\u0909\u0928\u0932\u094b\u0921 \u0915\u0930\u0947\u0902</string>
-    <string name="chat_error_failed_to_load">\u092e\u0949\u0921\u0932 \u0932\u094b\u0921 \u0928\u0939\u0940\u0902 \u0939\u094b \u0938\u0915\u093e</string>
-    <string name="chat_error_model_still_loading">\u092e\u0949\u0921\u0932 \u0905\u092d\u0940 \u0932\u094b\u0921 \u0939\u094b \u0930\u0939\u093e \u0939\u0948</string>
-    <string name="chat_error_download_model_first">\u091a\u0948\u091f \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u092a\u0939\u0932\u0947 \u0915\u094b\u0908 \u092e\u0949\u0921\u0932 \u0921\u093e\u0909\u0928\u0932\u094b\u0921 \u0915\u0930\u0947\u0902\u0964</string>
-    <string name="chat_error_nothing_to_compact">\u0938\u0902\u0915\u094d\u0937\u093f\u092a\u094d\u0924 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0915\u0941\u091b \u0928\u0939\u0940\u0902 \u0939\u0948 \u2014 \u092c\u093e\u0924\u091a\u0940\u0924 \u092a\u0939\u0932\u0947 \u0938\u0947 \u0939\u0940 \u0938\u0902\u0926\u0930\u094d\u092d \u0935\u093f\u0902\u0921\u094b \u092e\u0947\u0902 \u092b\u093c\u093f\u091f \u0939\u0948</string>
-    <string name="chat_error_summarization_failed">\u0938\u093e\u0930\u093e\u0902\u0936 \u092c\u0928\u093e\u0928\u093e \u0935\u093f\u092b\u0932 \u0930\u0939\u093e \u2014 \u0938\u0902\u0926\u0930\u094d\u092d \u0935\u093f\u0902\u0921\u094b \u092e\u0947\u0902 \u0938\u092e\u093e\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0907\u0924\u093f\u0939\u093e\u0938 \u091b\u094b\u091f\u093e \u0915\u0930 \u0926\u093f\u092f\u093e \u0917\u092f\u093e</string>
+    <string name="chat_error_model_not_downloaded">%1$s मॉडल डाउनलोड नहीं है</string>
+    <string name="chat_error_model_file_missing">डिवाइस पर मॉडल फ़ाइल नहीं मिली</string>
+    <string name="chat_error_re_download">फिर से डाउनलोड करें</string>
+    <string name="chat_error_failed_to_load">मॉडल लोड नहीं हो सका</string>
+    <string name="chat_error_model_still_loading">मॉडल अभी लोड हो रहा है</string>
+    <string name="chat_error_download_model_first">चैट करने के लिए पहले कोई मॉडल डाउनलोड करें।</string>
+    <string name="chat_error_nothing_to_compact">संक्षिप्त करने के लिए कुछ नहीं है — बातचीत पहले से ही संदर्भ विंडो में फ़िट है</string>
+    <string name="chat_error_summarization_failed">सारांश बनाना विफल रहा — संदर्भ विंडो में समाने के लिए इतिहास छोटा कर दिया गया</string>
     <plurals name="chat_error_compacted_messages">
-        <item quantity="one">%1$d \u092a\u0941\u0930\u093e\u0928\u0947 \u0938\u0902\u0926\u0947\u0936 \u0915\u094b \u090f\u0915 \u0938\u093e\u0930\u093e\u0902\u0936 \u092e\u0947\u0902 \u0938\u0902\u0915\u094d\u0937\u093f\u092a\u094d\u0924 \u0915\u093f\u092f\u093e \u0917\u092f\u093e</item>
-        <item quantity="other">%1$d \u092a\u0941\u0930\u093e\u0928\u0947 \u0938\u0902\u0926\u0947\u0936\u094b\u0902 \u0915\u094b \u090f\u0915 \u0938\u093e\u0930\u093e\u0902\u0936 \u092e\u0947\u0902 \u0938\u0902\u0915\u094d\u0937\u093f\u092a\u094d\u0924 \u0915\u093f\u092f\u093e \u0917\u092f\u093e</item>
+        <item quantity="one">%1$d पुराने संदेश को एक सारांश में संक्षिप्त किया गया</item>
+        <item quantity="other">%1$d पुराने संदेशों को एक सारांश में संक्षिप्त किया गया</item>
     </plurals>
-    <string name="chat_error_photo_unreadable">\u0935\u0939 \u092b\u093c\u094b\u091f\u094b \u092a\u0922\u093c\u093e \u0928\u0939\u0940\u0902 \u091c\u093e \u0938\u0915\u093e \u2014 \u0915\u094b\u0908 \u0926\u0942\u0938\u0930\u0940 \u0907\u092e\u0947\u091c \u0906\u091c\u093c\u092e\u093e\u090f\u0901</string>
-    <string name="chat_error_no_active_conversation">\u0915\u094b\u0908 \u0938\u0915\u094d\u0930\u093f\u092f \u092c\u093e\u0924\u091a\u0940\u0924 \u0928\u0939\u0940\u0902</string>
-    <string name="chat_error_model_not_ready">\u092e\u0949\u0921\u0932 \u0924\u0948\u092f\u093e\u0930 \u0928\u0939\u0940\u0902 \u0939\u0948</string>
-    <string name="chat_error_generation_failed">\u092c\u0928\u093e\u0928\u093e \u0935\u093f\u092b\u0932 \u0930\u0939\u093e</string>
-    <string name="chat_error_vision_photos">\u092f\u0939 \u092e\u0949\u0921\u0932 \u092b\u093c\u094b\u091f\u094b \u0928\u0939\u0940\u0902 \u092a\u0922\u093c \u0938\u0915\u0924\u093e\u0964 \u091a\u093f\u0924\u094d\u0930\u094b\u0902 \u0915\u093e \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0935\u0940\u091c\u093c\u0928 \u0935\u093e\u0932\u093e \u092e\u0949\u0921\u0932 \u0932\u094b\u0921 \u0915\u0930\u0947\u0902 (\u091c\u0948\u0938\u0947 Gemma 3)\u0964</string>
-    <string name="chat_error_context_too_long">\u0907\u0938 \u092e\u0949\u0921\u0932 \u0915\u0940 \u0938\u0902\u0926\u0930\u094d\u092d \u0935\u093f\u0902\u0921\u094b \u0915\u0947 \u0932\u093f\u090f \u092f\u0939 \u092a\u094d\u0930\u0949\u092e\u094d\u092a\u094d\u091f \u092f\u093e \u091a\u0948\u091f \u0907\u0924\u093f\u0939\u093e\u0938 \u092c\u0939\u0941\u0924 \u0932\u0902\u092c\u093e \u0939\u0948\u0964 \u0928\u0908 \u091a\u0948\u091f \u0936\u0941\u0930\u0942 \u0915\u0930\u0947\u0902 \u092f\u093e \u0938\u0924\u094d\u0930 \u0938\u0947\u091f\u093f\u0902\u0917\u094d\u0938 \u092e\u0947\u0902 \u0905\u0927\u093f\u0915\u0924\u092e \u0938\u0902\u0926\u0930\u094d\u092d \u091f\u094b\u0915\u0928 \u0918\u091f\u093e\u090f\u0901\u0964</string>
-    <string name="chat_error_couldnt_start_conversation">\u092c\u093e\u0924\u091a\u0940\u0924 \u0936\u0941\u0930\u0942 \u0928\u0939\u0940\u0902 \u0939\u094b \u0938\u0915\u0940</string>
-    <string name="chat_error_couldnt_start_conversation_retry">\u092c\u093e\u0924\u091a\u0940\u0924 \u0936\u0941\u0930\u0942 \u0928\u0939\u0940\u0902 \u0939\u094b \u0938\u0915\u0940\u0964 \u091a\u0948\u091f \u092b\u093f\u0930 \u0938\u0947 \u0916\u094b\u0932\u0915\u0930 \u092f\u093e \u092e\u0949\u0921\u0932 \u0926\u094b\u092c\u093e\u0930\u093e \u0932\u094b\u0921 \u0915\u0930\u0915\u0947 \u0906\u091c\u093c\u092e\u093e\u090f\u0901\u0964</string>
-    <string name="chat_error_history_too_long">\u0907\u0938 \u092e\u0949\u0921\u0932 \u0915\u0940 \u0938\u0902\u0926\u0930\u094d\u092d \u0935\u093f\u0902\u0921\u094b \u0915\u0947 \u0932\u093f\u090f \u091a\u0948\u091f \u0907\u0924\u093f\u0939\u093e\u0938 \u092c\u0939\u0941\u0924 \u0932\u0902\u092c\u093e \u0939\u0948\u0964 \u0928\u0908 \u091a\u0948\u091f \u0936\u0941\u0930\u0942 \u0915\u0930\u0947\u0902 \u092f\u093e \u092c\u093e\u0924\u091a\u0940\u0924 \u0915\u094b \u0938\u0902\u0915\u094d\u0937\u093f\u092a\u094d\u0924 \u0915\u0930\u0947\u0902\u0964</string>
-    <string name="chat_error_out_of_memory">\u092a\u0930\u094d\u092f\u093e\u092a\u094d\u0924 \u0916\u093e\u0932\u0940 \u092e\u0947\u092e\u094b\u0930\u0940 \u0928\u0939\u0940\u0902 \u0939\u0948\u0964 \u0926\u0942\u0938\u0930\u0947 \u0910\u092a \u092c\u0902\u0926 \u0915\u0930\u0915\u0947 \u092b\u093f\u0930 \u0915\u094b\u0936\u093f\u0936 \u0915\u0930\u0947\u0902\u0964</string>
-    <string name="chat_error_model_file_missing_short">\u092e\u0949\u0921\u0932 \u092b\u093c\u093e\u0907\u0932 \u0928\u0939\u0940\u0902 \u092e\u093f\u0932\u0940\u0964 \u092e\u0949\u0921\u0932 \u092b\u093f\u0930 \u0938\u0947 \u0921\u093e\u0909\u0928\u0932\u094b\u0921 \u0915\u0930\u0947\u0902\u0964</string>
-    <string name="chat_error_no_backend">\u0907\u0938 \u0921\u093f\u0935\u093e\u0907\u0938 \u092a\u0930 \u0915\u094b\u0908 \u0938\u092e\u0930\u094d\u0925\u093f\u0924 \u092c\u0948\u0915\u090f\u0902\u0921 \u0928\u0939\u0940\u0902 \u0939\u0948\u0964</string>
-    <string name="chat_error_no_model_loaded">\u0915\u094b\u0908 \u092e\u0949\u0921\u0932 \u0932\u094b\u0921 \u0928\u0939\u0940\u0902 \u0939\u0948</string>
+    <string name="chat_error_photo_unreadable">वह फ़ोटो पढ़ा नहीं जा सका — कोई दूसरी इमेज आज़माएँ</string>
+    <string name="chat_error_no_active_conversation">कोई सक्रिय बातचीत नहीं</string>
+    <string name="chat_error_model_not_ready">मॉडल तैयार नहीं है</string>
+    <string name="chat_error_generation_failed">बनाना विफल रहा</string>
+    <string name="chat_error_vision_photos">यह मॉडल फ़ोटो नहीं पढ़ सकता। चित्रों का विश्लेषण करने के लिए वीज़न वाला मॉडल लोड करें (जैसे Gemma 3)।</string>
+    <string name="chat_error_context_too_long">इस मॉडल की संदर्भ विंडो के लिए यह प्रॉम्प्ट या चैट इतिहास बहुत लंबा है। नई चैट शुरू करें या सत्र सेटिंग्स में अधिकतम संदर्भ टोकन घटाएँ।</string>
+    <string name="chat_error_couldnt_start_conversation">बातचीत शुरू नहीं हो सकी</string>
+    <string name="chat_error_couldnt_start_conversation_retry">बातचीत शुरू नहीं हो सकी। चैट फिर से खोलकर या मॉडल दोबारा लोड करके आज़माएँ।</string>
+    <string name="chat_error_history_too_long">इस मॉडल की संदर्भ विंडो के लिए चैट इतिहास बहुत लंबा है। नई चैट शुरू करें या बातचीत को संक्षिप्त करें।</string>
+    <string name="chat_error_out_of_memory">पर्याप्त खाली मेमोरी नहीं है। दूसरे ऐप बंद करके फिर कोशिश करें।</string>
+    <string name="chat_error_model_file_missing_short">मॉडल फ़ाइल नहीं मिली। मॉडल फिर से डाउनलोड करें।</string>
+    <string name="chat_error_no_backend">इस डिवाइस पर कोई समर्थित बैकएंड नहीं है।</string>
+    <string name="chat_error_no_model_loaded">कोई मॉडल लोड नहीं है</string>
     <string name="chat_message_token_count">• %1$d tok</string>
     <string name="chat_duration_seconds">%1$.1fs</string>
     <string name="chat_duration_minutes_seconds">%1$dm %2$02ds</string>
+
+    <!-- संसाधन निष्कर्षण से जुड़े नए स्ट्रिंग -->
+    <string name="chat_section_pinned">पिन किए गए</string>
+    <string name="chat_section_recent">हाल के</string>
+    <string name="chat_rename_title">चैट का नाम बदलें</string>
+    <string name="chat_rename_label">चैट का नाम</string>
+    <string name="chat_rename">नाम बदलें</string>
+    <string name="chat_pin">पिन करें</string>
+    <string name="chat_unpin">अनपिन करें</string>
+    <string name="chat_pinned_content_description">पिन किया गया</string>
+    <string name="chat_default_photo_prompt">आप इस छवि में क्या देखते हैं?</string>
+    <string name="chat_room_compacted_notice">संदर्भ विंडो में फ़िट करने के लिए पुराने संदेशों का सारांश बनाया गया</string>
 </resources>

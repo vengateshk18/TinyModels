@@ -89,7 +89,8 @@ fun ModelListScreen(
                     OfflineState(onRetry = viewModel::refresh)
                 uiState.error != null ->
                     ErrorState(
-                        message = uiState.errorMessage ?: stringResource(R.string.models_error_failed_to_load),
+                        message = uiState.errorMessageRes?.let { stringResource(it) }
+                            ?: stringResource(R.string.models_error_failed_to_load),
                         onRetry = viewModel::refresh
                     )
                 uiState.models.isEmpty() ->

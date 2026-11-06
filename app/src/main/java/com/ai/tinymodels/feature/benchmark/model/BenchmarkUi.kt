@@ -1,5 +1,6 @@
 package com.ai.tinymodels.feature.benchmark.model
 
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
 import com.ai.tinymodels.core.inference.BenchmarkResult
 
@@ -16,7 +17,7 @@ data class BenchmarkFileOption(
 data class RunProgress(
     val promptIndex: Int,
     val promptTotal: Int,
-    val promptLabel: String,
+    @StringRes val promptLabelRes: Int,
     val runIndex: Int,
     val runTotal: Int,
     val tokensSoFar: Int,

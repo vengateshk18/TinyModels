@@ -202,7 +202,8 @@ private fun BrowseContent(
                 OfflineState(onRetry = onRetry)
             uiState.error != null ->
                 ErrorState(
-                    message = uiState.errorMessage ?: stringResource(R.string.models_error_failed_to_load),
+                    message = uiState.errorMessageRes?.let { stringResource(it) }
+                        ?: stringResource(R.string.models_error_failed_to_load),
                     onRetry = onRetry
                 )
             uiState.models.isEmpty() ->

@@ -165,7 +165,11 @@ class BenchmarkViewModel @Inject constructor(
                             RunProgress(
                                 promptIndex = promptIndex,
                                 promptTotal = prompts.size,
-                                promptLabel = prompt.label,
+                                promptLabelRes = when (prompt.id) {
+                                    "short" -> R.string.benchmark_prompt_short
+                                    "medium" -> R.string.benchmark_prompt_medium
+                                    else -> R.string.benchmark_prompt_long
+                                },
                                 runIndex = runIndex,
                                 runTotal = runsPerPrompt,
                                 tokensSoFar = 0,
@@ -196,7 +200,7 @@ class BenchmarkViewModel @Inject constructor(
                         RunProgress(
                             promptIndex = prompts.lastIndex,
                             promptTotal = prompts.size,
-                            promptLabel = "Sustained",
+                            promptLabelRes = R.string.benchmark_phase_thermal,
                             runIndex = 0,
                             runTotal = 1,
                             tokensSoFar = 0,

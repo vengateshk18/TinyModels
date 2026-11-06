@@ -71,7 +71,7 @@ data class BenchmarkResult(
     val modelFileBytes: Long = 0L,
     /** Run-to-run spread of decode speed, and the matching human label. */
     val decodeCoefficientOfVariation: Double = 0.0,
-    val stability: String = "",
+    val stability: BenchmarkMath.Stability = BenchmarkMath.Stability.STABLE,
     /** Result of the sustained loop: steady-state speed and thermal drop. */
     val sustainedTokensPerSec: Double = 0.0,
     val sustainedThrottlePercent: Double = 0.0

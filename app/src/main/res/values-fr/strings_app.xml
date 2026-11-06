@@ -13,8 +13,6 @@
     <string name="settings_font_google">Police Google</string>
 
     <!-- Language picker -->
-    <string name="settings_language">Langue</string>
-    <string name="settings_language_sheet_title">Choisir la langue</string>
     <string name="language_system">Langue du système</string>
     <string name="language_english" translatable="false">English</string>
     <!-- Native names: always shown in the language\'s own script, never translated. -->
@@ -99,12 +97,6 @@
     <string name="settings_import_model_note">Les modèles importés apparaissent dans votre bibliothèque avec une étiquette « Importé ». Pour partager un fichier téléchargé, ouvrez-le et utilisez Exporter.</string>
 
     <!-- ================= Theme / backend choices ================= -->
-    <string name="theme_mode_system">Système</string>
-    <string name="theme_mode_light">Clair</string>
-    <string name="theme_mode_dark">Sombre</string>
-    <string name="backend_auto">Auto</string>
-    <string name="backend_gpu">GPU</string>
-    <string name="backend_cpu">CPU</string>
 
     <!-- ================= Fonts ================= -->    <string name="font_system">Système</string>
     <string name="font_abel" translatable="false">Abel</string>
@@ -129,46 +121,19 @@
     <string name="benchmark_stop_body">L\'exécution sera annulée et les résultats ignorés.</string>
     <string name="benchmark_stop">Arrêter</string>
     <string name="benchmark_continue">Continuer</string>
-    <string name="benchmark_no_models">Aucun modèle téléchargé. Téléchargez d\'abord un modèle, puis revenez le tester.</string>
     <string name="benchmark_choose_model">Choisir un modèle</string>
-    <string name="benchmark_how_it_works">Comment ça marche</string>
-    <string name="benchmark_bullet_prompts">2 prompts fixes (court + moyen), 3 exécutions chacun</string>
-    <string name="benchmark_bullet_output_cap">Sortie limitée à 256 tokens par exécution</string>
-    <string name="benchmark_bullet_warmup">La première exécution est un échauffement et est ignorée</string>
-    <string name="benchmark_bullet_median">La médiane des exécutions restantes est rapportée</string>
-    <string name="benchmark_bullet_sampler">Échantillonneur fixe : temp 0.7 / top-k 40 / top-p 0.95</string>
-    <string name="benchmark_bullet_load_time">Temps de chargement = un chargement à froid du modèle</string>
-    <string name="benchmark_bullet_memory">Pic de mémoire échantillonné toutes les 250 ms pendant l\'exécution</string>
     <string name="benchmark_run">Lancer le benchmark</string>
-    <string name="benchmark_running">Benchmark en cours</string>
     <string name="benchmark_progress_prompt">Prompt %1$s</string>
-    <string name="benchmark_progress_run"> • exécution %1$d sur %2$d</string>
     <string name="benchmark_progress_warmup"> • échauffement</string>
-    <string name="benchmark_overall_progress">Progression globale</string>
     <string name="benchmark_stat_prompt">Prompt</string>
-    <string name="benchmark_stat_run">Exécution</string>
     <string name="benchmark_stat_tokens">Tokens</string>
-    <string name="benchmark_cancel">Annuler</string>
-    <string name="benchmark_decode_speed">Vitesse de décodage</string>
-    <string name="benchmark_decode_speed_range">%1$.1f – %2$.1f entre les exécutions</string>
-    <string name="benchmark_stat_time_to_first_token">Temps jusqu\'au premier token</string>
-    <string name="benchmark_stat_prefill_speed">Vitesse de pré-remplissage</string>
     <string name="benchmark_section_model">Modèle</string>
-    <string name="benchmark_stat_load_time">Temps de chargement (à froid)</string>
     <string name="benchmark_stat_peak_memory">Mémoire pic (PSS)</string>
-    <string name="benchmark_stat_baseline_load">Base avant chargement</string>
     <string name="benchmark_stat_backend">Backend</string>
     <string name="benchmark_stat_device">Appareil</string>
     <string name="benchmark_token_note">Les tokens sont comptés à partir des émissions du flux (un token par émission). La vitesse de pré-remplissage est les tokens du prompt / TTFT et inclut la première étape de décodage.</string>
-    <string name="benchmark_copy_summary">Copier le résumé</string>
     <string name="benchmark_rerun">Relancer</string>
-    <string name="benchmark_format_ms">%1$.0f ms</string>
-    <string name="benchmark_format_tok_per_sec">%1$.1f tok/s</string>
-    <string name="benchmark_format_seconds">%1$.1f s</string>
     <string name="benchmark_summary_header">Benchmark TinyModels — %1$s (%2$s, %3$s)</string>
-    <string name="benchmark_summary_load">Chargement : %1$.1fs</string>
-    <string name="benchmark_summary_prompt"> · %1$s : TTFT %2$.0fms, décodage %3$.1f tok/s, pré-remplissage %4$.0f tok/s</string>
-    <string name="benchmark_summary_peak">Pic PSS : %1$s (base %2$s)</string>
     <string name="benchmark_summary_device">Appareil : %1$s</string>
 
     <!-- ================= Download notifications ================= -->
@@ -178,4 +143,87 @@
     <string name="notification_download_failed">Échec du téléchargement</string>
     <string name="notification_failed_with_reason">%1$s — %2$s</string>
     <string name="download_error_gated">HTTP 401 — ce modèle est restreint. Ajoutez votre jeton d\'accès Hugging Face dans les Paramètres, ou acceptez la licence du modèle sur huggingface.co d\'abord.</string>
+
+    <!-- Nouvelles chaînes issues de l’extraction des ressources -->
+    <string name="settings_importing_model">Importation du modèle…</string>
+    <string name="settings_font_reset">Rétablir la valeur par défaut</string>
+    <string name="settings_font_preview_body">Voici à quoi ressembleront vos conversations.</string>
+    <string name="settings_font_preview_small">Les petits caractères restent lisibles.</string>
+    <string name="settings_bug_report_subject">Rapport de bug TinyModels</string>
+    <string name="settings_theme_system">Système</string>
+    <string name="settings_theme_light">Clair</string>
+    <string name="settings_theme_dark">Sombre</string>
+    <string name="settings_backend_auto">Automatique</string>
+    <string name="benchmark_state_result">Résultat</string>
+    <string name="benchmark_state_measuring">Mesure en cours</string>
+    <string name="benchmark_state_loading">Chargement du modèle</string>
+    <string name="benchmark_state_subtitle">Vitesse d’inférence sur cet appareil</string>
+    <string name="benchmark_no_models_title">Aucun modèle pour l’instant</string>
+    <string name="benchmark_no_models_body">Téléchargez un modèle depuis l’onglet Modèles, puis revenez pour le mesurer.</string>
+    <string name="benchmark_files_available">%1$d disponibles</string>
+    <string name="benchmark_what_gets_measured">Ce qui est mesuré</string>
+    <string name="benchmark_metric_decode">Décodage</string>
+    <string name="benchmark_metric_decode_sub">tokens / seconde</string>
+    <string name="benchmark_metric_ttft">Temps jusqu’au premier token</string>
+    <string name="benchmark_metric_ttft_sub">réactivité</string>
+    <string name="benchmark_metric_prefill">Préremplissage</string>
+    <string name="benchmark_metric_prefill_sub">traitement du prompt</string>
+    <string name="benchmark_metric_memory">Mémoire de pointe</string>
+    <string name="benchmark_metric_memory_sub">empreinte</string>
+    <string name="benchmark_run_measuring">Mesure de %1$s</string>
+    <string name="benchmark_run_duration">Généralement 3 à 10 min selon le modèle</string>
+    <string name="benchmark_hero_title">À quel point ce téléphone est-il rapide ?</string>
+    <string name="benchmark_hero_body">Exécute les trois mêmes prompts en décodage glouton, ignore une passe d’échauffement, puis mesure la vitesse stabilisée, la mémoire et la baisse thermique.</string>
+    <string name="benchmark_hero_chip_prompts">%1$d prompts</string>
+    <string name="benchmark_hero_chip_runs">%1$d exécutions chacun</string>
+    <string name="benchmark_hero_chip_temp">temp. 0</string>
+    <string name="benchmark_selected_content_description">Sélectionné</string>
+    <string name="benchmark_methodology">Méthodologie</string>
+    <string name="benchmark_method_prompts">%1$d prompts (du court au long) pour séparer le temps jusqu’au premier token du débit de préremplissage</string>
+    <string name="benchmark_method_runs">1 échauffement + %1$d exécutions mesurées chacun, échauffement ignoré</string>
+    <string name="benchmark_method_greedy">Décodage glouton (température 0, top-k 1) pour que les exécutions soient reproductibles</string>
+    <string name="benchmark_method_sustained">Boucle soutenue de %1$d s pour détecter le bridage thermique</string>
+    <string name="benchmark_method_memory">Mémoire de pointe échantillonnée toutes les 250 ms ; sortie limitée à %1$d tokens</string>
+    <string name="benchmark_progress_seconds_left">%1$d s restantes</string>
+    <string name="benchmark_progress_measuring">mesure en cours</string>
+    <string name="benchmark_thermal_check">Contrôle thermique</string>
+    <string name="benchmark_progress_run_of">Exécution %1$d sur %2$d</string>
+    <string name="benchmark_sustained_watching">Charge soutenue — surveillance du bridage</string>
+    <string name="benchmark_section_thermal">Thermique</string>
+    <string name="benchmark_phase_prompt_suite">Série de prompts</string>
+    <string name="benchmark_phase_thermal">Thermique</string>
+    <string name="benchmark_result_score">score</string>
+    <string name="benchmark_result_grade">Note %1$s</string>
+    <string name="benchmark_result_median_decode">%1$.1f tok/s en décodage médian</string>
+    <string name="benchmark_stat_decode_p50">Décodage p50</string>
+    <string name="benchmark_stat_ttft_p50">TTFT p50</string>
+    <string name="benchmark_stat_prefill_p50">Préremplissage p50</string>
+    <string name="benchmark_section_by_prompt">Par prompt</string>
+    <string name="benchmark_section_by_prompt_hint">p50 · p95</string>
+    <string name="benchmark_section_thermal_hint">charge soutenue</string>
+    <string name="benchmark_stat_sustained_speed">Vitesse soutenue</string>
+    <string name="benchmark_stat_change_over_run">Évolution pendant l’exécution</string>
+    <string name="benchmark_stat_spread">Dispersion entre exécutions</string>
+    <string name="benchmark_stability_value">%1$s (%2$.1f%%)</string>
+    <string name="benchmark_info_cold_load">Chargement à froid</string>
+    <string name="benchmark_info_model_size">Taille du modèle</string>
+    <string name="benchmark_info_memory_ratio">Mémoire / modèle</string>
+    <string name="benchmark_copy">Copier</string>
+    <string name="benchmark_prompt_short">Court</string>
+    <string name="benchmark_prompt_medium">Moyen</string>
+    <string name="benchmark_prompt_long">Long</string>
+    <string name="benchmark_thermal_holds">Maintient la vitesse maximale</string>
+    <string name="benchmark_thermal_slight">Légère baisse thermique</string>
+    <string name="benchmark_thermal_noticeable">Bridage notable</string>
+    <string name="benchmark_thermal_heavy">Bridage important</string>
+    <string name="benchmark_stability_stable">Stable</string>
+    <string name="benchmark_stability_fair">Correct</string>
+    <string name="benchmark_stability_unstable">Instable</string>
+    <string name="benchmark_throttle_drop">%1$.1f%% de baisse</string>
+    <string name="benchmark_throttle_faster">%1$.1f%% plus rapide</string>
+    <string name="benchmark_throttle_none">Aucun changement</string>
+    <string name="benchmark_summary_score">Score : %1$d (%2$s) · %3$.1f tok/s en décodage médian</string>
+    <string name="benchmark_summary_prompt_line">%1$s : TTFT %2$.0f ms (p95 %3$.0f), décodage %4$.1f tok/s (p95 %5$.1f, écart-type %6$.1f), préremplissage %7$.0f tok/s</string>
+    <string name="benchmark_summary_sustained">Soutenu : %1$.1f tok/s, %2$s (%3$s)</string>
+    <string name="benchmark_summary_load">Chargement %1$.1fs · PSS max. %2$s · modèle %3$s</string>
 </resources>
