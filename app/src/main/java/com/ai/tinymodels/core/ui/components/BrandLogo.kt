@@ -16,12 +16,16 @@ import androidx.compose.ui.unit.Dp
 import com.ai.tinymodels.R
 
 /**
- * The app's own logo (the launcher icon artwork), rendered at [size].
+ * The app's own logo (the launcher icon artwork), rendered inside a [size] box.
  *
- * Android adaptive icons reserve padding around the artwork so it survives
- * system mask shapes; the artwork itself fills only ~68% of that canvas. The
- * padding is cropped optically here, so callers get the visible logo at
- * exactly [size] instead of a tiny mark floating in empty space.
+ * Two geometry facts shape the rendering:
+ *  - Android adaptive icons reserve padding around the artwork so it survives
+ *    system mask shapes; the artwork fills only ~68% of that canvas.
+ *  - The logo's tile edge should never sit flush against the box edge — a tile
+ *    pressed against the bounds reads as clipped and harsh.
+ *
+ * So the canvas is upscaled only until the artwork fills [LOGO_VISIBLE_FRACTION]
+ * of the box, leaving a deliberate margin on every side.
  */
 @Composable
 fun TinyModelsLogo(
@@ -42,7 +46,7 @@ fun TinyModelsLogo(
             modifier = Modifier
                 .fillMaxSize()
                 .graphicsLayer {
-                    val upscale = 1f / LOGO_CONTENT_FRACTION
+                    val upscale = logoUpscale()
                     scaleX = upscale
                     scaleY = upscale
                 }
@@ -51,4 +55,18 @@ fun TinyModelsLogo(
 }
 
 /** Fraction of the adaptive-icon canvas occupied by the visible artwork. */
-private const val LOGO_CONTENT_FRACTION = 0.681f
+internal const val LOGO_CANVAS_ART_FRACTION = 0.681f
+
+/**
+ * Fraction of the logo box the visible artwork should cover. The remaining
+ * ~16% (8% per side) is breathing room, so the tile's rounded edge is fully
+ * visible instead of being cropped by the box bounds.
+ */
+internal const val LOGO_VISIBLE_FRACTION = 0.84f
+
+/**
+ * Scale factor that maps the canvas artwork fraction onto
+ * [LOGO_VISIBLE_FRACTION]: after scaling, the artwork covers
+ * `LOGO_CANVAS_ART_FRACTION * upscale` of the box.
+ */
+internal fun logoUpscale(): Float = LOGO_VISIBLE_FRACTION / LOGO_CANVAS_ART_FRACTION

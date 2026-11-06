@@ -121,7 +121,7 @@ fun OnboardingScreen(
                     .padding(start = 24.dp, end = 12.dp, top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TinyModelsLogo(size = 26.dp)
+                TinyModelsLogo(size = 31.dp)
                 Spacer(Modifier.width(10.dp))
                 Text(
                     text = "TinyModels",

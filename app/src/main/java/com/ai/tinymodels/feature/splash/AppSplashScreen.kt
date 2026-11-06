@@ -148,7 +148,7 @@ fun AppSplashScreen(
                 .offset(y = (-16).dp)
         ) {
             TinyModelsLogo(
-                size = 92.dp,
+                size = 110.dp,
                 // Decorative: the wordmark right below carries the name for
                 // screen readers, so announcing the image too would repeat it.
                 modifier = Modifier.graphicsLayer {
