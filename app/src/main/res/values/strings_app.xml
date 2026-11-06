@@ -2,6 +2,8 @@
     <!-- ================= Settings ================= -->
     <string name="settings_title">Settings</string>
     <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_sheet_title">Choose language</string>
     <string name="settings_theme">Theme</string>
     <string name="settings_dynamic_color">Dynamic color</string>
     <string name="settings_dynamic_color_subtitle">Use wallpaper-based colors (Android 12+)</string>

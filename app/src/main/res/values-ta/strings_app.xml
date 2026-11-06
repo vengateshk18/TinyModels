@@ -2,6 +2,8 @@
     <!-- ================= Settings ================= -->
     <string name="settings_title">அமைப்புகள்</string>
     <string name="settings_section_appearance">தோற்றம்</string>
+    <string name="settings_language">மொழி</string>
+    <string name="settings_language_sheet_title">ஒரு மொழியைத் தேர்ந்தெடுக்கவும்</string>
     <string name="settings_theme">தீம்</string>
     <string name="settings_dynamic_color">டைனமிக் வண்ணம்</string>
     <string name="settings_dynamic_color_subtitle">வால்பேப்பர் வண்ணங்களைப் பயன்படுத்து (Android 12+)</string>

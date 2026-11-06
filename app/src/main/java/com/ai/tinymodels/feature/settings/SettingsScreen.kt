@@ -2,6 +2,7 @@ package com.ai.tinymodels.feature.settings
 
 import android.content.Context
 import android.content.Intent
+import android.app.Activity
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -62,6 +63,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -70,7 +72,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ai.tinymodels.core.common.AppLocale
+import com.ai.tinymodels.core.ui.components.bottomSheetTopSafePadding
 import com.ai.tinymodels.R
+import com.ai.tinymodels.domain.model.AppLanguage
 import com.ai.tinymodels.domain.model.AppSettings
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.FontChoice
@@ -253,6 +258,31 @@ private fun AppearanceSection(settings: AppSettings, viewModel: SettingsViewMode
                 showFontSheet = false
             },
             onDismiss = { showFontSheet = false }
+        )
+    }
+    Spacer(modifier = Modifier.height(12.dp))
+    var showLanguageSheet by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val storedLanguage by viewModel.language.collectAsStateWithLifecycle()
+    val selectedLanguage = remember(storedLanguage, context) {
+        AppLocale.currentLanguage(context, storedLanguage)
+    }
+    NavigationRow(
+        label = stringResource(R.string.settings_language),
+        subtitle = selectedLanguage.displayLabel(),
+        onClick = { showLanguageSheet = true }
+    )
+    if (showLanguageSheet) {
+        LanguageBottomSheet(
+            selected = selectedLanguage,
+            onSelect = { language ->
+                viewModel.setLanguage(language)
+                showLanguageSheet = false
+                // Applies the locale and recreates the activity so every
+                // string (and the system bars) pick up the new language.
+                (context as? Activity)?.let { AppLocale.apply(it, language) }
+            },
+            onDismiss = { showLanguageSheet = false }
         )
     }
     Spacer(modifier = Modifier.height(4.dp))
@@ -741,6 +771,75 @@ private fun FontBottomSheet(
                         },
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Test tag for the language sheet's content column, so the instrumented inset
+ * test can measure the content's laid-out rect against the window insets.
+ */
+internal const val LANGUAGE_SHEET_CONTENT_TAG = "language_sheet_content"
+
+/**
+ * Bottom sheet listing the languages the app is translated into.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun LanguageBottomSheet(
+    selected: AppLanguage,
+    onSelect: (AppLanguage) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        // Suppress the sheet's built-in inset handling so we control it precisely.
+        contentWindowInsets = { WindowInsets(0) },
+        // Keep the sheet surface below the status bar when it grows tall
+        // (short screens in landscape).
+        modifier = Modifier
+            .fillMaxWidth()
+            .bottomSheetTopSafePadding()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(LANGUAGE_SHEET_CONTENT_TAG)
+                .padding(horizontal = 24.dp)
+                .windowInsetsPadding(
+                    WindowInsets.systemBars
+                        .union(WindowInsets.displayCutout)
+                        .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+                )
+                .padding(bottom = 16.dp)
+        ) {
+            Text(
+                stringResource(R.string.settings_language_sheet_title),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+            AppLanguage.entries.forEach { language ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelect(language) }
+                        .padding(vertical = 12.dp, horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = language == selected,
+                        onClick = { onSelect(language) }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = language.displayLabel(),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }

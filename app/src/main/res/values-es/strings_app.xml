@@ -2,6 +2,8 @@
     <!-- ================= Settings ================= -->
     <string name="settings_title">Ajustes</string>
     <string name="settings_section_appearance">Apariencia</string>
+    <string name="settings_language">Idioma</string>
+    <string name="settings_language_sheet_title">Elige un idioma</string>
     <string name="settings_theme">Tema</string>
     <string name="settings_dynamic_color">Color dinámico</string>
     <string name="settings_dynamic_color_subtitle">Usa los colores del fondo de pantalla (Android 12+)</string>

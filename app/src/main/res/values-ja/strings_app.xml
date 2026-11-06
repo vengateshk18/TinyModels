@@ -2,6 +2,8 @@
     <!-- ================= Settings ================= -->
     <string name="settings_title">設定</string>
     <string name="settings_section_appearance">外観</string>
+    <string name="settings_language">言語</string>
+    <string name="settings_language_sheet_title">言語を選択</string>
     <string name="settings_theme">テーマ</string>
     <string name="settings_dynamic_color">ダイナミックカラー</string>
     <string name="settings_dynamic_color_subtitle">壁紙ベースの色を使用 (Android 12+)</string>
