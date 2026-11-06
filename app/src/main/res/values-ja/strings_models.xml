@@ -103,4 +103,21 @@
         <item quantity="one">%1$d ファイル</item>
         <item quantity="other">%1$d ファイル</item>
     </plurals>
+    <string name="model_details_discard_title">ダウンロードを破棄しますか？</string>
+    <string name="model_details_discard_body_notification">ダウンロードを中止し、部分データを削除します。取り消せません。</string>
+    <string name="model_details_discard_bytes_deleted">これまでにダウンロードした %1$s を削除します。</string>
+    <string name="model_details_discard_partial_deleted">このファイルの部分データを削除します。</string>
+    <string name="model_details_discard_body_end">ダウンロードはやり直しになり、この操作は取り消せません。</string>
+    <string name="model_details_discard">破棄</string>
+    <string name="model_details_keep">残す</string>
+    <string name="model_details_size_loading">サイズを取得中…</string>
+    <string name="model_details_size_unknown">サイズを特定できません</string>
+    <string name="model_details_downloaded_bytes">%1$s ダウンロード済み</string>
+    <string name="model_details_paused_resumable">一時停止中 · 再開可能</string>
+    <string name="model_details_download_desc">ダウンロード</string>
+    <string name="model_details_cancel_queued_desc">待機中のダウンロードをキャンセル</string>
+    <string name="model_details_discard_desc">ダウンロードを破棄</string>
+    <string name="model_details_resume_desc">ダウンロードを再開</string>
+    <string name="model_details_retry_desc">ダウンロードを再試行</string>
+    <string name="model_details_pause_desc">ダウンロードを一時停止</string>
 </resources>

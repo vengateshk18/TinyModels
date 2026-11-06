@@ -226,4 +226,12 @@
     <string name="benchmark_summary_prompt_line">%1$s: TTFT %2$.0fms (p95 %3$.0f)、デコード %4$.1f tok/s (p95 %5$.1f、sd %6$.1f)、プリフィル %7$.0f tok/s</string>
     <string name="benchmark_summary_sustained">持続: %1$.1f tok/s、%2$s (%3$s)</string>
     <string name="benchmark_summary_load">読み込み %1$.1f秒 · ピーク PSS %2$s · モデル %3$s</string>
+    <string name="splash_tagline">小さなモデルで、大きな可能性。</string>
+    <string name="splash_pillars">非公開 · オフライン · あなたのもの</string>
+    <string name="notification_progress_bytes">%1$s / %2$s · %3$d%%</string>
+    <string name="notification_progress_downloading">%1$s · ダウンロード中</string>
+    <string name="notification_speed">%1$s/s</string>
+    <string name="settings_view_intro">イントロを見る</string>
+    <string name="settings_view_intro_subtitle">TinyModels のツアーをもう一度</string>
+    <string name="benchmark_ttft_line">TTFT %1$.0f ms · p95 %2$.0f ms</string>
 </resources>

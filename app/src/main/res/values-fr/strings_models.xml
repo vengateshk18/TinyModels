@@ -103,4 +103,21 @@
         <item quantity="one">%1$d fichier</item>
         <item quantity="other">%1$d fichiers</item>
     </plurals>
+    <string name="model_details_discard_title">Abandonner le téléchargement ?</string>
+    <string name="model_details_discard_body_notification">Le téléchargement s’arrêtera et les données partielles seront supprimées. Cette action est irréversible.</string>
+    <string name="model_details_discard_bytes_deleted">%1$s déjà téléchargés seront supprimés.</string>
+    <string name="model_details_discard_partial_deleted">Les données partielles de ce fichier seront supprimées.</string>
+    <string name="model_details_discard_body_end">Le téléchargement devra reprendre à zéro et cette action est irréversible.</string>
+    <string name="model_details_discard">Abandonner</string>
+    <string name="model_details_keep">Garder</string>
+    <string name="model_details_size_loading">Chargement de la taille…</string>
+    <string name="model_details_size_unknown">Taille indéterminable</string>
+    <string name="model_details_downloaded_bytes">%1$s téléchargés</string>
+    <string name="model_details_paused_resumable">En pause · reprise possible</string>
+    <string name="model_details_download_desc">Télécharger</string>
+    <string name="model_details_cancel_queued_desc">Annuler le téléchargement en attente</string>
+    <string name="model_details_discard_desc">Abandonner le téléchargement</string>
+    <string name="model_details_resume_desc">Reprendre le téléchargement</string>
+    <string name="model_details_retry_desc">Réessayer le téléchargement</string>
+    <string name="model_details_pause_desc">Mettre en pause le téléchargement</string>
 </resources>

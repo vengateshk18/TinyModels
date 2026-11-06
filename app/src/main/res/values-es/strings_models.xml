@@ -102,4 +102,21 @@
         <item quantity="other">%1$d archivos</item>
             <item quantity="many">%1$d archivos</item>
     </plurals>
+    <string name="model_details_discard_title">¿Descartar la descarga?</string>
+    <string name="model_details_discard_body_notification">La descarga se detendrá y los datos parciales se eliminarán. Esto no se puede deshacer.</string>
+    <string name="model_details_discard_bytes_deleted">%1$s descargados hasta ahora se eliminarán.</string>
+    <string name="model_details_discard_partial_deleted">Los datos parciales de este archivo se eliminarán.</string>
+    <string name="model_details_discard_body_end">La descarga tendrá que empezar de nuevo y esto no se puede deshacer.</string>
+    <string name="model_details_discard">Descartar</string>
+    <string name="model_details_keep">Mantener</string>
+    <string name="model_details_size_loading">Cargando tamaño…</string>
+    <string name="model_details_size_unknown">No se puede determinar el tamaño</string>
+    <string name="model_details_downloaded_bytes">%1$s descargados</string>
+    <string name="model_details_paused_resumable">En pausa · reanudable</string>
+    <string name="model_details_download_desc">Descargar</string>
+    <string name="model_details_cancel_queued_desc">Cancelar la descarga en cola</string>
+    <string name="model_details_discard_desc">Descartar la descarga</string>
+    <string name="model_details_resume_desc">Reanudar la descarga</string>
+    <string name="model_details_retry_desc">Reintentar la descarga</string>
+    <string name="model_details_pause_desc">Pausar la descarga</string>
 </resources>

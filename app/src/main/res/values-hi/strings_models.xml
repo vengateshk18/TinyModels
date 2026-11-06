@@ -101,4 +101,21 @@
         <item quantity="one">%1$d फ़ाइल</item>
         <item quantity="other">%1$d फ़ाइलें</item>
     </plurals>
+    <string name="model_details_discard_title">डाउनलोड छोड़ दें?</string>
+    <string name="model_details_discard_body_notification">डाउनलोड रुक जाएगा और आंशिक डेटा हटा दिया जाएगा। यह काम वापस नहीं ले सकते।</string>
+    <string name="model_details_discard_bytes_deleted">अब तक डाउनलोड किए गए %1$s हटा दिए जाएंगे।</string>
+    <string name="model_details_discard_partial_deleted">इस फ़ाइल का आंशिक डेटा हटा दिया जाएगा।</string>
+    <string name="model_details_discard_body_end">डाउनलोड फिर से शुरू करना होगा और इसे वापस नहीं लिया जा सकता।</string>
+    <string name="model_details_discard">छोड़ दें</string>
+    <string name="model_details_keep">रहने दें</string>
+    <string name="model_details_size_loading">आकार लोड हो रहा है…</string>
+    <string name="model_details_size_unknown">आकार तय नहीं किया जा सकता</string>
+    <string name="model_details_downloaded_bytes">%1$s डाउनलोड हुए</string>
+    <string name="model_details_paused_resumable">रोका गया · फिर शुरू हो सकता है</string>
+    <string name="model_details_download_desc">डाउनलोड करें</string>
+    <string name="model_details_cancel_queued_desc">कतार में लगी डाउनलोड रद्द करें</string>
+    <string name="model_details_discard_desc">डाउनलोड छोड़ दें</string>
+    <string name="model_details_resume_desc">डाउनलोड फिर शुरू करें</string>
+    <string name="model_details_retry_desc">डाउनलोड दोबारा कोशिश करें</string>
+    <string name="model_details_pause_desc">डाउनलोड रोकें</string>
 </resources>

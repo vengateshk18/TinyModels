@@ -207,4 +207,12 @@
     <string name="benchmark_summary_prompt_line">%1$s: TTFT %2$.0fms (p95 %3$.0f), டிகோட் %4$.1f tok/s (p95 %5$.1f, sd %6$.1f), ப்ரீஃபில் %7$.0f tok/s</string>
     <string name="benchmark_summary_sustained">நிலையானது: %1$.1f tok/s, %2$s (%3$s)</string>
     <string name="benchmark_summary_load">ஏற்றம் %1$.1fs · உச்ச PSS %2$s · மாதிரி %3$s</string>
+    <string name="splash_tagline">சிறிய மாதிரிகள். மாபெரும் சாத்தியங்கள்.</string>
+    <string name="splash_pillars">தனிப்பட்டது · ஆஃப்லைன் · உங்களுடையது</string>
+    <string name="notification_progress_bytes">%1$s / %2$s · %3$d%%</string>
+    <string name="notification_progress_downloading">%1$s · பதிவிறக்கம்</string>
+    <string name="notification_speed">%1$s/s</string>
+    <string name="settings_view_intro">அறிமுகத்தைப் பார்</string>
+    <string name="settings_view_intro_subtitle">TinyModels சுற்றுலாவை மீண்டும் எடு</string>
+    <string name="benchmark_ttft_line">TTFT %1$.0f ms · p95 %2$.0f ms</string>
 </resources>

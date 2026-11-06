@@ -207,4 +207,12 @@
     <string name="benchmark_summary_prompt_line">%1$s: TTFT %2$.0fms (p95 %3$.0f), डिकोड %4$.1f tok/s (p95 %5$.1f, sd %6$.1f), प्रीफ़िल %7$.0f tok/s</string>
     <string name="benchmark_summary_sustained">स्थिर: %1$.1f tok/s, %2$s (%3$s)</string>
     <string name="benchmark_summary_load">लोड %1$.1fs · शिखर PSS %2$s · मॉडल %3$s</string>
+    <string name="splash_tagline">छोटे मॉडल। बड़े अवसर।</string>
+    <string name="splash_pillars">निजी · ऑफ़लाइन · आपका अपना</string>
+    <string name="notification_progress_bytes">%1$s / %2$s · %3$d%%</string>
+    <string name="notification_progress_downloading">%1$s · डाउनलोड हो रहा है</string>
+    <string name="notification_speed">%1$s/s</string>
+    <string name="settings_view_intro">इंट्रो देखें</string>
+    <string name="settings_view_intro_subtitle">TinyModels का दौरा फिर से लें</string>
+    <string name="benchmark_ttft_line">TTFT %1$.0f ms · p95 %2$.0f ms</string>
 </resources>

@@ -32,4 +32,6 @@
     <string name="error_network">Erreur réseau. Vérifiez votre connexion et réessayez.</string>
     <string name="error_storage">Espace de stockage insuffisant.</string>
     <string name="error_unknown">Une erreur est survenue. Réessayez.</string>
+    <string name="notification_pause">Pause</string>
+    <string name="notification_cancel">Annuler</string>
 </resources>

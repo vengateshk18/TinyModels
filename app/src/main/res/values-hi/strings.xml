@@ -29,4 +29,6 @@
     <string name="error_network">नेटवर्क त्रुटि। अपना कनेक्शन जाँचें और फिर से कोशिश करें।</string>
     <string name="error_storage">पर्याप्त खाली स्टोरेज नहीं है।</string>
     <string name="error_unknown">कुछ गड़बड़ हो गई। फिर से कोशिश करें।</string>
+    <string name="notification_pause">रोकें</string>
+    <string name="notification_cancel">रद्द करें</string>
 </resources>

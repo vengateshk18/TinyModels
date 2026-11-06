@@ -29,4 +29,6 @@
     <string name="error_network">Error de red. Comprueba tu conexión e inténtalo de nuevo.</string>
     <string name="error_storage">No hay suficiente almacenamiento libre.</string>
     <string name="error_unknown">Algo ha salido mal. Inténtalo de nuevo.</string>
+    <string name="notification_pause">Pausar</string>
+    <string name="notification_cancel">Cancelar</string>
 </resources>

@@ -207,4 +207,12 @@
     <string name="benchmark_summary_prompt_line">%1$s: TTFT %2$.0f ms (p95 %3$.0f), decodificación %4$.1f tok/s (p95 %5$.1f, desv. %6$.1f), prellenado %7$.0f tok/s</string>
     <string name="benchmark_summary_sustained">Sostenido: %1$.1f tok/s, %2$s (%3$s)</string>
     <string name="benchmark_summary_load">Carga %1$.1fs · PSS máx. %2$s · modelo %3$s</string>
+    <string name="splash_tagline">Modelos pequeños. Grandes posibilidades.</string>
+    <string name="splash_pillars">Privado · Sin conexión · Tuyo</string>
+    <string name="notification_progress_bytes">%1$s / %2$s · %3$d%%</string>
+    <string name="notification_progress_downloading">%1$s · descargando</string>
+    <string name="notification_speed">%1$s/s</string>
+    <string name="settings_view_intro">Ver intro</string>
+    <string name="settings_view_intro_subtitle">Vuelve a hacer el recorrido por TinyModels</string>
+    <string name="benchmark_ttft_line">TTFT %1$.0f ms · p95 %2$.0f ms</string>
 </resources>

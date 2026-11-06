@@ -32,4 +32,6 @@
     <string name="error_network">ネットワークエラーです。接続を確認して、もう一度お試しください。</string>
     <string name="error_storage">空きストレージが不足しています。</string>
     <string name="error_unknown">問題が発生しました。もう一度お試しください。</string>
+    <string name="notification_pause">一時停止</string>
+    <string name="notification_cancel">キャンセル</string>
 </resources>

@@ -101,4 +101,21 @@
         <item quantity="one">%1$d கோப்பு</item>
         <item quantity="other">%1$d கோப்புகள்</item>
     </plurals>
+    <string name="model_details_discard_title">பதிவிறக்கத்தைத் தள்ளுபடி செய்யவா?</string>
+    <string name="model_details_discard_body_notification">பதிவிறக்கம் நின்று, பகுதி தரவு நீக்கப்படும். இதை மீட்க முடியாது.</string>
+    <string name="model_details_discard_bytes_deleted">இதுவரை பதிவிறக்கப்பட்ட %1$s நீக்கப்படும்.</string>
+    <string name="model_details_discard_partial_deleted">இந்தக் கோப்பின் பகுதி தரவு நீக்கப்படும்.</string>
+    <string name="model_details_discard_body_end">பதிவிறக்கத்தை மீண்டும் தொடங்க வேண்டும், இதை மீட்க முடியாது.</string>
+    <string name="model_details_discard">தள்ளுபடி</string>
+    <string name="model_details_keep">வைத்திரு</string>
+    <string name="model_details_size_loading">அளவு ஏற்றப்படுகிறது…</string>
+    <string name="model_details_size_unknown">அளவைக் கண்டறிய முடியவில்லை</string>
+    <string name="model_details_downloaded_bytes">%1$s பதிவிறக்கப்பட்டது</string>
+    <string name="model_details_paused_resumable">இடைநிறுத்தப்பட்டது · தொடரலாம்</string>
+    <string name="model_details_download_desc">பதிவிறக்கு</string>
+    <string name="model_details_cancel_queued_desc">வரிசையிலுள்ள பதிவிறக்கத்தை ரத்து செய்</string>
+    <string name="model_details_discard_desc">பதிவிறக்கத்தைத் தள்ளுபடி செய்</string>
+    <string name="model_details_resume_desc">பதிவிறக்கத்தைத் தொடர்</string>
+    <string name="model_details_retry_desc">பதிவிறக்கத்தை மீண்டும் முயல்</string>
+    <string name="model_details_pause_desc">பதிவிறக்கத்தை இடைநிறுத்து</string>
 </resources>

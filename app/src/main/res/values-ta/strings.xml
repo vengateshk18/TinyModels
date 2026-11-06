@@ -29,4 +29,6 @@
     <string name="error_network">நெட்வொர்க் பிழை. இணைப்பைச் சரிபார்த்து மீண்டும் முயலவும்.</string>
     <string name="error_storage">போதுமான இலவச சேமிப்பு இல்லை.</string>
     <string name="error_unknown">ஏதோ தவறு நடந்தது. மீண்டும் முயலவும்.</string>
+    <string name="notification_pause">இடைநிறுத்து</string>
+    <string name="notification_cancel">ரத்து செய்</string>
 </resources>
