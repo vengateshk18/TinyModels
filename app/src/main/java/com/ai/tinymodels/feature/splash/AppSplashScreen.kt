@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,7 +40,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ai.tinymodels.core.ui.components.TinyModelsMark
+import com.ai.tinymodels.core.ui.components.TinyModelsLogo
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -54,8 +55,13 @@ import kotlinx.coroutines.launch
  * long it stays.
  */
 @Composable
-fun AppSplashScreen(modifier: Modifier = Modifier) {
+fun AppSplashScreen(
+    modifier: Modifier = Modifier,
+    /** Fired only once the last entrance animation has settled. */
+    onIntroComplete: () -> Unit = {}
+) {
     val colors = MaterialTheme.colorScheme
+    val notifyIntroComplete by rememberUpdatedState(onIntroComplete)
 
     val breathe by rememberInfiniteTransition(label = "splashBreathe").animateFloat(
         initialValue = 0f,
@@ -75,19 +81,35 @@ fun AppSplashScreen(modifier: Modifier = Modifier) {
     val sloganShift = remember { Animatable(14f) }
 
     LaunchedEffect(Unit) {
-        launch { markAlpha.animateTo(1f, tween(420)) }
-        launch {
-            markScale.animateTo(
-                1f,
-                spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
-            )
+        // The whole entrance is awaited before reporting completion, so the
+        // splash can never be dismissed mid-animation (a cut slogan reads as
+        // a glitch). The gate in AppRoot waits for this signal.
+        coroutineScope {
+            launch { markAlpha.animateTo(1f, tween(420)) }
+            launch {
+                markScale.animateTo(
+                    1f,
+                    spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
+                )
+            }
+            launch {
+                delay(160)
+                wordAlpha.animateTo(1f, tween(480))
+            }
+            launch {
+                delay(160)
+                wordShift.animateTo(0f, tween(620, easing = FastOutSlowInEasing))
+            }
+            launch {
+                delay(280)
+                sloganAlpha.animateTo(1f, tween(480))
+            }
+            launch {
+                delay(280)
+                sloganShift.animateTo(0f, tween(620, easing = FastOutSlowInEasing))
+            }
         }
-        delay(160)
-        launch { wordAlpha.animateTo(1f, tween(480)) }
-        launch { wordShift.animateTo(0f, tween(620, easing = FastOutSlowInEasing)) }
-        delay(120)
-        launch { sloganAlpha.animateTo(1f, tween(480)) }
-        launch { sloganShift.animateTo(0f, tween(620, easing = FastOutSlowInEasing)) }
+        notifyIntroComplete()
     }
 
     Box(
@@ -125,14 +147,15 @@ fun AppSplashScreen(modifier: Modifier = Modifier) {
                 .padding(horizontal = 32.dp)
                 .offset(y = (-16).dp)
         ) {
-            TinyModelsMark(
-                modifier = Modifier
-                    .size(92.dp)
-                    .graphicsLayer {
-                        scaleX = markScale.value
-                        scaleY = markScale.value
-                        alpha = markAlpha.value
-                    }
+            TinyModelsLogo(
+                size = 92.dp,
+                // Decorative: the wordmark right below carries the name for
+                // screen readers, so announcing the image too would repeat it.
+                modifier = Modifier.graphicsLayer {
+                    scaleX = markScale.value
+                    scaleY = markScale.value
+                    alpha = markAlpha.value
+                }
             )
 
             Spacer(Modifier.height(26.dp))

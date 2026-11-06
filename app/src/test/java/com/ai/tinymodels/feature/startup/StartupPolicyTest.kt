@@ -7,7 +7,7 @@ import org.junit.Test
 
 /**
  * Startup policy: which screen the very first frame should show, and how long
- * the splash may stay up while the Home tab is still assembling its data.
+ * the splash may stay up while Home is still assembling its data.
  */
 class StartupPolicyTest {
 
@@ -23,25 +23,37 @@ class StartupPolicyTest {
 
     @Test
     fun `splash stays while home data is loading`() {
-        assertTrue(shouldShowSplash(homeReady = false, elapsedMillis = 0L))
-        assertTrue(shouldShowSplash(homeReady = false, elapsedMillis = 2_500L))
+        assertTrue(shouldShowSplash(homeReady = false, introComplete = true, elapsedMillis = 0L))
+        assertTrue(shouldShowSplash(homeReady = false, introComplete = true, elapsedMillis = 2_500L))
     }
 
     @Test
     fun `splash stays for the minimum even when home is instant`() {
-        assertTrue(shouldShowSplash(homeReady = true, elapsedMillis = 0L))
-        assertTrue(shouldShowSplash(homeReady = true, elapsedMillis = MIN_SPLASH_MILLIS - 1))
+        assertTrue(shouldShowSplash(homeReady = true, introComplete = true, elapsedMillis = 0L))
+        assertTrue(shouldShowSplash(homeReady = true, introComplete = true, elapsedMillis = MIN_SPLASH_MILLIS - 1))
     }
 
     @Test
     fun `splash leaves as soon as the minimum has elapsed and home is ready`() {
-        assertFalse(shouldShowSplash(homeReady = true, elapsedMillis = MIN_SPLASH_MILLIS))
-        assertFalse(shouldShowSplash(homeReady = true, elapsedMillis = 1_800L))
+        assertFalse(shouldShowSplash(homeReady = true, introComplete = true, elapsedMillis = MIN_SPLASH_MILLIS))
+        assertFalse(shouldShowSplash(homeReady = true, introComplete = true, elapsedMillis = 1_800L))
     }
 
     @Test
     fun `splash never traps the user when home is slow`() {
-        assertTrue(shouldShowSplash(homeReady = false, elapsedMillis = MAX_SPLASH_MILLIS - 1))
-        assertFalse(shouldShowSplash(homeReady = false, elapsedMillis = MAX_SPLASH_MILLIS))
+        assertTrue(shouldShowSplash(homeReady = false, introComplete = true, elapsedMillis = MAX_SPLASH_MILLIS - 1))
+        assertFalse(shouldShowSplash(homeReady = false, introComplete = true, elapsedMillis = MAX_SPLASH_MILLIS))
+    }
+
+    @Test
+    fun `the entrance animation is never cut short, even when home is instant`() {
+        assertTrue(shouldShowSplash(homeReady = true, introComplete = false, elapsedMillis = 0L))
+        assertTrue(shouldShowSplash(homeReady = true, introComplete = false, elapsedMillis = 700L))
+        assertTrue(shouldShowSplash(homeReady = true, introComplete = false, elapsedMillis = MIN_SPLASH_MILLIS))
+    }
+
+    @Test
+    fun `the hard cap still applies if the animation never reports back`() {
+        assertFalse(shouldShowSplash(homeReady = true, introComplete = false, elapsedMillis = MAX_SPLASH_MILLIS))
     }
 }

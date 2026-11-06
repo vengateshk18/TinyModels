@@ -62,12 +62,19 @@ fun AppRoot(
 @Composable
 private fun AppShellWithSplash(networkMonitor: NetworkMonitor) {
     var homeReady by remember { mutableStateOf(false) }
+    var introComplete by rememberSaveable { mutableStateOf(false) }
     var splashVisible by rememberSaveable { mutableStateOf(true) }
     // Survives rotation: rotating mid-splash must not restart the beat.
     val startedAt by rememberSaveable { mutableStateOf(SystemClock.elapsedRealtime()) }
 
     LaunchedEffect(Unit) {
-        while (shouldShowSplash(homeReady, SystemClock.elapsedRealtime() - startedAt)) {
+        while (
+            shouldShowSplash(
+                homeReady = homeReady,
+                introComplete = introComplete,
+                elapsedMillis = SystemClock.elapsedRealtime() - startedAt
+            )
+        ) {
             delay(40L)
         }
         splashVisible = false
@@ -84,6 +91,7 @@ private fun AppShellWithSplash(networkMonitor: NetworkMonitor) {
             exit = fadeOut(animationSpec = tween(420))
         ) {
             AppSplashScreen(
+                onIntroComplete = { introComplete = true },
                 // Swallow touches for as long as the splash covers the app.
                 modifier = Modifier
                     .fillMaxSize()

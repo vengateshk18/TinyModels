@@ -73,7 +73,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ai.tinymodels.core.ui.components.TinyModelsMark
+import com.ai.tinymodels.core.ui.components.TinyModelsLogo
 import kotlin.math.abs
 import kotlin.math.min
 import kotlinx.coroutines.launch
@@ -121,7 +121,7 @@ fun OnboardingScreen(
                     .padding(start = 24.dp, end = 12.dp, top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TinyModelsMark(modifier = Modifier.size(26.dp))
+                TinyModelsLogo(size = 26.dp)
                 Spacer(Modifier.width(10.dp))
                 Text(
                     text = "TinyModels",
