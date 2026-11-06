@@ -8,7 +8,6 @@
     <string name="chat_delete_title">チャットを削除しますか？</string>
     <string name="chat_delete_body">「%1$s」は完全に削除されます。この操作は元に戻せません。</string>
     <plurals name="chat_message_count">
-        <item quantity="one">%1$d 件のメッセージ</item>
         <item quantity="other">%1$d 件のメッセージ</item>
     </plurals>
     <string name="chat_delete_content_description">チャットを削除</string>
@@ -31,7 +30,6 @@
     <string name="chat_room_context_budget">コンテキスト予算</string>
     <string name="chat_room_compactions_run">コンパクション実行回数</string>
     <plurals name="chat_room_compactions_count">
-        <item quantity="one">%1$d 回</item>
         <item quantity="other">%1$d 回</item>
     </plurals>
     <string name="chat_room_compacted_summary">圧縮された要約</string>
@@ -125,7 +123,6 @@
     <string name="chat_error_nothing_to_compact">圧縮するものはありません — 会話は既にコンテキストウィンドウに収まっています</string>
     <string name="chat_error_summarization_failed">要約に失敗しました — コンテキストウィンドウに収まるように履歴が切り詰められました</string>
     <plurals name="chat_error_compacted_messages">
-        <item quantity="one">%1$d 件の古いメッセージを要約に圧縮しました</item>
         <item quantity="other">%1$d 件の古いメッセージを要約に圧縮しました</item>
     </plurals>
     <string name="chat_error_photo_unreadable">その写真を読み取れませんでした — 別の画像をお試しください</string>

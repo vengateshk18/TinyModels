@@ -339,7 +339,7 @@ private fun HeaderCard(model: ModelDetails) {
                 model.pipelineTag?.takeIf { it.isNotBlank() }?.let { Chip(it) }
                 model.libraryName?.takeIf { it.isNotBlank() }?.let { Chip(it) }
                 if (model.isGated) {
-                    Chip("gated", leading = {
+                    Chip(stringResource(R.string.model_details_gated), leading = {
                         Icon(Icons.Filled.Lock, contentDescription = null, modifier = Modifier.size(12.dp))
                     })
                 }

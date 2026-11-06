@@ -61,9 +61,6 @@
     <string name="model_tier_high">高</string>
 
     <!-- Recommended catalog model names (product names — not translated) -->
-    <string name="model_name_qwen3_0_6b" translatable="false">Qwen3 0.6B</string>
-    <string name="model_name_deepseek_r1_1_5b" translatable="false">DeepSeek R1 1.5B</string>
-    <string name="model_name_qwen3_5_2b" translatable="false">Qwen3.5 2B</string>
 
     <!-- ================= Device information screen ================= -->
     <string name="device_info_title">デバイス情報</string>
@@ -71,7 +68,6 @@
     <string name="device_info_ai_capability">AI 能力</string>
     <string name="device_info_recommended_up_to">最大 %1$s モデルを推奨</string>
     <string name="device_info_memory_section">メモリ</string>
-    <string name="device_info_ram" translatable="false">RAM</string>
     <string name="device_info_available">利用可能</string>
     <string name="device_info_recommended_for_ai">AI 用推奨</string>
     <string name="device_info_live_ram_usage">ライブ RAM 使用量</string>
@@ -136,19 +132,15 @@
     <string name="ram_rec_thermal_throttling">デバイスがサーマルスロットリング中 — パフォーマンスが低下します</string>
     <string name="ram_rec_battery_low">バッテリー残量低下 — 大きなモデルの読み込みには充電器を近くに</string>
     <plurals name="home_model_files_last_used">
-        <item quantity="one">%1$s • %2$d ファイル • 最後に使用</item>
         <item quantity="other">%1$s • %2$d ファイル • 最後に使用</item>
     </plurals>
     <plurals name="home_model_files_relative">
-        <item quantity="one">%1$s • %2$d ファイル • %3$s</item>
         <item quantity="other">%1$s • %2$d ファイル • %3$s</item>
     </plurals>
     <plurals name="home_show_more_models">
-        <item quantity="one">%1$d 個のモデルをさらに表示</item>
         <item quantity="other">%1$d 個のモデルをさらに表示</item>
     </plurals>
     <plurals name="home_web_search_chats">
-        <item quantity="one">ウェブ検索を %1$d 件のチャットで使用</item>
         <item quantity="other">ウェブ検索を %1$d 件のチャットで使用</item>
     </plurals>
 </resources>

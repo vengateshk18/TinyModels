@@ -2,6 +2,8 @@
     <!-- ================= Settings ================= -->
     <string name="settings_title">設定</string>
     <string name="settings_section_appearance">外観</string>
+    <string name="settings_language">言語</string>
+    <string name="settings_language_sheet_title">言語を選択</string>
     <string name="settings_theme">テーマ</string>
     <string name="settings_dynamic_color">ダイナミックカラー</string>
     <string name="settings_dynamic_color_subtitle">壁紙ベースの色を使用 (Android 12+)</string>
@@ -14,19 +16,8 @@
 
     <!-- Language picker -->
     <string name="language_system">システムデフォルト</string>
-    <string name="language_english" translatable="false">English</string>
     <!-- Native names: always shown in the language's own script, never translated. -->
-    <string name="language_native_spanish" translatable="false">Español</string>
-    <string name="language_native_french" translatable="false">Français</string>
-    <string name="language_native_japanese" translatable="false">日本語</string>
-    <string name="language_native_tamil" translatable="false">தமிழ்</string>
-    <string name="language_native_hindi" translatable="false">हिन्दी</string>
     <!-- English names: the readable hint shown in parentheses. -->
-    <string name="language_name_spanish" translatable="false">Spanish</string>
-    <string name="language_name_french" translatable="false">French</string>
-    <string name="language_name_japanese" translatable="false">Japanese</string>
-    <string name="language_name_tamil" translatable="false">Tamil</string>
-    <string name="language_name_hindi" translatable="false">Hindi</string>
     <!-- Renders as "<native name> (<English name>)". -->
     <string name="language_option_format">%1$s (%2$s)</string>
 
@@ -56,7 +47,6 @@
     <string name="settings_token_help">ゲート付きモデル（例: Gemma）のダウンロードには無料のアクセストークンが必要です。huggingface.co/settings/tokens で作成し、モデルのページでライセンスに同意してください。</string>
     <string name="settings_token_dialog_title">Hugging Face アクセストークン</string>
     <string name="settings_token_dialog_body">読み取りアクセス権のあるトークンを貼り付け。huggingface.co/settings/tokens で作成できます。</string>
-    <string name="settings_token_placeholder" translatable="false">hf_xxxxxxxxxxxxxxxx</string>
     <string name="settings_token_save">保存</string>
     <string name="settings_token_remove">削除</string>
 
@@ -99,11 +89,6 @@
     <!-- ================= Theme / backend choices ================= -->
 
     <!-- ================= Fonts ================= -->    <string name="font_system">システム</string>
-    <string name="font_abel" translatable="false">Abel</string>
-    <string name="font_inter" translatable="false">Inter</string>
-    <string name="font_roboto" translatable="false">Roboto</string>
-    <string name="font_pacifico" translatable="false">Pacifico</string>
-    <string name="font_abril_fatface" translatable="false">Abril Fatface</string>
 
     <!-- ================= Bottom navigation ================= -->
     <string name="nav_home">ホーム</string>

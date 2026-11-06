@@ -42,11 +42,8 @@
     <string name="model_details_fits_device">✓ உங்கள் சாதனத்தில் அடங்கும்</string>
     <string name="model_details_too_large_short">⚠ இந்தச் சாதனத்திற்கு மிகப்பெரியது</string>
     <string name="model_details_status_downloaded">பதிவிறக்கப்பட்டது</string>
-    <string name="model_details_status_failed">தோல்வி</string>
-    <string name="model_details_too_large_banner">இந்தச் சாதனத்திற்கு மிகப்பெரியது (%1$s எதிராக %2$s RAM). பதிவிறக்கலாம், ஆனால் இங்கே பயன்படுத்த முடியாது.</string>
     <string name="model_details_updated">புதுப்பிக்கப்பட்டது</string>
     <string name="model_details_created">உருவாக்கப்பட்டது</string>
-    <string name="model_details_download_file">கோப்பைப் பதிவிறக்கு</string>
     <string name="model_details_error_not_enough_storage_file">இந்தக் கோப்புக்குப் போதியான கட்டை சேமிப்பு இல்லை.</string>
     <string name="model_details_error_not_enough_storage_model">இந்த மாதிரிக்குப் போதியான கட்டை சேமிப்பு இல்லை.</string>
 
@@ -76,18 +73,14 @@
     <string name="downloads_active_title">நடைபெறும் பதிவிறக்கங்கள் (%1$d)</string>
     <string name="downloads_cancel_content_description">பதிவிறக்கத்தை ரத்து</string>
     <string name="downloads_waiting_for_network">நெட்வோர்க்காகக் காத்திருக்கிறது…</string>
-    <string name="downloads_waiting_for_connection">இணைப்புக்காகக் காத்திருக்கிறது…</string>
-    <string name="downloads_preparing">பதிவிறக்கத்தைத் தயார் செய்கிறது…</string>
-    <string name="downloads_downloading">பதிவிறக்குகிறது…</string>
-    <string name="downloads_progress_with_pct">%1$s / %2$s · %3$d%%</string>
     <string name="downloads_speed_only">%1$s/வினாடி</string>
     <string name="downloads_button_with_size">பதிவிறக்கு · %1$s</string>
     <string name="downloads_button">பதிவிறக்கு</string>
 
     <!-- ================= Filters ================= -->
     <string name="model_filter_all">அனைத்தும்</string>
-    <string name="model_filter_text_generation">உரை உருவாக்கம்</string>
-    <string name="model_filter_image_generation">பட உருவாக்கம்</string>
+    <string name="model_filter_text_generation">உரை உருவாக்கும்</string>
+    <string name="model_filter_image_generation">பட உருவாக்கும்</string>
 
     <!-- ================= Shared state views ================= -->
     <string name="state_error_title">ஏதோ தவறு நடந்தது</string>

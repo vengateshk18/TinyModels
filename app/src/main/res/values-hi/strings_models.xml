@@ -42,11 +42,8 @@
     <string name="model_details_fits_device">✓ आपके डिवाइस में फ़िट है</string>
     <string name="model_details_too_large_short">⚠ इस डिवाइस के लिए बहुत बड़ा है</string>
     <string name="model_details_status_downloaded">डाउनलोड किया गया</string>
-    <string name="model_details_status_failed">विफल</string>
-    <string name="model_details_too_large_banner">इस डिवाइस के लिए बहुत बड़ा है (%1$s बनाम %2$s RAM)। इसे डाउनलोड किया जा सकता है, लेकिन यहाँ इस्तेमाल नहीं हो सकेगा।</string>
     <string name="model_details_updated">अपडेट किया गया</string>
     <string name="model_details_created">बनाया गया</string>
-    <string name="model_details_download_file">फ़ाइल डाउनलोड करें</string>
     <string name="model_details_error_not_enough_storage_file">इस फ़ाइल के लिए पर्याप्त खाली स्टोरेज नहीं है।</string>
     <string name="model_details_error_not_enough_storage_model">इस मॉडल के लिए पर्याप्त खाली स्टोरेज नहीं है।</string>
 
@@ -76,10 +73,6 @@
     <string name="downloads_active_title">चल रही डाउनलोड (%1$d)</string>
     <string name="downloads_cancel_content_description">डाउनलोड रद्द करें</string>
     <string name="downloads_waiting_for_network">नेटवर्क की प्रतीक्षा हो रही है…</string>
-    <string name="downloads_waiting_for_connection">कनेक्शन की प्रतीक्षा हो रही है…</string>
-    <string name="downloads_preparing">डाउनलोड तैयार किया जा रहा है…</string>
-    <string name="downloads_downloading">डाउनलोड हो रहा है…</string>
-    <string name="downloads_progress_with_pct">%1$s / %2$s · %3$d%%</string>
     <string name="downloads_speed_only">%1$s/से</string>
     <string name="downloads_button_with_size">डाउनलोड करें · %1$s</string>
     <string name="downloads_button">डाउनलोड करें</string>

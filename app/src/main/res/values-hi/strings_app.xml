@@ -2,6 +2,8 @@
     <!-- ================= Settings ================= -->
     <string name="settings_title">सेटिंग्स</string>
     <string name="settings_section_appearance">रूप-रंग</string>
+    <string name="settings_language">भाषा</string>
+    <string name="settings_language_sheet_title">भाषा चुनें</string>
     <string name="settings_theme">थीम</string>
     <string name="settings_dynamic_color">डायनामिक रंग</string>
     <string name="settings_dynamic_color_subtitle">वॉलपेपर के रंगों का उपयोग करें (Android 12+)</string>

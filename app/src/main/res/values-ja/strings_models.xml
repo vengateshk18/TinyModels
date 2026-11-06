@@ -11,7 +11,6 @@
     <string name="models_by_author">%1$s 作</string>
     <string name="models_downloads_count">⬇ %1$s</string>
     <string name="models_likes_count">♥ %1$s</string>
-    <string name="models_pipeline_default" translatable="false">text-generation</string>
 
     <!-- ================= Downloaded models ================= -->
     <string name="downloaded_models_title">ダウンロード済みモデル</string>
@@ -28,7 +27,6 @@
     <string name="model_details_download_anyway">それでもダウンロード</string>
     <string name="model_details_error_failed_to_load">詳細の読み込みに失敗しました</string>
     <string name="model_details_add_hf_token">Hugging Face トークンを追加</string>
-    <string name="model_details_gated" translatable="false">gated</string>
     <string name="model_details_stat_downloads">ダウンロード</string>
     <string name="model_details_stat_likes">いいね</string>
     <string name="model_details_stat_repo_size">リポジトリサイズ</string>
@@ -44,11 +42,8 @@
     <string name="model_details_fits_device">✓ デバイスに適合</string>
     <string name="model_details_too_large_short">⚠ このデバイスには大きすぎます</string>
     <string name="model_details_status_downloaded">ダウンロード済み</string>
-    <string name="model_details_status_failed">失敗</string>
-    <string name="model_details_too_large_banner">このデバイスには大きすぎます (%1$s vs %2$s RAM)。ダウンロードはできますが、ここでは使用できません。</string>
     <string name="model_details_updated">更新日</string>
     <string name="model_details_created">作成日</string>
-    <string name="model_details_download_file">ファイルをダウンロード</string>
     <string name="model_details_error_not_enough_storage_file">このファイル用の空きストレージが不足しています。</string>
     <string name="model_details_error_not_enough_storage_model">このモデル用の空きストレージが不足しています。</string>
 
@@ -81,10 +76,6 @@
     <string name="downloads_progress_bytes">%1$s / %2$s</string>
     <string name="downloads_progress_percent">(%1$d%%)</string>
     <string name="downloads_progress_speed"> • %1$s/s</string>
-    <string name="downloads_waiting_for_connection">接続を待機中…</string>
-    <string name="downloads_preparing">ダウンロードを準備中…</string>
-    <string name="downloads_downloading">ダウンロード中…</string>
-    <string name="downloads_progress_with_pct">%1$s / %2$s · %3$d%%</string>
     <string name="downloads_speed_only">%1$s/s</string>
     <string name="downloads_button_with_size">ダウンロード · %1$s</string>
     <string name="downloads_button">ダウンロード</string>
@@ -100,7 +91,6 @@
     <string name="state_offline_title">オフラインです</string>
     <string name="state_offline_message">インターネット接続を確認して再試行してください。</string>
     <plurals name="models_file_count">
-        <item quantity="one">%1$d ファイル</item>
         <item quantity="other">%1$d ファイル</item>
     </plurals>
     <string name="model_details_discard_title">ダウンロードを破棄しますか？</string>

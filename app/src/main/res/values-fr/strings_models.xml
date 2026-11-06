@@ -11,7 +11,6 @@
     <string name="models_by_author">par %1$s</string>
     <string name="models_downloads_count">⬇ %1$s</string>
     <string name="models_likes_count">♥ %1$s</string>
-    <string name="models_pipeline_default" translatable="false">text-generation</string>
 
     <!-- ================= Downloaded models ================= -->
     <string name="downloaded_models_title">Modèles téléchargés</string>
@@ -28,7 +27,6 @@
     <string name="model_details_download_anyway">Télécharger quand même</string>
     <string name="model_details_error_failed_to_load">Échec du chargement des détails</string>
     <string name="model_details_add_hf_token">Ajouter un jeton Hugging Face</string>
-    <string name="model_details_gated" translatable="false">gated</string>
     <string name="model_details_stat_downloads">Téléchargements</string>
     <string name="model_details_stat_likes">J\'aime</string>
     <string name="model_details_stat_repo_size">Taille du dépôt</string>
@@ -44,11 +42,8 @@
     <string name="model_details_fits_device">✓ Convient à votre appareil</string>
     <string name="model_details_too_large_short">⚠ Trop volumineux pour cet appareil</string>
     <string name="model_details_status_downloaded">Téléchargé</string>
-    <string name="model_details_status_failed">Échec</string>
-    <string name="model_details_too_large_banner">Trop volumineux pour cet appareil (%1$s vs %2$s de RAM). Peut être téléchargé mais pas utilisé ici.</string>
     <string name="model_details_updated">Mis à jour</string>
     <string name="model_details_created">Créé</string>
-    <string name="model_details_download_file">Télécharger le fichier</string>
     <string name="model_details_error_not_enough_storage_file">Pas assez d\'espace libre pour ce fichier.</string>
     <string name="model_details_error_not_enough_storage_model">Pas assez d\'espace libre pour ce modèle.</string>
 
@@ -81,10 +76,6 @@
     <string name="downloads_progress_bytes">%1$s / %2$s</string>
     <string name="downloads_progress_percent">(%1$d%%)</string>
     <string name="downloads_progress_speed"> • %1$s/s</string>
-    <string name="downloads_waiting_for_connection">En attente de connexion…</string>
-    <string name="downloads_preparing">Préparation du téléchargement…</string>
-    <string name="downloads_downloading">Téléchargement…</string>
-    <string name="downloads_progress_with_pct">%1$s / %2$s · %3$d%%</string>
     <string name="downloads_speed_only">%1$s/s</string>
     <string name="downloads_button_with_size">Télécharger · %1$s</string>
     <string name="downloads_button">Télécharger</string>
@@ -102,6 +93,7 @@
     <plurals name="models_file_count">
         <item quantity="one">%1$d fichier</item>
         <item quantity="other">%1$d fichiers</item>
+            <item quantity="many">%1$d fichiers</item>
     </plurals>
     <string name="model_details_discard_title">Abandonner le téléchargement ?</string>
     <string name="model_details_discard_body_notification">Le téléchargement s’arrêtera et les données partielles seront supprimées. Cette action est irréversible.</string>

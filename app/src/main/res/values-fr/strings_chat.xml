@@ -10,6 +10,7 @@
     <plurals name="chat_message_count">
         <item quantity="one">%1$d message</item>
         <item quantity="other">%1$d messages</item>
+            <item quantity="many">%1$d messages</item>
     </plurals>
     <string name="chat_delete_content_description">Supprimer la conversation</string>
 
@@ -33,6 +34,7 @@
     <plurals name="chat_room_compactions_count">
         <item quantity="one">%1$d fois</item>
         <item quantity="other">%1$d fois</item>
+            <item quantity="many">%1$d fois</item>
     </plurals>
     <string name="chat_room_compacted_summary">Résumé compacté</string>
     <string name="chat_room_summary_present">Présent (%1$d car.)</string>
@@ -127,6 +129,7 @@
     <plurals name="chat_error_compacted_messages">
         <item quantity="one">Compaction de %1$d ancien message en un résumé</item>
         <item quantity="other">Compaction de %1$d anciens messages en un résumé</item>
+            <item quantity="many">Compaction de %1$d anciens messages en un résumé</item>
     </plurals>
     <string name="chat_error_photo_unreadable">Impossible de lire cette photo — essayez une autre image</string>
     <string name="chat_error_no_active_conversation">Aucune conversation active</string>

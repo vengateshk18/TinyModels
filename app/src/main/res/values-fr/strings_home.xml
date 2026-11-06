@@ -61,9 +61,6 @@
     <string name="model_tier_high">Élevé</string>
 
     <!-- Recommended catalog model names (product names — not translated) -->
-    <string name="model_name_qwen3_0_6b" translatable="false">Qwen3 0.6B</string>
-    <string name="model_name_deepseek_r1_1_5b" translatable="false">DeepSeek R1 1.5B</string>
-    <string name="model_name_qwen3_5_2b" translatable="false">Qwen3.5 2B</string>
 
     <!-- ================= Device information screen ================= -->
     <string name="device_info_title">Informations sur l\'appareil</string>
@@ -71,7 +68,6 @@
     <string name="device_info_ai_capability">Capacité IA</string>
     <string name="device_info_recommended_up_to">Recommandé jusqu\'à %1$s modèles</string>
     <string name="device_info_memory_section">Mémoire</string>
-    <string name="device_info_ram" translatable="false">RAM</string>
     <string name="device_info_available">Disponible</string>
     <string name="device_info_recommended_for_ai">Recommandé pour l\'IA</string>
     <string name="device_info_live_ram_usage">Utilisation RAM en direct</string>
@@ -138,17 +134,21 @@
     <plurals name="home_model_files_last_used">
         <item quantity="one">%1$s • %2$d fichier • dernière utilisation</item>
         <item quantity="other">%1$s • %2$d fichiers • dernière utilisation</item>
+            <item quantity="many">%1$s • %2$d fichiers • dernière utilisation</item>
     </plurals>
     <plurals name="home_model_files_relative">
         <item quantity="one">%1$s • %2$d fichier • %3$s</item>
         <item quantity="other">%1$s • %2$d fichiers • %3$s</item>
+            <item quantity="many">%1$s • %2$d fichiers • %3$s</item>
     </plurals>
     <plurals name="home_show_more_models">
         <item quantity="one">Afficher %1$d modèle de plus</item>
         <item quantity="other">Afficher %1$d modèles de plus</item>
+            <item quantity="many">Afficher %1$d modèles de plus</item>
     </plurals>
     <plurals name="home_web_search_chats">
         <item quantity="one">Recherche web activée dans %1$d conversation</item>
         <item quantity="other">Recherche web activée dans %1$d conversations</item>
+            <item quantity="many">Recherche web activée dans %1$d conversations</item>
     </plurals>
 </resources>

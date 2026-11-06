@@ -1,6 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- App -->
-    <string name="app_name" translatable="false">TinyModels</string>
 
     <!-- Shared UI actions and labels (usable from any feature) -->
     <string name="common_cancel">Annuler</string>

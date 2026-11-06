@@ -42,11 +42,8 @@
     <string name="model_details_fits_device">✓ Cabe en tu dispositivo</string>
     <string name="model_details_too_large_short">⚠ Demasiado grande para este dispositivo</string>
     <string name="model_details_status_downloaded">Descargado</string>
-    <string name="model_details_status_failed">Falló</string>
-    <string name="model_details_too_large_banner">Demasiado grande para este dispositivo (%1$s frente a %2$s de RAM). Se puede descargar, pero no se podrá usar aquí.</string>
     <string name="model_details_updated">Actualizado</string>
     <string name="model_details_created">Creado</string>
-    <string name="model_details_download_file">Descargar archivo</string>
     <string name="model_details_error_not_enough_storage_file">No hay suficiente espacio libre para este archivo.</string>
     <string name="model_details_error_not_enough_storage_model">No hay suficiente espacio libre para este modelo.</string>
 
@@ -76,10 +73,6 @@
     <string name="downloads_active_title">Descargas en curso (%1$d)</string>
     <string name="downloads_cancel_content_description">Cancelar la descarga</string>
     <string name="downloads_waiting_for_network">Esperando red…</string>
-    <string name="downloads_waiting_for_connection">Esperando conexión…</string>
-    <string name="downloads_preparing">Preparando la descarga…</string>
-    <string name="downloads_downloading">Descargando…</string>
-    <string name="downloads_progress_with_pct">%1$s / %2$s · %3$d%%</string>
     <string name="downloads_speed_only">%1$s/s</string>
     <string name="downloads_button_with_size">Descargar · %1$s</string>
     <string name="downloads_button">Descargar</string>

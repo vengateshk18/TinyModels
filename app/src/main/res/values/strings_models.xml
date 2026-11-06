@@ -44,11 +44,8 @@
     <string name="model_details_fits_device">✓ Fits your device</string>
     <string name="model_details_too_large_short">⚠ Too large for this device</string>
     <string name="model_details_status_downloaded">Downloaded</string>
-    <string name="model_details_status_failed">Failed</string>
-    <string name="model_details_too_large_banner">Too large for this device (%1$s vs %2$s RAM). It can be downloaded but not used here.</string>
     <string name="model_details_updated">Updated</string>
     <string name="model_details_created">Created</string>
-    <string name="model_details_download_file">Download file</string>
     <string name="model_details_error_not_enough_storage_file">Not enough free storage for this file.</string>
     <string name="model_details_error_not_enough_storage_model">Not enough free storage for this model.</string>
 
@@ -81,10 +78,6 @@
     <string name="downloads_progress_bytes">%1$s / %2$s</string>
     <string name="downloads_progress_percent">(%1$d%%)</string>
     <string name="downloads_progress_speed"> • %1$s/s</string>
-    <string name="downloads_waiting_for_connection">Waiting for connection…</string>
-    <string name="downloads_preparing">Preparing download…</string>
-    <string name="downloads_downloading">Downloading…</string>
-    <string name="downloads_progress_with_pct">%1$s / %2$s · %3$d%%</string>
     <string name="downloads_speed_only">%1$s/s</string>
     <string name="downloads_button_with_size">Download · %1$s</string>
     <string name="downloads_button">Download</string>

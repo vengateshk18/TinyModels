@@ -2,6 +2,8 @@
     <!-- ================= Settings ================= -->
     <string name="settings_title">Paramètres</string>
     <string name="settings_section_appearance">Apparence</string>
+    <string name="settings_language">Langue</string>
+    <string name="settings_language_sheet_title">Choisir la langue</string>
     <string name="settings_theme">Thème</string>
     <string name="settings_dynamic_color">Couleur dynamique</string>
     <string name="settings_dynamic_color_subtitle">Utiliser les couleurs basées sur le fond d\'écran (Android 12+)</string>
@@ -14,19 +16,8 @@
 
     <!-- Language picker -->
     <string name="language_system">Langue du système</string>
-    <string name="language_english" translatable="false">English</string>
     <!-- Native names: always shown in the language\'s own script, never translated. -->
-    <string name="language_native_spanish" translatable="false">Espa\u00f1ol</string>
-    <string name="language_native_french" translatable="false">Fran\u00e7ais</string>
-    <string name="language_native_japanese" translatable="false">\u65e5\u672c\u8a9e</string>
-    <string name="language_native_tamil" translatable="false">\u0ba4\u0bae\u0bbf\u0bb4\u0bcd</string>
-    <string name="language_native_hindi" translatable="false">\u0939\u093f\u0928\u094d\u0926\u0940</string>
     <!-- English names: the readable hint shown in parentheses. -->
-    <string name="language_name_spanish" translatable="false">Spanish</string>
-    <string name="language_name_french" translatable="false">French</string>
-    <string name="language_name_japanese" translatable="false">Japanese</string>
-    <string name="language_name_tamil" translatable="false">Tamil</string>
-    <string name="language_name_hindi" translatable="false">Hindi</string>
     <!-- Renders as "<native name> (<English name>)". -->
     <string name="language_option_format">%1$s (%2$s)</string>
 
@@ -56,7 +47,6 @@
     <string name="settings_token_help">Les modèles restreints (ex. Gemma) ont besoin d\'un jeton d\'accès gratuit pour être téléchargés. Créez-en un sur huggingface.co/settings/tokens, puis acceptez la licence du modèle sur sa page.</string>
     <string name="settings_token_dialog_title">Jeton d\'accès Hugging Face</string>
     <string name="settings_token_dialog_body">Collez un jeton avec accès en lecture. Créez-en un sur huggingface.co/settings/tokens.</string>
-    <string name="settings_token_placeholder" translatable="false">hf_xxxxxxxxxxxxxxxx</string>
     <string name="settings_token_save">Enregistrer</string>
     <string name="settings_token_remove">Supprimer</string>
 
@@ -99,11 +89,6 @@
     <!-- ================= Theme / backend choices ================= -->
 
     <!-- ================= Fonts ================= -->    <string name="font_system">Système</string>
-    <string name="font_abel" translatable="false">Abel</string>
-    <string name="font_inter" translatable="false">Inter</string>
-    <string name="font_roboto" translatable="false">Roboto</string>
-    <string name="font_pacifico" translatable="false">Pacifico</string>
-    <string name="font_abril_fatface" translatable="false">Abril Fatface</string>
 
     <!-- ================= Bottom navigation ================= -->
     <string name="nav_home">Accueil</string>

@@ -9,4 +9,6 @@
     <locale android:name="es" />
     <locale android:name="ta" />
     <locale android:name="hi" />
+    <locale android:name="fr" />
+    <locale android:name="ja" />
 </locale-config>
