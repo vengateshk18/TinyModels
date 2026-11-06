@@ -36,6 +36,7 @@ class SettingsRepositoryImpl @Inject constructor(
         val AUTO_LOAD_LAST_MODEL = booleanPreferencesKey("auto_load_last_model")
         val KEEP_SCREEN_ON = booleanPreferencesKey("keep_screen_on")
         val SHOW_TOKEN_COUNTS = booleanPreferencesKey("show_token_counts")
+        val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val LAST_USED_MODEL_ID = stringPreferencesKey("last_used_model_id")
         val HUGGINGFACE_TOKEN = stringPreferencesKey("hugging_face_token")
     }
@@ -54,7 +55,8 @@ class SettingsRepositoryImpl @Inject constructor(
             wifiOnlyDownloads = prefs[Keys.WIFI_ONLY_DOWNLOADS] ?: false,
             autoLoadLastModel = prefs[Keys.AUTO_LOAD_LAST_MODEL] ?: true,
             keepScreenOn = prefs[Keys.KEEP_SCREEN_ON] ?: true,
-            showTokenCounts = prefs[Keys.SHOW_TOKEN_COUNTS] ?: false
+            showTokenCounts = prefs[Keys.SHOW_TOKEN_COUNTS] ?: false,
+            onboardingCompleted = prefs[Keys.ONBOARDING_COMPLETED] ?: false
         )
     }
 
@@ -98,6 +100,10 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun setShowTokenCounts(enabled: Boolean) {
         context.dataStore.edit { it[Keys.SHOW_TOKEN_COUNTS] = enabled }
+    }
+
+    override suspend fun setOnboardingCompleted(completed: Boolean) {
+        context.dataStore.edit { it[Keys.ONBOARDING_COMPLETED] = completed }
     }
 
     override suspend fun getLastUsedModelId(): String? =

@@ -38,6 +38,12 @@ interface SettingsRepository {
     /** Show per-message token counts in chat footers. */
     suspend fun setShowTokenCounts(enabled: Boolean)
 
+    /**
+     * Marks the first-run intro as completed (or skipped). Once true the tour
+     * never opens automatically again; it stays available from Settings.
+     */
+    suspend fun setOnboardingCompleted(completed: Boolean)
+
     /** Returns the modelId of the last successfully loaded model, or null. */
     suspend fun getLastUsedModelId(): String?
 

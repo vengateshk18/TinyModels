@@ -43,5 +43,11 @@ data class AppSettings(
     /** Keep the screen on while the model is generating (else allow sleep). */
     val keepScreenOn: Boolean = true,
     /** Show per-message token counts in chat footers (uses stored counts). */
-    val showTokenCounts: Boolean = false
+    val showTokenCounts: Boolean = false,
+    /**
+     * Whether the first-run intro has been completed or skipped. Persisted so
+     * the tour plays once per install and is then only available on demand
+     * from Settings — never again automatically.
+     */
+    val onboardingCompleted: Boolean = false
 )

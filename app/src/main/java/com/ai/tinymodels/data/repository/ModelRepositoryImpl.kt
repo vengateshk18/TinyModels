@@ -130,7 +130,22 @@ class ModelRepositoryImpl @Inject constructor(
         localPath: String?,
         error: String?
     ) = withContext(dispatchers.io) {
-        modelFileDao.updateStatus(modelId, fileName, status.name, sizeBytes, localPath, error)
+        val updated = modelFileDao.updateStatus(modelId, fileName, status.name, sizeBytes, localPath, error)
+        if (updated == 0) {
+            // The tracking row is gone — e.g. a discarding cleanup removed it
+            // while the screen was open. Re-create it, or the row has nothing
+            // to attach live progress to and downloads look stuck.
+            modelFileDao.insert(
+                ModelFileEntity(
+                    modelId = modelId,
+                    fileName = fileName,
+                    status = status.name,
+                    sizeBytes = sizeBytes ?: 0L,
+                    localPath = localPath,
+                    error = error
+                )
+            )
+        }
     }
 
     override suspend fun deleteModelFile(modelId: String, fileName: String) =

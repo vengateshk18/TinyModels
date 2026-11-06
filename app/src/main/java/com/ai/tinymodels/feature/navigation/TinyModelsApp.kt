@@ -55,6 +55,7 @@ import com.ai.tinymodels.feature.models.screens.DownloadedModelsScreen
 import com.ai.tinymodels.feature.models.screens.ModelDetailsScreen
 import com.ai.tinymodels.feature.models.screens.ModelListScreen
 import com.ai.tinymodels.feature.models.screens.ModelsTabScreen
+import com.ai.tinymodels.feature.onboarding.OnboardingScreen
 import com.ai.tinymodels.feature.home.DeviceInfoScreen
 import com.ai.tinymodels.feature.home.HomeScreen
 import com.ai.tinymodels.feature.settings.SettingsScreen
@@ -67,7 +68,9 @@ import com.ai.tinymodels.feature.settings.SettingsScreen
 @Composable
 fun TinyModelsApp(
     navController: NavHostController = rememberNavController(),
-    networkMonitor: NetworkMonitor
+    networkMonitor: NetworkMonitor,
+    /** Called once Home has real data on screen (used to end the launch splash). */
+    onHomeReady: () -> Unit = {}
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -144,7 +147,8 @@ fun TinyModelsApp(
                             )
                         },
                         onManageModels = { navController.navigate(Routes.DOWNLOADED_MODELS) },
-                        onOpenSettings = { navController.navigate(Routes.SETTINGS) }
+                        onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+                        onContentReady = onHomeReady
                     )
                 }
 
@@ -170,7 +174,16 @@ fun TinyModelsApp(
                         onManageModels = { navController.navigate(Routes.MODELS) },
                         onDownloadedModels = { navController.navigate(Routes.DOWNLOADED_MODELS) },
                         onDeviceInfo = { navController.navigate(Routes.DEVICE_INFO) },
-                        onBenchmark = { navController.navigate(Routes.BENCHMARK) }
+                        onBenchmark = { navController.navigate(Routes.BENCHMARK) },
+                        onViewIntro = { navController.navigate(Routes.ONBOARDING) }
+                    )
+                }
+
+                composable(Routes.ONBOARDING) {
+                    OnboardingScreen(
+                        onFinish = { navController.popBackStack() },
+                        onSkip = { navController.popBackStack() },
+                        isReplay = true
                     )
                 }
 

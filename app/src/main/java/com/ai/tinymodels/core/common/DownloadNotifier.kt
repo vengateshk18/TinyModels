@@ -15,6 +15,8 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.ai.tinymodels.R
 import com.ai.tinymodels.core.ui.Formatters
+import com.ai.tinymodels.domain.usecase.model.DownloadEta
+import com.ai.tinymodels.feature.models.DiscardDownloadActivity
 import java.util.UUID
 
 /**
@@ -37,11 +39,17 @@ object DownloadNotifier {
     /** Fallback id used by the worker's foreground-service requirement. */
     const val NOTIFICATION_ID = 1001
 
-    /** Extra carrying the WorkManager workId for the Cancel action. */
+    /** Extra carrying the WorkManager workId. */
     const val EXTRA_WORK_ID = "com.ai.tinymodels.extra.DOWNLOAD_WORK_ID"
 
-    /** Action broadcast to `CancelDownloadReceiver` when the user taps Cancel. */
-    const val ACTION_CANCEL = "com.ai.tinymodels.action.CANCEL_DOWNLOAD"
+    /** Extra carrying the model repo id, so a confirmation can discard per-file. */
+    const val EXTRA_MODEL_ID = "com.ai.tinymodels.extra.MODEL_ID"
+
+    /** Extra carrying the single file being downloaded (null for whole-model jobs). */
+    const val EXTRA_FILE_NAME = "com.ai.tinymodels.extra.FILE_NAME"
+
+    /** Action broadcast to `CancelDownloadReceiver` when the user taps Pause. */
+    const val ACTION_PAUSE = "com.ai.tinymodels.action.PAUSE_DOWNLOAD"
 
     /** Creates the (low-importance, silent) download channel. Idempotent no-op if present. */
     fun createChannel(context: Context) {
@@ -60,27 +68,52 @@ object DownloadNotifier {
     /** Distinct id for the terminal (complete/failed) notification of a given work. */
     private fun terminalIdFor(workId: UUID): Int = notificationIdFor(workId) + 0x1000
 
-    /** Determinate, ongoing progress notification with a Cancel action + tap-to-open. */
+    /**
+     * Determinate, ongoing progress notification with Pause + Cancel actions.
+     *
+     * Pause stops the job but keeps the partial file; Cancel asks first (a
+     * dialog activity is launched), because tapping Cancel in the shade would
+     * otherwise discard a long download with no chance to reconsider.
+     */
     fun progressNotification(
         context: Context,
         workId: UUID,
         title: String,
         downloaded: Long,
-        total: Long
+        total: Long,
+        bytesPerSecond: Long = 0L,
+        modelId: String? = null,
+        fileName: String? = null
     ): Notification {
         val percent = if (total > 0) (downloaded * 100 / total).toInt().coerceIn(0, 100) else 0
+        val progressText = Formatters.formatBytes(downloaded) +
+            (if (total > 0) " / ${Formatters.formatBytes(total)} · $percent%" else " · downloading")
+        val eta = DownloadEta.label(downloaded, total, bytesPerSecond)
+        val speedText = buildString {
+            if (bytesPerSecond > 0) append("${Formatters.formatBytes(bytesPerSecond)}/s")
+            eta?.let {
+                if (isNotEmpty()) append(" · ")
+                append(it)
+            }
+        }
         return NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(title)
-            .setContentText("${Formatters.formatBytes(downloaded)} / ${Formatters.formatBytes(total)}")
+            .setContentText(progressText)
+            .setSubText(speedText.takeIf { it.isNotEmpty() })
             .setProgress(100, percent, total <= 0)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setContentIntent(openAppIntent(context))
             .addAction(
+                android.R.drawable.ic_media_pause,
+                context.getString(R.string.notification_pause),
+                pauseIntent(context, workId)
+            )
+            .addAction(
                 android.R.drawable.ic_menu_close_clear_cancel,
-                context.getString(android.R.string.cancel),
-                cancelIntent(context, workId)
+                context.getString(R.string.notification_cancel),
+                cancelIntent(context, workId, modelId, fileName)
             )
             .build()
     }
@@ -93,10 +126,22 @@ object DownloadNotifier {
      * covers lint's inability to see the guard through the helper.
      */
     @SuppressLint("MissingPermission")
-    fun notifyProgress(context: Context, workId: UUID, title: String, downloaded: Long, total: Long) {
+    fun notifyProgress(
+        context: Context,
+        workId: UUID,
+        title: String,
+        downloaded: Long,
+        total: Long,
+        bytesPerSecond: Long = 0L,
+        modelId: String? = null,
+        fileName: String? = null
+    ) {
         if (!canNotify(context)) return
         safeNotify(context) {
-            it.notify(notificationIdFor(workId), progressNotification(context, workId, title, downloaded, total))
+            it.notify(
+                notificationIdFor(workId),
+                progressNotification(context, workId, title, downloaded, total, bytesPerSecond, modelId, fileName)
+            )
         }
     }
 
@@ -170,13 +215,35 @@ object DownloadNotifier {
         )
     }
 
-    /** Broadcast intent for the Cancel action, carrying the workId. */
-    private fun cancelIntent(context: Context, workId: UUID): PendingIntent {
-        val intent = Intent(ACTION_CANCEL)
+    /** Broadcast intent for the Pause action, carrying the workId. */
+    private fun pauseIntent(context: Context, workId: UUID): PendingIntent {
+        val intent = Intent(ACTION_PAUSE)
             .setPackage(context.packageName)
             .putExtra(EXTRA_WORK_ID, workId.toString())
         return PendingIntent.getBroadcast(
             context, workId.hashCode(), intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
+    /**
+     * Cancel is destructive, so it does not act directly — it asks first by
+     * launching a dialog activity that confirms before discarding anything.
+     */
+    private fun cancelIntent(
+        context: Context,
+        workId: UUID,
+        modelId: String?,
+        fileName: String?
+    ): PendingIntent {
+        val intent = Intent(context, DiscardDownloadActivity::class.java)
+            .putExtra(EXTRA_WORK_ID, workId.toString())
+            .apply {
+                modelId?.let { putExtra(EXTRA_MODEL_ID, it) }
+                fileName?.let { putExtra(EXTRA_FILE_NAME, it) }
+            }
+        return PendingIntent.getActivity(
+            context, workId.hashCode() + 1, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
     }

@@ -77,6 +77,8 @@ data class DownloadedModel(
 enum class FileDownloadStatus {
     NOT_DOWNLOADED,
     DOWNLOADING,
+    /** Stopped by the user; the partial file is kept so Resume continues it. */
+    PAUSED,
     DOWNLOADED,
     FAILED
 }

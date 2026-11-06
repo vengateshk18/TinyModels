@@ -83,6 +83,7 @@ fun SettingsScreen(
     onDownloadedModels: () -> Unit,
     onDeviceInfo: () -> Unit,
     onBenchmark: () -> Unit = {},
+    onViewIntro: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -157,7 +158,8 @@ fun SettingsScreen(
             AboutSection(
                 onBenchmark = onBenchmark,
                 onDeviceInfo = onDeviceInfo,
-                onClearHistory = { showClearDialog = true }
+                onClearHistory = { showClearDialog = true },
+                onViewIntro = onViewIntro
             )
             SectionDivider()
             SupportSection()
@@ -540,9 +542,15 @@ private fun reportBug(context: Context) {
 private fun AboutSection(
     onBenchmark: () -> Unit,
     onDeviceInfo: () -> Unit,
-    onClearHistory: () -> Unit
+    onClearHistory: () -> Unit,
+    onViewIntro: () -> Unit
 ) {
     SectionHeader("About")
+    NavigationRow(
+        label = "View intro",
+        subtitle = "Take the TinyModels tour again",
+        onClick = onViewIntro
+    )
     NavigationRow(
         label = "Benchmark",
         subtitle = "Score speed, memory, and thermal behaviour",

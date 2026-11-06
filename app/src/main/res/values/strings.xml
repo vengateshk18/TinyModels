@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">TinyModels</string>
+    <string name="notification_pause">Pause</string>
+    <string name="notification_cancel">Cancel</string>
 </resources>
