@@ -852,13 +852,13 @@ private fun LastUsedModelCard(
             state.lastUsedFileName?.let { fileName ->
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = fileName.substringAfterLast('/')
-                        .removeSuffix(TinyConstants.MODEL_FILE_EXTENSION)
-                        .uppercase() + " " +
-                        stringResource(
-                            R.string.home_model_context,
-                            state.lastChat?.contextTokens ?: 2048
-                        ),
+                    text = stringResource(
+                        R.string.home_model_context,
+                        fileName.substringAfterLast('/')
+                            .removeSuffix(TinyConstants.MODEL_FILE_EXTENSION)
+                            .uppercase(),
+                        state.lastChat?.contextTokens ?: 2048
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
