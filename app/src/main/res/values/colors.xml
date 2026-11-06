@@ -7,4 +7,9 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Starting-window color: matches the dark theme background (the app
+         default) so the cold-start frame blends into the animated splash
+         instead of flashing system white. -->
+    <color name="window_background">#FF141318</color>
 </resources>

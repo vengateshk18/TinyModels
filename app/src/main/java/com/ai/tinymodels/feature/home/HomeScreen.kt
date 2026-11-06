@@ -86,6 +86,8 @@ fun HomeScreen(
     onNewChat: (String?) -> Unit = {},
     onManageModels: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
+    /** Fired when the first real Home state (not [HomeUiState.Loading]) is shown. */
+    onContentReady: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -93,6 +95,13 @@ fun HomeScreen(
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+
+    // Let the launch splash know Home is settled, so it can fade out on a
+    // fully-populated screen instead of a spinner.
+    val contentReady = state !is HomeUiState.Loading
+    LaunchedEffect(contentReady) {
+        if (contentReady) onContentReady()
+    }
 
     // Surface one-shot errors as snackbars.
     LaunchedEffect(error) {

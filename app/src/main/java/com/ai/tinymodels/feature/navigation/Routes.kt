@@ -18,6 +18,8 @@ object Routes {
     const val DOWNLOADED_MODELS = "downloaded_models"
     const val DEVICE_INFO = "device_info"
     const val BENCHMARK = "benchmark"
+    /** Full-screen replay of the first-run tour (opened from Settings). */
+    const val ONBOARDING = "onboarding"
 
     /** modelIds contain '/', so they must be URL-encoded for the path segment. */
     fun modelDetails(modelId: String) = "model_details/${Uri.encode(modelId)}"

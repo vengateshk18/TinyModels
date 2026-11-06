@@ -15,18 +15,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import com.ai.tinymodels.core.network.NetworkMonitor
 import com.ai.tinymodels.core.ui.theme.TinyModelsTheme
 import com.ai.tinymodels.core.ui.theme.resolveColorScheme
-import com.ai.tinymodels.domain.model.AppSettings
 import com.ai.tinymodels.domain.model.ThemeMode
 import com.ai.tinymodels.domain.repository.SettingsRepository
-import com.ai.tinymodels.feature.navigation.TinyModelsApp
+import com.ai.tinymodels.feature.startup.AppRoot
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -152,7 +153,18 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    TinyModelsApp(networkMonitor = networkMonitor)
+                    val scope = rememberCoroutineScope()
+                    AppRoot(
+                        onboardingCompletedInitially = initialSettings.onboardingCompleted,
+                        onOnboardingFinished = {
+                            // Persist once, as soon as the tour is finished or
+                            // skipped, so it never opens automatically again.
+                            scope.launch {
+                                settingsRepository.setOnboardingCompleted(true)
+                            }
+                        },
+                        networkMonitor = networkMonitor
+                    )
                 }
             }
         }
