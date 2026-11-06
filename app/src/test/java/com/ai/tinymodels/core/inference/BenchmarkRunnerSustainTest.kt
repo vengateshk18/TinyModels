@@ -9,6 +9,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -64,6 +65,18 @@ class BenchmarkRunnerSustainTest {
         assertTrue("expected progress events, got $events", events.isNotEmpty())
         assertTrue("elapsed times must not be negative, got $events", events.all { it.first >= 0 })
         assertTrue("speeds must be positive, got $events", events.all { it.second > 0.0 })
+    }
+
+    @Test
+    fun `runOnce measures a single prompt run and returns per-prompt metrics`() = runTest {
+        stubSession(fakeSession())
+        val spec = BenchmarkProtocol.PROMPTS.first { it.id == "short" }
+        val metrics = runner.runOnce(spec, runIndex = 1)
+        assertEquals(spec.id, metrics.promptId)
+        assertEquals(1, metrics.runIndex)
+        assertTrue("ttft must be >= 0", metrics.ttftMs >= 0.0)
+        assertTrue("decode speed must be reported", metrics.decodeTokensPerSec != null)
+        assertTrue("output tokens > 0", metrics.outputTokens > 0)
     }
 
     @Test
