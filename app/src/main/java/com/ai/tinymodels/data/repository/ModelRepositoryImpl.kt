@@ -89,6 +89,9 @@ class ModelRepositoryImpl @Inject constructor(
     override fun observeDownloadedFiles(): Flow<List<DownloadedModelFile>> =
         modelFileDao.observeDownloaded().map { entities -> entities.map { it.toDomain() } }
 
+    override fun observePausedFiles(): Flow<List<DownloadedModelFile>> =
+        modelFileDao.observePaused().map { entities -> entities.map { it.toDomain() } }
+
     override suspend fun getModelFile(modelId: String, fileName: String): DownloadedModelFile? =
         withContext(dispatchers.io) { modelFileDao.getByModelIdAndFile(modelId, fileName)?.toDomain() }
 

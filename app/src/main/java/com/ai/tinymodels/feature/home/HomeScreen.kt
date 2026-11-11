@@ -29,9 +29,12 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.OpenInNew
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -71,6 +74,7 @@ import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.TinyConstants
 import com.ai.tinymodels.core.ui.Formatters
 import com.ai.tinymodels.feature.home.components.DeviceInsights
+import com.ai.tinymodels.domain.usecase.model.DownloadEta
 import com.ai.tinymodels.domain.usecase.model.DownloadStatus
 import com.ai.tinymodels.feature.home.model.HomeUiState
 import com.ai.tinymodels.feature.home.model.RecommendedModel
@@ -96,6 +100,8 @@ fun HomeScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val download by viewModel.recommendedDownload.collectAsStateWithLifecycle()
+    val recommendedPaused by viewModel.recommendedPaused.collectAsStateWithLifecycle()
+    val recommendedPausedBytes by viewModel.recommendedPausedBytes.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
@@ -143,8 +149,12 @@ fun HomeScreen(
             is HomeUiState.FirstTime -> FirstTimeHome(
                 state = s,
                 download = download,
+                paused = recommendedPaused,
+                pausedBytes = recommendedPausedBytes,
                 onDownload = { viewModel.downloadRecommended(it) },
-                onCancelDownload = { viewModel.cancelRecommendedDownload(it) },
+                onPauseDownload = { viewModel.pauseRecommendedDownload(it) },
+                onResumeDownload = { viewModel.resumeRecommendedDownload(it) },
+                onDiscardDownload = { viewModel.discardRecommendedDownload(it) },
                 onOpenModelPage = { url ->
                     runCatching {
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
@@ -173,8 +183,12 @@ fun HomeScreen(
 private fun FirstTimeHome(
     state: HomeUiState.FirstTime,
     download: com.ai.tinymodels.domain.usecase.model.DownloadState?,
+    paused: Boolean,
+    pausedBytes: Long,
     onDownload: (RecommendedModel) -> Unit,
-    onCancelDownload: (RecommendedModel) -> Unit,
+    onPauseDownload: (RecommendedModel) -> Unit,
+    onResumeDownload: (RecommendedModel) -> Unit,
+    onDiscardDownload: (RecommendedModel) -> Unit,
     onOpenModelPage: (String) -> Unit,
     onOpenSettings: () -> Unit,
     onBrowseModels: () -> Unit,
@@ -227,8 +241,12 @@ private fun FirstTimeHome(
             RecommendedModelCard(
                 recommended = recommended,
                 download = download,
+                paused = paused,
+                pausedBytes = pausedBytes,
                 onDownload = onDownload,
-                onCancelDownload = onCancelDownload,
+                onPause = onPauseDownload,
+                onResume = onResumeDownload,
+                onDiscard = onDiscardDownload,
                 onOpenModelPage = onOpenModelPage,
                 onOpenSettings = onOpenSettings
             )
@@ -364,12 +382,57 @@ private fun StepItem(
 private fun RecommendedModelCard(
     recommended: RecommendedModel,
     download: com.ai.tinymodels.domain.usecase.model.DownloadState?,
+    paused: Boolean,
+    pausedBytes: Long,
     onDownload: (RecommendedModel) -> Unit,
-    onCancelDownload: (RecommendedModel) -> Unit,
+    onPause: (RecommendedModel) -> Unit,
+    onResume: (RecommendedModel) -> Unit,
+    onDiscard: (RecommendedModel) -> Unit,
     onOpenModelPage: (String) -> Unit,
     onOpenSettings: () -> Unit
 ) {
     val res = LocalContext.current.resources
+    var showDiscardDialog by remember { mutableStateOf(false) }
+
+    if (showDiscardDialog) {
+        val bytes = if (paused) pausedBytes else (download?.downloadedBytes ?: 0L)
+        val partialLine = if (bytes > 0) {
+            res.getString(
+                R.string.model_details_discard_bytes_deleted,
+                Formatters.formatBytes(bytes, res)
+            )
+        } else {
+            res.getString(R.string.model_details_discard_partial_deleted)
+        }
+        AlertDialog(
+            onDismissRequest = { showDiscardDialog = false },
+            title = { Text(stringResource(R.string.model_details_discard_title)) },
+            text = {
+                Text(
+                    stringResource(recommended.displayNameRes) + "\n\n" +
+                        partialLine + " " +
+                        stringResource(R.string.model_details_discard_body_end)
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDiscard(recommended)
+                    showDiscardDialog = false
+                }) {
+                    Text(
+                        stringResource(R.string.model_details_discard),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardDialog = false }) {
+                    Text(stringResource(R.string.model_details_keep))
+                }
+            }
+        )
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -413,6 +476,49 @@ private fun RecommendedModelCard(
             Spacer(modifier = Modifier.height(12.dp))
 
             when {
+                paused -> {
+                    if (pausedBytes > 0) {
+                        Text(
+                            stringResource(
+                                R.string.model_details_downloaded_bytes,
+                                Formatters.formatBytes(pausedBytes, res)
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                    }
+                    Text(
+                        stringResource(R.string.model_details_paused_resumable),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedButton(onClick = { onResume(recommended) }) {
+                            Icon(
+                                Icons.Filled.PlayArrow,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(stringResource(R.string.model_details_resume_desc))
+                        }
+                        OutlinedButton(onClick = { showDiscardDialog = true }) {
+                            Icon(
+                                Icons.Filled.Close,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(stringResource(R.string.common_cancel))
+                        }
+                    }
+                }
                 download == null || download.status == DownloadStatus.IDLE -> {
                     Button(
                         onClick = { onDownload(recommended) },
@@ -461,12 +567,10 @@ private fun RecommendedModelCard(
                     }
                 }
                 download.status == DownloadStatus.WAITING_FOR_NETWORK -> {
-                    // Enqueued but blocked on the network constraint — be honest
-                    // instead of showing fake progress.
                     LinearProgressIndicator(
-                        modifier = Modifier.fillMaxWidth().height(6.dp)
+                        modifier = Modifier.fillMaxWidth().height(8.dp)
                     )
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -474,40 +578,101 @@ private fun RecommendedModelCard(
                     ) {
                         Text(
                             stringResource(R.string.home_waiting_for_connection),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.weight(1f)
                         )
-                        TextButton(onClick = { onCancelDownload(recommended) }) {
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedButton(onClick = { onPause(recommended) }) {
+                            Icon(Icons.Filled.Pause, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(stringResource(R.string.notification_pause))
+                        }
+                        OutlinedButton(onClick = { showDiscardDialog = true }) {
+                            Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
                             Text(stringResource(R.string.common_cancel))
                         }
                     }
                 }
                 else -> {
-                    // CHECKING_SIZE or DOWNLOADING
-                    LinearProgressIndicator(
-                        progress = { download.progress },
-                        modifier = Modifier.fillMaxWidth().height(6.dp)
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
+                    // CHECKING_SIZE or DOWNLOADING — whole progress (bytes, %, speed, ETA).
+                    val pct = (download.progress * 100).toInt().coerceIn(0, 100)
+                    if (download.totalBytes > 0) {
+                        LinearProgressIndicator(
+                            progress = { download.progress.coerceIn(0f, 1f) },
+                            modifier = Modifier.fillMaxWidth().height(8.dp)
+                        )
+                    } else {
+                        LinearProgressIndicator(
+                            modifier = Modifier.fillMaxWidth().height(8.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            if (download.bytesPerSecond > 0) {
-                                stringResource(
-                                    R.string.home_download_progress_with_speed,
-                                    (download.progress * 100).toInt(),
-                                    Formatters.formatBytes(download.bytesPerSecond, res)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                if (download.totalBytes > 0) {
+                                    stringResource(
+                                        R.string.downloads_progress_bytes,
+                                        Formatters.formatBytes(download.downloadedBytes, res),
+                                        Formatters.formatBytes(download.totalBytes, res)
+                                    ) + " · " + "$pct%"
+                                } else {
+                                    Formatters.formatBytes(download.downloadedBytes, res) + " · " + "$pct%"
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                            val trailing = buildList {
+                                if (download.bytesPerSecond > 0) {
+                                    add(
+                                        stringResource(
+                                            R.string.downloads_speed_only,
+                                            Formatters.formatBytes(download.bytesPerSecond, res)
+                                        )
+                                    )
+                                }
+                                DownloadEta.label(
+                                    download.downloadedBytes,
+                                    download.totalBytes,
+                                    download.bytesPerSecond
+                                )?.let(::add)
+                            }.joinToString(" · ")
+                            if (trailing.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    trailing,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
-                            } else {
-                                stringResource(R.string.home_download_progress, (download.progress * 100).toInt())
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                        TextButton(onClick = { onCancelDownload(recommended) }) {
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedButton(onClick = { onPause(recommended) }) {
+                            Icon(Icons.Filled.Pause, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(stringResource(R.string.notification_pause))
+                        }
+                        OutlinedButton(onClick = { showDiscardDialog = true }) {
+                            Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
                             Text(stringResource(R.string.common_cancel))
                         }
                     }

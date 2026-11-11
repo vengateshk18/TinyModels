@@ -73,6 +73,7 @@
 
     <!-- ================= Active downloads ================= -->
     <string name="downloads_active_title">Active downloads (%1$d)</string>
+    <string name="downloads_paused_title">Paused downloads (%1$d)</string>
     <string name="downloads_cancel_content_description">Cancel download</string>
     <string name="downloads_waiting_for_network">Waiting for network…</string>
     <string name="downloads_progress_bytes">%1$s / %2$s</string>

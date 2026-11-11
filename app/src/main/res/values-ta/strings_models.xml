@@ -71,6 +71,7 @@
 
     <!-- ================= Active downloads ================= -->
     <string name="downloads_active_title">நடைபெறும் பதிவிறக்கங்கள் (%1$d)</string>
+    <string name="downloads_paused_title">இடைநிறுத்திய பதிவிறக்கங்கள் (%1$d)</string>
     <string name="downloads_cancel_content_description">பதிவிறக்கத்தை ரத்து</string>
     <string name="downloads_waiting_for_network">நெட்வோர்க்காகக் காத்திருக்கிறது…</string>
     <string name="downloads_speed_only">%1$s/வினாடி</string>

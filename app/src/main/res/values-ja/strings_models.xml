@@ -71,6 +71,7 @@
 
     <!-- ================= Active downloads ================= -->
     <string name="downloads_active_title">アクティブなダウンロード (%1$d)</string>
+    <string name="downloads_paused_title">一時停止中のダウンロード (%1$d)</string>
     <string name="downloads_cancel_content_description">ダウンロードをキャンセル</string>
     <string name="downloads_waiting_for_network">ネットワークを待機中…</string>
     <string name="downloads_progress_bytes">%1$s / %2$s</string>

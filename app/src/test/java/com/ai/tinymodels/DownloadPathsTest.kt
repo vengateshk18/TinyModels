@@ -39,4 +39,23 @@ class DownloadPathsTest {
             file.path
         )
     }
+
+    @Test
+    fun `deletePartials throws away only the in-progress bytes of that model`() {
+        val filesDir = java.nio.file.Files.createTempDirectory("tinymodels").toFile()
+        val dir = DownloadPaths.modelDirectory(filesDir, "owner/model").apply { mkdirs() }
+        val partA = java.io.File(dir, "model.litertlm.part").apply { writeText("partial a") }
+        val partB = java.io.File(dir, "other.litertlm.part").apply { writeText("partial b") }
+        val finished = java.io.File(dir, "model.litertlm").apply { writeText("done") }
+        val otherModelDir = DownloadPaths.modelDirectory(filesDir, "owner/other").apply { mkdirs() }
+        val otherPart = java.io.File(otherModelDir, "m.litertlm.part").apply { writeText("x") }
+
+        val deleted = DownloadPaths.deletePartials(filesDir, "owner/model")
+
+        assertEquals(2, deleted)
+        org.junit.Assert.assertFalse(partA.exists())
+        org.junit.Assert.assertFalse(partB.exists())
+        org.junit.Assert.assertTrue(finished.exists())
+        org.junit.Assert.assertTrue(otherPart.exists())
+    }
 }

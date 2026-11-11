@@ -96,6 +96,7 @@ fun ModelsTabScreen(
     val downloadedFiles by downloadedViewModel.downloadedFiles.collectAsStateWithLifecycle()
     val totalSizeBytes by downloadedViewModel.totalSizeBytes.collectAsStateWithLifecycle()
     val activeDownloads by downloadedViewModel.activeDownloads.collectAsStateWithLifecycle()
+    val pausedFiles by downloadedViewModel.pausedFiles.collectAsStateWithLifecycle()
 
     // Tab screen — outer Scaffold already handled the bottom nav-bar inset.
     // Only top + horizontal needed here.
@@ -143,7 +144,10 @@ fun ModelsTabScreen(
                     downloadedFiles = downloadedFiles,
                     totalSizeBytes = totalSizeBytes,
                     activeDownloads = activeDownloads,
-                    onCancelActive = downloadedViewModel::cancelActiveDownload,
+                    pausedFiles = pausedFiles,
+                    onPause = downloadedViewModel::pauseDownload,
+                    onResume = downloadedViewModel::resumeFile,
+                    onDiscard = downloadedViewModel::discardDownload,
                     onFileClick = onFileClick
                 )
             }
@@ -350,10 +354,13 @@ private fun DownloadedContent(
     downloadedFiles: List<DownloadedModelFile>,
     totalSizeBytes: Long,
     activeDownloads: List<ActiveDownload>,
-    onCancelActive: (UUID) -> Unit,
+    pausedFiles: List<DownloadedModelFile>,
+    onPause: (ActiveDownload) -> Unit,
+    onResume: (String, String) -> Unit,
+    onDiscard: (UUID?, String, String?) -> Unit,
     onFileClick: (modelId: String, fileName: String) -> Unit
 ) {
-    if (downloadedFiles.isEmpty() && activeDownloads.isEmpty()) {
+    if (downloadedFiles.isEmpty() && activeDownloads.isEmpty() && pausedFiles.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(stringResource(R.string.downloaded_models_empty_title), style = MaterialTheme.typography.titleMedium)
@@ -375,11 +382,14 @@ private fun DownloadedContent(
             ),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            if (activeDownloads.isNotEmpty()) {
+            if (activeDownloads.isNotEmpty() || pausedFiles.isNotEmpty()) {
                 item {
                     ActiveDownloadsSection(
                         active = activeDownloads,
-                        onCancel = onCancelActive
+                        paused = pausedFiles,
+                        onPause = onPause,
+                        onResume = onResume,
+                        onDiscard = onDiscard
                     )
                 }
             }

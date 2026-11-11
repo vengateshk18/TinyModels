@@ -268,6 +268,8 @@ private class FakeFileDetailRepository : ModelRepository {
         MutableStateFlow(emptyList())
     override fun observeDownloadedFiles(): Flow<List<DownloadedModelFile>> =
         MutableStateFlow(emptyList())
+    override fun observePausedFiles(): Flow<List<DownloadedModelFile>> =
+        MutableStateFlow(emptyList())
     override suspend fun listModels(): AppResult<List<ModelSummary>> = throw NotImplementedError()
     override suspend fun listModels(search: String?, pipelineTag: String?): AppResult<List<ModelSummary>> =
         throw NotImplementedError()

@@ -62,6 +62,7 @@ fun DownloadedModelsScreen(
     val downloadedFiles by viewModel.downloadedFiles.collectAsStateWithLifecycle()
     val totalSize by viewModel.totalSizeBytes.collectAsStateWithLifecycle()
     val activeDownloads by viewModel.activeDownloads.collectAsStateWithLifecycle()
+    val pausedFiles by viewModel.pausedFiles.collectAsStateWithLifecycle()
 
     // Pushed screen (no bottom nav bar) — consume full safeDrawing so the
     // Scaffold padding includes bottom nav-bar height and display cutout.
@@ -83,7 +84,7 @@ fun DownloadedModelsScreen(
             )
         }
     ) { padding ->
-        if (downloadedFiles.isEmpty() && activeDownloads.isEmpty()) {
+        if (downloadedFiles.isEmpty() && activeDownloads.isEmpty() && pausedFiles.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(padding)) {
                 EmptyState(
                     title = stringResource(R.string.downloaded_models_empty_title),
@@ -104,11 +105,14 @@ fun DownloadedModelsScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                if (activeDownloads.isNotEmpty()) {
+                if (activeDownloads.isNotEmpty() || pausedFiles.isNotEmpty()) {
                     item {
                         ActiveDownloadsSection(
                             active = activeDownloads,
-                            onCancel = viewModel::cancelActiveDownload
+                            paused = pausedFiles,
+                            onPause = viewModel::pauseDownload,
+                            onResume = viewModel::resumeFile,
+                            onDiscard = viewModel::discardDownload
                         )
                     }
                 }

@@ -71,6 +71,7 @@
 
     <!-- ================= Active downloads ================= -->
     <string name="downloads_active_title">चल रही डाउनलोड (%1$d)</string>
+    <string name="downloads_paused_title">रुके हुए डाउनलोड (%1$d)</string>
     <string name="downloads_cancel_content_description">डाउनलोड रद्द करें</string>
     <string name="downloads_waiting_for_network">नेटवर्क की प्रतीक्षा हो रही है…</string>
     <string name="downloads_speed_only">%1$s/से</string>

@@ -8,7 +8,9 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import androidx.work.await
 import com.ai.tinymodels.R
+import com.ai.tinymodels.core.common.DownloadNotifier
 import com.ai.tinymodels.core.network.HuggingFaceApi
 import com.ai.tinymodels.data.worker.ModelDownloadWorker
 import com.ai.tinymodels.domain.model.ModelDetails
@@ -21,9 +23,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+
+/** How long a cancel waits for the worker to unwind before giving up. */
+private const val SETTLE_TIMEOUT_MS = 5_000L
 
 /** Lifecycle status of a model download. */
 enum class DownloadStatus {
@@ -303,5 +309,29 @@ class DownloadModelUseCase @Inject constructor(
     /** Cancel one active job by its work id (notification + section share this). */
     fun cancelActive(workId: UUID) {
         workManager.cancelWorkById(workId)
+    }
+
+    /**
+     * Cancels the job and waits for the worker to unwind. The worker's cancel
+     * path writes PAUSED, so a Discard caller must be able to overwrite that
+     * afterwards — the same settle-then-reset order DiscardDownloadActivity
+     * uses, so the unwind cannot resurrect a discarded row.
+     */
+    suspend fun cancelActiveAndWait(workId: UUID): Unit = withContext(Dispatchers.IO) {
+        withTimeoutOrNull(SETTLE_TIMEOUT_MS) { workManager.cancelWorkById(workId).await() }
+        DownloadNotifier.cancelProgress(context, workId)
+    }
+
+    /** [cancelActiveAndWait] for a single-file job addressed by its unique name. */
+    suspend fun cancelFileAndWait(modelId: String, fileName: String): Unit =
+        withContext(Dispatchers.IO) {
+            withTimeoutOrNull(SETTLE_TIMEOUT_MS) {
+                workManager.cancelUniqueWork(fileUniqueName(modelId, fileName)).await()
+            }
+        }
+
+    /** Throws away every partial byte a whole-model download accumulated. */
+    suspend fun discardModelPartials(modelId: String): Int = withContext(Dispatchers.IO) {
+        DownloadPaths.deletePartials(context.filesDir, modelId)
     }
 }

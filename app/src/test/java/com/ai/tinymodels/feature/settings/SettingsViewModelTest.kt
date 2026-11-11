@@ -189,6 +189,8 @@ private class FakeImportModelRepository : ModelRepository {
         MutableStateFlow(emptyList())
     override fun observeDownloadedFiles(): Flow<List<DownloadedModelFile>> =
         MutableStateFlow(emptyList())
+    override fun observePausedFiles(): Flow<List<DownloadedModelFile>> =
+        MutableStateFlow(emptyList())
     override suspend fun getModelFile(modelId: String, fileName: String): DownloadedModelFile? = null
     override suspend fun getDownloadedFileForModel(modelId: String): DownloadedModelFile? = null
     override suspend fun getLastDownloadedModel(): DownloadedModel? = null

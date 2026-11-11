@@ -510,6 +510,7 @@ private class FakeModelRepository : ModelRepository {
 
     override fun observeModelFiles(modelId: String): Flow<List<DownloadedModelFile>> = modelFiles
     override fun observeDownloadedFiles(): Flow<List<DownloadedModelFile>> = modelFiles
+    override fun observePausedFiles(): Flow<List<DownloadedModelFile>> = MutableStateFlow(emptyList())
     override suspend fun getModelFile(modelId: String, fileName: String): DownloadedModelFile? = null
     override suspend fun getDownloadedFileForModel(modelId: String): DownloadedModelFile? = null
     override suspend fun getLastDownloadedModel(): DownloadedModel? = null
