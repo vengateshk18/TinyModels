@@ -57,7 +57,14 @@ class ModelDetailsViewModelTest {
     private val networkMonitor = FakeNetworkMonitor()
 
     /** Mocked app context — MemoryUtils.totalRamBytes is stubbed to a fixed value. */
-    private val appContext = mockk<android.content.Context>()
+    private val appContext = mockk<android.content.Context>().also { ctx ->
+        every { ctx.getString(any()) } answers { firstArg<Int>().toString() }
+        every { ctx.getString(any(), *anyVararg()) } answers {
+            firstArg<Int>().toString() + "(" + invocation.args.drop(1)
+                .flatMap { arg -> if (arg is Array<*>) arg.toList() else listOf(arg) }
+                .joinToString(",") + ")"
+        }
+    }
 
     /** Live jobs the ViewModel is told about; tests push entries here. */
     private val activeDownloads = MutableStateFlow<List<ActiveDownload>>(emptyList())
@@ -503,6 +510,7 @@ private class FakeModelRepository : ModelRepository {
 
     override fun observeModelFiles(modelId: String): Flow<List<DownloadedModelFile>> = modelFiles
     override fun observeDownloadedFiles(): Flow<List<DownloadedModelFile>> = modelFiles
+    override fun observePausedFiles(): Flow<List<DownloadedModelFile>> = MutableStateFlow(emptyList())
     override suspend fun getModelFile(modelId: String, fileName: String): DownloadedModelFile? = null
     override suspend fun getDownloadedFileForModel(modelId: String): DownloadedModelFile? = null
     override suspend fun getLastDownloadedModel(): DownloadedModel? = null

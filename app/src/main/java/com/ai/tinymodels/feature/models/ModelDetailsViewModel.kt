@@ -1,6 +1,7 @@
 package com.ai.tinymodels.feature.models
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.content.Context
@@ -23,6 +24,7 @@ import com.ai.tinymodels.domain.usecase.model.FileRowState
 import com.ai.tinymodels.domain.usecase.model.FileSizeStatus
 import com.ai.tinymodels.domain.usecase.model.fileRowState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.ai.tinymodels.R
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -96,9 +98,10 @@ class ModelDetailsViewModel @Inject constructor(
         fun isFileLoadable(fileName: String): Boolean =
             MemoryUtils.canLoadModelOfSize(getFileSize(fileName), deviceRamBytes)
 
-        /** Friendly, user-presentable copy for [error]. */
-        val errorMessage: String?
-            get() = error?.let(NetworkErrorMapper::friendlyMessage)
+        /** Friendly, user-presentable copy for [error], as a localized resource. */
+        @get:StringRes
+        val errorMessageRes: Int?
+            get() = error?.let(NetworkErrorMapper::friendlyMessageRes)
 
         /** True when the current error is simply "no connection". */
         val isOfflineError: Boolean
@@ -291,7 +294,7 @@ class ModelDetailsViewModel @Inject constructor(
             if (size > 0 && !storageUtils.hasSpaceFor(size)) {
                 modelRepository.updateFileStatus(
                     modelId, fileName, FileDownloadStatus.FAILED,
-                    error = "Not enough free storage for this file."
+                    error = appContext.getString(R.string.model_details_error_not_enough_storage_file)
                 )
                 return@launch
             }
@@ -360,7 +363,7 @@ class ModelDetailsViewModel @Inject constructor(
                 it.copy(
                     download = DownloadState(
                         status = DownloadStatus.FAILED,
-                        error = "Not enough free storage for this model."
+                        error = appContext.getString(R.string.model_details_error_not_enough_storage_model)
                     )
                 )
             }

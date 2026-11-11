@@ -1,5 +1,7 @@
 package com.ai.tinymodels.domain.model
 
+import com.ai.tinymodels.core.common.TinyConstants
+
 /** A browsable model from the HuggingFace catalog. */
 data class ModelSummary(
     val id: String,
@@ -22,7 +24,7 @@ data class ModelSummary(
         get() = siblings.count { it.isRuntimeFile() }
 
     private fun String.isRuntimeFile() =
-        endsWith(".litertlm", ignoreCase = true) ||
+        endsWith(TinyConstants.MODEL_FILE_EXTENSION, ignoreCase = true) ||
         endsWith(".task", ignoreCase = true) ||
         endsWith(".tflite", ignoreCase = true)
 }
@@ -52,11 +54,11 @@ data class ModelDetails(
 ) {
     /** Files that can be run by the LiteRT-LM runtime. */
     val liteRtFiles: List<String>
-        get() = siblings.filter { it.endsWith(".litertlm", ignoreCase = true) }
+        get() = siblings.filter { it.endsWith(TinyConstants.MODEL_FILE_EXTENSION, ignoreCase = true) }
 
     /** Only .litertlm files - the only format supported by LiteRT-LM runtime. */
     val runtimeFiles: List<String>
-        get() = siblings.filter { it.endsWith(".litertlm", ignoreCase = true) }
+        get() = siblings.filter { it.endsWith(TinyConstants.MODEL_FILE_EXTENSION, ignoreCase = true) }
 
     /** True when access requires accepting a license / login on HuggingFace. */
     val isGated: Boolean

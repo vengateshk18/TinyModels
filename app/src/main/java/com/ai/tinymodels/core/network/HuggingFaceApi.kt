@@ -1,5 +1,6 @@
 package com.ai.tinymodels.core.network
 
+import com.ai.tinymodels.core.common.TinyConstants
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import javax.inject.Inject
@@ -15,8 +16,8 @@ class HuggingFaceApi @Inject constructor(
     private val auth: HuggingFaceAuth
 ) {
     companion object {
-        private const val API_BASE = "https://huggingface.co/api/models"
-        private const val HUB_BASE = "https://huggingface.co"
+        private const val API_BASE = TinyConstants.HUGGING_FACE_API_BASE_URL
+        private const val HUB_BASE = TinyConstants.HUGGING_FACE_HUB_BASE_URL
     }
 
     /** GET the model list. Overload supporting arbitrary search + pipeline filtering. */
@@ -54,7 +55,7 @@ class HuggingFaceApi @Inject constructor(
     fun contentLength(url: String): Long {
         val request = auth.authorize(Request.Builder().url(url).head()).build()
         client.newCall(request).execute().use { response ->
-            response.header("x-linked-size")?.toLongOrNull()?.takeIf { it > 0 }?.let { return it }
+            response.header(TinyConstants.HTTP_HEADER_LINKED_SIZE)?.toLongOrNull()?.takeIf { it > 0 }?.let { return it }
             if (!response.isSuccessful) {
                 return response.header("content-length")?.toLongOrNull() ?: 0L
             }

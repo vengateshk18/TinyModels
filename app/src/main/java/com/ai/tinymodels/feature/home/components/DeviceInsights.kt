@@ -1,5 +1,6 @@
 package com.ai.tinymodels.feature.home.components
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,35 +30,39 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.ai.tinymodels.R
 import com.ai.tinymodels.feature.home.DeviceInfoState
 
 /**
- * Maps Android thermal status constant to a human-readable label.
+ * Maps Android thermal status constant to a localized label resource.
  * See PowerManager thermal status constants.
  */
-fun thermalLabel(state: Int): String = when (state) {
-    0 -> "Normal"
-    1 -> "Light"
-    2 -> "Moderate"
-    3 -> "Severe"
-    4 -> "Critical"
-    5 -> "Emergency"
-    6 -> "Shutdown"
-    else -> "Unknown"
+@StringRes
+fun thermalLabelRes(state: Int): Int = when (state) {
+    0 -> R.string.device_thermal_normal
+    1 -> R.string.device_thermal_light
+    2 -> R.string.device_thermal_moderate
+    3 -> R.string.device_thermal_severe
+    4 -> R.string.device_thermal_critical
+    5 -> R.string.device_thermal_emergency
+    6 -> R.string.device_thermal_shutdown
+    else -> R.string.device_thermal_unknown
 }
 
 /**
- * Maps Android BatteryManager status constant to a human-readable label.
+ * Maps Android BatteryManager status constant to a localized label resource.
  */
-fun batteryStatusLabel(status: Int): String = when (status) {
-    1 -> "Unknown"
-    2 -> "Charging"
-    3 -> "Discharging"
-    4 -> "Not charging"
-    5 -> "Full"
-    else -> "Unknown"
+@StringRes
+fun batteryStatusLabelRes(status: Int): Int = when (status) {
+    1 -> R.string.device_battery_unknown
+    2 -> R.string.device_battery_charging
+    3 -> R.string.device_battery_discharging
+    4 -> R.string.device_battery_not_charging
+    5 -> R.string.device_battery_full
+    else -> R.string.device_battery_unknown
 }
 
 /**
@@ -81,7 +86,7 @@ fun DeviceInsights(
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Spacer(modifier = Modifier.height(16.dp))
-        SectionTitle("Device Insights")
+        SectionTitle(stringResource(R.string.device_insights_title))
 
         // Thermal + Battery row
         Row(
@@ -90,9 +95,9 @@ fun DeviceInsights(
         ) {
             InsightChip(
                 icon = Icons.Filled.Thermostat,
-                label = "Thermal",
-                value = thermalLabel(state.thermalState),
-                sub = "State ${state.thermalState}",
+                label = stringResource(R.string.device_insights_thermal),
+                value = stringResource(thermalLabelRes(state.thermalState)),
+                sub = stringResource(R.string.device_insights_thermal_state, state.thermalState),
                 tint = when {
                     state.thermalState >= 4 -> Color(0xFFD32F2F)
                     state.thermalState >= 3 -> Color(0xFFF57C00)
@@ -103,9 +108,13 @@ fun DeviceInsights(
             )
             InsightChip(
                 icon = if (state.batteryLevel in 0..20) Icons.Filled.Battery0Bar else Icons.Filled.BatteryFull,
-                label = "Battery",
-                value = if (state.batteryLevel >= 0) "${state.batteryLevel}%" else "Unknown",
-                sub = batteryStatusLabel(state.batteryStatus),
+                label = stringResource(R.string.device_insights_battery),
+                value = if (state.batteryLevel >= 0) {
+                    stringResource(R.string.device_insights_battery_percent, state.batteryLevel)
+                } else {
+                    stringResource(R.string.device_battery_unknown)
+                },
+                sub = stringResource(batteryStatusLabelRes(state.batteryStatus)),
                 tint = if (state.batteryLevel in 0..15) Color(0xFFD32F2F)
                 else MaterialTheme.colorScheme.primary,
                 modifier = Modifier.weight(1f)
@@ -134,7 +143,11 @@ fun DeviceInsights(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
-                        Text("GPU Renderer", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            stringResource(R.string.device_insights_gpu_renderer),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                         Text(state.gpuRenderer.take(60), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
                     }
                 }
@@ -154,7 +167,11 @@ fun DeviceInsights(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.Storage, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Storage", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        stringResource(R.string.device_insights_storage),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 val total = state.freeStorageMb + state.usedStorageMb
@@ -162,8 +179,22 @@ fun DeviceInsights(
                 StorageBar(usedPercent)
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Used ${com.ai.tinymodels.core.ui.Formatters.formatMbAsGb(state.usedStorageMb)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("Free ${com.ai.tinymodels.core.ui.Formatters.formatMbAsGb(state.freeStorageMb)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        stringResource(
+                            R.string.device_insights_storage_used,
+                            com.ai.tinymodels.core.ui.Formatters.formatMbAsGb(state.usedStorageMb)
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        stringResource(
+                            R.string.device_insights_storage_free,
+                            com.ai.tinymodels.core.ui.Formatters.formatMbAsGb(state.freeStorageMb)
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
@@ -181,12 +212,23 @@ fun DeviceInsights(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.Memory, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Processor", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        stringResource(R.string.device_insights_processor),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                InfoLine("Cores", "${state.cpuCores}")
-                InfoLine("Architecture", state.arch)
-                InfoLine("64-bit", if (state.arch.contains("arm64") || state.arch.contains("x86_64")) "Yes" else "No")
+                InfoLine(stringResource(R.string.device_insights_cores), "${state.cpuCores}")
+                InfoLine(stringResource(R.string.device_insights_architecture), state.arch)
+                InfoLine(
+                    stringResource(R.string.device_insights_64bit),
+                    if (state.arch.contains("arm64") || state.arch.contains("x86_64")) {
+                        stringResource(R.string.common_yes)
+                    } else {
+                        stringResource(R.string.common_no)
+                    }
+                )
             }
         }
     }

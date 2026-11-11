@@ -1,5 +1,6 @@
 package com.ai.tinymodels.feature.chat
 
+import android.content.Context
 import com.ai.tinymodels.domain.model.DownloadedModel
 import com.ai.tinymodels.domain.repository.ChatRepository
 import com.ai.tinymodels.domain.repository.ModelRepository
@@ -29,6 +30,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChatListViewModelTest {
 
+    private val context = mockk<Context>(relaxed = true)
     private val chatRepo = mockk<ChatRepository>(relaxed = true)
     private val modelRepo = mockk<ModelRepository>(relaxed = true)
     private val settingsRepo = mockk<SettingsRepository>(relaxed = true)
@@ -38,12 +40,13 @@ class ChatListViewModelTest {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         every { chatRepo.observeChatSummaries() } returns flowOf(emptyList())
         every { modelRepo.observeDownloadedModels() } returns flowOf(emptyList<DownloadedModel>())
+        every { context.getString(any()) } returns "stub"
     }
 
     @After
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun vm() = ChatListViewModel(chatRepo, modelRepo, settingsRepo)
+    private fun vm() = ChatListViewModel(context, chatRepo, modelRepo, settingsRepo)
 
     // ---- Title sanitising ----
 

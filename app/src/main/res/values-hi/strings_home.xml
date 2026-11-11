@@ -1,0 +1,148 @@
+<resources>
+    <!-- ================= Home: onboarding (first-time) ================= -->
+    <string name="home_hero_title">AI मॉडल पूरी तरह अपने फ़ोन पर चलाएँ।</string>
+    <string name="home_hero_subtitle">कोई इंटरनेट नहीं। कोई क्लाउड नहीं। कोई डेटा आपके डिवाइस से बाहर नहीं जाता।</string>
+    <string name="home_storage_note">मॉडल 600 MB से 2 GB तक होते हैं। आपके पास %1$s खाली है।</string>
+    <string name="home_browse_all_models">सभी मॉडल देखें</string>
+
+    <!-- ================= Home: device capability card ================= -->
+    <string name="home_device_card_title">आपका डिवाइस</string>
+    <string name="home_device_capability_value">%1$s —</string>
+    <string name="home_device_can_run_models">आराम से %1$s तक के मॉडल चला सकता है</string>
+
+    <!-- ================= Home: three-step strip ================= -->
+    <string name="home_step_download_title">डाउनलोड</string>
+    <string name="home_step_download_caption">कुछ मिनट लगते हैं</string>
+    <string name="home_step_load_title">लोड</string>
+    <string name="home_step_load_caption">पहली बार लोड होना धीमा हो सकता है</string>
+    <string name="home_step_chat_title">ऑफ़लाइन चैट</string>
+    <string name="home_step_chat_caption">आपके डिवाइस पर ही रहता है</string>
+
+    <!-- ================= Home: recommended model card ================= -->
+    <string name="home_recommended_title">आपके डिवाइस के लिए सुझाया गया</string>
+    <string name="home_recommended_meta">%1$s स्तर • %2$s • %3$s</string>
+    <string name="home_download_button">डाउनलोड करें (%1$s)</string>
+    <string name="home_downloaded_opening">डाउनलोड हो गया! आपका डैशबोर्ड खोल रहे हैं…</string>
+    <string name="home_download_failed">डाउनलोड विफल रहा। अपना कनेक्शन जाँचें और फिर कोशिश करें।</string>
+    <string name="home_add_token">टोकन जोड़ें</string>
+    <string name="home_model_page">मॉडल पेज</string>
+    <string name="home_waiting_for_connection">कनेक्शन की प्रतीक्षा हो रही है… डाउनलोड अपने आप शुरू हो जाएगा।</string>
+    <string name="home_download_progress_with_speed">%1$d%% • %2$s/से</string>
+
+    <!-- ================= Home: dashboard ================= -->
+    <string name="home_thermal_advisory">बड़े मॉडल आपका डिवाइस गरम कर सकते हैं और बैटरी अधिक खा सकते हैं।</string>
+    <string name="home_section_your_models">आपके मॉडल</string>
+    <string name="home_manage_models">मॉडल प्रबंधित करें</string>
+    <string name="home_section_your_usage">आपका उपयोग</string>
+    <string name="home_stat_chats">चैट</string>
+    <string name="home_stat_tokens">टोकन</string>
+    <string name="home_stat_models_tried">आज़माए गए मॉडल</string>
+    <string name="home_stat_messages">संदेश</string>
+    <string name="home_stat_chats_this_week">इस सप्ताह की चैट</string>
+    <string name="home_stat_compactions">संक्षिप्तिकरण</string>
+    <string name="home_last_session_tps">पिछला सत्र: ~%1$s टोकन/से</string>
+    <string name="home_most_chatted">सबसे ज़्यादा बातचीत</string>
+    <string name="home_chat_with_model">%1$s से चैट करें</string>
+
+    <!-- ================= Home: last-used model card ================= -->
+    <string name="home_ready_to_chat">चैट के लिए तैयार</string>
+    <string name="home_your_model">आपका मॉडल</string>
+    <string name="home_this_model">यह मॉडल</string>
+    <string name="home_model_context">%1$s • %2$d संदर्भ</string>
+    <string name="home_resume_chat">चैट जारी रखें</string>
+    <string name="home_new_chat">नई चैट</string>
+    <string name="home_new_chat_with_model">%1$s के साथ नई चैट</string>
+
+    <!-- ================= Model tiers ================= -->
+    <string name="model_tier_small">छोटा</string>
+    <string name="model_tier_medium">मध्यम</string>
+    <string name="model_tier_high">बड़ा</string>
+
+    <!-- ================= Device information screen ================= -->
+    <string name="device_info_title">डिवाइस की जानकारी</string>
+    <string name="device_info_ready_title">डिवाइस पर ही AI के लिए तैयार</string>
+    <string name="device_info_ai_capability">AI क्षमता</string>
+    <string name="device_info_recommended_up_to">%1$s तक के मॉडल अनुशंसित</string>
+    <string name="device_info_memory_section">मेमोरी</string>
+    <string name="device_info_available">उपलब्ध</string>
+    <string name="device_info_recommended_for_ai">AI के लिए अनुशंसित</string>
+    <string name="device_info_live_ram_usage">लाइव RAM उपयोग</string>
+    <string name="device_info_browse_models">मॉडल देखें</string>
+
+    <!-- ================= AI capability levels ================= -->
+    <string name="device_capability_excellent">उत्कृष्ट</string>
+    <string name="device_capability_good">अच्छी</string>
+    <string name="device_capability_limited">सीमित</string>
+    <string name="device_capability_low">कम</string>
+    <string name="device_capability_unknown">अज्ञात</string>
+
+    <!-- ================= Device insights card ================= -->
+    <string name="device_insights_title">डिवाइस की जानकारी</string>
+    <string name="device_insights_thermal">तापमान</string>
+    <string name="device_insights_thermal_state">स्थिति %1$d</string>
+    <string name="device_insights_battery">बैटरी</string>
+    <string name="device_insights_gpu_renderer">GPU</string>
+    <string name="device_insights_storage">स्टोरेज</string>
+    <string name="device_insights_storage_used">उपयोग %1$s</string>
+    <string name="device_insights_storage_free">खाली %1$s</string>
+    <string name="device_insights_processor">प्रोसेसर</string>
+    <string name="device_insights_cores">कोर</string>
+    <string name="device_insights_architecture">आर्किटेक्चर</string>
+    <string name="device_insights_64bit">64-बिट</string>
+
+    <!-- Thermal status labels -->
+    <string name="device_thermal_normal">सामान्य</string>
+    <string name="device_thermal_light">हल्का गरम</string>
+    <string name="device_thermal_moderate">मध्यम गरम</string>
+    <string name="device_thermal_severe">काफ़ी गरम</string>
+    <string name="device_thermal_critical">गंभीर</string>
+    <string name="device_thermal_emergency">आपात स्थिति</string>
+    <string name="device_thermal_shutdown">बंद होने की स्थिति</string>
+    <string name="device_thermal_unknown">अज्ञात</string>
+
+    <!-- Battery status labels -->
+    <string name="device_battery_unknown">अज्ञात</string>
+    <string name="device_battery_charging">चार्ज हो रही है</string>
+    <string name="device_battery_discharging">डिस्चार्ज हो रही है</string>
+    <string name="device_battery_not_charging">चार्ज नहीं हो रही</string>
+    <string name="device_battery_full">पूरी तरह चार्ज</string>
+
+    <!-- ================= RAM usage chart ================= -->
+    <string name="device_ram_usage_live_title">लाइव RAM उपयोग</string>
+    <string name="device_ram_usage_percent_used">%1$.2f%% उपयोग</string>
+    <string name="device_ram_usage_collecting">नमूने एकत्र हो रहे हैं…</string>
+    <string name="device_ram_usage_used">उपयोग %1$s</string>
+    <string name="device_ram_usage_free_of">%2$s में से %1$s खाली</string>
+
+    <!-- ================= RAM recommendations ================= -->
+    <string name="ram_recommendations_title">सुझाव</string>
+    <string name="ram_rec_plenty_capacity">आप 3B–7B मॉडल आराम से लोड कर सकते हैं</string>
+    <string name="ram_rec_plenty_context">बड़े संदर्भ के साथ लंबी बातचीत के लिए बेहतरीन</string>
+    <string name="ram_rec_moderate_capacity">मध्यम जगह — 1B–3B मॉडल बेहतर हैं</string>
+    <string name="ram_rec_moderate_compaction">लंबी चैट में संक्षिप्तिकरण पहले ज़रूरी पड़ सकता है</string>
+    <string name="ram_rec_limited_capacity">सीमित — केवल बहुत छोटे मॉडल (&lt;1B) ही फ़िट होंगे</string>
+    <string name="ram_rec_limited_close_apps">RAM खाली करने के लिए दूसरे ऐप बंद करें</string>
+    <string name="ram_rec_critical_close_apps">गंभीर — कोई भी मॉडल लोड करने से पहले दूसरे ऐप बंद करें</string>
+    <string name="ram_rec_critical_no_models">अभी कोई मॉडल लोड नहीं हो सकता</string>
+    <string name="ram_rec_thermal_throttling">डिवाइस गरम हो रहा है — प्रदर्शन कम हो जाएगा</string>
+    <string name="ram_rec_battery_low">बैटरी कम है — बड़े मॉडल लोड करते समय चार्जर पास रखें</string>
+    <string name="home_download_progress">%1$d%%</string>
+    <string name="home_device_model_tier">%1$s: %2$s (%3$s)</string>
+    <string name="device_insights_battery_percent">%1$d%%</string>
+    <plurals name="home_model_files_last_used">
+        <item quantity="one">%1$s • %2$d फ़ाइल • पिछली बार इस्तेमाल</item>
+        <item quantity="other">%1$s • %2$d फ़ाइलें • पिछली बार इस्तेमाल</item>
+    </plurals>
+    <plurals name="home_model_files_relative">
+        <item quantity="one">%1$s • %2$d फ़ाइल • %3$s</item>
+        <item quantity="other">%1$s • %2$d फ़ाइलें • %3$s</item>
+    </plurals>
+    <plurals name="home_show_more_models">
+        <item quantity="one">%1$d और मॉडल दिखाएँ</item>
+        <item quantity="other">%1$d और मॉडल दिखाएँ</item>
+    </plurals>
+    <plurals name="home_web_search_chats">
+        <item quantity="one">%1$d चैट में वेब सर्च चालू</item>
+        <item quantity="other">%1$d चैट में वेब सर्च चालू</item>
+    </plurals>
+</resources>

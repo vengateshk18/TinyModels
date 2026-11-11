@@ -31,6 +31,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.ai.tinymodels.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -203,7 +205,7 @@ fun AppSplashScreen(
             Spacer(Modifier.height(18.dp))
 
             Text(
-                text = "Small models. Big possibilities.",
+                text = stringResource(R.string.splash_tagline),
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
                 letterSpacing = 0.3.sp,
@@ -214,7 +216,7 @@ fun AppSplashScreen(
         }
 
         Text(
-            text = "Private  ·  Offline  ·  Yours",
+            text = stringResource(R.string.splash_pillars),
             fontSize = 11.sp,
             fontWeight = FontWeight.Medium,
             letterSpacing = 1.2.sp,

@@ -1,0 +1,34 @@
+<resources>
+    <!-- Shared UI actions and labels -->
+    <string name="common_cancel">रद्द करें</string>
+    <string name="common_retry">पुनः प्रयास करें</string>
+    <string name="common_back">वापस</string>
+    <string name="common_dismiss">खारिज करें</string>
+    <string name="common_delete">हटाएँ</string>
+    <string name="common_close">बंद करें</string>
+    <string name="common_yes">हाँ</string>
+    <string name="common_no">नहीं</string>
+    <string name="common_unknown">अज्ञात</string>
+
+    <!-- Shared relative-time wording -->
+    <string name="common_time_just_now">अभी</string>
+    <string name="common_time_minutes_ago">%1$d मिनट पहले</string>
+    <string name="common_time_hours_ago">%1$d घंटे पहले</string>
+    <string name="common_time_days_ago">%1$d दिन पहले</string>
+    <string name="common_percent">%1$d%%</string>
+
+    <!-- संसाधन निष्कर्षण से जुड़े नए स्ट्रिंग -->
+    <string name="common_save">सहेजें</string>
+    <string name="error_no_connection">आप ऑफ़लाइन हैं। अपना इंटरनेट कनेक्शन जाँचें और फिर से कोशिश करें।</string>
+    <string name="error_timeout">कनेक्शन का समय समाप्त हो गया। फिर से कोशिश करें।</string>
+    <string name="error_gated">यह मॉडल गेटेड है। सेटिंग्स में Hugging Face एक्सेस टोकन जोड़ें, या पहले huggingface.co पर इसका लाइसेंस स्वीकारें।</string>
+    <string name="error_no_access">आपके पास इस मॉडल तक पहुँच नहीं है। यह गेटेड हो सकता है — huggingface.co पर इसका लाइसेंस जाँचें।</string>
+    <string name="error_too_many_requests">बहुत अधिक अनुरोध। थोड़ी देर रुककर फिर से कोशिश करें।</string>
+    <string name="error_server">Hugging Face में अभी समस्या है। बाद में फिर से कोशिश करें।</string>
+    <string name="error_not_found">मॉडल नहीं मिला। हो सकता है इसे Hugging Face से हटा दिया गया हो।</string>
+    <string name="error_network">नेटवर्क त्रुटि। अपना कनेक्शन जाँचें और फिर से कोशिश करें।</string>
+    <string name="error_storage">पर्याप्त खाली स्टोरेज नहीं है।</string>
+    <string name="error_unknown">कुछ गड़बड़ हो गई। फिर से कोशिश करें।</string>
+    <string name="notification_pause">रोकें</string>
+    <string name="notification_cancel">रद्द करें</string>
+</resources>

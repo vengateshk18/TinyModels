@@ -38,10 +38,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ai.tinymodels.R
+import com.ai.tinymodels.core.ui.Formatters
 import com.ai.tinymodels.core.ui.components.EmptyState
 import com.ai.tinymodels.domain.model.DownloadedModelFile
 import com.ai.tinymodels.feature.models.DownloadedModelsViewModel
@@ -57,6 +62,7 @@ fun DownloadedModelsScreen(
     val downloadedFiles by viewModel.downloadedFiles.collectAsStateWithLifecycle()
     val totalSize by viewModel.totalSizeBytes.collectAsStateWithLifecycle()
     val activeDownloads by viewModel.activeDownloads.collectAsStateWithLifecycle()
+    val pausedFiles by viewModel.pausedFiles.collectAsStateWithLifecycle()
 
     // Pushed screen (no bottom nav bar) — consume full safeDrawing so the
     // Scaffold padding includes bottom nav-bar height and display cutout.
@@ -66,10 +72,10 @@ fun DownloadedModelsScreen(
         contentWindowInsets = safeDrawing,
         topBar = {
             TopAppBar(
-                title = { Text("Downloaded models") },
+                title = { Text(stringResource(R.string.downloaded_models_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -78,12 +84,12 @@ fun DownloadedModelsScreen(
             )
         }
     ) { padding ->
-        if (downloadedFiles.isEmpty() && activeDownloads.isEmpty()) {
+        if (downloadedFiles.isEmpty() && activeDownloads.isEmpty() && pausedFiles.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(padding)) {
                 EmptyState(
-                    title = "No models downloaded",
+                    title = stringResource(R.string.downloaded_models_empty_title),
                     icon = Icons.Filled.Inventory2,
-                    message = "Models you download appear here for offline use."
+                    message = stringResource(R.string.downloaded_models_empty_message)
                 )
             }
         } else {
@@ -99,17 +105,23 @@ fun DownloadedModelsScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                if (activeDownloads.isNotEmpty()) {
+                if (activeDownloads.isNotEmpty() || pausedFiles.isNotEmpty()) {
                     item {
                         ActiveDownloadsSection(
                             active = activeDownloads,
-                            onCancel = viewModel::cancelActiveDownload
+                            paused = pausedFiles,
+                            onPause = viewModel::pauseDownload,
+                            onResume = viewModel::resumeFile,
+                            onDiscard = viewModel::discardDownload
                         )
                     }
                 }
                 item {
                     Text(
-                        "Storage used: ${formatBytes(totalSize)}",
+                        stringResource(
+                            R.string.downloaded_models_storage_used,
+                            Formatters.formatBytes(totalSize, LocalContext.current.resources)
+                        ),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 4.dp)
@@ -171,7 +183,7 @@ private fun DownloadedFileRow(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    formatBytes(file.sizeBytes),
+                    Formatters.formatBytes(file.sizeBytes, LocalContext.current.resources),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -192,7 +204,7 @@ private fun ImportedTag() {
         shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)
     ) {
         Text(
-            "Imported",
+            stringResource(R.string.downloaded_models_imported_badge),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSecondaryContainer,
             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -200,10 +212,3 @@ private fun ImportedTag() {
     }
 }
 
-private fun formatBytes(bytes: Long): String {    if (bytes <= 0) return "0 B"
-    val units = listOf("B", "KB", "MB", "GB")
-    var value = bytes.toDouble()
-    var index = 0
-    while (value >= 1024 && index < units.lastIndex) { value /= 1024; index++ }
-    return "%.1f %s".format(value, units[index])
-}

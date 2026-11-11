@@ -28,11 +28,13 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.Column
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -45,6 +47,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.network.NetworkMonitor
 import com.ai.tinymodels.feature.benchmark.BenchmarkScreen
 import com.ai.tinymodels.feature.chat.ChatListViewModel
@@ -94,18 +97,7 @@ fun TinyModelsApp(
                                 // current entry before launchSingleTop could
                                 // dedupe the tap, rebuilding the screen.
                                 if (TabNavigator.shouldNavigate(currentRoute, item.route)) {
-                                    val startDest = navController.graph.findStartDestination().id
-                                    navController.navigate(item.route) {
-                                        // Pop to start destination to avoid building up
-                                        // a deep back stack when switching tabs.
-                                        popUpTo(startDest) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        // Sibling tabs restore their preserved state
-                                        // (ViewModels survive the save/restore round trip).
-                                        restoreState = true
-                                    }
+                                    navController.navigateToTab(item.route)
                                 }
                             },
                             icon = {
@@ -113,10 +105,10 @@ fun TinyModelsApp(
                                     selected = selected,
                                     selectedIcon = item.selectedIcon,
                                     unselectedIcon = item.icon,
-                                    label = item.label
+                                    label = stringResource(item.labelRes)
                                 )
                             },
-                            label = { Text(item.label) }
+                            label = { Text(stringResource(item.labelRes)) }
                         )
                     }
                 }
@@ -133,7 +125,7 @@ fun TinyModelsApp(
 
                 composable(Routes.HOME) {
                     HomeScreen(
-                        onBrowseModels = { navController.navigate(Routes.MODELS) },
+                        onBrowseModels = { navController.navigateToTab(Routes.MODELS) },
                         onResumeChat = { chatId ->
                             navController.navigate(Routes.chatRoom(chatId))
                         },
@@ -147,7 +139,7 @@ fun TinyModelsApp(
                             )
                         },
                         onManageModels = { navController.navigate(Routes.DOWNLOADED_MODELS) },
-                        onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+                        onOpenSettings = { navController.navigateToTab(Routes.SETTINGS) },
                         onContentReady = onHomeReady
                     )
                 }
@@ -155,7 +147,7 @@ fun TinyModelsApp(
                 composable(Routes.CHAT) {
                     ChatTabScreen(
                         onOpenChat = { chatId -> navController.navigate(Routes.chatRoom(chatId)) },
-                        onNavigateToModels = { navController.navigate(Routes.MODELS) }
+                        onNavigateToModels = { navController.navigateToTab(Routes.MODELS) }
                     )
                 }
 
@@ -171,7 +163,7 @@ fun TinyModelsApp(
                 composable(Routes.SETTINGS) {
                     SettingsScreen(
                         onBack = { navController.popBackStack() },
-                        onManageModels = { navController.navigate(Routes.MODELS) },
+                        onManageModels = { navController.navigateToTab(Routes.MODELS) },
                         onDownloadedModels = { navController.navigate(Routes.DOWNLOADED_MODELS) },
                         onDeviceInfo = { navController.navigate(Routes.DEVICE_INFO) },
                         onBenchmark = { navController.navigate(Routes.BENCHMARK) },
@@ -199,7 +191,7 @@ fun TinyModelsApp(
                         onDownloadedFileClick = { fileName ->
                             navController.navigate(Routes.downloadedFileDetail(modelId, fileName))
                         },
-                        onOpenSettings = { navController.navigate(Routes.SETTINGS) }
+                        onOpenSettings = { navController.navigateToTab(Routes.SETTINGS) }
                     )
                 }
 
@@ -254,8 +246,10 @@ fun TinyModelsApp(
                     DeviceInfoScreen(
                         onBack = { navController.popBackStack() },
                         onBrowseModels = {
-                            navController.popBackStack()
-                            navController.navigate(Routes.MODELS)
+                            // Drop Device Info so returning to Settings doesn't restore
+                            // this pushed screen (it was intentionally left).
+                            navController.popBackStack(Routes.SETTINGS, inclusive = false)
+                            navController.navigateToTab(Routes.MODELS)
                         }
                     )
                 }
@@ -268,18 +262,34 @@ fun TinyModelsApp(
     }
 }
 
+/**
+ * Switches to a bottom-nav tab the same way the bar does: pops the stack up to
+ * the start destination (saving/restoring tab state) so cross-tab jumps never
+ * leave a stray destination that breaks subsequent tab taps.
+ */
+private fun NavHostController.navigateToTab(route: String) {
+    val startDest = graph.findStartDestination().id
+    navigate(route) {
+        popUpTo(startDest) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
+    }
+}
+
 private data class BottomNavItem(
     val route: String,
-    val label: String,
+    @StringRes val labelRes: Int,
     val icon: ImageVector,
     val selectedIcon: ImageVector
 )
 
 private val bottomNavItems = listOf(
-    BottomNavItem(Routes.HOME, "Home", Icons.Outlined.Home, Icons.Filled.Home),
-    BottomNavItem(Routes.CHAT, "Chat", Icons.Outlined.Chat, Icons.Filled.Chat),
-    BottomNavItem(Routes.MODELS, "Models", Icons.Outlined.Download, Icons.Filled.Download),
-    BottomNavItem(Routes.SETTINGS, "Settings", Icons.Outlined.Settings, Icons.Filled.Settings)
+    BottomNavItem(Routes.HOME, R.string.nav_home, Icons.Outlined.Home, Icons.Filled.Home),
+    BottomNavItem(Routes.CHAT, R.string.nav_chat, Icons.Outlined.Chat, Icons.Filled.Chat),
+    BottomNavItem(Routes.MODELS, R.string.nav_models, Icons.Outlined.Download, Icons.Filled.Download),
+    BottomNavItem(Routes.SETTINGS, R.string.nav_settings, Icons.Outlined.Settings, Icons.Filled.Settings)
 )
 
 /**

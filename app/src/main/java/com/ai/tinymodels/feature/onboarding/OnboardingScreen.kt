@@ -63,6 +63,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -74,6 +75,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.ui.components.TinyModelsLogo
 import kotlin.math.abs
 import kotlin.math.min
@@ -125,14 +127,14 @@ fun OnboardingScreen(
                 TinyModelsLogo(size = 31.dp)
                 Spacer(Modifier.width(10.dp))
                 Text(
-                    text = "TinyModels",
+                    text = stringResource(R.string.app_name),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = colors.onSurface
                 )
                 Spacer(Modifier.weight(1f))
                 TextButton(onClick = onSkip) {
-                    Text(if (isReplay) "Close" else "Skip")
+                    Text(stringResource(if (isReplay) R.string.common_close else R.string.onboarding_skip))
                 }
             }
 
@@ -169,7 +171,7 @@ fun OnboardingScreen(
                     )
 
                     Text(
-                        text = page.title,
+                        text = stringResource(page.titleRes),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.ExtraBold,
                         letterSpacing = (-0.4).sp,
@@ -180,7 +182,7 @@ fun OnboardingScreen(
                     Spacer(Modifier.height(12.dp))
 
                     Text(
-                        text = page.body,
+                        text = stringResource(page.bodyRes),
                         style = MaterialTheme.typography.bodyLarge,
                         lineHeight = 24.sp,
                         textAlign = TextAlign.Center,
@@ -237,17 +239,18 @@ fun OnboardingScreen(
                     .height(54.dp),
                 shape = RoundedCornerShape(18.dp)
             ) {
+                val ctaRes = when {
+                    lastPage && isReplay -> R.string.onboarding_done
+                    lastPage -> R.string.onboarding_get_started
+                    else -> R.string.onboarding_next
+                }
                 AnimatedContent(
-                    targetState = when {
-                        lastPage && isReplay -> "Done"
-                        lastPage -> "Get started"
-                        else -> "Next"
-                    },
+                    targetState = ctaRes,
                     transitionSpec = { fadeIn(tween(160)) togetherWith fadeOut(tween(120)) },
                     label = "onboardingCta"
                 ) { label ->
                     Text(
-                        text = label,
+                        text = stringResource(label),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold
                     )

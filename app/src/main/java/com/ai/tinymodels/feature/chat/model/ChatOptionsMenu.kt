@@ -1,5 +1,8 @@
 package com.ai.tinymodels.feature.chat.model
 
+import androidx.annotation.StringRes
+import com.ai.tinymodels.R
+
 /**
  * Contents of the "+" menu in the chat input bar.
  *
@@ -10,8 +13,11 @@ sealed interface PlusMenuItem {
     /** Photo-attach entry. Disabled with reason text when model lacks vision. */
     data class AttachPhoto(
         val enabled: Boolean,
-        /** Human-readable reason when disabled (e.g. "This model can't read photos..."). Null = enabled or just busy. */
-        val disabledReason: String? = null
+        /**
+         * Resource id of the human-readable reason shown when disabled
+         * (e.g. "This model can't read photos..."). Null = enabled or just busy.
+         */
+        @StringRes val disabledReasonRes: Int? = null
     ) : PlusMenuItem
 
     /**
@@ -39,8 +45,8 @@ fun buildPlusMenuItems(
 ): List<PlusMenuItem> = listOf(
     PlusMenuItem.AttachPhoto(
         enabled = supportsVision && canAttachPhoto,
-        disabledReason = if (supportsVision) null
-        else "This model can't read photos. Load a vision-capable model (e.g. Gemma 3) to analyze images."
+        disabledReasonRes = if (supportsVision) null
+        else R.string.chat_attach_photo_unavailable
     ),
     PlusMenuItem.WebSearch(
         checked = webSearchAvailable && webSearchEnabled,

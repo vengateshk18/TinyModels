@@ -1,0 +1,148 @@
+<resources>
+    <!-- ================= Home: onboarding (first-time) ================= -->
+    <string name="home_hero_title">AI மாதிரிகளை உங்கள் தொலைபேசியில் முழுமையாக இயக்குங்கள்.</string>
+    <string name="home_hero_subtitle">இண்டர்னெட் இல்லை. கிளவுட் இல்லை. எந்தத் தரவும் உங்கள் சாதனத்திலிருந்து வெளியேறாது.</string>
+    <string name="home_storage_note">மாதிரிகள் 600 MB முதல் 2 GB வரை. உங்களிடம் %1$s கட்டை இருந்து கிடைக்கிறது.</string>
+    <string name="home_browse_all_models">எல்லா மாதிரிகளையும் பார்க்கவும்</string>
+
+    <!-- ================= Home: device capability card ================= -->
+    <string name="home_device_card_title">உங்கள் சாதனம்</string>
+    <string name="home_device_capability_value">%1$s —</string>
+    <string name="home_device_can_run_models">%1$s மாதிரிகள் வரை சிரமமாக இயக்க முடியும்</string>
+
+    <!-- ================= Home: three-step strip ================= -->
+    <string name="home_step_download_title">பதிவிறக்கு</string>
+    <string name="home_step_download_caption">சில நிமிடங்கள் ஆகும்</string>
+    <string name="home_step_load_title">ஏற்று</string>
+    <string name="home_step_load_caption">முதல் ஏற்றம் மெதுவாக இருக்கலாம்</string>
+    <string name="home_step_chat_title">இண்டர்னெட் இல்லாமல் சாட்</string>
+    <string name="home_step_chat_caption">உங்கள் சாதனத்திலேயே தக்கவைக்கப்படும்</string>
+
+    <!-- ================= Home: recommended model card ================= -->
+    <string name="home_recommended_title">உங்கள் சாதனத்திற்கு பொருத்தமானது</string>
+    <string name="home_recommended_meta">%1$s நிலை • %2$s • %3$s</string>
+    <string name="home_download_button">பதிவிறக்கு (%1$s)</string>
+    <string name="home_downloaded_opening">பதிவிறக்கப்பட்டது! உங்கள் பல்புலத்தைத் திறக்கிறோம்…</string>
+    <string name="home_download_failed">பதிவிறக்கம் தோல்வியடைந்தது. இணைப்பைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.</string>
+    <string name="home_add_token">டோக்கன் சேர்</string>
+    <string name="home_model_page">மாதிரி பக்கம்</string>
+    <string name="home_waiting_for_connection">இணைப்புக்காகக் காத்திருக்கிறது… பதிவிறக்கம் தானாகத் தொடங்கும்.</string>
+    <string name="home_download_progress_with_speed">%1$d%% • %2$s/வினாடி</string>
+
+    <!-- ================= Home: dashboard ================= -->
+    <string name="home_thermal_advisory">பெரிய மாதிரிகள் உங்கள் சாதனத்தை சூடாக்கி, பேட்டரியை அதிகம் பயன்படுத்தும்.</string>
+    <string name="home_section_your_models">உங்கள் மாதிரிகள்</string>
+    <string name="home_manage_models">மாதிரிகளை நிர்வகிக்கவும்</string>
+    <string name="home_section_your_usage">உங்கள் பயன்பாடு</string>
+    <string name="home_stat_chats">சாட்கள்</string>
+    <string name="home_stat_tokens">டோக்கன்கள்</string>
+    <string name="home_stat_models_tried">முயற்சிக்கப்பட்ட மாதிரிகள்</string>
+    <string name="home_stat_messages">செய்திகள்</string>
+    <string name="home_stat_chats_this_week">இந்த வார சாட்கள்</string>
+    <string name="home_stat_compactions">சுருக்கங்கள்</string>
+    <string name="home_last_session_tps">கடைசி அமர்வு: ~%1$s டோக்கன்/வினாடி</string>
+    <string name="home_most_chatted">அதிகம் பேசியது</string>
+    <string name="home_chat_with_model">%1$s உடன் சாட்</string>
+
+    <!-- ================= Home: last-used model card ================= -->
+    <string name="home_ready_to_chat">சாட் செய்யத் தயார்</string>
+    <string name="home_your_model">உங்கள் மாதிரி</string>
+    <string name="home_this_model">இந்த மாதிரி</string>
+    <string name="home_model_context">%1$s • %2$d சூழல்</string>
+    <string name="home_resume_chat">சாட்டைத் தொடர்</string>
+    <string name="home_new_chat">புதிய சாட்</string>
+    <string name="home_new_chat_with_model">%1$s உடன் புதிய சாட்</string>
+
+    <!-- ================= Model tiers ================= -->
+    <string name="model_tier_small">சிறியது</string>
+    <string name="model_tier_medium">நடுத்தரம்</string>
+    <string name="model_tier_high">பெரியது</string>
+
+    <!-- ================= Device information screen ================= -->
+    <string name="device_info_title">சாதன தகவல்</string>
+    <string name="device_info_ready_title">சாதனத்திலேயே AI-க்குத் தயார்</string>
+    <string name="device_info_ai_capability">AI திறன்</string>
+    <string name="device_info_recommended_up_to">%1$s மாதிரிகள் வரை பரிந்துரைக்கப்படுகிறது</string>
+    <string name="device_info_memory_section">நினைவு</string>
+    <string name="device_info_available">கிடைக்கும்</string>
+    <string name="device_info_recommended_for_ai">AI-க்கு பரிந்துரைக்கப்படுகிறது</string>
+    <string name="device_info_live_ram_usage">நேரடி RAM பயன்பாடு</string>
+    <string name="device_info_browse_models">மாதிரிகளைப் பார்க்கவும்</string>
+
+    <!-- ================= AI capability levels ================= -->
+    <string name="device_capability_excellent">மிகச் சிறப்பு</string>
+    <string name="device_capability_good">நல்லது</string>
+    <string name="device_capability_limited">மட்டுப்படுத்தப்பட்டது</string>
+    <string name="device_capability_low">குறைவு</string>
+    <string name="device_capability_unknown">தெரியவில்லை</string>
+
+    <!-- ================= Device insights card ================= -->
+    <string name="device_insights_title">சாதன விவரங்கள்</string>
+    <string name="device_insights_thermal">வெப்பநிலை</string>
+    <string name="device_insights_thermal_state">நிலை %1$d</string>
+    <string name="device_insights_battery">பேட்டரி</string>
+    <string name="device_insights_gpu_renderer">GPU</string>
+    <string name="device_insights_storage">சேமிப்பு</string>
+    <string name="device_insights_storage_used">பயன்படுத்தியது %1$s</string>
+    <string name="device_insights_storage_free">கட்டை %1$s</string>
+    <string name="device_insights_processor">செயலி</string>
+    <string name="device_insights_cores">கோர்கள்</string>
+    <string name="device_insights_architecture">கட்டமைப்பு</string>
+    <string name="device_insights_64bit">64-பிட்</string>
+
+    <!-- Thermal status labels -->
+    <string name="device_thermal_normal">சாதாரணம்</string>
+    <string name="device_thermal_light">மெல்லிய வெப்பம்</string>
+    <string name="device_thermal_moderate">மிதமான வெப்பம்</string>
+    <string name="device_thermal_severe">தீவிர வெப்பம்</string>
+    <string name="device_thermal_critical">ஆபத்தான வெப்பம்</string>
+    <string name="device_thermal_emergency">அவசர வெப்பம்</string>
+    <string name="device_thermal_shutdown">இழக்க நிலை</string>
+    <string name="device_thermal_unknown">தெரியவில்லை</string>
+
+    <!-- Battery status labels -->
+    <string name="device_battery_unknown">தெரியவில்லை</string>
+    <string name="device_battery_charging">சார்ஜ் ஆகிறது</string>
+    <string name="device_battery_discharging">மின்சக்தி குறைகிறது</string>
+    <string name="device_battery_not_charging">சார்ஜ் ஆகவில்லை</string>
+    <string name="device_battery_full">முழுமையாக சார்ஜ்</string>
+
+    <!-- ================= RAM usage chart ================= -->
+    <string name="device_ram_usage_live_title">நேரடி RAM பயன்பாடு</string>
+    <string name="device_ram_usage_percent_used">%1$.2f%% பயன்படுத்தப்பட்டது</string>
+    <string name="device_ram_usage_collecting">மாதிரிகள் சேகரிக்கப்படுகின்றன…</string>
+    <string name="device_ram_usage_used">பயன்படுத்தியது %1$s</string>
+    <string name="device_ram_usage_free_of">%2$s இல் %1$s கட்டை</string>
+
+    <!-- ================= RAM recommendations ================= -->
+    <string name="ram_recommendations_title">பரிந்துரைகள்</string>
+    <string name="ram_rec_plenty_capacity">3B–7B மாதிரிகளைச் சிரமமாக ஏற்றலாம்</string>
+    <string name="ram_rec_plenty_context">பெரிய சூழல் உள்ள நீண்ட சமவசங்களுக்கு மிகச் சிறப்பு</string>
+    <string name="ram_rec_moderate_capacity">நடுத்தர இடம் — 1B–3B மாதிரிகளே சிறந்தவை</string>
+    <string name="ram_rec_moderate_compaction">நீண்ட சமவசங்களுக்குச் சுருக்கம் விரைவில் தேவைப்படலாம்</string>
+    <string name="ram_rec_limited_capacity">மட்டுப்படுத்தப்பட்டது — சிறிய மாதிரிகள் (&lt;1B) மட்டுமே பொருந்தும்</string>
+    <string name="ram_rec_limited_close_apps">RAM விடுவிக்க மற்ற செயலிகளை மூடவும்</string>
+    <string name="ram_rec_critical_close_apps">ஆபத்தானது — எந்த மாதிரியையும் ஏற்றுவதற்கு முன் மற்ற செயலிகளை மூடவும்</string>
+    <string name="ram_rec_critical_no_models">இப்போது எந்த மாதிரியையும் ஏற்ற முடியாது</string>
+    <string name="ram_rec_thermal_throttling">சாதனம் வெப்பமாகிறது — செயல்திறன் குறையும்</string>
+    <string name="ram_rec_battery_low">பேட்டரி குறைவு — பெரிய மாதிரிகளை ஏற்றும்போது சார்ஜரை அருகில் வையுங்கள்</string>
+    <string name="home_download_progress">%1$d%%</string>
+    <string name="home_device_model_tier">%1$s: %2$s (%3$s)</string>
+    <string name="device_insights_battery_percent">%1$d%%</string>
+    <plurals name="home_model_files_last_used">
+        <item quantity="one">%1$s • %2$d கோப்பு • கடைசிய பயன்பாடு</item>
+        <item quantity="other">%1$s • %2$d கோப்புகள் • கடைசிய பயன்பாடு</item>
+    </plurals>
+    <plurals name="home_model_files_relative">
+        <item quantity="one">%1$s • %2$d கோப்பு • %3$s</item>
+        <item quantity="other">%1$s • %2$d கோப்புகள் • %3$s</item>
+    </plurals>
+    <plurals name="home_show_more_models">
+        <item quantity="one">%1$d மாதிரி மேலும்</item>
+        <item quantity="other">%1$d மாதிரிகள் மேலும்</item>
+    </plurals>
+    <plurals name="home_web_search_chats">
+        <item quantity="one">%1$d சாட்டில் இணைய தேடல் இயக்கம்</item>
+        <item quantity="other">%1$d சாட்களில் இணைய தேடல் இயக்கம்</item>
+    </plurals>
+</resources>

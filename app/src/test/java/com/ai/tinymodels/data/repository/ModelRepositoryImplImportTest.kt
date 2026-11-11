@@ -4,6 +4,7 @@ import android.content.ContentResolver
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.AppResult
 import com.ai.tinymodels.core.common.DispatcherProvider
 import com.ai.tinymodels.core.database.DownloadedModelDao
@@ -48,6 +49,12 @@ class ModelRepositoryImplImportTest {
     @Before
     fun setUp() {
         every { context.contentResolver } returns resolver
+        every { context.getString(any()) } answers { firstArg<Int>().toString() }
+        every { context.getString(any(), *anyVararg()) } answers {
+            firstArg<Int>().toString() + "(" + invocation.args.drop(1)
+                .flatMap { arg -> if (arg is Array<*>) arg.toList() else listOf(arg) }
+                .joinToString(",") + ")"
+        }
         repo = ModelRepositoryImpl(context, downloadedModelDao, modelFileDao, api, dispatchers)
     }
 
@@ -65,7 +72,10 @@ class ModelRepositoryImplImportTest {
         val result = repo.importModel(sourceUriServing("notes.txt"))
 
         assertTrue(result is AppResult.Error)
-        assertTrue((result as AppResult.Error).error.message?.contains("Invalid file type") == true)
+        assertTrue(
+            (result as AppResult.Error).error.message
+                ?.contains(R.string.model_import_invalid_file_type.toString()) == true
+        )
     }
 
     @Test
@@ -94,6 +104,9 @@ class ModelRepositoryImplImportTest {
         val result = repo.importModel(sourceUriServing(fileName))
 
         assertTrue(result is AppResult.Error)
-        assertTrue((result as AppResult.Error).error.message?.contains("already exists") == true)
+        assertTrue(
+            (result as AppResult.Error).error.message
+                ?.contains(R.string.model_import_already_exists.toString()) == true
+        )
     }
 }

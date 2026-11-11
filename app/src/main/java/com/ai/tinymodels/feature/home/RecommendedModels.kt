@@ -1,5 +1,6 @@
 package com.ai.tinymodels.feature.home
 
+import com.ai.tinymodels.R
 import com.ai.tinymodels.feature.home.model.RecommendedModel
 
 /**
@@ -18,29 +19,29 @@ import com.ai.tinymodels.feature.home.model.RecommendedModel
 object RecommendedModels {
 
     val SMALL = RecommendedModel(
-        tier = "Small",
+        tierRes = R.string.model_tier_small,
         modelId = "gbpeck/Qwen3-0.6B-litertlm-jinja",
         fileName = "Qwen3-0.6B.litertlm",
         sizeBytes = 613_442_992L,
-        displayName = "Qwen3 0.6B",
+        displayNameRes = R.string.model_name_qwen3_0_6b,
         hfUrl = "https://huggingface.co/gbpeck/Qwen3-0.6B-litertlm-jinja"
     )
 
     val MEDIUM = RecommendedModel(
-        tier = "Medium",
+        tierRes = R.string.model_tier_medium,
         modelId = "litert-community/DeepSeek-R1-Distill-Qwen-1.5B",
         fileName = "DeepSeek-R1-Distill-Qwen-1.5B_multi-prefill-seq_q8_ekv4096.litertlm",
         sizeBytes = 1_833_451_520L,
-        displayName = "DeepSeek R1 1.5B",
+        displayNameRes = R.string.model_name_deepseek_r1_1_5b,
         hfUrl = "https://huggingface.co/litert-community/DeepSeek-R1-Distill-Qwen-1.5B"
     )
 
     val HIGH = RecommendedModel(
-        tier = "High",
+        tierRes = R.string.model_tier_high,
         modelId = "paulsp94/Qwen3.5-2B-LiteRT-LM",
         fileName = "qwen35_2b.litertlm",
         sizeBytes = 1_901_762_208L,
-        displayName = "Qwen3.5 2B",
+        displayNameRes = R.string.model_name_qwen3_5_2b,
         hfUrl = "https://huggingface.co/paulsp94/Qwen3.5-2B-LiteRT-LM"
     )
 

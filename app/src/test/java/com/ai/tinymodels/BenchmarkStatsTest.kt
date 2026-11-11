@@ -176,8 +176,8 @@ class BenchmarkStatsTest {
 
     @Test
     fun `low variation across runs counts as stable`() {
-        assertEquals("Stable", BenchmarkMath.stabilityLabel(0.03))
-        assertEquals("Fair", BenchmarkMath.stabilityLabel(0.12))
-        assertEquals("Unstable", BenchmarkMath.stabilityLabel(0.30))
+        assertEquals(BenchmarkMath.Stability.STABLE, BenchmarkMath.stabilityFor(0.03))
+        assertEquals(BenchmarkMath.Stability.FAIR, BenchmarkMath.stabilityFor(0.12))
+        assertEquals(BenchmarkMath.Stability.UNSTABLE, BenchmarkMath.stabilityFor(0.30))
     }
 }

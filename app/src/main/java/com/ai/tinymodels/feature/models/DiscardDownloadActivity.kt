@@ -17,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import androidx.work.WorkManager
 import androidx.work.await
+import androidx.compose.ui.res.stringResource
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.DownloadNotifier
 import com.ai.tinymodels.core.ui.theme.TinyModelsTheme
 import com.ai.tinymodels.domain.model.FileDownloadStatus
@@ -65,28 +67,27 @@ class DiscardDownloadActivity : ComponentActivity() {
                     AlertDialog(
                         onDismissRequest = { finish() },
                         icon = { Icon(Icons.Filled.Warning, contentDescription = null) },
-                        title = { Text("Discard download?") },
+                        title = { Text(stringResource(R.string.model_details_discard_title)) },
                         text = {
                             Text(
                                 buildString {
                                     fileName?.let { append(it.substringAfterLast("/")) }
                                         ?: append(modelId)
                                     append("\n\n")
-                                    append("The download will stop and the partial data will be deleted. ")
-                                    append("This cannot be undone.")
+                                    append(stringResource(R.string.model_details_discard_body_notification))
                                 }
                             )
                         },
                         confirmButton = {
                             TextButton(onClick = { discard(workId, modelId, fileName) }) {
                                 Text(
-                                    "Discard",
+                                    stringResource(R.string.model_details_discard),
                                     color = MaterialTheme.colorScheme.error
                                 )
                             }
                         },
                         dismissButton = {
-                            TextButton(onClick = { finish() }) { Text("Keep") }
+                            TextButton(onClick = { finish() }) { Text(stringResource(R.string.model_details_keep)) }
                         }
                     )
                 }

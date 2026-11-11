@@ -73,6 +73,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
+import com.ai.tinymodels.R
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -119,10 +122,10 @@ fun ModelDetailsScreen(
         contentWindowInsets = safeDrawing,
         topBar = {
             TopAppBar(
-                title = { Text("Model details", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                title = { Text(stringResource(R.string.model_details_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -152,24 +155,31 @@ fun ModelDetailsScreen(
             AlertDialog(
                 onDismissRequest = { oversizedFile = null },
                 icon = { Icon(Icons.Filled.Warning, contentDescription = null) },
-                title = { Text("File too large for this device") },
+                title = { Text(stringResource(R.string.model_details_file_too_large_title)) },
                 text = {
                     Text(
-                        (if (pendingSize > 0) "This file (${Formatters.formatBytes(pendingSize)}) " else "This file ")
-                            + "needs more RAM than your device has "
-                            + "(${Formatters.formatBytes(uiState.deviceRamBytes)}). "
-                            + "You can download it, but it cannot be used for chat or "
-                            + "benchmark on this device."
+                        if (pendingSize > 0) {
+                            stringResource(
+                                R.string.model_details_file_too_large_body,
+                                Formatters.formatBytes(pendingSize, LocalContext.current.resources),
+                                Formatters.formatBytes(uiState.deviceRamBytes, LocalContext.current.resources)
+                            )
+                        } else {
+                            stringResource(
+                                R.string.model_details_file_too_large_body_unknown_size,
+                                Formatters.formatBytes(uiState.deviceRamBytes, LocalContext.current.resources)
+                            )
+                        }
                     )
                 },
                 confirmButton = {
                     TextButton(onClick = {
                         oversizedFile = null
                         viewModel.onDownloadFileClicked(pending)
-                    }) { Text("Download anyway") }
+                    }) { Text(stringResource(R.string.model_details_download_anyway)) }
                 },
                 dismissButton = {
-                    TextButton(onClick = { oversizedFile = null }) { Text("Cancel") }
+                    TextButton(onClick = { oversizedFile = null }) { Text(stringResource(R.string.common_cancel)) }
                 }
             )
         }
@@ -182,19 +192,29 @@ fun ModelDetailsScreen(
             AlertDialog(
                 onDismissRequest = { fileToDiscard = null },
                 icon = { Icon(Icons.Filled.Warning, contentDescription = null) },
-                title = { Text("Discard download?") },
+                title = { Text(stringResource(R.string.model_details_discard_title)) },
                 text = {
                     Text(
                         buildString {
                             append(pending.substringAfterLast("/"))
                             append("\n\n")
                             if (partial > 0) {
-                                append(Formatters.formatBytes(partial))
-                                append(" downloaded so far will be deleted. ")
+                                append(
+                                    stringResource(
+                                        R.string.model_details_discard_bytes_deleted,
+                                        Formatters.formatBytes(partial, LocalContext.current.resources)
+                                    )
+                                )
+                                append(" ")
                             } else {
-                                append("The partial data for this file will be deleted. ")
+                                append(
+                                    stringResource(R.string.model_details_discard_partial_deleted)
+                                )
+                                append(" ")
                             }
-                            append("The download will have to start over, and this cannot be undone.")
+                            append(
+                                stringResource(R.string.model_details_discard_body_end)
+                            )
                         }
                     )
                 },
@@ -204,13 +224,13 @@ fun ModelDetailsScreen(
                         viewModel.onDiscardFile(pending)
                     }) {
                         Text(
-                            "Discard",
+                            stringResource(R.string.model_details_discard),
                             color = MaterialTheme.colorScheme.error
                         )
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { fileToDiscard = null }) { Text("Keep") }
+                    TextButton(onClick = { fileToDiscard = null }) { Text(stringResource(R.string.model_details_keep)) }
                 }
             )
         }
@@ -228,11 +248,12 @@ fun ModelDetailsScreen(
                 uiState.isOfflineError ->
                     OfflineState(onRetry = viewModel::load)
                 uiState.error != null -> ErrorState(
-                    message = uiState.errorMessage ?: "Failed to load details",
+                    message = uiState.errorMessageRes?.let { stringResource(it) }
+                        ?: stringResource(R.string.model_details_error_failed_to_load),
                     onRetry = viewModel::load,
                     // Gated model — offer a direct path to add a token.
                     secondaryActionLabel = if (uiState.error is AppError.Auth)
-                        "Add Hugging Face token" else null,
+                        stringResource(R.string.model_details_add_hf_token) else null,
                     onSecondaryAction = if (uiState.error is AppError.Auth)
                         onOpenSettings else null
                 )
@@ -318,7 +339,7 @@ private fun HeaderCard(model: ModelDetails) {
                 model.pipelineTag?.takeIf { it.isNotBlank() }?.let { Chip(it) }
                 model.libraryName?.takeIf { it.isNotBlank() }?.let { Chip(it) }
                 if (model.isGated) {
-                    Chip("gated", leading = {
+                    Chip(stringResource(R.string.model_details_gated), leading = {
                         Icon(Icons.Filled.Lock, contentDescription = null, modifier = Modifier.size(12.dp))
                     })
                 }
@@ -334,10 +355,10 @@ private fun StatsCard(model: ModelDetails, modelFiles: List<com.ai.tinymodels.do
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Row(modifier = Modifier.fillMaxWidth().padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween) {
-            StatItem(Icons.Filled.TrendingUp, "Downloads", Formatters.formatCount(model.downloads ?: 0))
-            StatItem(Icons.Filled.Favorite, "Likes", Formatters.formatCount((model.likes ?: 0).toLong()))
-            StatItem(Icons.Filled.SdStorage, "Repo size", Formatters.formatBytes(model.usedStorage ?: 0))
-            StatItem(Icons.Filled.CheckCircle, "Downloaded", "$downloadedCount/${model.runtimeFiles.ifEmpty { model.liteRtFiles }.size}")
+            StatItem(Icons.Filled.TrendingUp, stringResource(R.string.model_details_stat_downloads), Formatters.formatCount(model.downloads ?: 0))
+            StatItem(Icons.Filled.Favorite, stringResource(R.string.model_details_stat_likes), Formatters.formatCount((model.likes ?: 0).toLong()))
+            StatItem(Icons.Filled.SdStorage, stringResource(R.string.model_details_stat_repo_size), Formatters.formatBytes(model.usedStorage ?: 0, LocalContext.current.resources))
+            StatItem(Icons.Filled.CheckCircle, stringResource(R.string.model_details_stat_downloaded), "$downloadedCount/${model.runtimeFiles.ifEmpty { model.liteRtFiles }.size}")
         }
     }
 }
@@ -359,8 +380,8 @@ private fun TryItCard(prompts: List<String>) {
     Card(modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Try it", style = MaterialTheme.typography.titleMedium)
-            Text("Sample prompts for this model",
+            Text(stringResource(R.string.model_details_try_it), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.model_details_sample_prompts),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(modifier = Modifier.height(10.dp))
@@ -377,12 +398,18 @@ private fun AboutCard(model: ModelDetails) {
     Card(modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("About", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.model_details_about), style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(10.dp))
-            InfoRow("Updated", Formatters.formatDate(model.lastModified))
-            InfoRow("Created", Formatters.formatDate(model.createdAt))
-            model.baseModel?.takeIf { it.isNotBlank() }?.let { InfoRow("Base model", it) }
-            model.sha?.takeIf { it.isNotBlank() }?.let { InfoRow("Revision", it.take(10)) }
+            InfoRow(
+                stringResource(R.string.model_details_updated),
+                Formatters.formatDate(model.lastModified, LocalContext.current.resources)
+            )
+            InfoRow(
+                stringResource(R.string.model_details_created),
+                Formatters.formatDate(model.createdAt, LocalContext.current.resources)
+            )
+            model.baseModel?.takeIf { it.isNotBlank() }?.let { InfoRow(stringResource(R.string.model_details_base_model), it) }
+            model.sha?.takeIf { it.isNotBlank() }?.let { InfoRow(stringResource(R.string.model_details_revision), it.take(10)) }
         }
     }
 }
@@ -403,7 +430,7 @@ private fun TagsCard(tags: List<String>) {
     Card(modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Tags", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.model_details_tags), style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(10.dp))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -428,9 +455,9 @@ private fun InteractiveFilesCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Files", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.model_details_files), style = MaterialTheme.typography.titleMedium)
             Text(
-                "Download files individually — several can run at once.",
+                stringResource(R.string.model_details_files_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -565,10 +592,10 @@ private fun FileMetaLine(
 ) {
     val sizeKnown = fileSize > 0
     val sizeText = when {
-        sizeKnown -> Formatters.formatBytes(fileSize)
+        sizeKnown -> Formatters.formatBytes(fileSize, LocalContext.current.resources)
         state.phase == FileRowPhase.DOWNLOADED -> null
-        sizeStatus == FileSizeStatus.LOADING -> "Loading size…"
-        else -> "Size can't be determined"
+        sizeStatus == FileSizeStatus.LOADING -> stringResource(R.string.model_details_size_loading)
+        else -> stringResource(R.string.model_details_size_unknown)
     }
 
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -581,11 +608,11 @@ private fun FileMetaLine(
         }
         val (label, tint) = when {
             state.phase == FileRowPhase.DOWNLOADED ->
-                "Downloaded" to MaterialTheme.colorScheme.primary
+                stringResource(R.string.model_details_status_downloaded) to MaterialTheme.colorScheme.primary
             sizeKnown && !isLoadable ->
-                "Too large for this device" to MaterialTheme.colorScheme.error
+                stringResource(R.string.model_details_too_large_short) to MaterialTheme.colorScheme.error
             sizeKnown ->
-                "Fits your device" to MaterialTheme.colorScheme.onSurfaceVariant
+                stringResource(R.string.model_details_fits_device) to MaterialTheme.colorScheme.onSurfaceVariant
             else -> return@Row
         }
         Text(
@@ -621,15 +648,18 @@ private fun PausedProgress(state: FileRowState) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         val detail = if (state.totalBytes > 0) {
             buildString {
-                append(Formatters.formatBytes(state.downloadedBytes))
+                append(Formatters.formatBytes(state.downloadedBytes, LocalContext.current.resources))
                 append(" / ")
-                append(Formatters.formatBytes(state.totalBytes))
+                append(Formatters.formatBytes(state.totalBytes, LocalContext.current.resources))
                 append(" · ")
                 append((state.progress * 100).toInt())
                 append("%")
             }
         } else {
-            Formatters.formatBytes(state.downloadedBytes) + " downloaded"
+            stringResource(
+                R.string.model_details_downloaded_bytes,
+                Formatters.formatBytes(state.downloadedBytes, LocalContext.current.resources)
+            )
         }
         Text(
             detail,
@@ -639,7 +669,7 @@ private fun PausedProgress(state: FileRowState) {
         )
         Spacer(modifier = Modifier.weight(1f))
         Text(
-            "Paused · resumable",
+            stringResource(R.string.model_details_paused_resumable),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.tertiary,
             maxLines = 1
@@ -654,7 +684,7 @@ private fun ActiveProgress(state: FileRowState) {
         IndeterminateTrack()
         Spacer(modifier = Modifier.height(6.dp))
         Text(
-            "Waiting for network",
+            stringResource(R.string.downloads_waiting_for_network),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -675,10 +705,10 @@ private fun ActiveProgress(state: FileRowState) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             buildString {
-                append(Formatters.formatBytes(state.downloadedBytes))
+                append(Formatters.formatBytes(state.downloadedBytes, LocalContext.current.resources))
                 if (state.totalBytes > 0) {
                     append(" / ")
-                    append(Formatters.formatBytes(state.totalBytes))
+                    append(Formatters.formatBytes(state.totalBytes, LocalContext.current.resources))
                     append(" · ")
                     append((progress * 100).toInt())
                     append("%")
@@ -691,7 +721,12 @@ private fun ActiveProgress(state: FileRowState) {
         Spacer(modifier = Modifier.weight(1f))
         val trailing = buildList {
             if (state.bytesPerSecond > 0) {
-                add("${Formatters.formatBytes(state.bytesPerSecond)}/s")
+                add(
+                    stringResource(
+                        R.string.downloads_speed_only,
+                        Formatters.formatBytes(state.bytesPerSecond, LocalContext.current.resources)
+                    )
+                )
             }
             DownloadEta
                 .label(state.downloadedBytes, state.totalBytes, state.bytesPerSecond)
@@ -755,7 +790,7 @@ private fun FileActions(
     when (state.phase) {
         FileRowPhase.IDLE -> CircleAction(
             icon = Icons.Filled.Download,
-            contentDescription = "Download",
+            contentDescription = stringResource(R.string.model_details_download_desc),
             container = MaterialTheme.colorScheme.primary,
             content = MaterialTheme.colorScheme.onPrimary,
             onClick = onDownload
@@ -763,7 +798,7 @@ private fun FileActions(
         FileRowPhase.DOWNLOADING -> ProgressRingAction(progress = state.progress, onClick = onPause)
         FileRowPhase.QUEUED -> CircleAction(
             icon = Icons.Filled.Close,
-            contentDescription = "Cancel queued download",
+            contentDescription = stringResource(R.string.model_details_cancel_queued_desc),
             container = MaterialTheme.colorScheme.secondaryContainer,
             content = MaterialTheme.colorScheme.onSecondaryContainer,
             onClick = onPause,
@@ -772,7 +807,7 @@ private fun FileActions(
         FileRowPhase.PAUSED -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             CircleAction(
                 icon = Icons.Filled.Close,
-                contentDescription = "Discard download",
+                contentDescription = stringResource(R.string.model_details_discard_desc),
                 container = MaterialTheme.colorScheme.surfaceContainerHighest,
                 content = MaterialTheme.colorScheme.onSurfaceVariant,
                 onClick = onDiscard,
@@ -780,7 +815,7 @@ private fun FileActions(
             )
             CircleAction(
                 icon = Icons.Filled.PlayArrow,
-                contentDescription = "Resume download",
+                contentDescription = stringResource(R.string.model_details_resume_desc),
                 container = MaterialTheme.colorScheme.primary,
                 content = MaterialTheme.colorScheme.onPrimary,
                 onClick = onResume
@@ -789,7 +824,7 @@ private fun FileActions(
         FileRowPhase.FAILED -> Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             CircleAction(
                 icon = Icons.Filled.Close,
-                contentDescription = "Discard download",
+                contentDescription = stringResource(R.string.model_details_discard_desc),
                 container = MaterialTheme.colorScheme.surfaceContainerHighest,
                 content = MaterialTheme.colorScheme.onSurfaceVariant,
                 onClick = onDiscard,
@@ -797,7 +832,7 @@ private fun FileActions(
             )
             CircleAction(
                 icon = Icons.Filled.Refresh,
-                contentDescription = "Retry download",
+                contentDescription = stringResource(R.string.model_details_retry_desc),
                 container = MaterialTheme.colorScheme.primary,
                 content = MaterialTheme.colorScheme.onPrimary,
                 onClick = onDownload
@@ -805,7 +840,7 @@ private fun FileActions(
         }
         FileRowPhase.DOWNLOADED -> Icon(
             Icons.Filled.CheckCircle,
-            contentDescription = "Downloaded",
+            contentDescription = stringResource(R.string.model_details_status_downloaded),
             modifier = Modifier.size(28.dp),
             tint = MaterialTheme.colorScheme.primary
         )
@@ -859,7 +894,7 @@ private fun ProgressRingAction(progress: Float, onClick: () -> Unit) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     Icons.Filled.Pause,
-                    contentDescription = "Pause download",
+                    contentDescription = stringResource(R.string.model_details_pause_desc),
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -911,15 +946,19 @@ private fun DownloadBar(
                     Icon(Icons.Filled.CheckCircle, contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Downloaded", color = MaterialTheme.colorScheme.primary,
+                    Text(stringResource(R.string.model_details_status_downloaded), color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
                 }
             } else {
-                val sizeLabel = if (totalSizeBytes > 0) Formatters.formatBytes(totalSizeBytes) else null
+                val sizeLabel = if (totalSizeBytes > 0) Formatters.formatBytes(totalSizeBytes, LocalContext.current.resources) else null
                 Button(onClick = onAction, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(if (sizeLabel != null) "Download \u00b7 $sizeLabel" else "Download")
+                    Text(if (sizeLabel != null) {
+                        stringResource(R.string.downloads_button_with_size, sizeLabel)
+                    } else {
+                        stringResource(R.string.downloads_button)
+                    })
                 }
 
                 // Error (e.g. failed / not enough storage) with a subtle retry hint.

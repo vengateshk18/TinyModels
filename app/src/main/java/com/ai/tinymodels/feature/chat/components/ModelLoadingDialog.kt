@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.res.stringResource
+import com.ai.tinymodels.R
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -100,7 +102,7 @@ fun ModelLoadingDialog(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
-                    text = "Loading model",
+                    text = stringResource(R.string.chat_loading_title),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -158,9 +160,12 @@ fun ModelLoadingDialog(
                     ) { stage ->
                         Text(
                             text = when (stage) {
-                                ModelLoadProgress.LoadStage.INITIALIZING -> "Initializing engine…"
-                                ModelLoadProgress.LoadStage.LOADING_WEIGHTS -> "Loading weights…"
-                                ModelLoadProgress.LoadStage.READY -> "Ready!"
+                                ModelLoadProgress.LoadStage.INITIALIZING ->
+                                    stringResource(R.string.chat_loading_stage_initializing)
+                                ModelLoadProgress.LoadStage.LOADING_WEIGHTS ->
+                                    stringResource(R.string.chat_loading_stage_weights)
+                                ModelLoadProgress.LoadStage.READY ->
+                                    stringResource(R.string.chat_loading_stage_ready)
                             },
                             style = MaterialTheme.typography.labelSmall,
                             color = if (stage == ModelLoadProgress.LoadStage.READY)
@@ -172,9 +177,9 @@ fun ModelLoadingDialog(
                     AnimatedVisibility(visible = visual != ModelLoadVisual.WORKING) {
                         Text(
                             text = if (visual == ModelLoadVisual.COMPLETE) {
-                                "100%"
+                                stringResource(R.string.common_percent, 100)
                             } else {
-                                "${(display * 100).toInt()}%"
+                                stringResource(R.string.common_percent, (display * 100).toInt())
                             },
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary

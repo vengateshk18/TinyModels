@@ -1,7 +1,9 @@
 package com.ai.tinymodels.feature.chat
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ai.tinymodels.R
 import com.ai.tinymodels.domain.model.ChatSummary
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.repository.ChatRepository
@@ -9,6 +11,7 @@ import com.ai.tinymodels.domain.repository.ModelRepository
 import com.ai.tinymodels.domain.repository.SettingsRepository
 import com.ai.tinymodels.feature.chat.model.ChatListItem
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +28,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class ChatListViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val chatRepository: ChatRepository,
     private val modelRepository: ModelRepository,
     private val settingsRepository: SettingsRepository
@@ -55,7 +59,7 @@ class ChatListViewModel @Inject constructor(
         viewModelScope.launch {
             val models = modelRepository.observeDownloadedModels().first()
             if (models.isEmpty()) {
-                onError("Download a model first to start chatting.")
+                onError(context.getString(R.string.chat_error_download_model_first))
                 return@launch
             }
             // Navigate with a sentinel id that tells ChatViewModel to start fresh

@@ -1,0 +1,36 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- App -->
+
+    <!-- Shared UI actions and labels (usable from any feature) -->
+    <string name="common_cancel">キャンセル</string>
+    <string name="common_retry">再試行</string>
+    <string name="common_back">戻る</string>
+    <string name="common_dismiss">閉じる</string>
+    <string name="common_delete">削除</string>
+    <string name="common_close">閉じる</string>
+    <string name="common_yes">はい</string>
+    <string name="common_no">いいえ</string>
+    <string name="common_unknown">不明</string>
+    <string name="common_percent">%1$d%%</string>
+
+    <!-- Shared relative-time wording (Formatters) -->
+    <string name="common_time_just_now">たった今</string>
+    <string name="common_time_minutes_ago">%1$dm前</string>
+    <string name="common_time_hours_ago">%1$dh前</string>
+    <string name="common_time_days_ago">%1$dd前</string>
+
+    <!-- リソース抽出で追加された新しい文字列 -->
+    <string name="common_save">保存</string>
+    <string name="error_no_connection">オフラインです。インターネット接続を確認して、もう一度お試しください。</string>
+    <string name="error_timeout">接続がタイムアウトしました。もう一度お試しください。</string>
+    <string name="error_gated">このモデルはゲート付きです。設定で Hugging Face アクセストークンを追加するか、先に huggingface.co でライセンスに同意してください。</string>
+    <string name="error_no_access">このモデルへのアクセス権がありません。ゲート付きの可能性があります。huggingface.co でライセンスを確認してください。</string>
+    <string name="error_too_many_requests">リクエストが多すぎます。少し待ってからもう一度お試しください。</string>
+    <string name="error_server">Hugging Face で現在問題が発生しています。しばらくしてからもう一度お試しください。</string>
+    <string name="error_not_found">モデルが見つかりません。Hugging Face から削除された可能性があります。</string>
+    <string name="error_network">ネットワークエラーです。接続を確認して、もう一度お試しください。</string>
+    <string name="error_storage">空きストレージが不足しています。</string>
+    <string name="error_unknown">問題が発生しました。もう一度お試しください。</string>
+    <string name="notification_pause">一時停止</string>
+    <string name="notification_cancel">キャンセル</string>
+</resources>

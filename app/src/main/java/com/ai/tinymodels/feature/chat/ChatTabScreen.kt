@@ -56,6 +56,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -66,6 +69,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ai.tinymodels.R
+import com.ai.tinymodels.core.ui.Formatters
 import com.ai.tinymodels.core.ui.components.EmptyState
 import com.ai.tinymodels.feature.chat.model.ChatListItem
 import java.text.SimpleDateFormat
@@ -106,7 +111,7 @@ fun ChatTabScreen(
         contentWindowInsets = safeTopHorizontal,
         topBar = {
             TopAppBar(
-                title = { Text("Chats") },
+                title = { Text(stringResource(R.string.chat_tab_title)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer
                 )
@@ -123,7 +128,7 @@ fun ChatTabScreen(
                     )
                 }
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "New chat")
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.chat_new_chat))
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -137,8 +142,8 @@ fun ChatTabScreen(
                     .padding(padding)
             ) {
                 EmptyState(
-                    title = "No conversations yet",
-                    message = "Tap + to start a new chat"
+                    title = stringResource(R.string.chat_no_conversations),
+                    message = stringResource(R.string.chat_tap_plus_to_start)
                 )
             }
         } else {
@@ -159,7 +164,7 @@ fun ChatTabScreen(
                 val unpinned = chats.filterNot { it.isPinned }
 
                 if (pinned.isNotEmpty()) {
-                    item(key = "header-pinned") { ListSectionLabel("Pinned") }
+                    item(key = "header-pinned") { ListSectionLabel(stringResource(R.string.chat_section_pinned)) }
                     items(pinned, key = { it.id }) { chat ->
                         ChatSessionRow(
                             chat = chat,
@@ -172,7 +177,7 @@ fun ChatTabScreen(
                 }
                 if (unpinned.isNotEmpty()) {
                     if (pinned.isNotEmpty()) {
-                        item(key = "header-recent") { ListSectionLabel("Recent") }
+                        item(key = "header-recent") { ListSectionLabel(stringResource(R.string.chat_section_recent)) }
                     }
                     items(unpinned, key = { it.id }) { chat ->
                         ChatSessionRow(
@@ -192,21 +197,23 @@ fun ChatTabScreen(
     pendingDelete?.let { chat ->
         AlertDialog(
             onDismissRequest = { pendingDelete = null },
-            title = { Text("Delete chat?") },
+            title = { Text(stringResource(R.string.chat_delete_title)) },
             text = {
                 Text(
-                    "\"${chat.title.ifBlank { "Untitled" }}\" will be permanently deleted. " +
-                        "This action cannot be undone."
+                    stringResource(
+                        R.string.chat_delete_body,
+                        chat.title.ifBlank { stringResource(R.string.chat_untitled) }
+                    )
                 )
             },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteChat(chat.id)
                     pendingDelete = null
-                }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
+                }) { Text(stringResource(R.string.common_delete), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
-                TextButton(onClick = { pendingDelete = null }) { Text("Cancel") }
+                TextButton(onClick = { pendingDelete = null }) { Text(stringResource(R.string.common_cancel)) }
             }
         )
     }
@@ -262,7 +269,7 @@ private fun RenameChatDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Rename chat") },
+        title = { Text(stringResource(R.string.chat_rename_title)) },
         text = {
             OutlinedTextField(
                 value = text,
@@ -276,7 +283,7 @@ private fun RenameChatDialog(
                         )
                     }
                 },
-                label = { Text("Chat name") },
+                label = { Text(stringResource(R.string.chat_rename_label)) },
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -290,10 +297,10 @@ private fun RenameChatDialog(
             TextButton(
                 onClick = { onConfirm(text.text) },
                 enabled = text.text.isNotBlank()
-            ) { Text("Save") }
+            ) { Text(stringResource(R.string.common_save)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
         }
     )
 }
@@ -347,14 +354,14 @@ private fun ChatSessionRow(
                     if (chat.isPinned) {
                         Icon(
                             Icons.Filled.PushPin,
-                            contentDescription = "Pinned",
+                            contentDescription = stringResource(R.string.chat_pinned_content_description),
                             modifier = Modifier.size(13.dp),
                             tint = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                     }
                     Text(
-                        text = chat.title.ifBlank { "Untitled" },
+                        text = chat.title.ifBlank { stringResource(R.string.chat_untitled) },
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
@@ -379,13 +386,20 @@ private fun ChatSessionRow(
                     modifier = Modifier.padding(top = 6.dp)
                 ) {
                     Text(
-                        text = formatRelativeTime(chat.updatedAt),
+                        text = Formatters.formatRelativeTime(
+                            chat.updatedAt,
+                            LocalContext.current.resources
+                        ),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     if (chat.messageCount > 0) {
                         Text(
-                            text = "${chat.messageCount} messages",
+                            text = pluralStringResource(
+                                R.plurals.chat_message_count,
+                                chat.messageCount,
+                                chat.messageCount
+                            ),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -412,7 +426,7 @@ private fun ChatSessionRow(
                 IconButton(onClick = { menuOpen = true }) {
                     Icon(
                         Icons.Filled.MoreVert,
-                        contentDescription = "Chat options",
+                        contentDescription = stringResource(R.string.chat_options_content_description),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -421,7 +435,13 @@ private fun ChatSessionRow(
                     onDismissRequest = { menuOpen = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text(if (chat.isPinned) "Unpin" else "Pin") },
+                        text = {
+                            Text(
+                                stringResource(
+                                    if (chat.isPinned) R.string.chat_unpin else R.string.chat_pin
+                                )
+                            )
+                        },
                         leadingIcon = {
                             Icon(Icons.Filled.PushPin, contentDescription = null)
                         },
@@ -431,7 +451,7 @@ private fun ChatSessionRow(
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Rename") },
+                        text = { Text(stringResource(R.string.chat_rename)) },
                         leadingIcon = {
                             Icon(Icons.Filled.Edit, contentDescription = null)
                         },
@@ -442,7 +462,10 @@ private fun ChatSessionRow(
                     )
                     DropdownMenuItem(
                         text = {
-                            Text("Delete", color = MaterialTheme.colorScheme.error)
+                            Text(
+                                stringResource(R.string.common_delete),
+                                color = MaterialTheme.colorScheme.error
+                            )
                         },
                         leadingIcon = {
                             Icon(
@@ -462,14 +485,3 @@ private fun ChatSessionRow(
     }
 }
 
-private fun formatRelativeTime(epochMillis: Long): String {
-    val now = System.currentTimeMillis()
-    val diff = now - epochMillis
-    return when {
-        diff < 60_000 -> "now"
-        diff < 3_600_000 -> "${diff / 60_000}m"
-        diff < 86_400_000 -> "${diff / 3_600_000}h"
-        diff < 604_800_000 -> "${diff / 86_400_000}d"
-        else -> SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(epochMillis))
-    }
-}

@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.ai.tinymodels.core.inference.ModelManager
 import com.ai.tinymodels.domain.model.DownloadedModel
 import com.ai.tinymodels.domain.model.DownloadedModelFile
+import com.ai.tinymodels.domain.model.FileDownloadStatus
+import com.ai.tinymodels.domain.model.ModelDetails
 import com.ai.tinymodels.domain.repository.ModelRepository
 import com.ai.tinymodels.domain.usecase.model.ActiveDownload
 import com.ai.tinymodels.domain.usecase.model.DownloadModelUseCase
@@ -14,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -47,16 +50,115 @@ class DownloadedModelsViewModel @Inject constructor(
     /**
      * Live download jobs (RUNNING/ENQUEUED) straight from WorkManager — the
      * "Active downloads" section updates from this without any per-screen
-     * binding, and each row cancels its own job.
+     * binding.
      */
     val activeDownloads: StateFlow<List<ActiveDownload>> =
         downloadUseCase.observeActiveDownloads()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    /** Cancel one active download (same path the notification uses). */
-    fun cancelActiveDownload(workId: UUID) {
-        downloadUseCase.cancelActive(workId)
+    /**
+     * Downloads the user stopped, partial bytes kept — resumable rows the
+     * section renders alongside the active jobs.
+     */
+    val pausedFiles: StateFlow<List<DownloadedModelFile>> =
+        modelRepository.observePausedFiles()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /**
+     * Stops the job and keeps the partial bytes (resume path). The worker
+     * marks in-flight files PAUSED on its way down; we write it immediately so
+     * the row responds at once (never downgrading a finished file).
+     */
+    fun pauseDownload(download: ActiveDownload) {
+        downloadUseCase.cancelActive(download.workId)
+        viewModelScope.launch {
+            val files = modelRepository.observeModelFiles(download.modelId).first()
+            files.filter {
+                (download.fileName == null || it.fileName == download.fileName) &&
+                    it.status in setOf(
+                        FileDownloadStatus.DOWNLOADING,
+                        FileDownloadStatus.NOT_DOWNLOADED
+                    )
+            }.forEach {
+                modelRepository.updateFileStatus(
+                    download.modelId,
+                    it.fileName,
+                    FileDownloadStatus.PAUSED
+                )
+            }
+        }
     }
+
+    /**
+     * Re-enqueues a paused file. The worker appends to the partial when one
+     * exists, so this resumes from where it stopped rather than starting over.
+     */
+    fun resumeFile(modelId: String, fileName: String) {
+        viewModelScope.launch {
+            val file = modelRepository.getModelFile(modelId, fileName) ?: return@launch
+            val details = minimalModelDetails(modelId, fileName)
+            val size = file.sizeBytes.takeIf { it > 0 }
+                ?: runCatching { downloadUseCase.calculateFileSize(details, fileName) }
+                    .getOrDefault(0L)
+            modelRepository.updateFileStatus(modelId, fileName, FileDownloadStatus.DOWNLOADING)
+            downloadUseCase.executeFile(details, fileName, size, replace = true).collect { }
+        }
+    }
+
+    /**
+     * Throws away a download after the user confirms: stops the job (waiting
+     * for the worker to settle so its PAUSED write cannot resurrect the row),
+     * deletes the partial bytes, and resets tracking rows to NOT_DOWNLOADED.
+     * For a whole-model job [fileName] is null and every unfinished row resets.
+     */
+    fun discardDownload(workId: UUID?, modelId: String, fileName: String?) {
+        viewModelScope.launch {
+            if (workId != null) {
+                downloadUseCase.cancelActiveAndWait(workId)
+            } else {
+                // A paused row has no running job — nothing to settle, but make
+                // sure there is no stray work either.
+                if (fileName != null) downloadUseCase.cancelFileAndWait(modelId, fileName)
+            }
+            if (fileName != null) {
+                downloadUseCase.discardPartial(modelId, fileName)
+                modelRepository.updateFileStatus(modelId, fileName, FileDownloadStatus.NOT_DOWNLOADED)
+            } else {
+                downloadUseCase.discardModelPartials(modelId)
+                val files = modelRepository.observeModelFiles(modelId).first()
+                files.filter {
+                    it.status == FileDownloadStatus.PAUSED ||
+                        it.status == FileDownloadStatus.DOWNLOADING
+                }.forEach {
+                    modelRepository.updateFileStatus(
+                        modelId,
+                        it.fileName,
+                        FileDownloadStatus.NOT_DOWNLOADED
+                    )
+                }
+            }
+        }
+    }
+
+    /** Minimal details payload the download pipeline needs to (re-)enqueue a file. */
+    private fun minimalModelDetails(modelId: String, fileName: String) = ModelDetails(
+        id = modelId,
+        author = modelId.substringBefore('/'),
+        pipelineTag = "text-generation",
+        libraryName = "litertlm",
+        tags = emptyList(),
+        downloads = null,
+        likes = null,
+        lastModified = null,
+        createdAt = null,
+        siblings = listOf(fileName),
+        usedStorage = null,
+        sha = null,
+        gated = "false",
+        disabled = false,
+        widgetPrompts = emptyList(),
+        baseModel = null
+    )
 
     /** Id of the model currently loaded in memory, if any. */
     val activeModelId: String? get() = modelManager.loadedModelId

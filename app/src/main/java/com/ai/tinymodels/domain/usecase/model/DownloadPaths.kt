@@ -22,4 +22,21 @@ object DownloadPaths {
     /** The in-progress file, next to the final one so a rename promotes it. */
     fun partFile(filesDir: File, modelId: String, fileName: String): File =
         File(modelDirectory(filesDir, modelId), "${fileName.substringAfterLast("/")}.part")
+
+    /**
+     * Deletes every `.part` file under [modelId]'s directory — the bytes a
+     * stopped download accumulated. Returns how many were removed.
+     *
+     * Called when the user confirms Discard (from the app or the notification);
+     * finished files and other models' partials are left untouched.
+     */
+    fun deletePartials(filesDir: File, modelId: String): Int {
+        val dir = modelDirectory(filesDir, modelId)
+        if (!dir.isDirectory) return 0
+        var deleted = 0
+        dir.walkTopDown()
+            .filter { it.isFile && it.name.endsWith(".part") }
+            .forEach { if (it.delete()) deleted++ }
+        return deleted
+    }
 }

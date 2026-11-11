@@ -78,7 +78,7 @@ class ModelListViewModelTest {
         val state = viewModel.uiState.value
         assertNotNull(state.error)
         assertFalse(state.isOfflineError)
-        assertTrue(state.errorMessage!!.contains("Hugging Face"))
+        assertEquals(com.ai.tinymodels.R.string.error_server, state.errorMessageRes)
     }
 
     @Test
@@ -128,6 +128,7 @@ private class FakeListModelRepository : ModelRepository {
     override suspend fun deleteDownloadedModel(modelId: String) {}
     override fun observeModelFiles(modelId: String) = MutableStateFlow<List<com.ai.tinymodels.domain.model.DownloadedModelFile>>(emptyList())
     override fun observeDownloadedFiles() = MutableStateFlow<List<com.ai.tinymodels.domain.model.DownloadedModelFile>>(emptyList())
+    override fun observePausedFiles() = MutableStateFlow<List<com.ai.tinymodels.domain.model.DownloadedModelFile>>(emptyList())
     override suspend fun getModelFile(modelId: String, fileName: String) = null
     override suspend fun getDownloadedFileForModel(modelId: String) = null
     override suspend fun getLastDownloadedModel() = null

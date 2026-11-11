@@ -156,11 +156,11 @@ class BenchmarkProtocolTest {
     }
 
     @Test
-    fun `composeResult reports a stability label from the run spread`() {
+    fun `composeResult reports a stability tier from the run spread`() {
         val result = compose()
 
         assertEquals(
-            BenchmarkMath.stabilityLabel(result.decodeCoefficientOfVariation),
+            BenchmarkMath.stabilityFor(result.decodeCoefficientOfVariation),
             result.stability
         )
     }
@@ -210,19 +210,19 @@ class BenchmarkProtocolTest {
     // ---- throttle wording ----
 
     @Test
-    fun `throttle label reports a drop as a positive percentage`() {
-        assertEquals("12.5% drop", BenchmarkMath.throttleLabel(12.5))
+    fun `throttle trend reports a drop`() {
+        assertEquals(BenchmarkMath.ThrottleTrend.DROPPED, BenchmarkMath.throttleFor(12.5))
     }
 
     @Test
-    fun `throttle label calls a speed-up faster, not a negative drop`() {
-        assertEquals("5.0% faster", BenchmarkMath.throttleLabel(-5.0))
+    fun `throttle trend calls a speed-up faster, not a drop`() {
+        assertEquals(BenchmarkMath.ThrottleTrend.FASTER, BenchmarkMath.throttleFor(-5.0))
     }
 
     @Test
-    fun `throttle label ignores sub-half-percent noise`() {
-        assertEquals("No change", BenchmarkMath.throttleLabel(0.3))
-        assertEquals("No change", BenchmarkMath.throttleLabel(-0.4))
-        assertEquals("No change", BenchmarkMath.throttleLabel(0.0))
+    fun `throttle trend ignores sub-half-percent noise`() {
+        assertEquals(BenchmarkMath.ThrottleTrend.NONE, BenchmarkMath.throttleFor(0.3))
+        assertEquals(BenchmarkMath.ThrottleTrend.NONE, BenchmarkMath.throttleFor(-0.4))
+        assertEquals(BenchmarkMath.ThrottleTrend.NONE, BenchmarkMath.throttleFor(0.0))
     }
 }

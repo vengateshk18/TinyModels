@@ -57,7 +57,11 @@ object DownloadNotifier {
             val manager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(
-                NotificationChannel(CHANNEL_ID, "Model downloads", NotificationManager.IMPORTANCE_LOW)
+                NotificationChannel(
+                    CHANNEL_ID,
+                    context.getString(R.string.notification_channel_downloads),
+                    NotificationManager.IMPORTANCE_LOW
+                )
             )
         }
     }
@@ -86,11 +90,29 @@ object DownloadNotifier {
         fileName: String? = null
     ): Notification {
         val percent = if (total > 0) (downloaded * 100 / total).toInt().coerceIn(0, 100) else 0
-        val progressText = Formatters.formatBytes(downloaded) +
-            (if (total > 0) " / ${Formatters.formatBytes(total)} · $percent%" else " · downloading")
+        val progressText = if (total > 0) {
+            context.getString(
+                R.string.notification_progress_bytes,
+                Formatters.formatBytes(downloaded, context.resources),
+                Formatters.formatBytes(total, context.resources),
+                percent
+            )
+        } else {
+            context.getString(
+                R.string.notification_progress_downloading,
+                Formatters.formatBytes(downloaded, context.resources)
+            )
+        }
         val eta = DownloadEta.label(downloaded, total, bytesPerSecond)
         val speedText = buildString {
-            if (bytesPerSecond > 0) append("${Formatters.formatBytes(bytesPerSecond)}/s")
+            if (bytesPerSecond > 0) {
+                append(
+                    context.getString(
+                        R.string.notification_speed,
+                        Formatters.formatBytes(bytesPerSecond, context.resources)
+                    )
+                )
+            }
             eta?.let {
                 if (isNotEmpty()) append(" · ")
                 append(it)
@@ -151,7 +173,7 @@ object DownloadNotifier {
         if (!canNotify(context)) return
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Download complete")
+            .setContentTitle(context.getString(R.string.notification_download_complete))
             .setContentText(title)
             .setAutoCancel(true)
             .setContentIntent(openAppIntent(context))
@@ -168,8 +190,14 @@ object DownloadNotifier {
         if (!canNotify(context)) return
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("Download failed")
-            .setContentText(if (error.isNullOrBlank()) title else "$title — $error")
+            .setContentTitle(context.getString(R.string.notification_download_failed))
+            .setContentText(
+                if (error.isNullOrBlank()) {
+                    title
+                } else {
+                    context.getString(R.string.notification_failed_with_reason, title, error)
+                }
+            )
             .setAutoCancel(true)
             .setContentIntent(openAppIntent(context))
             .build()

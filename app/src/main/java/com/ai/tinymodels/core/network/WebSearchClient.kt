@@ -1,5 +1,6 @@
 package com.ai.tinymodels.core.network
 
+import com.ai.tinymodels.core.common.TinyConstants
 import com.ai.tinymodels.domain.model.WebSearchResult
 import com.ai.tinymodels.domain.model.WebSearchResults
 import com.ai.tinymodels.domain.repository.WebSearchException
@@ -186,8 +187,8 @@ class WebSearchClient @Inject constructor() {
     internal fun readPage(url: String, query: String?): String {
         return try {
             val builder = Request.Builder().url(url).get()
-                .header("User-Agent", WebSearchEndpoints.MOBILE_UA)
-                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                .header(TinyConstants.HTTP_HEADER_USER_AGENT, WebSearchEndpoints.MOBILE_UA)
+                .header(TinyConstants.HTTP_HEADER_ACCEPT, TinyConstants.HTTP_ACCEPT_HTML)
                 .header("Accept-Language", "en-US,en;q=0.9")
             client.newCall(builder.build()).execute().use { response ->
                 if (!response.isSuccessful) return ""
@@ -237,7 +238,7 @@ class WebSearchClient @Inject constructor() {
             if (abstractText != null) {
                 results += WebSearchResult(
                     title = root.optString("Heading").takeIf { it.isNotBlank() } ?: query,
-                    url = abstractUrl ?: "https://duckduckgo.com/?q=${URLEncoder.encode(query, Charsets.UTF_8.name())}",
+                    url = abstractUrl ?: "${TinyConstants.DUCKDUCKGO_BASE_URL}/?q=${URLEncoder.encode(query, Charsets.UTF_8.name())}",
                     snippet = abstractText
                 )
             }
@@ -272,7 +273,7 @@ class WebSearchClient @Inject constructor() {
                 if (snippet.isBlank()) continue
                 results += WebSearchResult(
                     title = title,
-                    url = "https://en.wikipedia.org/wiki/" +
+                    url = TinyConstants.WIKIPEDIA_BASE_URL +
                         URLEncoder.encode(title.replace(' ', '_'), Charsets.UTF_8.name()),
                     snippet = snippet
                 )

@@ -56,11 +56,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.ui.Formatters
 import com.ai.tinymodels.core.ui.components.EmptyState
 import com.ai.tinymodels.core.ui.components.ErrorState
@@ -92,6 +96,7 @@ fun ModelsTabScreen(
     val downloadedFiles by downloadedViewModel.downloadedFiles.collectAsStateWithLifecycle()
     val totalSizeBytes by downloadedViewModel.totalSizeBytes.collectAsStateWithLifecycle()
     val activeDownloads by downloadedViewModel.activeDownloads.collectAsStateWithLifecycle()
+    val pausedFiles by downloadedViewModel.pausedFiles.collectAsStateWithLifecycle()
 
     // Tab screen — outer Scaffold already handled the bottom nav-bar inset.
     // Only top + horizontal needed here.
@@ -102,7 +107,7 @@ fun ModelsTabScreen(
         contentWindowInsets = safeTopHorizontal,
         topBar = {
             TopAppBar(
-                title = { Text("Models") },
+                title = { Text(stringResource(R.string.models_title)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer
                 )
@@ -118,12 +123,12 @@ fun ModelsTabScreen(
                 Tab(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    text = { Text("Browse") }
+                    text = { Text(stringResource(R.string.models_browse_tab)) }
                 )
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text("Downloaded (${downloadedFiles.size})") }
+                    text = { Text(stringResource(R.string.models_downloaded_tab, downloadedFiles.size)) }
                 )
             }
 
@@ -139,7 +144,10 @@ fun ModelsTabScreen(
                     downloadedFiles = downloadedFiles,
                     totalSizeBytes = totalSizeBytes,
                     activeDownloads = activeDownloads,
-                    onCancelActive = downloadedViewModel::cancelActiveDownload,
+                    pausedFiles = pausedFiles,
+                    onPause = downloadedViewModel::pauseDownload,
+                    onResume = downloadedViewModel::resumeFile,
+                    onDiscard = downloadedViewModel::discardDownload,
                     onFileClick = onFileClick
                 )
             }
@@ -164,12 +172,12 @@ private fun BrowseContent(
             value = uiState.searchQuery,
             onValueChange = onSearch,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-            placeholder = { Text("Search models\u2026") },
+            placeholder = { Text(stringResource(R.string.models_search_placeholder)) },
             singleLine = true,
             leadingIcon = {
                 Icon(
                     Icons.Filled.Search,
-                    contentDescription = "Search",
+                    contentDescription = stringResource(R.string.models_search_content_description),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
@@ -185,7 +193,7 @@ private fun BrowseContent(
                 FilterChip(
                     selected = uiState.selectedFilter == filter,
                     onClick = { onFilterChange(filter) },
-                    label = { Text(filter.label) }
+                    label = { Text(stringResource(filter.labelRes)) }
                 )
             }
         }
@@ -198,13 +206,14 @@ private fun BrowseContent(
                 OfflineState(onRetry = onRetry)
             uiState.error != null ->
                 ErrorState(
-                    message = uiState.errorMessage ?: "Failed to load models",
+                    message = uiState.errorMessageRes?.let { stringResource(it) }
+                        ?: stringResource(R.string.models_error_failed_to_load),
                     onRetry = onRetry
                 )
             uiState.models.isEmpty() ->
                 EmptyState(
-                    title = "No models found",
-                    message = "Try a different search or filter."
+                    title = stringResource(R.string.models_empty_title),
+                    message = stringResource(R.string.models_empty_message)
                 )
             else ->
                 LazyColumn(
@@ -273,7 +282,11 @@ private fun ModelCard(model: ModelSummary, onClick: () -> Unit) {
                 if (model.runtimeFileCount > 0) {
                     StatBadge(
                         Icons.Filled.Download,
-                        "${model.runtimeFileCount} file${if (model.runtimeFileCount > 1) "s" else ""}"
+                        pluralStringResource(
+                            R.plurals.models_file_count,
+                            model.runtimeFileCount,
+                            model.runtimeFileCount
+                        )
                     )
                 }
             }
@@ -285,13 +298,13 @@ private fun ModelCard(model: ModelSummary, onClick: () -> Unit) {
             ) {
                 // Pipeline tag — always shown; defaults to text-generation when
                 // the API omits it (common for LiteRT model repos).
-                PipelineChip(model.pipelineTag?.takeIf { it.isNotBlank() } ?: "text-generation")
+                PipelineChip(model.pipelineTag?.takeIf { it.isNotBlank() } ?: stringResource(R.string.models_pipeline_default))
                 model.libraryName?.takeIf { it.isNotBlank() }?.let { lib ->
                     SmallChip(lib)
                 }
                 model.lastModified?.takeIf { it.isNotBlank() }?.let { date ->
                     Text(
-                        Formatters.formatDate(date),
+                        Formatters.formatDate(date, LocalContext.current.resources),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -341,16 +354,19 @@ private fun DownloadedContent(
     downloadedFiles: List<DownloadedModelFile>,
     totalSizeBytes: Long,
     activeDownloads: List<ActiveDownload>,
-    onCancelActive: (UUID) -> Unit,
+    pausedFiles: List<DownloadedModelFile>,
+    onPause: (ActiveDownload) -> Unit,
+    onResume: (String, String) -> Unit,
+    onDiscard: (UUID?, String, String?) -> Unit,
     onFileClick: (modelId: String, fileName: String) -> Unit
 ) {
-    if (downloadedFiles.isEmpty() && activeDownloads.isEmpty()) {
+    if (downloadedFiles.isEmpty() && activeDownloads.isEmpty() && pausedFiles.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("No models downloaded", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.downloaded_models_empty_title), style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    "Browse the catalog to download one.",
+                    stringResource(R.string.downloaded_models_empty_message),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -366,11 +382,14 @@ private fun DownloadedContent(
             ),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            if (activeDownloads.isNotEmpty()) {
+            if (activeDownloads.isNotEmpty() || pausedFiles.isNotEmpty()) {
                 item {
                     ActiveDownloadsSection(
                         active = activeDownloads,
-                        onCancel = onCancelActive
+                        paused = pausedFiles,
+                        onPause = onPause,
+                        onResume = onResume,
+                        onDiscard = onDiscard
                     )
                 }
             }
@@ -386,12 +405,16 @@ private fun DownloadedContent(
                     ) {
                         Column {
                             Text(
-                                "${downloadedFiles.size} file${if (downloadedFiles.size > 1) "s" else ""}",
+                                pluralStringResource(
+                                    R.plurals.models_file_count,
+                                    downloadedFiles.size,
+                                    downloadedFiles.size
+                                ),
                                 style = MaterialTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                             Text(
-                                Formatters.formatBytes(totalSizeBytes),
+                                Formatters.formatBytes(totalSizeBytes, LocalContext.current.resources),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
@@ -451,7 +474,7 @@ private fun DownloadedFileCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    Formatters.formatBytes(file.sizeBytes),
+                    Formatters.formatBytes(file.sizeBytes, LocalContext.current.resources),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

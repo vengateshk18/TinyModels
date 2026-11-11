@@ -6,11 +6,14 @@ import android.os.Build
 import android.os.StatFs
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ai.tinymodels.R
+import com.ai.tinymodels.domain.model.FileDownloadStatus
 import com.ai.tinymodels.domain.model.ModelDetails
 import com.ai.tinymodels.domain.repository.ChatRepository
 import com.ai.tinymodels.domain.repository.ModelRepository
 import com.ai.tinymodels.domain.repository.SettingsRepository
 import com.ai.tinymodels.domain.usecase.model.DownloadModelUseCase
+import com.ai.tinymodels.domain.usecase.model.DownloadPaths
 import com.ai.tinymodels.domain.usecase.model.DownloadState
 import com.ai.tinymodels.domain.usecase.model.DownloadStatus
 import com.ai.tinymodels.feature.home.model.DownloadedModelInfo
@@ -53,6 +56,17 @@ class HomeViewModel @Inject constructor(
     private val _recommendedDownload = MutableStateFlow<DownloadState?>(null)
     val recommendedDownload: StateFlow<DownloadState?> = _recommendedDownload.asStateFlow()
 
+    /**
+     * True when the recommended file was stopped with its partial bytes kept.
+     * The card shows Resume / Discard instead of a fresh Download.
+     */
+    private val _recommendedPaused = MutableStateFlow(false)
+    val recommendedPaused: StateFlow<Boolean> = _recommendedPaused.asStateFlow()
+
+    /** Bytes of the recommended file already on disk while paused. */
+    private val _recommendedPausedBytes = MutableStateFlow(0L)
+    val recommendedPausedBytes: StateFlow<Long> = _recommendedPausedBytes.asStateFlow()
+
     /** One-shot error surfaced as a snackbar, with friendly copy. */
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
@@ -85,34 +99,73 @@ class HomeViewModel @Inject constructor(
 
     /** Starts (or observes) the download of the recommended model. */
     fun downloadRecommended(model: RecommendedModel) {
+        launchRecommendedDownload(model)
+    }
+
+    /** Pauses the in-flight download, keeping the partial bytes for resume. */
+    fun pauseRecommendedDownload(model: RecommendedModel) {
+        downloadUseCase.cancelFile(model.modelId, model.fileName)
+        viewModelScope.launch {
+            val current = modelRepository.getModelFile(model.modelId, model.fileName)?.status
+            if (current !in setOf(FileDownloadStatus.DOWNLOADED, FileDownloadStatus.PAUSED)) {
+                modelRepository.updateFileStatus(
+                    model.modelId,
+                    model.fileName,
+                    FileDownloadStatus.PAUSED
+                )
+            }
+            _recommendedPausedBytes.value = partialBytes(model)
+            _recommendedPaused.value = true
+            _recommendedDownload.value = DownloadState()
+        }
+    }
+
+    /** Re-enqueues a paused download, appending to the partial bytes on disk. */
+    fun resumeRecommendedDownload(model: RecommendedModel) {
+        _recommendedPaused.value = false
+        _recommendedPausedBytes.value = 0L
+        viewModelScope.launch {
+            modelRepository.updateFileStatus(
+                model.modelId,
+                model.fileName,
+                FileDownloadStatus.DOWNLOADING
+            )
+            launchRecommendedDownload(model, forceEnqueue = true)
+        }
+    }
+
+    /**
+     * Throws away the download after confirmation: waits for the worker to
+     * settle, deletes the partial bytes, and resets the tracking row.
+     */
+    fun discardRecommendedDownload(model: RecommendedModel) {
+        viewModelScope.launch(Dispatchers.Default) {
+            downloadUseCase.cancelFileAndWait(model.modelId, model.fileName)
+            downloadUseCase.discardPartial(model.modelId, model.fileName)
+            modelRepository.updateFileStatus(
+                model.modelId,
+                model.fileName,
+                FileDownloadStatus.NOT_DOWNLOADED
+            )
+            _recommendedPaused.value = false
+            _recommendedPausedBytes.value = 0L
+            _recommendedDownload.value = DownloadState()
+        }
+    }
+
+    private fun launchRecommendedDownload(model: RecommendedModel, forceEnqueue: Boolean = false) {
         viewModelScope.launch(Dispatchers.Default) {
             // Observe an already-running download for this file, if any.
-            val existing = downloadUseCase.observeExistingFile(model.modelId, model.fileName)
-            if (existing != null) {
-                existing.collect { _recommendedDownload.value = it }
-                return@launch
+            if (!forceEnqueue) {
+                val existing = downloadUseCase.observeExistingFile(model.modelId, model.fileName)
+                if (existing != null) {
+                    existing.collect { _recommendedDownload.value = it }
+                    return@launch
+                }
             }
-            // Build a minimal ModelDetails payload for the download pipeline.
-            val details = ModelDetails(
-                id = model.modelId,
-                author = model.modelId.substringBefore('/'),
-                pipelineTag = "text-generation",
-                libraryName = "litertlm",
-                tags = emptyList(),
-                downloads = null,
-                likes = null,
-                lastModified = null,
-                createdAt = null,
-                siblings = listOf(model.fileName),
-                usedStorage = null,
-                sha = null,
-                gated = "false",
-                disabled = false,
-                widgetPrompts = emptyList(),
-                baseModel = null
-            )
+            val details = minimalModelDetails(model)
             try {
-                downloadUseCase.executeFile(details, model.fileName, model.sizeBytes)
+                downloadUseCase.executeFile(details, model.fileName, model.sizeBytes, replace = forceEnqueue)
                     .collect { state ->
                         _recommendedDownload.value = state
                         if (state.status == DownloadStatus.FAILED) {
@@ -125,10 +178,30 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    /** Cancels the recommended-model download. */
-    fun cancelRecommendedDownload(model: RecommendedModel) {
-        downloadUseCase.cancelFile(model.modelId, model.fileName)
-    }
+    private fun minimalModelDetails(model: RecommendedModel) = ModelDetails(
+        id = model.modelId,
+        author = model.modelId.substringBefore('/'),
+        pipelineTag = "text-generation",
+        libraryName = "litertlm",
+        tags = emptyList(),
+        downloads = null,
+        likes = null,
+        lastModified = null,
+        createdAt = null,
+        siblings = listOf(model.fileName),
+        usedStorage = null,
+        sha = null,
+        gated = "false",
+        disabled = false,
+        widgetPrompts = emptyList(),
+        baseModel = null
+    )
+
+    /** Bytes of the in-progress file left on disk for this recommendation. */
+    private fun partialBytes(model: RecommendedModel): Long =
+        runCatching {
+            DownloadPaths.partFile(context.filesDir, model.modelId, model.fileName).length()
+        }.getOrDefault(0L)
 
     /**
      * Friendly copy for a failed recommended-model download. Worker errors keep
@@ -137,13 +210,13 @@ class HomeViewModel @Inject constructor(
      */
     private fun friendlyDownloadError(raw: String?): String {
         if (raw.isNullOrBlank()) {
-            return "Download failed. Check your connection and retry."
+            return context.getString(R.string.home_download_failed)
         }
         // Keep actionable auth/storage messages as-is.
         if (raw.contains("401") || raw.contains("403") || raw.contains("storage", ignoreCase = true)) {
             return raw
         }
-        return "Download failed. Check your connection and retry."
+        return context.getString(R.string.home_download_failed)
     }
 
     // ---- State assembly ----
@@ -157,6 +230,13 @@ class HomeViewModel @Inject constructor(
                 availableRamForAiMb = device.availableRamForAiMb,
                 freeStorageBytes = freeStorageBytes
             )
+            // A previous session may have left the file paused with partial bytes;
+            // surface it as resumable rather than a fresh download.
+            val file = modelRepository.observeModelFiles(recommended.modelId).first()
+                .firstOrNull { it.fileName == recommended.fileName }
+            val paused = file?.status == FileDownloadStatus.PAUSED
+            _recommendedPaused.value = paused
+            _recommendedPausedBytes.value = if (paused) partialBytes(recommended) else 0L
             _uiState.value = HomeUiState.FirstTime(
                 device = device,
                 recommended = recommended,

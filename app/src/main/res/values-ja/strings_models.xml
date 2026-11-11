@@ -1,0 +1,114 @@
+<resources>
+    <!-- ================= Model catalog (browse) ================= -->
+    <string name="models_title">モデル</string>
+    <string name="models_browse_tab">閲覧</string>
+    <string name="models_downloaded_tab">ダウンロード済み (%1$d)</string>
+    <string name="models_search_content_description">検索</string>
+    <string name="models_search_placeholder">モデルを検索…</string>
+    <string name="models_error_failed_to_load">モデルの読み込みに失敗しました</string>
+    <string name="models_empty_title">モデルが見つかりません</string>
+    <string name="models_empty_message">別の検索やフィルターをお試しください。</string>
+    <string name="models_by_author">%1$s 作</string>
+    <string name="models_downloads_count">⬇ %1$s</string>
+    <string name="models_likes_count">♥ %1$s</string>
+
+    <!-- ================= Downloaded models ================= -->
+    <string name="downloaded_models_title">ダウンロード済みモデル</string>
+    <string name="downloaded_models_empty_title">ダウンロード済みモデルがありません</string>
+    <string name="downloaded_models_empty_message">ダウンロードしたモデルはオフラインで使用できるようここに表示されます。</string>
+    <string name="downloaded_models_storage_used">使用ストレージ: %1$s</string>
+    <string name="downloaded_models_imported_badge">インポート済み</string>
+
+    <!-- ================= Model details ================= -->
+    <string name="model_details_title">モデル詳細</string>
+    <string name="model_details_file_too_large_title">このデバイスにはファイルが大きすぎます</string>
+    <string name="model_details_file_too_large_body">このファイル (%1$s) はデバイスの RAM (%2$s) より多く必要です。ダウンロードはできますが、このデバイスではチャットやベンチマークに使用できません。</string>
+    <string name="model_details_file_too_large_body_unknown_size">このファイルはデバイスの RAM (%1$s) より多く必要です。ダウンロードはできますが、このデバイスではチャットやベンチマークに使用できません。</string>
+    <string name="model_details_download_anyway">それでもダウンロード</string>
+    <string name="model_details_error_failed_to_load">詳細の読み込みに失敗しました</string>
+    <string name="model_details_add_hf_token">Hugging Face トークンを追加</string>
+    <string name="model_details_stat_downloads">ダウンロード</string>
+    <string name="model_details_stat_likes">いいね</string>
+    <string name="model_details_stat_repo_size">リポジトリサイズ</string>
+    <string name="model_details_stat_downloaded">ダウンロード済み</string>
+    <string name="model_details_try_it">試す</string>
+    <string name="model_details_sample_prompts">このモデルのサンプルプロンプト</string>
+    <string name="model_details_about">概要</string>
+    <string name="model_details_base_model">ベースモデル</string>
+    <string name="model_details_revision">リビジョン</string>
+    <string name="model_details_tags">タグ</string>
+    <string name="model_details_files">ファイル</string>
+    <string name="model_details_files_hint">ファイルを個別にダウンロードできます。複数を同時に実行できます。</string>
+    <string name="model_details_fits_device">✓ デバイスに適合</string>
+    <string name="model_details_too_large_short">⚠ このデバイスには大きすぎます</string>
+    <string name="model_details_status_downloaded">ダウンロード済み</string>
+    <string name="model_details_updated">更新日</string>
+    <string name="model_details_created">作成日</string>
+    <string name="model_details_error_not_enough_storage_file">このファイル用の空きストレージが不足しています。</string>
+    <string name="model_details_error_not_enough_storage_model">このモデル用の空きストレージが不足しています。</string>
+
+    <!-- ================= Downloaded file detail ================= -->
+    <string name="downloaded_file_title">ダウンロード済みファイル</string>
+    <string name="downloaded_file_not_found_title">ファイルが見つかりません</string>
+    <string name="downloaded_file_go_back">戻る</string>
+    <string name="downloaded_file_delete_title">ファイルを削除しますか？</string>
+    <string name="downloaded_file_delete_body">デバイスからファイルが完全に削除されます。この操作は元に戻せません。</string>
+    <string name="downloaded_file_model_id">モデル ID</string>
+    <string name="downloaded_file_size">サイズ</string>
+    <string name="downloaded_file_location">場所</string>
+    <string name="downloaded_file_error_failed_to_load">モデルの読み込みに失敗しました</string>
+    <string name="downloaded_file_loading_model">モデルを読み込み中…</string>
+    <string name="downloaded_file_start_chat">チャットを開始</string>
+    <string name="downloaded_file_export">ファイルをエクスポート</string>
+    <string name="downloaded_file_exporting">エクスポート中…</string>
+    <string name="downloaded_file_delete">ファイルを削除</string>
+    <string name="downloaded_file_deleting">削除中…</string>
+    <string name="downloaded_file_error_not_found">ファイルが見つかりません</string>
+    <string name="downloaded_file_error_not_on_disk">ディスクにファイルが見つかりません。再ダウンロードしてください。</string>
+    <string name="downloaded_file_error_delete_failed">ファイルの削除に失敗しました</string>
+    <string name="downloaded_file_exported">%1$s をエクスポートしました</string>
+    <string name="downloaded_file_export_failed">エクスポートに失敗しました: %1$s</string>
+
+    <!-- ================= Active downloads ================= -->
+    <string name="downloads_active_title">アクティブなダウンロード (%1$d)</string>
+    <string name="downloads_paused_title">一時停止中のダウンロード (%1$d)</string>
+    <string name="downloads_cancel_content_description">ダウンロードをキャンセル</string>
+    <string name="downloads_waiting_for_network">ネットワークを待機中…</string>
+    <string name="downloads_progress_bytes">%1$s / %2$s</string>
+    <string name="downloads_progress_percent">(%1$d%%)</string>
+    <string name="downloads_progress_speed"> • %1$s/s</string>
+    <string name="downloads_speed_only">%1$s/s</string>
+    <string name="downloads_button_with_size">ダウンロード · %1$s</string>
+    <string name="downloads_button">ダウンロード</string>
+
+    <!-- ================= Filters ================= -->
+    <string name="model_filter_all">すべて</string>
+    <string name="model_filter_text_generation">テキスト生成</string>
+    <string name="model_filter_image_generation">画像生成</string>
+
+    <!-- ================= Shared state views ================= -->
+    <string name="state_error_title">問題が発生しました</string>
+    <string name="state_error_retry">再試行</string>
+    <string name="state_offline_title">オフラインです</string>
+    <string name="state_offline_message">インターネット接続を確認して再試行してください。</string>
+    <plurals name="models_file_count">
+        <item quantity="other">%1$d ファイル</item>
+    </plurals>
+    <string name="model_details_discard_title">ダウンロードを破棄しますか？</string>
+    <string name="model_details_discard_body_notification">ダウンロードを中止し、部分データを削除します。取り消せません。</string>
+    <string name="model_details_discard_bytes_deleted">これまでにダウンロードした %1$s を削除します。</string>
+    <string name="model_details_discard_partial_deleted">このファイルの部分データを削除します。</string>
+    <string name="model_details_discard_body_end">ダウンロードはやり直しになり、この操作は取り消せません。</string>
+    <string name="model_details_discard">破棄</string>
+    <string name="model_details_keep">残す</string>
+    <string name="model_details_size_loading">サイズを取得中…</string>
+    <string name="model_details_size_unknown">サイズを特定できません</string>
+    <string name="model_details_downloaded_bytes">%1$s ダウンロード済み</string>
+    <string name="model_details_paused_resumable">一時停止中 · 再開可能</string>
+    <string name="model_details_download_desc">ダウンロード</string>
+    <string name="model_details_cancel_queued_desc">待機中のダウンロードをキャンセル</string>
+    <string name="model_details_discard_desc">ダウンロードを破棄</string>
+    <string name="model_details_resume_desc">ダウンロードを再開</string>
+    <string name="model_details_retry_desc">ダウンロードを再試行</string>
+    <string name="model_details_pause_desc">ダウンロードを一時停止</string>
+</resources>

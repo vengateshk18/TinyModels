@@ -1,0 +1,34 @@
+<resources>
+    <!-- Shared UI actions and labels -->
+    <string name="common_cancel">ரத்து</string>
+    <string name="common_retry">மீண்டும் முயற்சி</string>
+    <string name="common_back">பின்செல்</string>
+    <string name="common_dismiss">நிராகரி</string>
+    <string name="common_delete">நீக்கு</string>
+    <string name="common_close">மூடு</string>
+    <string name="common_yes">ஆம்</string>
+    <string name="common_no">இல்லை</string>
+    <string name="common_unknown">தெரியவில்லை</string>
+
+    <!-- Shared relative-time wording -->
+    <string name="common_time_just_now">இப்போது</string>
+    <string name="common_time_minutes_ago">%1$d நிமிடங்களுக்கு முன்</string>
+    <string name="common_time_hours_ago">%1$d மணி நேரத்திற்கு முன்</string>
+    <string name="common_time_days_ago">%1$d நாட்களுக்கு முன்</string>
+    <string name="common_percent">%1$d%%</string>
+
+    <!-- வளப் பிரித்தெடுப்பில் சேர்க்கப்பட்ட புதிய சரங்கள் -->
+    <string name="common_save">சேமி</string>
+    <string name="error_no_connection">நீங்கள் ஆஃப்லைனில் உள்ளீர்கள். இணைய இணைப்பைச் சரிபார்த்து மீண்டும் முயலவும்.</string>
+    <string name="error_timeout">இணைப்பு நேரம் முடிந்தது. மீண்டும் முயலவும்.</string>
+    <string name="error_gated">இந்த மாதிரி கேட்டட் ஆனது. அமைப்புகளில் Hugging Face அணுகல் டோக்கனைச் சேர்க்கவும், அல்லது முதலில் huggingface.co இல் அதன் உரிமத்தை ஏற்கவும்.</string>
+    <string name="error_no_access">இந்த மாதிரிக்கான அணுகல் உங்களிடம் இல்லை. இது கேட்டட் ஆக இருக்கலாம் — huggingface.co இல் அதன் உரிமத்தைச் சரிபார்க்கவும்.</string>
+    <string name="error_too_many_requests">அதிக கோரிக்கைகள். சிறிது காத்திருந்து மீண்டும் முயலவும்.</string>
+    <string name="error_server">Hugging Face இப்போது சிக்கலில் உள்ளது. பின்னர் மீண்டும் முயலவும்.</string>
+    <string name="error_not_found">மாதிரி கிடைக்கவில்லை. Hugging Face இலிருந்து நீக்கப்பட்டிருக்கலாம்.</string>
+    <string name="error_network">நெட்வொர்க் பிழை. இணைப்பைச் சரிபார்த்து மீண்டும் முயலவும்.</string>
+    <string name="error_storage">போதுமான இலவச சேமிப்பு இல்லை.</string>
+    <string name="error_unknown">ஏதோ தவறு நடந்தது. மீண்டும் முயலவும்.</string>
+    <string name="notification_pause">இடைநிறுத்து</string>
+    <string name="notification_cancel">ரத்து செய்</string>
+</resources>

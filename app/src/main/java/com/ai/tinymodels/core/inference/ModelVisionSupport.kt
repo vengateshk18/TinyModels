@@ -1,6 +1,8 @@
 package com.ai.tinymodels.core.inference
 
 import android.util.Log
+import androidx.annotation.StringRes
+import com.ai.tinymodels.R
 import java.io.File
 import java.io.FileInputStream
 
@@ -124,9 +126,7 @@ object ModelVisionSupport {
             if (turn.imagePaths.isEmpty()) turn else turn.copy(imagePaths = emptyList())
         }
 
-    /** User-facing message for a model that cannot read photos. */
-    fun visionUnsupportedMessage(): String =
-        "This model doesn't include a vision encoder, so it can't read photos. " +
-            "Load a vision-capable model (e.g. Gemma 3) to analyze images — " +
-            "your text was kept and photo attachments were skipped."
+    /** User-facing message for a model that cannot read photos (as a string resource). */
+    @StringRes
+    fun visionUnsupportedMessageRes(): Int = R.string.chat_vision_unsupported
 }

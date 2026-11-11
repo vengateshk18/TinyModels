@@ -1,0 +1,153 @@
+<resources>
+    <!-- ================= Chat list / history ================= -->
+    <string name="chat_tab_title">チャット</string>
+    <string name="chat_new_chat">新しいチャット</string>
+    <string name="chat_no_conversations">会話はまだありません</string>
+    <string name="chat_tap_plus_to_start">+ をタップして新しいチャットを開始</string>
+    <string name="chat_untitled">無題</string>
+    <string name="chat_delete_title">チャットを削除しますか？</string>
+    <string name="chat_delete_body">「%1$s」は完全に削除されます。この操作は元に戻せません。</string>
+    <plurals name="chat_message_count">
+        <item quantity="other">%1$d 件のメッセージ</item>
+    </plurals>
+    <string name="chat_delete_content_description">チャットを削除</string>
+
+    <!-- ================= Chat room ================= -->
+    <string name="chat_room_back_content_description">戻る</string>
+    <string name="chat_room_session_settings_content_description">セッション設定</string>
+    <string name="chat_room_no_models_title">モデルがありません</string>
+    <string name="chat_room_no_models_body">チャットを始めるにはモデルをダウンロードしてください。</string>
+    <string name="chat_room_pick_model_title">モデルを選択</string>
+    <string name="chat_pick_model_title">モデルを選択</string>
+    <string name="chat_room_pick_model_body">ダウンロード済みのモデルを選んで開始してください。</string>
+    <string name="chat_room_choose">選択</string>
+    <string name="chat_room_say_hello_title">挨拶しましょう</string>
+    <string name="chat_room_say_hello_body">会話はこのデバイスに保存されます。</string>
+    <string name="chat_room_copied_to_clipboard">クリップボードにコピーしました</string>
+    <string name="chat_room_summarized_conversation">会話を要約しました</string>
+    <string name="chat_room_context_usage_title">コンテキスト使用量</string>
+    <string name="chat_room_tokens_in_context">コンテキスト内のトークン</string>
+    <string name="chat_room_context_budget">コンテキスト予算</string>
+    <string name="chat_room_compactions_run">コンパクション実行回数</string>
+    <plurals name="chat_room_compactions_count">
+        <item quantity="other">%1$d 回</item>
+    </plurals>
+    <string name="chat_room_compacted_summary">圧縮された要約</string>
+    <string name="chat_room_summary_present">あり (%1$d 文字)</string>
+    <string name="chat_room_summary_none">まだありません</string>
+    <string name="chat_room_tokens_used_of_total">%1$d / %2$d トークン</string>
+    <string name="chat_room_context_explainer">使用量が予算の %1$d%% に達すると、古いメッセージは自動的に要約されます。</string>
+    <string name="chat_room_tokens_label">%1$d トークン</string>
+    <string name="chat_room_compact_hint">古いメッセージを要約してコンテキスト空間を解放します。</string>
+    <string name="chat_room_compacting">圧縮中…</string>
+    <string name="chat_room_compact_conversation">会話を圧縮</string>
+
+    <!-- ================= Chat screen (empty states) ================= -->
+    <string name="chat_open_chats_content_description">チャットを開く</string>
+    <string name="chat_settings_content_description">設定</string>
+    <string name="chat_no_models_title">モデルがありません</string>
+    <string name="chat_no_models_body">オフラインでチャットするには LiteRT-LM モデルをダウンロードしてください。</string>
+    <string name="chat_browse_models">モデルを閲覧</string>
+    <string name="chat_choose_downloaded_model_body">上のダウンロード済みモデルを選んで開始してください。</string>
+
+    <!-- ================= Chat input bar ================= -->
+    <string name="chat_options_content_description">チャットオプション</string>
+    <string name="chat_options_media_section">メディア</string>
+    <string name="chat_options_attach_photo">写真を添付</string>
+    <string name="chat_options_tools_section">ツール</string>
+    <string name="chat_options_web_search">ウェブ検索</string>
+    <string name="chat_input_hint_ready">メッセージ…</string>
+    <string name="chat_input_hint_load_model">チャットするにはモデルを読み込んでください</string>
+    <string name="chat_stop_generating_content_description">生成を停止</string>
+    <string name="chat_send_content_description">送信</string>
+    <string name="chat_photo_to_send_content_description">送信する写真</string>
+    <string name="chat_photo_attached">写真を添付しました</string>
+    <string name="chat_remove_photo_content_description">写真を削除</string>
+
+    <!-- ================= Edit message dialog ================= -->
+    <string name="chat_edit_title">メッセージを編集</string>
+    <string name="chat_edit_body">編集するとこのメッセージが置き換わり、返信が再生成されます。</string>
+    <string name="chat_edit_placeholder">メッセージ</string>
+    <string name="chat_edit_save_send">保存して送信</string>
+
+    <!-- ================= Inference settings sheet ================= -->
+    <string name="chat_settings_title">セッション設定</string>
+    <string name="chat_settings_subtitle">変更はこのチャットにのみ適用されます。</string>
+    <string name="chat_settings_temperature">温度</string>
+    <string name="chat_settings_top_p">Top-P</string>
+    <string name="chat_settings_top_k">Top-K</string>
+    <string name="chat_settings_system_instruction">システム指示</string>
+    <string name="chat_settings_default_system_instruction">あなたは役立つアシスタントです。</string>
+    <string name="chat_settings_discard">破棄</string>
+    <string name="chat_settings_save">保存</string>
+    <string name="chat_settings_context_window_note">コンテキストウィンドウは自動管理されます — 会話が大きくなると古いメッセージが要約されます。</string>
+    <string name="chat_settings_backend">バックエンド</string>
+
+    <!-- ================= Message bubble ================= -->
+    <string name="chat_message_token_count">• %1$d トークン</string>
+    <string name="chat_duration_seconds">%1$.1f秒</string>
+    <string name="chat_duration_minutes_seconds">%1$dm %2$02ds</string>
+    <string name="chat_message_copy_content_description">コピー</string>
+    <string name="chat_message_regenerate_content_description">再生成</string>
+
+    <!-- ================= Model chip / pickers ================= -->
+    <string name="chat_model_loading">読み込み中…</string>
+    <string name="chat_model_error">モデルエラー</string>
+    <string name="chat_model_select">モデルを選択</string>
+    <string name="chat_model_choose_content_description">モデルを選択</string>
+    <string name="chat_model_choose_title">モデルを選択</string>
+    <string name="chat_model_active_content_description">アクティブ</string>
+    <string name="chat_model_files_title">モデルを選択</string>
+    <string name="chat_model_files_subtitle">このデバイスのすべてのダウンロード済みモデルファイル。</string>
+    <string name="chat_model_files_empty">ダウンロード済みのモデルファイルはまだありません。</string>
+
+    <!-- ================= Model loading dialog ================= -->
+    <string name="chat_loading_title">モデルを読み込み中</string>
+    <string name="chat_loading_stage_initializing">エンジンを初期化中…</string>
+    <string name="chat_loading_stage_weights">重みを読み込み中…</string>
+    <string name="chat_loading_stage_ready">準備完了！</string>
+
+    <!-- ================= Chat options menu ================= -->
+    <string name="chat_attach_photo_unavailable">このモデルは写真を読み取れません。画像を分析するにはビジョン対応モデル（例: Gemma 3）を読み込んでください。</string>
+
+    <!-- ================= Vision support ================= -->
+    <string name="chat_vision_unsupported">このモデルにはビジョンエンコーダーが含まれていないため、写真を読み取れません。画像を分析するにはビジョン対応モデル（例: Gemma 3）を読み込んでください — テキストは保持され、写真の添付はスキップされました。</string>
+
+    <!-- ================= Chat errors ================= -->
+    <string name="chat_error_model_not_downloaded">モデル %1$s はダウンロードされていません</string>
+    <string name="chat_error_model_file_missing">デバイスにモデルファイルがありません</string>
+    <string name="chat_error_re_download">再ダウンロード</string>
+    <string name="chat_error_failed_to_load">モデルの読み込みに失敗しました</string>
+    <string name="chat_error_model_still_loading">モデルはまだ読み込み中です</string>
+    <string name="chat_error_download_model_first">チャットを始めるには先にモデルをダウンロードしてください。</string>
+    <string name="chat_error_nothing_to_compact">圧縮するものはありません — 会話は既にコンテキストウィンドウに収まっています</string>
+    <string name="chat_error_summarization_failed">要約に失敗しました — コンテキストウィンドウに収まるように履歴が切り詰められました</string>
+    <plurals name="chat_error_compacted_messages">
+        <item quantity="other">%1$d 件の古いメッセージを要約に圧縮しました</item>
+    </plurals>
+    <string name="chat_error_photo_unreadable">その写真を読み取れませんでした — 別の画像をお試しください</string>
+    <string name="chat_error_no_active_conversation">アクティブな会話がありません</string>
+    <string name="chat_error_model_not_ready">モデルが準備できていません</string>
+    <string name="chat_error_generation_failed">生成に失敗しました</string>
+    <string name="chat_error_vision_photos">このモデルは写真を読み取れません。画像を分析するにはビジョン対応モデル（例: Gemma 3）を読み込んでください。</string>
+    <string name="chat_error_context_too_long">プロンプトまたはチャット履歴がこのモデルのコンテキストウィンドウに対して長すぎます。新しいチャットを開始するか、セッション設定で最大コンテキストトークンを減らしてください。</string>
+    <string name="chat_error_couldnt_start_conversation">会話を開始できませんでした</string>
+    <string name="chat_error_couldnt_start_conversation_retry">会話を開始できませんでした。チャットを開き直すかモデルを再読み込みしてください。</string>
+    <string name="chat_error_history_too_long">チャット履歴がこのモデルのコンテキストウィンドウに対して長すぎます。新しいチャットを開始するか、会話を圧縮してください。</string>
+    <string name="chat_error_out_of_memory">空きメモリが不足しています。他のアプリを閉じて再試行してください。</string>
+    <string name="chat_error_model_file_missing_short">モデルファイルがありません。モデルを再ダウンロードしてください。</string>
+    <string name="chat_error_no_backend">このデバイスではサポートされているバックエンドがありません。</string>
+    <string name="chat_error_no_model_loaded">モデルが読み込まれていません</string>
+
+    <!-- リソース抽出で追加された新しい文字列 -->
+    <string name="chat_section_pinned">ピン留め</string>
+    <string name="chat_section_recent">最近</string>
+    <string name="chat_rename_title">チャット名を変更</string>
+    <string name="chat_rename_label">チャット名</string>
+    <string name="chat_rename">名前を変更</string>
+    <string name="chat_pin">ピン留め</string>
+    <string name="chat_unpin">ピン留めを解除</string>
+    <string name="chat_pinned_content_description">ピン留め済み</string>
+    <string name="chat_default_photo_prompt">この画像には何が写っていますか？</string>
+    <string name="chat_room_compacted_notice">コンテキストウィンドウに収めるため、古いメッセージは要約されました</string>
+</resources>

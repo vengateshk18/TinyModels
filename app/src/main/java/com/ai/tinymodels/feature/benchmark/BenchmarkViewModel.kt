@@ -3,6 +3,7 @@ package com.ai.tinymodels.feature.benchmark
 import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.AppResult
 import com.ai.tinymodels.core.common.MemoryUtils
 import com.ai.tinymodels.core.inference.BenchmarkMath
@@ -89,12 +90,12 @@ class BenchmarkViewModel @Inject constructor(
             val downloaded = modelRepository.getDownloadedModel(modelId)
             val fileRecord = modelRepository.getModelFile(modelId, fileName)
             if (downloaded == null || fileRecord == null) {
-                _uiState.value = BenchmarkUiState.Failed("Model file missing on device")
+                _uiState.value = BenchmarkUiState.Failed(context.getString(R.string.benchmark_error_model_file_missing))
                 return@launch
             }
             val modelFile = File(File(downloaded.localPath), fileRecord.fileName.substringAfterLast("/"))
             if (!modelFile.exists()) {
-                _uiState.value = BenchmarkUiState.Failed("Model file missing on device")
+                _uiState.value = BenchmarkUiState.Failed(context.getString(R.string.benchmark_error_model_file_missing))
                 return@launch
             }
 
@@ -103,10 +104,11 @@ class BenchmarkViewModel @Inject constructor(
             val required = MemoryUtils.requiredBytesForModel(modelFile)
             if (!MemoryUtils.hasHeadroom(snapshot, required)) {
                 _uiState.value = BenchmarkUiState.Failed(
-                    "Not enough free RAM to load this model " +
-                        "(need ~${required / (1024 * 1024)} MB, have " +
-                        "${snapshot.availableBytes / (1024 * 1024)} MB). " +
-                        "Close other apps and try again."
+                    context.getString(
+                        R.string.benchmark_error_not_enough_ram,
+                        required / (1024 * 1024),
+                        snapshot.availableBytes / (1024 * 1024)
+                    )
                 )
                 return@launch
             }
@@ -139,7 +141,7 @@ class BenchmarkViewModel @Inject constructor(
                 when (loadResult) {
                     is AppResult.Error -> {
                         _uiState.value = BenchmarkUiState.Failed(
-                            loadResult.error.message ?: "Failed to load model"
+                            loadResult.error.message ?: context.getString(R.string.benchmark_error_failed_to_load)
                         )
                         return@launch
                     }
@@ -163,7 +165,11 @@ class BenchmarkViewModel @Inject constructor(
                             RunProgress(
                                 promptIndex = promptIndex,
                                 promptTotal = prompts.size,
-                                promptLabel = prompt.label,
+                                promptLabelRes = when (prompt.id) {
+                                    "short" -> R.string.benchmark_prompt_short
+                                    "medium" -> R.string.benchmark_prompt_medium
+                                    else -> R.string.benchmark_prompt_long
+                                },
                                 runIndex = runIndex,
                                 runTotal = runsPerPrompt,
                                 tokensSoFar = 0,
@@ -194,7 +200,7 @@ class BenchmarkViewModel @Inject constructor(
                         RunProgress(
                             promptIndex = prompts.lastIndex,
                             promptTotal = prompts.size,
-                            promptLabel = "Sustained",
+                            promptLabelRes = R.string.benchmark_phase_thermal,
                             runIndex = 0,
                             runTotal = 1,
                             tokensSoFar = 0,
@@ -234,7 +240,7 @@ class BenchmarkViewModel @Inject constructor(
                 // conversation failure on a text-only model) — report it.
                 android.util.Log.e("Benchmark", "Benchmark failed: ${throwable.message}", throwable)
                 _uiState.value = BenchmarkUiState.Failed(
-                    throwable.message?.takeIf { it.isNotBlank() } ?: "Benchmark failed"
+                    throwable.message?.takeIf { it.isNotBlank() } ?: context.getString(R.string.benchmark_failed_title)
                 )
             } finally {
                 pssMonitor.stop()

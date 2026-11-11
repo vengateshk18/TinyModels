@@ -24,6 +24,9 @@ interface ModelRepository {
     // ---- Local downloads (per-file children) ----
     fun observeModelFiles(modelId: String): Flow<List<DownloadedModelFile>>
     fun observeDownloadedFiles(): Flow<List<DownloadedModelFile>>
+
+    /** Files stopped by the user, partial bytes kept — the "Paused" group on the downloads screens. */
+    fun observePausedFiles(): Flow<List<DownloadedModelFile>>
     suspend fun getModelFile(modelId: String, fileName: String): DownloadedModelFile?
     /** First DOWNLOADED file for a model (used to resolve the file to load for chat). */
     suspend fun getDownloadedFileForModel(modelId: String): DownloadedModelFile?
