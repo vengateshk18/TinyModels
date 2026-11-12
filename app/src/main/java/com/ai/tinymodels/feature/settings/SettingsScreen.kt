@@ -52,8 +52,11 @@ import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material.icons.filled.PrivacyTip
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material.icons.filled.Widgets
@@ -130,6 +133,9 @@ fun SettingsScreen(
     onDeviceInfo: () -> Unit,
     onBenchmark: () -> Unit = {},
     onViewIntro: () -> Unit = {},
+    onStorage: () -> Unit = {},
+    onPrivacy: () -> Unit = {},
+    onSecurity: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -191,7 +197,8 @@ fun SettingsScreen(
             DownloadsModelsSection(
                 settings = settings,
                 viewModel = viewModel,
-                onImportClick = { importLauncher.launch(arrayOf("*/*")) }
+                onImportClick = { importLauncher.launch(arrayOf("*/*")) },
+                onStorage = onStorage
             )
             AccountsSection(viewModel)
             HomeScreenSection(
@@ -214,6 +221,7 @@ fun SettingsScreen(
                 onDeviceInfo = onDeviceInfo,
                 onViewIntro = onViewIntro
             )
+            PrivacySecuritySection(onPrivacy = onPrivacy, onSecurity = onSecurity)
             SupportSection()
             DataSection(onClearHistory = { showClearDialog = true })
             Spacer(modifier = Modifier.height(8.dp))
@@ -428,7 +436,8 @@ private fun ChatInferenceSection(settings: AppSettings, viewModel: SettingsViewM
 private fun DownloadsModelsSection(
     settings: AppSettings,
     viewModel: SettingsViewModel,
-    onImportClick: () -> Unit
+    onImportClick: () -> Unit,
+    onStorage: () -> Unit
 ) {
     SettingsSection(
         title = stringResource(R.string.settings_section_downloads),
@@ -447,6 +456,13 @@ private fun DownloadsModelsSection(
             label = stringResource(R.string.settings_import_model),
             subtitle = stringResource(R.string.settings_import_model_subtitle),
             onClick = onImportClick
+        )
+        SettingsDivider()
+        SettingsNavigationItem(
+            icon = Icons.Filled.Storage,
+            label = stringResource(R.string.settings_storage),
+            subtitle = stringResource(R.string.settings_storage_subtitle),
+            onClick = onStorage
         )
     }
 }
@@ -526,6 +542,28 @@ private fun ToolsAboutSection(
             label = stringResource(R.string.settings_view_intro),
             subtitle = stringResource(R.string.settings_view_intro_subtitle),
             onClick = onViewIntro
+        )
+    }
+}
+
+@Composable
+private fun PrivacySecuritySection(onPrivacy: () -> Unit, onSecurity: () -> Unit) {
+    SettingsSection(
+        title = stringResource(R.string.settings_section_privacy_security),
+        icon = Icons.Filled.Security
+    ) {
+        SettingsNavigationItem(
+            icon = Icons.Filled.PrivacyTip,
+            label = stringResource(R.string.settings_privacy),
+            subtitle = stringResource(R.string.settings_privacy_subtitle),
+            onClick = onPrivacy
+        )
+        SettingsDivider()
+        SettingsNavigationItem(
+            icon = Icons.Filled.Security,
+            label = stringResource(R.string.settings_security),
+            subtitle = stringResource(R.string.settings_security_subtitle),
+            onClick = onSecurity
         )
     }
 }

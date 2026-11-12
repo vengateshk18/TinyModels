@@ -261,4 +261,53 @@
     <string name="theme_dracula">Dracula</string>
     <string name="theme_nord">Nord</string>
     <string name="theme_catppuccin">Catppuccin</string>
+
+    <!-- Storage screen -->
+    <string name="settings_storage">Storage</string>
+    <string name="settings_storage_subtitle">See model, chat, database, and orphaned file usage</string>
+    <string name="storage_title">Storage</string>
+    <string name="storage_total_tracked">Tracked app data</string>
+    <string name="storage_total_tracked_subtitle">Models, chats, database, partial downloads, and orphaned files</string>
+    <string name="storage_models_section">Downloaded models</string>
+    <string name="storage_models_count">%1$d downloaded file(s)</string>
+    <string name="storage_no_downloaded_models">No downloaded model files found</string>
+    <string name="storage_chats_db_section">Chats &amp; database</string>
+    <string name="storage_chats_summary">%1$d chat(s) · %2$d message(s)</string>
+    <string name="storage_database">Database (tiny_models.db)</string>
+    <string name="storage_database_wal">Database WAL/SHM</string>
+    <string name="storage_chat_images">Chat images</string>
+    <string name="storage_total_tokens">Total tokens generated</string>
+    <string name="storage_partial_downloads">Partial / paused downloads</string>
+    <string name="storage_partial_downloads_subtitle">%1$d paused or in-progress download entry(ies). Partial .part files are shown below.</string>
+    <string name="storage_no_partial_downloads">No partial download files found</string>
+    <string name="storage_orphan_files">Orphaned files</string>
+    <string name="storage_orphan_files_subtitle">Files in app model storage that are not tracked as downloaded models</string>
+    <string name="storage_no_orphan_files">No orphaned files found</string>
+
+    <!-- Privacy & security -->
+    <string name="settings_section_privacy_security">Privacy &amp; security</string>
+    <string name="settings_privacy">Privacy policy</string>
+    <string name="settings_privacy_subtitle">Read how TinyModels handles your data</string>
+    <string name="settings_security">Security</string>
+    <string name="settings_security_subtitle">Learn about TinyModels security practices</string>
+
+
+    <string name="storage_refresh">Refresh</string>
+    <string name="storage_chats_section">Chats &amp; storage</string>
+    <string name="storage_images_count">%1$d image(s)</string>
+    <string name="storage_no_chats">No chats to delete</string>
+    <string name="storage_chat_messages_count">%1$d message(s)</string>
+    <string name="storage_delete">Delete</string>
+    <string name="storage_delete_confirm_title">Delete item?</string>
+    <string name="storage_delete_model_file_body">Delete "%1$s"? This removes the downloaded model file from your device and updates storage tracking.</string>
+    <string name="storage_delete_partial_body">Delete partial download "%1$s"? This removes leftover .part data so you can start clean.</string>
+    <string name="storage_delete_orphan_body">Delete orphaned file "%1$s"? This file is not tracked as a downloaded model.</string>
+    <string name="storage_delete_chat_title">Delete chat?</string>
+    <string name="storage_delete_chat_body">Delete "%1$s" and its messages? This cannot be undone.</string>
+    <string name="storage_reset_app">Reset app data</string>
+    <string name="storage_reset_app_subtitle">Delete all chats, downloaded models, partial/orphaned files, chat images, and reset app settings. This cannot be undone.</string>
+    <string name="storage_reset_confirm_title">Reset all app data?</string>
+    <string name="storage_reset_confirm_body">This will remove chats, downloaded models and files, partial downloads, orphaned files, chat images, and reset settings/onboarding. You will start fresh.</string>
+    <string name="storage_reset_confirm_action">Reset app data</string>
+
 </resources>

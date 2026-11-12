@@ -1,16 +1,21 @@
 <resources>
+    <!-- First-run intro (onboarding) -->
+    <string name="onboarding_privacy_title">プライバシー重視の設計</string>
+    <string name="onboarding_privacy_body">すべてのモデルは端末上で動作します。チャットが端末の外に出ることはありません。アカウントもクラウドも追跡も不要です。</string>
 
-    <!-- New strings surfaced by the latest main -->
-    <string name="onboarding_privacy_title">設計からプライベート</string>
-    <string name="onboarding_privacy_body">すべてのモデルはあなたのスマホ上で動きます。チャットがデバイスの外に出ることはありません — アカウントもクラウドも追跡もありません。</string>
-    <string name="onboarding_download_title">一度ダウンロードすれば、オフラインでチャット</string>
-    <string name="onboarding_download_body">テキスト・ビジョン・コードモデルを探して、Wi-Fi でバックグラウンドにダウンロード。機内でも圏外でもチャットできます。</string>
-    <string name="onboarding_chat_title">ネイティブな感覚のチャット</string>
-    <string name="onboarding_chat_body">ストリーミング応答、チャットごとの設定、ビジョンモデル向けの写真入力、そしてオフにできるウェブ検索ツール。</string>
-    <string name="onboarding_device_title">デバイスにちょうどいいサイズ</string>
-    <string name="onboarding_device_body">TinyModels が RAM とストレージを読み取り、本当に収まるモデルを提案します — 勘や 4 GB の失敗はありません。</string>
-    <string name="onboarding_tuning_title">測って、整えて、自分のものに</string>
-    <string name="onboarding_tuning_body">実際の速度と熱を測れるベンチマーク、テーマとフォントの選択、ダウンロード済みモデルの一元管理。</string>
+    <string name="onboarding_download_title">一度ダウンロード、オフラインでチャット</string>
+    <string name="onboarding_download_body">テキスト・画像・コードモデルを探し、Wi-Fi でバックグラウンドダウンロードして、オフラインでもチャットできます。</string>
+
+    <string name="onboarding_chat_title">自然なチャット体験</string>
+    <string name="onboarding_chat_body">ストリーミング応答、チャットごとの設定、画像モデル向けの写真入力、オン/オフできるウェブ検索に対応。</string>
+
+    <string name="onboarding_personalize_title">自分好みにカスタマイズ</string>
+    <string name="onboarding_personalize_body">言語を選び、カラーテーマやダイナミックカラーを切り替え、フォントや文字サイズを快適に調整できます。</string>
+
+    <string name="onboarding_ready_title">ホーム画面からすぐ使える</string>
+    <string name="onboarding_ready_body">TinyModels ウィジェットを追加して素早くアクセスし、端末の適合性やストレージを確認、モデルの管理やベンチマークも行えます。</string>
+
+    <!-- Intro UI chrome -->
     <string name="onboarding_skip">スキップ</string>
     <string name="onboarding_done">完了</string>
     <string name="onboarding_get_started">はじめる</string>

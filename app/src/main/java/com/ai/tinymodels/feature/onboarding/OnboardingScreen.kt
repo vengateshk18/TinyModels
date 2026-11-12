@@ -45,12 +45,12 @@ import androidx.compose.material.icons.rounded.CloudDone
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.Memory
+import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.Palette
-import androidx.compose.material.icons.rounded.Speed
+import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.Storage
-import androidx.compose.material.icons.rounded.Thermostat
 import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material.icons.rounded.Widgets
 import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -274,8 +274,8 @@ private fun OnboardingArt.spec(): ArtSpec = when (this) {
     OnboardingArt.PRIVACY -> ArtSpec(Icons.Rounded.Lock, listOf(Icons.Rounded.VisibilityOff, Icons.Rounded.Bolt))
     OnboardingArt.DOWNLOAD -> ArtSpec(Icons.Rounded.Download, listOf(Icons.Rounded.WifiOff, Icons.Rounded.CloudDone))
     OnboardingArt.CHAT -> ArtSpec(Icons.AutoMirrored.Rounded.Chat, listOf(Icons.Rounded.AutoAwesome, Icons.Rounded.Image))
-    OnboardingArt.DEVICE -> ArtSpec(Icons.Rounded.Memory, listOf(Icons.Rounded.Storage, Icons.Rounded.Bolt))
-    OnboardingArt.TUNING -> ArtSpec(Icons.Rounded.Speed, listOf(Icons.Rounded.Thermostat, Icons.Rounded.Palette))
+    OnboardingArt.PERSONALIZE -> ArtSpec(Icons.Rounded.Palette, listOf(Icons.Rounded.Language, Icons.Rounded.AutoAwesome))
+    OnboardingArt.READY -> ArtSpec(Icons.Rounded.Widgets, listOf(Icons.Rounded.PhoneAndroid, Icons.Rounded.Storage))
 }
 
 @Composable
@@ -283,8 +283,8 @@ private fun OnboardingIllustration(art: OnboardingArt, modifier: Modifier = Modi
     val colors = MaterialTheme.colorScheme
     val spec = remember(art) { art.spec() }
     val accent = when (art) {
-        OnboardingArt.PRIVACY, OnboardingArt.DEVICE -> colors.primary
-        OnboardingArt.DOWNLOAD, OnboardingArt.TUNING -> colors.secondary
+        OnboardingArt.PRIVACY, OnboardingArt.READY -> colors.primary
+        OnboardingArt.DOWNLOAD, OnboardingArt.PERSONALIZE -> colors.secondary
         OnboardingArt.CHAT -> colors.tertiary
     }
 

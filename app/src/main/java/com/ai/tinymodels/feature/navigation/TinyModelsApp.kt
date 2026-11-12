@@ -62,6 +62,8 @@ import com.ai.tinymodels.feature.onboarding.OnboardingScreen
 import com.ai.tinymodels.feature.home.DeviceInfoScreen
 import com.ai.tinymodels.feature.home.HomeScreen
 import com.ai.tinymodels.feature.settings.SettingsScreen
+import com.ai.tinymodels.feature.storage.StorageScreen
+import com.ai.tinymodels.feature.web.InAppWebScreen
 
 /**
  * Top-level app scaffold with a bottom [NavigationBar] hosting 4 tabs:
@@ -167,7 +169,10 @@ fun TinyModelsApp(
                         onDownloadedModels = { navController.navigate(Routes.DOWNLOADED_MODELS) },
                         onDeviceInfo = { navController.navigate(Routes.DEVICE_INFO) },
                         onBenchmark = { navController.navigate(Routes.BENCHMARK) },
-                        onViewIntro = { navController.navigate(Routes.ONBOARDING) }
+                        onViewIntro = { navController.navigate(Routes.ONBOARDING) },
+                        onStorage = { navController.navigate(Routes.STORAGE) },
+                        onPrivacy = { navController.navigate(Routes.PRIVACY) },
+                        onSecurity = { navController.navigate(Routes.SECURITY) }
                     )
                 }
 
@@ -256,6 +261,26 @@ fun TinyModelsApp(
 
                 composable(Routes.BENCHMARK) {
                     BenchmarkScreen(onBack = { navController.popBackStack() })
+                }
+
+                composable(Routes.STORAGE) {
+                    StorageScreen(onBack = { navController.popBackStack() })
+                }
+
+                composable(Routes.PRIVACY) {
+                    InAppWebScreen(
+                        title = stringResource(R.string.settings_privacy),
+                        url = "https://vengateshk18.github.io/TinyModels/privacy.html",
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Routes.SECURITY) {
+                    InAppWebScreen(
+                        title = stringResource(R.string.settings_security),
+                        url = "https://vengateshk18.github.io/TinyModels/security.html",
+                        onBack = { navController.popBackStack() }
+                    )
                 }
             }
         }

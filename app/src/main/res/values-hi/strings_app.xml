@@ -237,4 +237,53 @@
     <string name="theme_dracula">Dracula</string>
     <string name="theme_nord">Nord</string>
     <string name="theme_catppuccin">Catppuccin</string>
+
+    <!-- Storage screen -->
+    <string name="settings_storage">स्टोरेज</string>
+    <string name="settings_storage_subtitle">मॉडल, चैट, डेटाबेस और ऑर्फ़न फ़ाइल उपयोग देखें</string>
+    <string name="storage_title">स्टोरेज</string>
+    <string name="storage_total_tracked">ट्रैक किया गया ऐप डेटा</string>
+    <string name="storage_total_tracked_subtitle">मॉडल, चैट, डेटाबेस, आंशिक डाउनलोड और ऑर्फ़न फ़ाइलें</string>
+    <string name="storage_models_section">डाउनलोड किए गए मॉडल</string>
+    <string name="storage_models_count">%1$d डाउनलोड की गई फ़ाइल(ें)</string>
+    <string name="storage_no_downloaded_models">कोई डाउनलोड की गई मॉडल फ़ाइल नहीं मिली</string>
+    <string name="storage_chats_db_section">चैट और डेटाबेस</string>
+    <string name="storage_chats_summary">%1$d चैट · %2$d संदेश</string>
+    <string name="storage_database">डेटाबेस (tiny_models.db)</string>
+    <string name="storage_database_wal">डेटाबेस WAL/SHM</string>
+    <string name="storage_chat_images">चैट छवियाँ</string>
+    <string name="storage_total_tokens">कुल जनरेट किए गए टोकन</string>
+    <string name="storage_partial_downloads">आंशिक / रुके हुए डाउनलोड</string>
+    <string name="storage_partial_downloads_subtitle">%1$d रुकी हुई या चल रही डाउनलोड प्रविष्टि(याँ)। आंशिक .part फ़ाइलें नीचे दिखाई गई हैं।</string>
+    <string name="storage_no_partial_downloads">कोई आंशिक डाउनलोड फ़ाइल नहीं मिली</string>
+    <string name="storage_orphan_files">ऑर्फ़न फ़ाइलें</string>
+    <string name="storage_orphan_files_subtitle">ऐप मॉडल स्टोरेज में ऐसी फ़ाइलें जो डाउनलोड किए गए मॉडल के रूप में ट्रैक नहीं हैं</string>
+    <string name="storage_no_orphan_files">कोई ऑर्फ़न फ़ाइल नहीं मिली</string>
+
+    <!-- Privacy & security -->
+    <string name="settings_section_privacy_security">गोपनीयता और सुरक्षा</string>
+    <string name="settings_privacy">गोपनीयता नीति</string>
+    <string name="settings_privacy_subtitle">जानें TinyModels आपके डेटा को कैसे संभालता है</string>
+    <string name="settings_security">सुरक्षा</string>
+    <string name="settings_security_subtitle">TinyModels की सुरक्षा प्रथाओं के बारे में जानें</string>
+
+
+    <string name="storage_refresh">रीफ़्रेश</string>
+    <string name="storage_chats_section">चैट और स्टोरेज</string>
+    <string name="storage_images_count">%1$d छवि(याँ)</string>
+    <string name="storage_no_chats">हटाने के लिए कोई चैट नहीं</string>
+    <string name="storage_chat_messages_count">%1$d संदेश</string>
+    <string name="storage_delete">हटाएँ</string>
+    <string name="storage_delete_confirm_title">आइटम हटाएँ?</string>
+    <string name="storage_delete_model_file_body">"%1$s" हटाएँ? इससे डाउनलोड की गई मॉडल फ़ाइल आपके डिवाइस से हट जाएगी और स्टोरेज ट्रैकिंग अपडेट होगी।</string>
+    <string name="storage_delete_partial_body">आंशिक डाउनलोड "%1$s" हटाएँ? इससे बचा हुआ .part डेटा हट जाएगा ताकि आप साफ़ शुरुआत कर सकें।</string>
+    <string name="storage_delete_orphan_body">ऑर्फ़न फ़ाइल "%1$s" हटाएँ? यह फ़ाइल डाउनलोड किए गए मॉडल के रूप में ट्रैक नहीं है।</string>
+    <string name="storage_delete_chat_title">चैट हटाएँ?</string>
+    <string name="storage_delete_chat_body">"%1$s" और उसके संदेश हटाएँ? इसे पूर्ववत नहीं किया जा सकता।</string>
+    <string name="storage_reset_app">ऐप डेटा रीसेट करें</string>
+    <string name="storage_reset_app_subtitle">सभी चैट, डाउनलोड किए गए मॉडल, आंशिक/ऑर्फ़न फ़ाइलें, चैट छवियाँ हटाएँ और ऐप सेटिंग्स रीसेट करें। इसे पूर्ववत नहीं किया जा सकता।</string>
+    <string name="storage_reset_confirm_title">सभी ऐप डेटा रीसेट करें?</string>
+    <string name="storage_reset_confirm_body">इससे चैट, डाउनलोड किए गए मॉडल/फ़ाइलें, आंशिक डाउनलोड, ऑर्फ़न फ़ाइलें, चैट छवियाँ हट जाएँगी और सेटिंग्स/ऑनबोर्डिंग रीसेट होगी। आप नई शुरुआत करेंगे।</string>
+    <string name="storage_reset_confirm_action">रीसेट करें</string>
+
 </resources>

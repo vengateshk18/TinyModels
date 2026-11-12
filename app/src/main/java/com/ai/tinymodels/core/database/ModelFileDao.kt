@@ -55,4 +55,7 @@ interface ModelFileDao {
 
     @Query("SELECT * FROM model_files WHERE modelId = :modelId")
     suspend fun getByModelId(modelId: String): List<ModelFileEntity>
+
+    @Query("SELECT * FROM model_files")
+    suspend fun getAll(): List<ModelFileEntity>
 }
