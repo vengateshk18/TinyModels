@@ -218,6 +218,8 @@
     <string name="settings_view_intro_subtitle">Vuelve a hacer el recorrido por TinyModels</string>
     <string name="benchmark_ttft_line">TTFT %1$.0f ms · p95 %2$.0f ms</string>
 
+    <string name="settings_section_home_screen">Pantalla de inicio</string>
+
     <!-- Home screen widget -->
     <string name="settings_add_widget">Añadir widget a la pantalla de inicio</string>
     <string name="settings_add_widget_subtitle">Pon TinyModels en tu pantalla de inicio para un acceso rápido</string>

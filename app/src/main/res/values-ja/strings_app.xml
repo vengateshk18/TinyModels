@@ -220,6 +220,8 @@
     <string name="settings_view_intro_subtitle">TinyModels のツアーをもう一度</string>
     <string name="benchmark_ttft_line">TTFT %1$.0f ms · p95 %2$.0f ms</string>
 
+    <string name="settings_section_home_screen">ホーム画面</string>
+
     <!-- Home screen widget -->
     <string name="settings_add_widget">ホーム画面にウィジェットを追加</string>
     <string name="settings_add_widget_subtitle">ホーム画面に TinyModels を配置してすばやくアクセス</string>

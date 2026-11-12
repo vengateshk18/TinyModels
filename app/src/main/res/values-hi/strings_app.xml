@@ -218,6 +218,8 @@
     <string name="settings_view_intro_subtitle">TinyModels का दौरा फिर से लें</string>
     <string name="benchmark_ttft_line">TTFT %1$.0f ms · p95 %2$.0f ms</string>
 
+    <string name="settings_section_home_screen">होम स्क्रीन</string>
+
     <!-- Home screen widget -->
     <string name="settings_add_widget">होम स्क्रीन पर विजेट जोड़ें</string>
     <string name="settings_add_widget_subtitle">त्वरित पहुँच के लिए TinyModels को अपनी होम स्क्रीन पर रखें</string>

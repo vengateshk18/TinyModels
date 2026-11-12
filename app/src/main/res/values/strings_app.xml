@@ -242,6 +242,8 @@
     <string name="benchmark_summary_sustained">Sustained: %1$.1f tok/s, %2$s (%3$s)</string>
     <string name="benchmark_summary_load">Load %1$.1fs · peak PSS %2$s · model %3$s</string>
 
+    <string name="settings_section_home_screen">Home screen</string>
+
     <!-- Home screen widget -->
     <string name="settings_add_widget">Add widget to home screen</string>
     <string name="settings_add_widget_subtitle">Put TinyModels on your home screen for quick access</string>
