@@ -23,6 +23,7 @@ import com.ai.tinymodels.domain.model.FileDownloadStatus
 import com.ai.tinymodels.domain.model.ModelDetails
 import com.ai.tinymodels.domain.model.ModelSummary
 import com.ai.tinymodels.domain.repository.ModelRepository
+import com.ai.tinymodels.feature.widget.WidgetUpdater
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -79,6 +80,7 @@ class ModelRepositoryImpl @Inject constructor(
             downloadedModelDao.getById(modelId)?.let { File(it.localPath).deleteRecursively() }
             modelFileDao.deleteAllForModel(modelId)
             downloadedModelDao.delete(modelId)
+            WidgetUpdater.requestUpdate(context)
         }
 
     // ---- Local downloads (per-file children) ----
@@ -151,10 +153,16 @@ class ModelRepositoryImpl @Inject constructor(
                 )
             )
         }
+        if (status == FileDownloadStatus.DOWNLOADED || status == FileDownloadStatus.FAILED) {
+            WidgetUpdater.requestUpdate(context)
+        }
     }
 
     override suspend fun deleteModelFile(modelId: String, fileName: String) =
-        withContext(dispatchers.io) { modelFileDao.delete(modelId, fileName) }
+        withContext(dispatchers.io) {
+            modelFileDao.delete(modelId, fileName)
+            WidgetUpdater.requestUpdate(context)
+        }
 
     // ---- Mapping ----
 
@@ -277,6 +285,7 @@ class ModelRepositoryImpl @Inject constructor(
                     )
                 )
 
+                WidgetUpdater.requestUpdate(context)
                 existingModel?.toDomain() ?: modelEntity.toDomain()
             }
         }

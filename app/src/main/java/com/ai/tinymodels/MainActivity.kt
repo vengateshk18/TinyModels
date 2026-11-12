@@ -30,6 +30,7 @@ import com.ai.tinymodels.core.ui.theme.resolveColorScheme
 import com.ai.tinymodels.domain.model.ThemeMode
 import com.ai.tinymodels.domain.repository.SettingsRepository
 import com.ai.tinymodels.feature.startup.AppRoot
+import com.ai.tinymodels.feature.widget.WidgetUpdater
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -50,6 +51,11 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var networkMonitor: NetworkMonitor
+
+    override fun onResume() {
+        super.onResume()
+        WidgetUpdater.requestUpdate(this)
+    }
 
     /**
      * Applies the user's chosen app language before any resource is resolved.

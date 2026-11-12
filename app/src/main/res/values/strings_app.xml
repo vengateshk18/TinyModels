@@ -241,4 +241,11 @@
     <string name="benchmark_summary_prompt_line">  %1$s: TTFT %2$.0fms (p95 %3$.0f), decode %4$.1f tok/s (p95 %5$.1f, sd %6$.1f), prefill %7$.0f tok/s</string>
     <string name="benchmark_summary_sustained">Sustained: %1$.1f tok/s, %2$s (%3$s)</string>
     <string name="benchmark_summary_load">Load %1$.1fs · peak PSS %2$s · model %3$s</string>
+
+    <!-- Home screen widget -->
+    <string name="settings_add_widget">Add widget to home screen</string>
+    <string name="settings_add_widget_subtitle">Put TinyModels on your home screen for quick access</string>
+    <string name="settings_add_widget_not_supported">Home screen widget can’t be added from here on this device. Long-press your home screen and add TinyModels from Widgets.</string>
+    <string name="settings_add_widget_added">Widget added to home screen</string>
+
 </resources>

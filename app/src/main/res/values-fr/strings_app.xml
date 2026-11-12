@@ -219,4 +219,11 @@
     <string name="settings_view_intro">Voir l’introduction</string>
     <string name="settings_view_intro_subtitle">Refaites le tour de TinyModels</string>
     <string name="benchmark_ttft_line">TTFT %1$.0f ms · p95 %2$.0f ms</string>
+
+    <!-- Home screen widget -->
+    <string name="settings_add_widget">Ajouter un widget à l’écran d’accueil</string>
+    <string name="settings_add_widget_subtitle">Placez TinyModels sur votre écran d’accueil pour un accès rapide</string>
+    <string name="settings_add_widget_not_supported">Impossible d’ajouter le widget depuis ici sur cet appareil. Appuyez longuement sur l’écran d’accueil et ajoutez TinyModels depuis Widgets.</string>
+    <string name="settings_add_widget_added">Widget ajouté à l’écran d’accueil</string>
+
 </resources>

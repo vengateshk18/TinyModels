@@ -1,5 +1,6 @@
 package com.ai.tinymodels.data.repository
 
+import android.content.Context
 import com.ai.tinymodels.core.common.DispatcherProvider
 import com.ai.tinymodels.core.database.ChatDao
 import com.ai.tinymodels.core.database.entities.ChatEntity
@@ -10,6 +11,8 @@ import com.ai.tinymodels.domain.model.ChatSummary
 import com.ai.tinymodels.domain.model.InferenceSettings
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.repository.ChatRepository
+import com.ai.tinymodels.feature.widget.WidgetUpdater
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -20,6 +23,7 @@ import javax.inject.Singleton
 
 @Singleton
 class ChatRepositoryImpl @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val chatDao: ChatDao,
     private val dispatchers: DispatcherProvider
 ) : ChatRepository {
@@ -66,17 +70,20 @@ class ChatRepositoryImpl @Inject constructor(
                 webSearchEnabled = webSearchEnabled
             )
             chatDao.upsertChat(entity)
+            WidgetUpdater.requestUpdate(context)
             entity.toDomain()
         }
 
     override suspend fun renameChat(chatId: String, title: String) =
         withContext(dispatchers.io) {
             chatDao.updateChatTitle(chatId, title, System.currentTimeMillis())
+            WidgetUpdater.requestUpdate(context)
         }
 
     override suspend fun setChatPinned(chatId: String, pinned: Boolean) =
         withContext(dispatchers.io) {
             chatDao.updateChatPinned(chatId, pinned)
+            WidgetUpdater.requestUpdate(context)
         }
 
     override suspend fun saveCompaction(chatId: String, summary: String?, cutoffCreatedAt: Long?) =
@@ -100,6 +107,7 @@ class ChatRepositoryImpl @Inject constructor(
         withContext(dispatchers.io) {
             chatDao.upsertMessage(message.toEntity())
             chatDao.touchChat(message.chatId, System.currentTimeMillis())
+            WidgetUpdater.requestUpdate(context)
         }
 
     override suspend fun updateWebSearchEnabled(chatId: String, enabled: Boolean) =
@@ -110,18 +118,21 @@ class ChatRepositoryImpl @Inject constructor(
     override suspend fun deleteMessage(messageId: String) =
         withContext(dispatchers.io) {
             chatDao.deleteMessage(messageId)
+            WidgetUpdater.requestUpdate(context)
         }
 
     override suspend fun deleteChat(chatId: String) =
         withContext(dispatchers.io) {
             chatDao.deleteMessagesForChat(chatId)
             chatDao.deleteChat(chatId)
+            WidgetUpdater.requestUpdate(context)
         }
 
     override suspend fun clearAllChats() =
         withContext(dispatchers.io) {
             chatDao.deleteAllMessages()
             chatDao.deleteAllChats()
+            WidgetUpdater.requestUpdate(context)
         }
 
     override suspend fun messageCount(chatId: String): Int =

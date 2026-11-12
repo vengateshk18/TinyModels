@@ -114,6 +114,10 @@ dependencies {
     // Google Fonts (downloadable fonts for custom typography)
     implementation(libs.androidx.compose.ui.text.google.fonts)
 
+    // Home screen widget
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.glance.material3)
+
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.json)

@@ -1,0 +1,14 @@
+<resources>
+    <string name="widget_description">Accès rapide à TinyModels — parcourez les modèles ou poursuivez une discussion.</string>
+    <string name="widget_get_started_title">L’IA sur votre appareil</string>
+    <string name="widget_get_started_subtitle">Téléchargez un modèle pour discuter en privé, même hors ligne.</string>
+    <string name="widget_ready_title">Vos modèles sont prêts</string>
+    <string name="widget_continue_title">Continuer la discussion</string>
+    <string name="widget_cta_browse_models">Parcourir les modèles</string>
+    <string name="widget_cta_start_chat">Démarrer une discussion</string>
+    <string name="widget_cta_continue_chat">Ouvrir la discussion</string>
+    <plurals name="widget_models_ready">
+        <item quantity="one">%1$d modèle prêt à l’emploi</item>
+        <item quantity="other">%1$d modèles prêts à l’emploi</item>
+    </plurals>
+</resources>

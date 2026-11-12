@@ -1,0 +1,13 @@
+<resources>
+    <string name="widget_description">TinyModels にすばやくアクセス — モデルを探したり、チャットを続けたりできます。</string>
+    <string name="widget_get_started_title">端末上でAIを実行</string>
+    <string name="widget_get_started_subtitle">モデルをダウンロードして、オフラインでもプライベートにチャット。</string>
+    <string name="widget_ready_title">モデルの準備ができました</string>
+    <string name="widget_continue_title">チャットを続ける</string>
+    <string name="widget_cta_browse_models">モデルを探す</string>
+    <string name="widget_cta_start_chat">チャットを開始</string>
+    <string name="widget_cta_continue_chat">チャットを開く</string>
+    <plurals name="widget_models_ready">
+        <item quantity="other">%1$d 個のモデルが利用可能</item>
+    </plurals>
+</resources>

@@ -1,5 +1,7 @@
 package com.ai.tinymodels.feature.settings
 
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.app.Activity
@@ -60,6 +62,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
@@ -81,7 +84,9 @@ import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.FontChoice
 import com.ai.tinymodels.domain.model.ThemeMode
 import com.ai.tinymodels.core.ui.theme.fontFamilyFor
+import com.ai.tinymodels.feature.widget.TinyModelsWidgetReceiver
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -98,6 +103,7 @@ fun SettingsScreen(
     val clearResult by viewModel.clearResult.collectAsStateWithLifecycle()
     val isImporting by viewModel.isImporting.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     var showClearDialog by remember { mutableStateOf(false) }
 
     // Model import launcher (SAF file picker).
@@ -167,7 +173,20 @@ fun SettingsScreen(
                 onBenchmark = onBenchmark,
                 onDeviceInfo = onDeviceInfo,
                 onClearHistory = { showClearDialog = true },
-                onViewIntro = onViewIntro
+                onViewIntro = onViewIntro,
+                onAddWidget = {
+                    val appWidgetManager = context.getSystemService(AppWidgetManager::class.java)
+                    val provider = ComponentName(context, TinyModelsWidgetReceiver::class.java)
+                    if (appWidgetManager?.isRequestPinAppWidgetSupported == true) {
+                        appWidgetManager.requestPinAppWidget(provider, null, null)
+                    } else {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                context.getString(R.string.settings_add_widget_not_supported)
+                            )
+                        }
+                    }
+                }
             )
             SectionDivider()
             SupportSection()
@@ -578,9 +597,15 @@ private fun AboutSection(
     onBenchmark: () -> Unit,
     onDeviceInfo: () -> Unit,
     onClearHistory: () -> Unit,
-    onViewIntro: () -> Unit
+    onViewIntro: () -> Unit,
+    onAddWidget: () -> Unit
 ) {
     SectionHeader(stringResource(R.string.settings_section_about))
+    NavigationRow(
+        label = stringResource(R.string.settings_add_widget),
+        subtitle = stringResource(R.string.settings_add_widget_subtitle),
+        onClick = onAddWidget
+    )
     NavigationRow(
         label = stringResource(R.string.settings_view_intro),
         subtitle = stringResource(R.string.settings_view_intro_subtitle),

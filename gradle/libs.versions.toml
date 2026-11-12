@@ -22,6 +22,7 @@ navigationCompose = "2.9.4"
 datastore = "1.1.7"
 kotlinxCoroutines = "1.10.2"
 markdown = "0.45.0"
+glance = "1.1.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -70,6 +71,10 @@ markdown-renderer = { group = "com.mikepenz", name = "multiplatform-markdown-ren
 
 # Google Fonts (downloadable fonts for Compose)
 androidx-compose-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts" }
+
+# App Widget (Glance)
+androidx-glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
+androidx-glance-material3 = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
 
 # Coroutines test
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }

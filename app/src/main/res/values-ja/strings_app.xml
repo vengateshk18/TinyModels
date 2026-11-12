@@ -219,4 +219,11 @@
     <string name="settings_view_intro">イントロを見る</string>
     <string name="settings_view_intro_subtitle">TinyModels のツアーをもう一度</string>
     <string name="benchmark_ttft_line">TTFT %1$.0f ms · p95 %2$.0f ms</string>
+
+    <!-- Home screen widget -->
+    <string name="settings_add_widget">ホーム画面にウィジェットを追加</string>
+    <string name="settings_add_widget_subtitle">ホーム画面に TinyModels を配置してすばやくアクセス</string>
+    <string name="settings_add_widget_not_supported">この端末ではここからウィジェットを追加できません。ホーム画面を長押しして、ウィジェットから TinyModels を追加してください。</string>
+    <string name="settings_add_widget_added">ホーム画面にウィジェットを追加しました</string>
+
 </resources>

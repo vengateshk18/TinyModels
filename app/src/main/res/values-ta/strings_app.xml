@@ -217,4 +217,11 @@
     <string name="settings_view_intro">அறிமுகத்தைப் பார்</string>
     <string name="settings_view_intro_subtitle">TinyModels சுற்றுலாவை மீண்டும் எடு</string>
     <string name="benchmark_ttft_line">TTFT %1$.0f ms · p95 %2$.0f ms</string>
+
+    <!-- Home screen widget -->
+    <string name="settings_add_widget">முகப்புத் திரையில் விட்ஜெட்டைச் சேர்க்கவும்</string>
+    <string name="settings_add_widget_subtitle">விரைவு அணுகலுக்காக TinyModels-ஐ உங்கள் முகப்புத் திரையில் வைக்கவும்</string>
+    <string name="settings_add_widget_not_supported">இந்தச் சாதனத்தில் இங்கிருந்து விட்ஜெட்டைச் சேர்க்க முடியாது. முகப்புத் திரையை நீண்ட நேரம் அழுத்தி, விட்ஜெட்களில் இருந்து TinyModels-ஐச் சேர்க்கவும்.</string>
+    <string name="settings_add_widget_added">விட்ஜெட் முகப்புத் திரையில் சேர்க்கப்பட்டது</string>
+
 </resources>

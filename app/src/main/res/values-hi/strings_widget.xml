@@ -1,0 +1,14 @@
+<resources>
+    <string name="widget_description">TinyModels तक त्वरित पहुँच — मॉडल ब्राउज़ करें या चैट जारी रखें।</string>
+    <string name="widget_get_started_title">अपने डिवाइस पर AI चलाएँ</string>
+    <string name="widget_get_started_subtitle">निजी रूप से चैट करने के लिए एक मॉडल डाउनलोड करें, ऑफ़लाइन भी।</string>
+    <string name="widget_ready_title">आपके मॉडल तैयार हैं</string>
+    <string name="widget_continue_title">चैट जारी रखें</string>
+    <string name="widget_cta_browse_models">मॉडल ब्राउज़ करें</string>
+    <string name="widget_cta_start_chat">चैट शुरू करें</string>
+    <string name="widget_cta_continue_chat">चैट खोलें</string>
+    <plurals name="widget_models_ready">
+        <item quantity="one">%1$d मॉडल उपयोग के लिए तैयार</item>
+        <item quantity="other">%1$d मॉडल उपयोग के लिए तैयार</item>
+    </plurals>
+</resources>
