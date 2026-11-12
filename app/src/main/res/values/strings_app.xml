@@ -89,14 +89,13 @@
     <string name="model_import_create_failed">Failed to create destination file: %1$s</string>
     <string name="model_import_write_failed">Cannot write to destination file: %1$s</string>
     <string name="model_import_no_file_name">Cannot determine file name</string>
-    <string name="model_import_projector_not_model">This is a vision projector (mmproj), not a language model. Import the main .gguf model — projectors are downloaded and paired with it automatically.</string>
     <string name="model_import_already_exists">This model file already exists in your library</string>
     <string name="model_import_open_failed">Cannot open source file</string>
     <string name="benchmark_error_model_file_missing">Model file missing on device</string>
     <string name="benchmark_error_not_enough_ram">Not enough free RAM to load this model (need ~%1$d MB, have %2$d MB). Close other apps and try again.</string>
     <string name="benchmark_error_failed_to_load">Failed to load model</string>
     <string name="settings_import_model">Import Model</string>
-    <string name="settings_import_model_subtitle">Import a .litertlm, .task, .tflite or .gguf file</string>
+    <string name="settings_import_model_subtitle">Add a .litertlm file from external storage</string>
     <string name="settings_import_model_note">Imported models appear in your library with an ‘Imported’ tag. To share a downloaded file, open it and use Export.</string>
 
     <!-- ================= Theme / backend choices ================= -->
@@ -242,4 +241,74 @@
     <string name="benchmark_summary_prompt_line">  %1$s: TTFT %2$.0fms (p95 %3$.0f), decode %4$.1f tok/s (p95 %5$.1f, sd %6$.1f), prefill %7$.0f tok/s</string>
     <string name="benchmark_summary_sustained">Sustained: %1$.1f tok/s, %2$s (%3$s)</string>
     <string name="benchmark_summary_load">Load %1$.1fs · peak PSS %2$s · model %3$s</string>
+
+    <string name="settings_section_home_screen">Home screen</string>
+
+    <!-- Home screen widget -->
+    <string name="settings_add_widget">Add widget to home screen</string>
+    <string name="settings_add_widget_subtitle">Put TinyModels on your home screen for quick access</string>
+    <string name="settings_add_widget_not_supported">Home screen widget can’t be added from here on this device. Long-press your home screen and add TinyModels from Widgets.</string>
+    <string name="settings_add_widget_added">Widget added to home screen</string>
+
+    <!-- Color themes -->
+    <string name="settings_color_theme">Color theme</string>
+    <string name="settings_color_theme_subtitle">Choose the app’s color palette</string>
+    <string name="settings_color_theme_sheet_title">Choose color theme</string>
+    <string name="theme_default">Default</string>
+    <string name="theme_github">GitHub</string>
+    <string name="theme_vercel">Vercel</string>
+    <string name="theme_night_owl">Night Owl</string>
+    <string name="theme_dracula">Dracula</string>
+    <string name="theme_nord">Nord</string>
+    <string name="theme_catppuccin">Catppuccin</string>
+
+    <!-- Storage screen -->
+    <string name="settings_storage">Storage</string>
+    <string name="settings_storage_subtitle">See model, chat, database, and orphaned file usage</string>
+    <string name="storage_title">Storage</string>
+    <string name="storage_total_tracked">Tracked app data</string>
+    <string name="storage_total_tracked_subtitle">Models, chats, database, partial downloads, and orphaned files</string>
+    <string name="storage_models_section">Downloaded models</string>
+    <string name="storage_models_count">%1$d downloaded file(s)</string>
+    <string name="storage_no_downloaded_models">No downloaded model files found</string>
+    <string name="storage_chats_db_section">Chats &amp; database</string>
+    <string name="storage_chats_summary">%1$d chat(s) · %2$d message(s)</string>
+    <string name="storage_database">Database (tiny_models.db)</string>
+    <string name="storage_database_wal">Database WAL/SHM</string>
+    <string name="storage_chat_images">Chat images</string>
+    <string name="storage_total_tokens">Total tokens generated</string>
+    <string name="storage_partial_downloads">Partial / paused downloads</string>
+    <string name="storage_partial_downloads_subtitle">%1$d paused or in-progress download entry(ies). Partial .part files are shown below.</string>
+    <string name="storage_no_partial_downloads">No partial download files found</string>
+    <string name="storage_orphan_files">Orphaned files</string>
+    <string name="storage_orphan_files_subtitle">Files in app model storage that are not tracked as downloaded models</string>
+    <string name="storage_no_orphan_files">No orphaned files found</string>
+
+    <!-- Privacy & security -->
+    <string name="settings_section_privacy_security">Privacy &amp; security</string>
+    <string name="settings_privacy">Privacy policy</string>
+    <string name="settings_privacy_subtitle">Read how TinyModels handles your data</string>
+    <string name="settings_security">Security</string>
+    <string name="settings_security_subtitle">Learn about TinyModels security practices</string>
+
+
+    <string name="storage_refresh">Refresh</string>
+    <string name="storage_chats_section">Chats &amp; storage</string>
+    <string name="storage_images_count">%1$d image(s)</string>
+    <string name="storage_no_chats">No chats to delete</string>
+    <string name="storage_chat_messages_count">%1$d message(s)</string>
+    <string name="storage_delete">Delete</string>
+    <string name="storage_delete_confirm_title">Delete item?</string>
+    <string name="storage_delete_model_file_body">Delete "%1$s"? This removes the downloaded model file from your device and updates storage tracking.</string>
+    <string name="storage_delete_partial_body">Delete partial download "%1$s"? This removes leftover .part data so you can start clean.</string>
+    <string name="storage_delete_orphan_body">Delete orphaned file "%1$s"? This file is not tracked as a downloaded model.</string>
+    <string name="storage_delete_chat_title">Delete chat?</string>
+    <string name="storage_delete_chat_body">Delete "%1$s" and its messages? This cannot be undone.</string>
+    <string name="storage_reset_app">Reset app data</string>
+    <string name="storage_reset_app_subtitle">Delete all chats, downloaded models, partial/orphaned files, chat images, and reset app settings. This cannot be undone.</string>
+    <string name="storage_reset_confirm_title">Reset all app data?</string>
+    <string name="storage_reset_confirm_body">This will remove chats, downloaded models and files, partial downloads, orphaned files, chat images, and reset settings/onboarding. You will start fresh.</string>
+    <string name="storage_reset_confirm_action">Reset app data</string>
+
+    <string name="model_import_projector_not_model">This is a vision projector (mmproj), not a language model. Import the main .gguf model — projectors are downloaded and paired with it automatically.</string>
 </resources>

@@ -48,7 +48,7 @@
     <string name="chat_open_chats_content_description">Open chats</string>
     <string name="chat_settings_content_description">Settings</string>
     <string name="chat_no_models_title">No models yet</string>
-    <string name="chat_no_models_body">Download a LiteRT-LM (.litertlm), MediaPipe (.task), TFLite (.tflite) or GGUF (.gguf) model to start chatting offline.</string>
+    <string name="chat_no_models_body">Download a LiteRT-LM model to start chatting offline.</string>
     <string name="chat_browse_models">Browse models</string>
     <string name="chat_choose_downloaded_model_body">Choose a downloaded model above to begin.</string>
 
@@ -140,7 +140,6 @@
     <string name="chat_error_out_of_memory">Not enough free memory. Close other apps and retry.</string>
     <string name="chat_error_model_file_missing_short">Model file missing. Re-download the model.</string>
     <string name="chat_error_no_backend">No supported backend on this device.</string>
-    <string name="chat_error_unsupported_format">%1$s files aren’t supported by the on-device runtime yet.</string>
     <string name="chat_error_no_model_loaded">No model loaded</string>
     <string name="chat_section_pinned">Pinned</string>
     <string name="chat_section_recent">Recent</string>
@@ -152,5 +151,6 @@
     <string name="chat_pinned_content_description">Pinned</string>
     <string name="chat_default_photo_prompt">What do you see in this image?</string>
     <string name="chat_room_compacted_notice">Older messages were summarized to fit the context window</string>
+    <string name="chat_error_unsupported_format">%1$s files aren’t supported by the on-device runtime yet.</string>
     <string name="chat_compaction_no_active_chat">No active chat to compact</string>
 </resources>

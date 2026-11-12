@@ -101,6 +101,8 @@ object TinyConstants {
     // Persisted settings (DataStore preference names)
     // ------------------------------------------------------------------
     const val PREFS_THEME_MODE = "theme_mode"
+    const val PREFS_APP_THEME = "app_theme"
+
     const val PREFS_DYNAMIC_COLOR = "dynamic_color"
     const val PREFS_FONT_CHOICE = "font_choice"
     const val PREFS_FONT_SCALE = "font_scale"

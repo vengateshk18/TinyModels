@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.ai.tinymodels.core.common.TinyConstants
 import com.ai.tinymodels.domain.model.AppSettings
+import com.ai.tinymodels.domain.model.AppTheme
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.FontChoice
 import com.ai.tinymodels.domain.model.ThemeMode
@@ -28,6 +29,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
     private object Keys {
         val THEME_MODE = stringPreferencesKey(TinyConstants.PREFS_THEME_MODE)
+        val APP_THEME = stringPreferencesKey(TinyConstants.PREFS_APP_THEME)
         val DYNAMIC_COLOR = booleanPreferencesKey(TinyConstants.PREFS_DYNAMIC_COLOR)
         val FONT_CHOICE = stringPreferencesKey(TinyConstants.PREFS_FONT_CHOICE)
         val FONT_SCALE = floatPreferencesKey(TinyConstants.PREFS_FONT_SCALE)
@@ -46,6 +48,8 @@ class SettingsRepositoryImpl @Inject constructor(
         AppSettings(
             themeMode = prefs[Keys.THEME_MODE]?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() }
                 ?: ThemeMode.DARK,
+            appTheme = prefs[Keys.APP_THEME]?.let { runCatching { AppTheme.valueOf(it) }.getOrNull() }
+                ?: AppTheme.DEFAULT,
             useDynamicColor = prefs[Keys.DYNAMIC_COLOR] ?: true,
             fontChoice = prefs[Keys.FONT_CHOICE]?.let { runCatching { FontChoice.valueOf(it) }.getOrNull() }
                 ?: FontChoice.SYSTEM,
@@ -65,6 +69,10 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun setThemeMode(mode: ThemeMode) {
         context.dataStore.edit { it[Keys.THEME_MODE] = mode.name }
+    }
+
+    override suspend fun setAppTheme(theme: AppTheme) {
+        context.dataStore.edit { it[Keys.APP_THEME] = theme.name }
     }
 
     override suspend fun setDynamicColor(enabled: Boolean) {

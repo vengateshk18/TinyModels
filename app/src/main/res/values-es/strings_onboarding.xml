@@ -1,18 +1,23 @@
 <resources>
+    <!-- First-run intro (onboarding) -->
+    <string name="onboarding_privacy_title">Privado desde el diseño</string>
+    <string name="onboarding_privacy_body">Cada modelo se ejecuta en tu teléfono. Tus chats nunca salen del dispositivo: sin cuenta, sin nube y sin rastreo.</string>
 
-    <!-- New strings surfaced by the latest main -->
-    <string name="onboarding_privacy_title">Privado por diseño</string>
-    <string name="onboarding_privacy_body">Todos los modelos se ejecutan en tu teléfono. Tus chats nunca salen del dispositivo: sin cuenta, sin nube, sin rastreo.</string>
     <string name="onboarding_download_title">Descarga una vez, chatea sin conexión</string>
-    <string name="onboarding_download_body">Explora modelos de texto, visión y código, descárgalos en segundo plano por Wi-Fi y chatea desde un avión o una zona sin cobertura.</string>
-    <string name="onboarding_chat_title">Un chat con sensación nativa</string>
-    <string name="onboarding_chat_body">Respuestas en streaming, ajustes por chat, entrada de fotos para modelos de visión y búsqueda web como herramienta que puedes desactivar.</string>
-    <string name="onboarding_device_title">A la medida de tu dispositivo</string>
-    <string name="onboarding_device_body">TinyModels lee tu RAM y almacenamiento, y luego recomienda modelos que encajan de verdad — sin conjeturas, sin errores de 4 GB.</string>
-    <string name="onboarding_tuning_title">Mide, ajusta y hazlo tuyo</string>
-    <string name="onboarding_tuning_body">Benchmark de velocidad y térmica reales, elige un tema y una fuente, y gestiona todos tus modelos descargados en un solo lugar.</string>
-    <string name="onboarding_skip">Saltar</string>
+    <string name="onboarding_download_body">Explora modelos de texto, visión y código, descárgalos en segundo plano por Wi-Fi y chatea incluso sin cobertura.</string>
+
+    <string name="onboarding_chat_title">Un chat que se siente nativo</string>
+    <string name="onboarding_chat_body">Respuestas en streaming, ajustes por chat, entrada de fotos para modelos de visión y búsqueda web que puedes desactivar.</string>
+
+    <string name="onboarding_personalize_title">Hazlo tuyo</string>
+    <string name="onboarding_personalize_body">Elige tu idioma, cambia entre temas de color o colores dinámicos y ajusta fuentes y tamaño de texto para una experiencia cómoda.</string>
+
+    <string name="onboarding_ready_title">Listo desde tu pantalla de inicio</string>
+    <string name="onboarding_ready_body">Añade el widget de TinyModels para acceso rápido, revisa compatibilidad y almacenamiento del dispositivo, y gestiona o prueba tus modelos cuando quieras.</string>
+
+    <!-- Intro UI chrome -->
+    <string name="onboarding_skip">Omitir</string>
     <string name="onboarding_done">Listo</string>
-    <string name="onboarding_get_started">Empezar</string>
+    <string name="onboarding_get_started">Comenzar</string>
     <string name="onboarding_next">Siguiente</string>
 </resources>

@@ -71,6 +71,7 @@
 
     <!-- ================= Active downloads ================= -->
     <string name="downloads_active_title">நடைபெறும் பதிவிறக்கங்கள் (%1$d)</string>
+    <string name="downloads_paused_title">இடைநிறுத்திய பதிவிறக்கங்கள் (%1$d)</string>
     <string name="downloads_cancel_content_description">பதிவிறக்கத்தை ரத்து</string>
     <string name="downloads_waiting_for_network">நெட்வோர்க்காகக் காத்திருக்கிறது…</string>
     <string name="downloads_speed_only">%1$s/வினாடி</string>
@@ -79,6 +80,8 @@
 
     <!-- ================= Filters ================= -->
     <string name="model_filter_all">அனைத்தும்</string>
+    <string name="model_filter_text_generation">உரை உருவாக்கும்</string>
+    <string name="model_filter_image_generation">பட உருவாக்கும்</string>
 
     <!-- ================= Shared state views ================= -->
     <string name="state_error_title">ஏதோ தவறு நடந்தது</string>
@@ -109,19 +112,15 @@
     <string name="model_details_resume_desc">பதிவிறக்கத்தைத் தொடர்</string>
     <string name="model_details_retry_desc">பதிவிறக்கத்தை மீண்டும் முயல்</string>
     <string name="model_details_pause_desc">பதிவிறக்கத்தை இடைநிறுத்து</string>
-    <string name="downloaded_file_reading_context">சூழல் சாளரம் படிக்கப்படுகிறது…</string>
-    <string name="downloaded_file_detecting_vision">விஷன் ஆதரவு கண்டறியப்படுகிறது…</string>
-    <string name="downloaded_file_context_window">சூழல் சாளரம்</string>
-    <string name="downloaded_file_context_tokens">%1$d டோக்கன்கள் (மாதிரி மெட்டாடேட்டாவிலிருந்து)</string>
-    <string name="downloaded_file_vision">விஷன்</string>
-    <string name="downloaded_file_vision_supported">ஆதரிக்கப்படுகிறது (mmproj பதிவிறக்கப்பட்டது)</string>
-    <string name="downloaded_file_vision_text_only">உரை மட்டும்</string>
-    <string name="downloaded_file_projector_title">விஷன் புரொஜெக்டர்</string>
-    <string name="downloaded_file_projector_body">இந்தக் கோப்பு மல்டிமோடல் மாதிரி பயன்படுத்தும் பட குறியாக்கி (mmproj). இதைத் தனியாக ஏற்ற முடியாது — விஷனுடன் அரட்டைச் செய்ய, அதே கோப்புறையின் முக்கிய .gguf கோப்பைத் திறக்கவும்.</string>
     <string name="downloaded_file_projector_error">இது ஒரு விஷன் புரொஜெக்டர் (mmproj), மொழி மாதிரி அல்ல. முக்கிய .gguf மாதிரியைத் திறக்கவும் — அதுதான் இந்த புரொஜெக்டரை விஷனுக்குப் பயன்படுத்துகிறது.</string>
+    <string name="downloaded_file_projector_title">விஷன் புரொஜெக்டர்</string>
     <string name="model_details_vision_banner">இதில் விஷன் புரொஜெக்டர் (mmproj) உள்ளது — நீங்கள் தேர்ந்தெடுக்கும் எந்த GGUF மாதிரியுடனும் தானாக பதிவிறக்கப்படும்.</string>
     <string name="model_details_vision_supported">விஷன்: ஆதரிக்கப்படுகிறது (புரொஜெக்டர் உள்ளது)</string>
     <string name="model_details_vision_text_only">விஷன்: உரை மட்டும்</string>
     <string name="model_details_context_after_download">சூழல் சாளரம்: பதிவிறக்கத்திற்குப் பிறகு கண்டறியப்படும்</string>
     <string name="models_updated_on">%1$s அன்று புதுப்பிக்கப்பட்டது</string>
+    <string name="model_format_litertlm" translatable="false">LiteRT-LM</string>
+    <string name="model_format_gguf" translatable="false">GGUF</string>
+    <string name="model_format_mediapipe" translatable="false">MediaPipe</string>
+    <string name="model_format_tflite" translatable="false">TFLite</string>
 </resources>

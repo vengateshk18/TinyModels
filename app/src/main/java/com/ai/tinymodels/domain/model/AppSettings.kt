@@ -6,6 +6,17 @@ import com.ai.tinymodels.R
 /** Visual theme preference. */
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
+/** Color theme / palette preference. */
+enum class AppTheme {
+    DEFAULT,
+    GITHUB,
+    VERCEL,
+    NIGHT_OWL,
+    DRACULA,
+    NORD,
+    CATPPUCCIN
+}
+
 /**
  * Font family choices for the app UI. SYSTEM uses the device default;
  * the rest are downloaded on-demand via Google Fonts (requires network
@@ -27,6 +38,7 @@ enum class FontChoice(@StringRes val labelRes: Int, val googleFontName: String?)
  */
 data class AppSettings(
     val themeMode: ThemeMode = ThemeMode.DARK,
+    val appTheme: AppTheme = AppTheme.DEFAULT,
     val useDynamicColor: Boolean = true,
     val fontChoice: FontChoice = FontChoice.SYSTEM,
     val fontScale: Float = 1.0f,

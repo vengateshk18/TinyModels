@@ -50,7 +50,7 @@
     <string name="chat_open_chats_content_description">Ouvrir les conversations</string>
     <string name="chat_settings_content_description">Paramètres</string>
     <string name="chat_no_models_title">Aucun modèle</string>
-    <string name="chat_no_models_body">Téléchargez un modèle LiteRT-LM (.litertlm), MediaPipe (.task), TFLite (.tflite) ou GGUF (.gguf) pour discuter hors ligne.</string>
+    <string name="chat_no_models_body">Téléchargez un modèle LiteRT-LM pour discuter hors ligne.</string>
     <string name="chat_browse_models">Parcourir les modèles</string>
     <string name="chat_choose_downloaded_model_body">Choisissez un modèle téléchargé ci-dessus pour commencer.</string>
 

@@ -2,14 +2,18 @@
     <!-- First-run intro (onboarding) -->
     <string name="onboarding_privacy_title">Private by design</string>
     <string name="onboarding_privacy_body">Every model runs on your phone. Your chats never leave the device — no account, no cloud, no tracking.</string>
+
     <string name="onboarding_download_title">Download once, chat offline</string>
     <string name="onboarding_download_body">Browse text, vision and code models, download in the background over Wi-Fi, and chat from a plane or a dead zone.</string>
+
     <string name="onboarding_chat_title">A chat that feels native</string>
     <string name="onboarding_chat_body">Streaming replies, per-chat settings, photo input for vision models, and web search as a tool you can switch off.</string>
-    <string name="onboarding_device_title">Right-sized for your device</string>
-    <string name="onboarding_device_body">TinyModels reads your RAM and storage, then recommends models that actually fit — no guesswork, no 4 GB mistakes.</string>
-    <string name="onboarding_tuning_title">Measure, tune, make it yours</string>
-    <string name="onboarding_tuning_body">Benchmark real speed and thermals, pick a theme and font, and manage every downloaded model in one place.</string>
+
+    <string name="onboarding_personalize_title">Make it yours</string>
+    <string name="onboarding_personalize_body">Choose your language, switch between color themes or dynamic colors, and adjust fonts and text size for a comfortable experience.</string>
+
+    <string name="onboarding_ready_title">Ready from your home screen</string>
+    <string name="onboarding_ready_body">Add the TinyModels widget for quick access, check device fit and storage, and manage or benchmark your downloaded models anytime.</string>
 
     <!-- Intro UI chrome -->
     <string name="onboarding_skip">Skip</string>

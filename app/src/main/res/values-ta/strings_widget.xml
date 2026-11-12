@@ -1,0 +1,14 @@
+<resources>
+    <string name="widget_description">TinyModels-க்கு விரைவு அணுகல் — மாதிரிகளை உலாவவும் அல்லது அரட்டையைத் தொடரவும்.</string>
+    <string name="widget_get_started_title">உங்கள் சாதனத்தில் AI இயக்குங்கள்</string>
+    <string name="widget_get_started_subtitle">ஆஃப்லைனிலும் தனிப்பட்ட முறையில் அரட்டையடிக்க ஒரு மாதிரியைப் பதிவிறக்குங்கள்.</string>
+    <string name="widget_ready_title">உங்கள் மாதிரிகள் தயாராக உள்ளன</string>
+    <string name="widget_continue_title">அரட்டையைத் தொடரவும்</string>
+    <string name="widget_cta_browse_models">மாதிரிகளை உலாவு</string>
+    <string name="widget_cta_start_chat">அரட்டை தொடங்கு</string>
+    <string name="widget_cta_continue_chat">அரட்டையைத் திற</string>
+    <plurals name="widget_models_ready">
+        <item quantity="one">%1$d மாதிரி பயன்படுத்த தயார்</item>
+        <item quantity="other">%1$d மாதிரிகள் பயன்படுத்த தயார்</item>
+    </plurals>
+</resources>

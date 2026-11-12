@@ -82,15 +82,17 @@ android {
         applicationId = "com.ai.tinymodels"
         minSdk = 29
         targetSdk = 37
-        versionCode = versionCodeOverride ?: 4
-        versionName = versionNameOverride ?: "1.0.3"
+        versionCode = versionCodeOverride ?: 6
+        versionName = versionNameOverride ?: "1.0.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // Ship only the languages we actually translate (English default +
-        // Spanish, French, Hindi, Japanese, Tamil). Keeps the APK small and
-        // stops Android from offering a language the app has no strings for.
-        resourceConfigurations += listOf("en", "es", "fr", "hi", "ja", "ta")
+        // Spanish, Tamil, Hindi, French and Japanese). Keeps the APK small
+        // and stops Android from offering a language the app has no strings
+        // for. Must stay in sync with res/xml/locales_config.xml and the
+        // AppLanguage enum.
+        resourceConfigurations += listOf("en", "es", "ta", "hi", "fr", "ja")
 
         // Real phones are arm64; shipping x86/x86_64/armeabi-v7a doubles the
         // native-lib size (LiteRT-LM's .so is ~22MB per ABI). Emulators can
@@ -189,6 +191,10 @@ dependencies {
 
     // Google Fonts (downloadable fonts for custom typography)
     implementation(libs.androidx.compose.ui.text.google.fonts)
+
+    // Home screen widget
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.glance.material3)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

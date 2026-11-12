@@ -83,7 +83,7 @@
     <string name="benchmark_error_not_enough_ram">このモデルを読み込むのに十分な空き RAM がありません（約 %1$d MB 必要、%2$d MB 利用可能）。他のアプリを閉じて再試行してください。</string>
     <string name="benchmark_error_failed_to_load">モデルの読み込みに失敗しました</string>
     <string name="settings_import_model">モデルをインポート</string>
-    <string name="settings_import_model_subtitle">.litertlm・.task・.tflite・.gguf ファイルをインポート</string>
+    <string name="settings_import_model_subtitle">外部ストレージから .litertlm ファイルを追加</string>
     <string name="settings_import_model_note">インポートしたモデルは「インポート済み」タグ付きでライブラリに表示されます。ダウンロード済みファイルを共有するには、開いてエクスポートを使用してください。</string>
 
     <!-- ================= Theme / backend choices ================= -->
@@ -219,5 +219,74 @@
     <string name="settings_view_intro">イントロを見る</string>
     <string name="settings_view_intro_subtitle">TinyModels のツアーをもう一度</string>
     <string name="benchmark_ttft_line">TTFT %1$.0f ms · p95 %2$.0f ms</string>
+
+    <string name="settings_section_home_screen">ホーム画面</string>
+
+    <!-- Home screen widget -->
+    <string name="settings_add_widget">ホーム画面にウィジェットを追加</string>
+    <string name="settings_add_widget_subtitle">ホーム画面に TinyModels を配置してすばやくアクセス</string>
+    <string name="settings_add_widget_not_supported">この端末ではここからウィジェットを追加できません。ホーム画面を長押しして、ウィジェットから TinyModels を追加してください。</string>
+    <string name="settings_add_widget_added">ホーム画面にウィジェットを追加しました</string>
+
+    <!-- Color themes -->
+    <string name="settings_color_theme">カラーテーマ</string>
+    <string name="settings_color_theme_subtitle">アプリの配色を選択</string>
+    <string name="settings_color_theme_sheet_title">カラーテーマを選択</string>
+    <string name="theme_default">デフォルト</string>
+    <string name="theme_github">GitHub</string>
+    <string name="theme_vercel">Vercel</string>
+    <string name="theme_night_owl">Night Owl</string>
+    <string name="theme_dracula">Dracula</string>
+    <string name="theme_nord">Nord</string>
+    <string name="theme_catppuccin">Catppuccin</string>
+
+    <!-- Storage screen -->
+    <string name="settings_storage">ストレージ</string>
+    <string name="settings_storage_subtitle">モデル、チャット、データベース、孤立ファイルの使用状況を表示</string>
+    <string name="storage_title">ストレージ</string>
+    <string name="storage_total_tracked">追跡対象のアプリデータ</string>
+    <string name="storage_total_tracked_subtitle">モデル、チャット、データベース、部分ダウンロード、孤立ファイル</string>
+    <string name="storage_models_section">ダウンロード済みモデル</string>
+    <string name="storage_models_count">ダウンロード済みファイル %1$d 件</string>
+    <string name="storage_no_downloaded_models">ダウンロード済みのモデルファイルはありません</string>
+    <string name="storage_chats_db_section">チャットとデータベース</string>
+    <string name="storage_chats_summary">チャット %1$d 件 · メッセージ %2$d 件</string>
+    <string name="storage_database">データベース (tiny_models.db)</string>
+    <string name="storage_database_wal">データベース WAL/SHM</string>
+    <string name="storage_chat_images">チャット画像</string>
+    <string name="storage_total_tokens">生成されたトークン総数</string>
+    <string name="storage_partial_downloads">部分的 / 一時停止中のダウンロード</string>
+    <string name="storage_partial_downloads_subtitle">一時停止中または進行中のダウンロード項目: %1$d 件。部分的な .part ファイルを以下に表示します。</string>
+    <string name="storage_no_partial_downloads">部分的なダウンロードファイルはありません</string>
+    <string name="storage_orphan_files">孤立ファイル</string>
+    <string name="storage_orphan_files_subtitle">ダウンロード済みモデルとして追跡されていない、アプリのモデル保存領域内のファイル</string>
+    <string name="storage_no_orphan_files">孤立ファイルはありません</string>
+
+    <!-- Privacy & security -->
+    <string name="settings_section_privacy_security">プライバシーとセキュリティ</string>
+    <string name="settings_privacy">プライバシーポリシー</string>
+    <string name="settings_privacy_subtitle">TinyModels がデータをどのように扱うかを確認</string>
+    <string name="settings_security">セキュリティ</string>
+    <string name="settings_security_subtitle">TinyModels のセキュリティ対策について</string>
+
+
+    <string name="storage_refresh">更新</string>
+    <string name="storage_chats_section">チャットとストレージ</string>
+    <string name="storage_images_count">画像 %1$d 件</string>
+    <string name="storage_no_chats">削除できるチャットはありません</string>
+    <string name="storage_chat_messages_count">メッセージ %1$d 件</string>
+    <string name="storage_delete">削除</string>
+    <string name="storage_delete_confirm_title">項目を削除しますか？</string>
+    <string name="storage_delete_model_file_body">「%1$s」を削除しますか？ダウンロード済みモデルファイルを端末から削除し、ストレージ情報を更新します。</string>
+    <string name="storage_delete_partial_body">部分ダウンロード「%1$s」を削除しますか？残っている .part データを削除してやり直せます。</string>
+    <string name="storage_delete_orphan_body">孤立ファイル「%1$s」を削除しますか？このファイルはダウンロード済みモデルとして追跡されていません。</string>
+    <string name="storage_delete_chat_title">チャットを削除しますか？</string>
+    <string name="storage_delete_chat_body">「%1$s」とそのメッセージを削除しますか？元に戻せません。</string>
+    <string name="storage_reset_app">アプリデータをリセット</string>
+    <string name="storage_reset_app_subtitle">すべてのチャット、ダウンロード済みモデル、部分/孤立ファイル、チャット画像を削除し、設定をリセットします。元に戻せません。</string>
+    <string name="storage_reset_confirm_title">すべてのアプリデータをリセットしますか？</string>
+    <string name="storage_reset_confirm_body">チャット、ダウンロード済みモデル/ファイル、部分ダウンロード、孤立ファイル、チャット画像を削除し、設定/オンボーディングをリセットします。初期状態に戻ります。</string>
+    <string name="storage_reset_confirm_action">リセット</string>
+
     <string name="model_import_projector_not_model">これはビジョンプロジェクター（mmproj）であり、言語モデルではありません。メインの .gguf モデルをインポートしてください。プロジェクターは自動的にダウンロードされ、モデルとペアになります。</string>
 </resources>

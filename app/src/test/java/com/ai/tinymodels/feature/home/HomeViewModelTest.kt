@@ -14,7 +14,10 @@ import com.ai.tinymodels.domain.repository.ChatRepository
 import com.ai.tinymodels.domain.repository.ModelRepository
 import com.ai.tinymodels.domain.repository.SettingsRepository
 import com.ai.tinymodels.domain.usecase.model.DownloadModelUseCase
+import com.ai.tinymodels.domain.usecase.model.DownloadPaths
 import com.ai.tinymodels.feature.home.model.HomeUiState
+import com.ai.tinymodels.feature.home.model.RecommendedModel
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -29,6 +32,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -210,6 +214,132 @@ class HomeViewModelTest {
         val dashboard2 = awaitDashboardOf(viewModel) { it.lastChat?.id == "chat-2" }
         assertEquals("chat-2", dashboard2.lastChat?.id)
     }
+
+    // ---------------------------------------------------------------------
+    // Recommended-download pause / resume / discard (the card's controls).
+    // ---------------------------------------------------------------------
+
+    @Test
+    fun `a paused recommended download is detected when home opens`() = runBlocking {
+        // Whichever tier pickForDevice chooses must be among the seeded files.
+        RecommendedModels.all.forEach {
+            modelRepo.seedFile(it.modelId, it.fileName, FileDownloadStatus.PAUSED)
+            val part = DownloadPaths.partFile(temp.root, it.modelId, it.fileName)
+            part.parentFile?.mkdirs()
+            part.writeBytes(ByteArray(256))
+        }
+        val viewModel = vm()
+
+        awaitFirstTime(viewModel)
+
+        assertTrue(
+            "expected the card to know its download is paused",
+            viewModel.recommendedPaused.value
+        )
+        assertEquals(256L, viewModel.recommendedPausedBytes.value)
+    }
+
+    @Test
+    fun `pausing the recommended download keeps the partial and flags the card`() = runBlocking {
+        val model = RecommendedModels.SMALL
+        modelRepo.seedFile(model.modelId, model.fileName, FileDownloadStatus.DOWNLOADING)
+        val part = DownloadPaths.partFile(temp.root, model.modelId, model.fileName)
+        part.parentFile?.mkdirs()
+        part.writeBytes(ByteArray(512))
+        val viewModel = vm()
+        awaitFirstTime(viewModel)
+
+        viewModel.pauseRecommendedDownload(model)
+
+        awaitStatus(model, FileDownloadStatus.PAUSED)
+        assertTrue(viewModel.recommendedPaused.value)
+        assertEquals(512L, viewModel.recommendedPausedBytes.value)
+        coVerify { downloadUseCase.cancelFile(model.modelId, model.fileName) }
+    }
+
+    @Test
+    fun `resuming clears the paused flag and re-enqueues the file`() = runBlocking {
+        val model = RecommendedModels.SMALL
+        modelRepo.seedFile(model.modelId, model.fileName, FileDownloadStatus.PAUSED)
+        val viewModel = vm()
+        awaitFirstTime(viewModel)
+        viewModel.pauseRecommendedDownload(model)
+        assertTrue(viewModel.recommendedPaused.value)
+
+        viewModel.resumeRecommendedDownload(model)
+
+        assertFalse(viewModel.recommendedPaused.value)
+        awaitStatus(model, FileDownloadStatus.DOWNLOADING)
+        awaitVerify {
+            coVerify { downloadUseCase.executeFile(any(), eq(model.fileName), any(), replace = true) }
+        }
+    }
+
+    @Test
+    fun `discarding the recommended download resets the row and clears the flag`() = runBlocking {
+        val model = RecommendedModels.SMALL
+        modelRepo.seedFile(model.modelId, model.fileName, FileDownloadStatus.DOWNLOADING)
+        val part = DownloadPaths.partFile(temp.root, model.modelId, model.fileName)
+        part.parentFile?.mkdirs()
+        part.writeBytes(ByteArray(128))
+        val viewModel = vm()
+        awaitFirstTime(viewModel)
+        viewModel.pauseRecommendedDownload(model)
+        awaitStatus(model, FileDownloadStatus.PAUSED)
+
+        viewModel.discardRecommendedDownload(model)
+
+        awaitStatus(model, FileDownloadStatus.NOT_DOWNLOADED)
+        assertFalse(viewModel.recommendedPaused.value)
+        assertEquals(0L, viewModel.recommendedPausedBytes.value)
+        coVerify { downloadUseCase.cancelFileAndWait(model.modelId, model.fileName) }
+        coVerify { downloadUseCase.discardPartial(model.modelId, model.fileName) }
+    }
+
+    // ---------------------------------------------------------------------
+    // Helpers.
+    // ---------------------------------------------------------------------
+
+    /** Waits until the fresh-install (no models yet) state is showing. */
+    private suspend fun awaitFirstTime(viewModel: HomeViewModel) {
+        val start = System.currentTimeMillis()
+        while (System.currentTimeMillis() - start < 10_000) {
+            if (viewModel.uiState.value is HomeUiState.FirstTime) return
+            delay(50)
+        }
+        error("Timed out waiting for FirstTime, got ${viewModel.uiState.value}")
+    }
+
+    /** Polls the fake repo until [model]'s file reaches [expected]. */
+    private suspend fun awaitStatus(model: RecommendedModel, expected: FileDownloadStatus) {
+        val start = System.currentTimeMillis()
+        while (System.currentTimeMillis() - start < 5_000) {
+            if (modelRepo.statusOf(model.modelId, model.fileName) == expected) return
+            delay(50)
+        }
+        error(
+            "Timed out waiting for $expected, got " +
+                "${modelRepo.statusOf(model.modelId, model.fileName)} " +
+                "(updates: ${modelRepo.statusUpdates})"
+        )
+    }
+
+    /**
+     * Re-runs [block] until it stops throwing (for verifications against the
+     * download's background dispatcher).
+     */
+    private suspend fun awaitVerify(block: () -> Unit) {
+        val start = System.currentTimeMillis()
+        while (true) {
+            try {
+                block()
+                return
+            } catch (e: Throwable) {
+                if (System.currentTimeMillis() - start > 5_000) throw e
+                delay(50)
+            }
+        }
+    }
 }
 
 /** ModelRepository fake for Home dashboard tests. */
@@ -220,6 +350,22 @@ private class FakeHomeModelRepository : ModelRepository {
 
     /** Per-model files — [lastUsedFile] stays as the legacy catch-all hook. */
     val fileByModel = mutableMapOf<String, DownloadedModelFile>()
+
+    /** Per-file rows the pause/resume/discard flows read and write. */
+    val allFiles = MutableStateFlow<List<DownloadedModelFile>>(emptyList())
+
+    /** Every status write, as "modelId/fileName" to the new status. */
+    val statusUpdates = mutableListOf<Pair<String, FileDownloadStatus>>()
+
+    /** Inserts (or replaces) a file row so tests can seed a known state. */
+    fun seedFile(modelId: String, fileName: String, status: FileDownloadStatus) {
+        allFiles.value = allFiles.value.filterNot {
+            it.modelId == modelId && it.fileName == fileName
+        } + DownloadedModelFile(modelId, fileName, status, 100L, "/tmp", null)
+    }
+
+    fun statusOf(modelId: String, fileName: String): FileDownloadStatus? =
+        allFiles.value.firstOrNull { it.modelId == modelId && it.fileName == fileName }?.status
 
     override fun observeDownloadedModels(): Flow<List<DownloadedModel>> = models
     override fun observeDownloadedFiles(): Flow<List<DownloadedModelFile>> = files
@@ -236,9 +382,10 @@ private class FakeHomeModelRepository : ModelRepository {
     override suspend fun getModelDetails(modelId: String): AppResult<ModelDetails> =
         throw NotImplementedError()
     override suspend fun deleteDownloadedModel(modelId: String) {}
-    override fun observeModelFiles(modelId: String): Flow<List<DownloadedModelFile>> =
-        MutableStateFlow(emptyList())
-    override suspend fun getModelFile(modelId: String, fileName: String): DownloadedModelFile? = null
+    override fun observeModelFiles(modelId: String): Flow<List<DownloadedModelFile>> = allFiles
+    override fun observePausedFiles(): Flow<List<DownloadedModelFile>> = MutableStateFlow(emptyList())
+    override suspend fun getModelFile(modelId: String, fileName: String): DownloadedModelFile? =
+        allFiles.value.firstOrNull { it.modelId == modelId && it.fileName == fileName }
     override suspend fun getLastDownloadedModel(): DownloadedModel? = null
     override suspend fun preRegisterModel(model: ModelDetails) {}
     override suspend fun updateFileStatus(
@@ -248,7 +395,21 @@ private class FakeHomeModelRepository : ModelRepository {
         sizeBytes: Long?,
         localPath: String?,
         error: String?
-    ) {}
+    ) {
+        statusUpdates += "$modelId/$fileName" to status
+        allFiles.value = allFiles.value.map {
+            if (it.modelId == modelId && it.fileName == fileName) {
+                it.copy(
+                    status = status,
+                    sizeBytes = sizeBytes ?: it.sizeBytes,
+                    localPath = localPath ?: it.localPath,
+                    error = error ?: it.error
+                )
+            } else {
+                it
+            }
+        }
+    }
     override suspend fun deleteModelFile(modelId: String, fileName: String) {}
     override suspend fun exportModelFile(
         modelId: String,
@@ -316,6 +477,7 @@ private class FakeHomeSettingsRepository : com.ai.tinymodels.domain.repository.S
     override suspend fun getHuggingFaceToken(): String? = null
     override suspend fun setHuggingFaceToken(token: String?) {}
     override suspend fun setThemeMode(mode: com.ai.tinymodels.domain.model.ThemeMode) {}
+    override suspend fun setAppTheme(theme: com.ai.tinymodels.domain.model.AppTheme) {}
     override suspend fun setDynamicColor(enabled: Boolean) {}
     override suspend fun setFontChoice(choice: com.ai.tinymodels.domain.model.FontChoice) {}
     override suspend fun setFontScale(scale: Float) {}

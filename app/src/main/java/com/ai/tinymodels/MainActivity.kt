@@ -30,6 +30,7 @@ import com.ai.tinymodels.core.ui.theme.resolveColorScheme
 import com.ai.tinymodels.domain.model.ThemeMode
 import com.ai.tinymodels.domain.repository.SettingsRepository
 import com.ai.tinymodels.feature.startup.AppRoot
+import com.ai.tinymodels.feature.widget.WidgetUpdater
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -50,6 +51,11 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var networkMonitor: NetworkMonitor
+
+    override fun onResume() {
+        super.onResume()
+        WidgetUpdater.requestUpdate(this)
+    }
 
     /**
      * Applies the user's chosen app language before any resource is resolved.
@@ -91,7 +97,8 @@ class MainActivity : ComponentActivity() {
         val initialNavBarColor = resolveColorScheme(
             context = this,
             darkTheme = initialDarkTheme,
-            dynamicColor = initialSettings.useDynamicColor
+            dynamicColor = initialSettings.useDynamicColor,
+            appTheme = initialSettings.appTheme
         ).surfaceContainer.toArgb()
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.auto(
@@ -127,7 +134,8 @@ class MainActivity : ComponentActivity() {
             val navBarColor = resolveColorScheme(
                 context = this@MainActivity,
                 darkTheme = darkTheme,
-                dynamicColor = settings.useDynamicColor
+                dynamicColor = settings.useDynamicColor,
+                appTheme = settings.appTheme
             ).surfaceContainer.toArgb()
 
             LaunchedEffect(darkTheme, navBarColor) {
@@ -164,6 +172,7 @@ class MainActivity : ComponentActivity() {
 
             TinyModelsTheme(
                 themeMode = settings.themeMode,
+                appTheme = settings.appTheme,
                 dynamicColor = settings.useDynamicColor,
                 fontChoice = settings.fontChoice,
                 fontScale = settings.fontScale

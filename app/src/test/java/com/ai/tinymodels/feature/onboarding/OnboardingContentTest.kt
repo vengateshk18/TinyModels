@@ -38,8 +38,8 @@ class OnboardingContentTest {
         ExpectedPage("privacy", "onboarding_privacy_title", "onboarding_privacy_body", OnboardingArt.PRIVACY),
         ExpectedPage("download", "onboarding_download_title", "onboarding_download_body", OnboardingArt.DOWNLOAD),
         ExpectedPage("chat", "onboarding_chat_title", "onboarding_chat_body", OnboardingArt.CHAT),
-        ExpectedPage("device", "onboarding_device_title", "onboarding_device_body", OnboardingArt.DEVICE),
-        ExpectedPage("tuning", "onboarding_tuning_title", "onboarding_tuning_body", OnboardingArt.TUNING)
+        ExpectedPage("personalize", "onboarding_personalize_title", "onboarding_personalize_body", OnboardingArt.PERSONALIZE),
+        ExpectedPage("ready", "onboarding_ready_title", "onboarding_ready_body", OnboardingArt.READY)
     )
 
     @Test
@@ -79,9 +79,19 @@ class OnboardingContentTest {
     }
 
     @Test
-    fun `the tour starts with privacy and ends with tuning`() {
+    fun `the tour starts with privacy and includes personalization and readiness`() {
         assertEquals(OnboardingArt.PRIVACY, OnboardingPages.pages.first().art)
-        assertEquals(OnboardingArt.TUNING, OnboardingPages.pages.last().art)
+        assertEquals(OnboardingArt.PERSONALIZE, OnboardingPages.pages[3].art)
+        assertEquals(OnboardingArt.READY, OnboardingPages.pages.last().art)
+    }
+
+    @Test
+    fun `copy covers language theme and widget in the updated tour`() {
+        val res = loadEnglish()
+        val all = res.values.joinToString(" ").lowercase()
+        assertTrue("language should be explained", "language" in all)
+        assertTrue("theme/colors should be explained", "theme" in all || "color" in all)
+        assertTrue("widget should be explained", "widget" in all)
     }
 
     @Test

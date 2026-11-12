@@ -83,7 +83,7 @@
     <string name="benchmark_error_not_enough_ram">Pas assez de RAM libre pour charger ce modèle (besoin d\'environ %1$d Mo, disponible %2$d Mo). Fermez d\'autres applications et réessayez.</string>
     <string name="benchmark_error_failed_to_load">Échec du chargement du modèle</string>
     <string name="settings_import_model">Importer un modèle</string>
-    <string name="settings_import_model_subtitle">Importez un fichier .litertlm, .task, .tflite ou .gguf</string>
+    <string name="settings_import_model_subtitle">Ajouter un fichier .litertlm depuis un stockage externe</string>
     <string name="settings_import_model_note">Les modèles importés apparaissent dans votre bibliothèque avec une étiquette « Importé ». Pour partager un fichier téléchargé, ouvrez-le et utilisez Exporter.</string>
 
     <!-- ================= Theme / backend choices ================= -->
@@ -219,5 +219,74 @@
     <string name="settings_view_intro">Voir l’introduction</string>
     <string name="settings_view_intro_subtitle">Refaites le tour de TinyModels</string>
     <string name="benchmark_ttft_line">TTFT %1$.0f ms · p95 %2$.0f ms</string>
+
+    <string name="settings_section_home_screen">Écran d’accueil</string>
+
+    <!-- Home screen widget -->
+    <string name="settings_add_widget">Ajouter un widget à l’écran d’accueil</string>
+    <string name="settings_add_widget_subtitle">Placez TinyModels sur votre écran d’accueil pour un accès rapide</string>
+    <string name="settings_add_widget_not_supported">Impossible d’ajouter le widget depuis ici sur cet appareil. Appuyez longuement sur l’écran d’accueil et ajoutez TinyModels depuis Widgets.</string>
+    <string name="settings_add_widget_added">Widget ajouté à l’écran d’accueil</string>
+
+    <!-- Color themes -->
+    <string name="settings_color_theme">Thème de couleur</string>
+    <string name="settings_color_theme_subtitle">Choisissez la palette de couleurs de l’application</string>
+    <string name="settings_color_theme_sheet_title">Choisir un thème de couleur</string>
+    <string name="theme_default">Par défaut</string>
+    <string name="theme_github">GitHub</string>
+    <string name="theme_vercel">Vercel</string>
+    <string name="theme_night_owl">Night Owl</string>
+    <string name="theme_dracula">Dracula</string>
+    <string name="theme_nord">Nord</string>
+    <string name="theme_catppuccin">Catppuccin</string>
+
+    <!-- Storage screen -->
+    <string name="settings_storage">Stockage</string>
+    <string name="settings_storage_subtitle">Voir l’utilisation des modèles, discussions, base de données et fichiers orphelins</string>
+    <string name="storage_title">Stockage</string>
+    <string name="storage_total_tracked">Données suivies de l’app</string>
+    <string name="storage_total_tracked_subtitle">Modèles, discussions, base de données, téléchargements partiels et fichiers orphelins</string>
+    <string name="storage_models_section">Modèles téléchargés</string>
+    <string name="storage_models_count">%1$d fichier(s) téléchargé(s)</string>
+    <string name="storage_no_downloaded_models">Aucun fichier de modèle téléchargé trouvé</string>
+    <string name="storage_chats_db_section">Discussions et base de données</string>
+    <string name="storage_chats_summary">%1$d discussion(s) · %2$d message(s)</string>
+    <string name="storage_database">Base de données (tiny_models.db)</string>
+    <string name="storage_database_wal">WAL/SHM de la base de données</string>
+    <string name="storage_chat_images">Images des discussions</string>
+    <string name="storage_total_tokens">Total de jetons générés</string>
+    <string name="storage_partial_downloads">Téléchargements partiels / en pause</string>
+    <string name="storage_partial_downloads_subtitle">%1$d entrée(s) de téléchargement en pause ou en cours. Les fichiers .part partiels sont affichés ci-dessous.</string>
+    <string name="storage_no_partial_downloads">Aucun fichier de téléchargement partiel trouvé</string>
+    <string name="storage_orphan_files">Fichiers orphelins</string>
+    <string name="storage_orphan_files_subtitle">Fichiers dans le stockage des modèles de l’app qui ne sont pas suivis comme modèles téléchargés</string>
+    <string name="storage_no_orphan_files">Aucun fichier orphelin trouvé</string>
+
+    <!-- Privacy & security -->
+    <string name="settings_section_privacy_security">Confidentialité et sécurité</string>
+    <string name="settings_privacy">Politique de confidentialité</string>
+    <string name="settings_privacy_subtitle">Découvrez comment TinyModels traite vos données</string>
+    <string name="settings_security">Sécurité</string>
+    <string name="settings_security_subtitle">En savoir plus sur les pratiques de sécurité de TinyModels</string>
+
+
+    <string name="storage_refresh">Actualiser</string>
+    <string name="storage_chats_section">Discussions et stockage</string>
+    <string name="storage_images_count">%1$d image(s)</string>
+    <string name="storage_no_chats">Aucune discussion à supprimer</string>
+    <string name="storage_chat_messages_count">%1$d message(s)</string>
+    <string name="storage_delete">Supprimer</string>
+    <string name="storage_delete_confirm_title">Supprimer l’élément ?</string>
+    <string name="storage_delete_model_file_body">Supprimer « %1$s » ? Cela supprimera le fichier du modèle téléchargé de votre appareil et mettra à jour le suivi du stockage.</string>
+    <string name="storage_delete_partial_body">Supprimer le téléchargement partiel « %1$s » ? Cela supprime les données .part restantes pour repartir proprement.</string>
+    <string name="storage_delete_orphan_body">Supprimer le fichier orphelin « %1$s » ? Ce fichier n’est pas suivi comme modèle téléchargé.</string>
+    <string name="storage_delete_chat_title">Supprimer la discussion ?</string>
+    <string name="storage_delete_chat_body">Supprimer « %1$s » et ses messages ? Cette action est irréversible.</string>
+    <string name="storage_reset_app">Réinitialiser les données de l’app</string>
+    <string name="storage_reset_app_subtitle">Supprime toutes les discussions, modèles téléchargés, fichiers partiels/orphelins, images de discussion et réinitialise les paramètres. Irréversible.</string>
+    <string name="storage_reset_confirm_title">Réinitialiser toutes les données ?</string>
+    <string name="storage_reset_confirm_body">Cela supprimera les discussions, modèles/fichiers téléchargés, téléchargements partiels, fichiers orphelins, images et réinitialisera les paramètres/l’intégration. Vous repartirez de zéro.</string>
+    <string name="storage_reset_confirm_action">Réinitialiser</string>
+
     <string name="model_import_projector_not_model">Il s’agit d’un projecteur vision (mmproj), pas d’un modèle de langage. Importez le modèle principal .gguf — les projecteurs sont téléchargés et associés automatiquement.</string>
 </resources>

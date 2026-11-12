@@ -71,6 +71,7 @@
 
     <!-- ================= Active downloads ================= -->
     <string name="downloads_active_title">Descargas en curso (%1$d)</string>
+    <string name="downloads_paused_title">Descargas en pausa (%1$d)</string>
     <string name="downloads_cancel_content_description">Cancelar la descarga</string>
     <string name="downloads_waiting_for_network">Esperando red…</string>
     <string name="downloads_speed_only">%1$s/s</string>
@@ -79,6 +80,8 @@
 
     <!-- ================= Filters ================= -->
     <string name="model_filter_all">Todos</string>
+    <string name="model_filter_text_generation">Generación de texto</string>
+    <string name="model_filter_image_generation">Generación de imágenes</string>
 
     <!-- ================= Shared state views ================= -->
     <string name="state_error_title">Algo ha salido mal</string>
@@ -110,19 +113,15 @@
     <string name="model_details_resume_desc">Reanudar la descarga</string>
     <string name="model_details_retry_desc">Reintentar la descarga</string>
     <string name="model_details_pause_desc">Pausar la descarga</string>
-    <string name="downloaded_file_reading_context">Leyendo la ventana de contexto…</string>
-    <string name="downloaded_file_detecting_vision">Detectando compatibilidad con visión…</string>
-    <string name="downloaded_file_context_window">Ventana de contexto</string>
-    <string name="downloaded_file_context_tokens">%1$d tokens (desde los metadatos del modelo)</string>
-    <string name="downloaded_file_vision">Visión</string>
-    <string name="downloaded_file_vision_supported">Compatible (mmproj descargado)</string>
-    <string name="downloaded_file_vision_text_only">Solo texto</string>
-    <string name="downloaded_file_projector_title">Proyector de visión</string>
-    <string name="downloaded_file_projector_body">Este archivo es el codificador de imágenes (mmproj) que usa un modelo multimodal. No se puede cargar por sí solo: abre el archivo .gguf principal de la misma carpeta para chatear con visión.</string>
     <string name="downloaded_file_projector_error">Este es un proyector de visión (mmproj), no un modelo de lenguaje. Abre el modelo .gguf principal: usa este proyector para visión.</string>
+    <string name="downloaded_file_projector_title">Proyector de visión</string>
     <string name="model_details_vision_banner">Incluye un proyector de visión (mmproj): se descarga automáticamente con cualquier modelo GGUF que elijas.</string>
     <string name="model_details_vision_supported">Visión: compatible (proyector incluido)</string>
     <string name="model_details_vision_text_only">Visión: solo texto</string>
     <string name="model_details_context_after_download">Ventana de contexto: se detecta tras la descarga</string>
     <string name="models_updated_on">Actualizado %1$s</string>
+    <string name="model_format_litertlm" translatable="false">LiteRT-LM</string>
+    <string name="model_format_gguf" translatable="false">GGUF</string>
+    <string name="model_format_mediapipe" translatable="false">MediaPipe</string>
+    <string name="model_format_tflite" translatable="false">TFLite</string>
 </resources>

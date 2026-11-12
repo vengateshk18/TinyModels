@@ -1,16 +1,21 @@
 <resources>
-
-    <!-- New strings surfaced by the latest main -->
+    <!-- First-run intro (onboarding) -->
     <string name="onboarding_privacy_title">डिज़ाइन से निजी</string>
-    <string name="onboarding_privacy_body">हर मॉडल आपके फ़ोन पर चलता है। आपकी चैट कभी डिवाइस से बाहर नहीं जातीं — कोई खाता नहीं, कोई क्लाउड नहीं, कोई ट्रैकिंग नहीं।</string>
+    <string name="onboarding_privacy_body">हर मॉडल आपके फ़ोन पर चलता है। आपकी चैट डिवाइस से बाहर नहीं जाती — न अकाउंट, न क्लाउड, न ट्रैकिंग।</string>
+
     <string name="onboarding_download_title">एक बार डाउनलोड करें, ऑफ़लाइन चैट करें</string>
-    <string name="onboarding_download_body">टेक्स्ट, विज़न और कोड मॉडल ब्राउज़ करें, Wi-Fi पर बैकग्राउंड में डाउनलोड करें और हवाई जहाज़ या डेड ज़ोन से चैट करें।</string>
-    <string name="onboarding_chat_title">एक चैट जो नेटिव लगती है</string>
-    <string name="onboarding_chat_body">स्ट्रीमिंग उत्तर, प्रति-चैट सेटिंग, विज़न मॉडल के लिए फ़ोटो इनपुट, और वेब सर्च एक ऐसे टूल के रूप में जिसे आप बंद कर सकते हैं।</string>
-    <string name="onboarding_device_title">आपके डिवाइस के लिए सही आकार में</string>
-    <string name="onboarding_device_body">TinyModels आपकी RAM और स्टोरेज पढ़ता है, फिर ऐसे मॉडल सुझाता है जो असल में फिट हों — कोई अनुमान नहीं, 4 GB की गलती नहीं।</string>
-    <string name="onboarding_tuning_title">मापें, ठीक करें, अपना बनाएं</string>
-    <string name="onboarding_tuning_body">वास्तविक गति और थर्मल का बेंचमार्क करें, थीम और फ़ॉन्ट चुनें, और अपने डाउनलोड किए गए मॉडल एक ही जगह प्रबंधित करें।</string>
+    <string name="onboarding_download_body">टेक्स्ट, विज़न और कोड मॉडल ब्राउज़ करें, Wi-Fi पर बैकग्राउंड में डाउनलोड करें और बिना नेटवर्क भी चैट करें।</string>
+
+    <string name="onboarding_chat_title">एक स्वाभाविक चैट अनुभव</string>
+    <string name="onboarding_chat_body">स्ट्रीमिंग जवाब, प्रति-चैट सेटिंग्स, विज़न मॉडल के लिए फ़ोटो इनपुट और वेब खोज जिसे आप बंद कर सकते हैं।</string>
+
+    <string name="onboarding_personalize_title">इसे अपना बनाएँ</string>
+    <string name="onboarding_personalize_body">अपनी भाषा चुनें, कलर थीम या डायनामिक रंग बदलें, और फ़ॉन्ट व टेक्स्ट आकार को आरामदायक बनाएं।</string>
+
+    <string name="onboarding_ready_title">होम स्क्रीन से तैयार</string>
+    <string name="onboarding_ready_body">त्वरित पहुँच के लिए TinyModels विजेट जोड़ें, डिवाइस संगतता और स्टोरेज देखें, और कभी भी अपने मॉडल प्रबंधित या बेंचमार्क करें।</string>
+
+    <!-- Intro UI chrome -->
     <string name="onboarding_skip">छोड़ें</string>
     <string name="onboarding_done">हो गया</string>
     <string name="onboarding_get_started">शुरू करें</string>

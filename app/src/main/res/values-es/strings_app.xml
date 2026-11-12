@@ -80,7 +80,7 @@
     <string name="benchmark_error_not_enough_ram">No hay suficiente RAM libre para cargar este modelo (hacen falta ~%1$d MB y hay %2$d MB). Cierra otras apps e inténtalo de nuevo.</string>
     <string name="benchmark_error_failed_to_load">No se pudo cargar el modelo</string>
     <string name="settings_import_model">Importar modelo</string>
-    <string name="settings_import_model_subtitle">Importa un archivo .litertlm, .task, .tflite o .gguf</string>
+    <string name="settings_import_model_subtitle">Añade un archivo .litertlm desde el almacenamiento externo</string>
     <string name="settings_import_model_note">Los modelos importados aparecen en tu biblioteca con la etiqueta «Importado». Para compartir un archivo descargado, ábrelo y usa Exportar.</string>
 
     <!-- ================= Theme / backend choices ================= -->
@@ -217,5 +217,74 @@
     <string name="settings_view_intro">Ver intro</string>
     <string name="settings_view_intro_subtitle">Vuelve a hacer el recorrido por TinyModels</string>
     <string name="benchmark_ttft_line">TTFT %1$.0f ms · p95 %2$.0f ms</string>
+
+    <string name="settings_section_home_screen">Pantalla de inicio</string>
+
+    <!-- Home screen widget -->
+    <string name="settings_add_widget">Añadir widget a la pantalla de inicio</string>
+    <string name="settings_add_widget_subtitle">Pon TinyModels en tu pantalla de inicio para un acceso rápido</string>
+    <string name="settings_add_widget_not_supported">No se puede añadir el widget desde aquí en este dispositivo. Mantén pulsada la pantalla de inicio y añade TinyModels desde Widgets.</string>
+    <string name="settings_add_widget_added">Widget añadido a la pantalla de inicio</string>
+
+    <!-- Color themes -->
+    <string name="settings_color_theme">Tema de color</string>
+    <string name="settings_color_theme_subtitle">Elige la paleta de colores de la app</string>
+    <string name="settings_color_theme_sheet_title">Elegir tema de color</string>
+    <string name="theme_default">Predeterminado</string>
+    <string name="theme_github">GitHub</string>
+    <string name="theme_vercel">Vercel</string>
+    <string name="theme_night_owl">Night Owl</string>
+    <string name="theme_dracula">Dracula</string>
+    <string name="theme_nord">Nord</string>
+    <string name="theme_catppuccin">Catppuccin</string>
+
+    <!-- Storage screen -->
+    <string name="settings_storage">Almacenamiento</string>
+    <string name="settings_storage_subtitle">Consulta el uso de modelos, chats, base de datos y archivos huérfanos</string>
+    <string name="storage_title">Almacenamiento</string>
+    <string name="storage_total_tracked">Datos de la app rastreados</string>
+    <string name="storage_total_tracked_subtitle">Modelos, chats, base de datos, descargas parciales y archivos huérfanos</string>
+    <string name="storage_models_section">Modelos descargados</string>
+    <string name="storage_models_count">%1$d archivo(s) descargado(s)</string>
+    <string name="storage_no_downloaded_models">No se encontraron archivos de modelos descargados</string>
+    <string name="storage_chats_db_section">Chats y base de datos</string>
+    <string name="storage_chats_summary">%1$d chat(s) · %2$d mensaje(s)</string>
+    <string name="storage_database">Base de datos (tiny_models.db)</string>
+    <string name="storage_database_wal">WAL/SHM de la base de datos</string>
+    <string name="storage_chat_images">Imágenes del chat</string>
+    <string name="storage_total_tokens">Total de tokens generados</string>
+    <string name="storage_partial_downloads">Descargas parciales / en pausa</string>
+    <string name="storage_partial_downloads_subtitle">%1$d entrada(s) de descarga en pausa o en curso. Los archivos .part parciales se muestran abajo.</string>
+    <string name="storage_no_partial_downloads">No se encontraron archivos de descarga parciales</string>
+    <string name="storage_orphan_files">Archivos huérfanos</string>
+    <string name="storage_orphan_files_subtitle">Archivos en el almacenamiento de modelos de la app que no están registrados como modelos descargados</string>
+    <string name="storage_no_orphan_files">No se encontraron archivos huérfanos</string>
+
+    <!-- Privacy & security -->
+    <string name="settings_section_privacy_security">Privacidad y seguridad</string>
+    <string name="settings_privacy">Política de privacidad</string>
+    <string name="settings_privacy_subtitle">Lee cómo TinyModels gestiona tus datos</string>
+    <string name="settings_security">Seguridad</string>
+    <string name="settings_security_subtitle">Conoce las prácticas de seguridad de TinyModels</string>
+
+
+    <string name="storage_refresh">Actualizar</string>
+    <string name="storage_chats_section">Chats y almacenamiento</string>
+    <string name="storage_images_count">%1$d imagen(es)</string>
+    <string name="storage_no_chats">No hay chats para eliminar</string>
+    <string name="storage_chat_messages_count">%1$d mensaje(s)</string>
+    <string name="storage_delete">Eliminar</string>
+    <string name="storage_delete_confirm_title">¿Eliminar elemento?</string>
+    <string name="storage_delete_model_file_body">¿Eliminar "%1$s"? Esto quitará el archivo del modelo descargado de tu dispositivo y actualizará el seguimiento de almacenamiento.</string>
+    <string name="storage_delete_partial_body">¿Eliminar la descarga parcial "%1$s"? Esto elimina los datos .part sobrantes para empezar de cero.</string>
+    <string name="storage_delete_orphan_body">¿Eliminar el archivo huérfano "%1$s"? Este archivo no está registrado como modelo descargado.</string>
+    <string name="storage_delete_chat_title">¿Eliminar chat?</string>
+    <string name="storage_delete_chat_body">¿Eliminar "%1$s" y sus mensajes? Esta acción no se puede deshacer.</string>
+    <string name="storage_reset_app">Restablecer datos de la app</string>
+    <string name="storage_reset_app_subtitle">Elimina todos los chats, modelos descargados, archivos parciales/huérfanos, imágenes de chat y restablece la configuración. No se puede deshacer.</string>
+    <string name="storage_reset_confirm_title">¿Restablecer todos los datos de la app?</string>
+    <string name="storage_reset_confirm_body">Esto eliminará chats, modelos y archivos descargados, descargas parciales, archivos huérfanos, imágenes de chat y restablecerá la configuración/onboarding. Empezarás desde cero.</string>
+    <string name="storage_reset_confirm_action">Restablecer datos</string>
+
     <string name="model_import_projector_not_model">Este es un proyector de visión (mmproj), no un modelo de lenguaje. Importa el modelo .gguf principal: los proyectores se descargan y se emparejan automáticamente.</string>
 </resources>

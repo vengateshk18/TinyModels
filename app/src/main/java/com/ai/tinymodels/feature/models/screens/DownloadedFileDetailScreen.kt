@@ -28,9 +28,6 @@ import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SdStorage
@@ -148,10 +145,6 @@ fun DownloadedFileDetailScreen(
                 uiState.fileInfo != null ->
                     FileDetailContent(
                         fileInfo = uiState.fileInfo!!,
-                        isVisionProjector = uiState.isVisionProjector,
-                        ggufContextTokens = uiState.ggufContextTokens,
-                        mmprojPresent = uiState.mmprojPresent,
-                        ggufMetaLoading = uiState.ggufMetaLoading,
                         isLoadingModel = uiState.isLoadingModel,
                         loadModelError = uiState.loadModelError,
                         isDeleting = uiState.isDeleting,
@@ -205,10 +198,6 @@ fun DownloadedFileDetailScreen(
 @Composable
 private fun FileDetailContent(
     fileInfo: com.ai.tinymodels.domain.model.DownloadedModelFile,
-    isVisionProjector: Boolean,
-    ggufContextTokens: Int?,
-    mmprojPresent: Boolean,
-    ggufMetaLoading: Boolean,
     isLoadingModel: Boolean,
     loadModelError: String?,
     isDeleting: Boolean,
@@ -242,80 +231,11 @@ private fun FileDetailContent(
                 InfoRow(Icons.Filled.InsertDriveFile, stringResource(R.string.downloaded_file_model_id), fileInfo.modelId)
                 InfoRow(Icons.Filled.SdStorage, stringResource(R.string.downloaded_file_size), Formatters.formatBytes(fileInfo.sizeBytes, LocalContext.current.resources))
                 fileInfo.localPath?.let {
-                    InfoRow(
-                        Icons.Filled.Folder,
-                        stringResource(R.string.downloaded_file_location),
-                        it
-                    )
-                    // GGUF-specific hints: real context window + vision
-                    // capability — both detected once by the ViewModel
-                    // (disk I/O never runs during composition). While the
-                    // header parse is still running, show a small inline
-                    // loader on just these two rows so the rest of the screen
-                    // is visible immediately.
-                    if (fileInfo.fileName.endsWith(".gguf", ignoreCase = true) && !isVisionProjector) {
-                        if (ggufMetaLoading) {
-                            MetaLoadingRow(Icons.Filled.Memory, stringResource(R.string.downloaded_file_reading_context))
-                            MetaLoadingRow(Icons.Filled.Image, stringResource(R.string.downloaded_file_detecting_vision))
-                        } else {
-                            ggufContextTokens?.let { ctx ->
-                                InfoRow(
-                                    Icons.Filled.Memory,
-                                    stringResource(R.string.downloaded_file_context_window),
-                                    stringResource(R.string.downloaded_file_context_tokens, ctx)
-                                )
-                            }
-                            InfoRow(
-                                Icons.Filled.Image,
-                                stringResource(R.string.downloaded_file_vision),
-                                if (mmprojPresent) {
-                                    stringResource(R.string.downloaded_file_vision_supported)
-                                } else {
-                                    stringResource(R.string.downloaded_file_vision_text_only)
-                                }
-                            )
-                        }
-                    }
+                    InfoRow(Icons.Filled.Folder, stringResource(R.string.downloaded_file_location), it)
                 }
                 
                 // Show downloaded date if we can get it from somewhere
                 // For now, we'll skip it as it's not in the DownloadedModelFile entity
-            }
-        }
-
-        // Vision projector (mmproj): explain why this file cannot be loaded.
-        if (isVisionProjector) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Icon(
-                        Icons.Filled.Info,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            stringResource(R.string.downloaded_file_projector_title),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            stringResource(R.string.downloaded_file_projector_body),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                }
             }
         }
 
@@ -359,24 +279,20 @@ private fun FileDetailContent(
             }
         }
 
-        // Actions — projectors are companions, not runnable models.
-        if (!isVisionProjector) {
-            Button(
-                onClick = { onStartChat(fileInfo.modelId) },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !isLoadingModel && !isDeleting && !isExporting
-            ) {
-                if (isLoadingModel) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                } else {
-                    Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null, modifier = Modifier.size(18.dp))
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(if (isLoadingModel) stringResource(R.string.downloaded_file_loading_model) else stringResource(R.string.downloaded_file_start_chat))
+        // Actions
+        Button(
+            onClick = { onStartChat(fileInfo.modelId) },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isLoadingModel && !isDeleting && !isExporting
+        ) {
+            if (isLoadingModel) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(18.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            } else {
+                Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null, modifier = Modifier.size(18.dp))
             }
             Spacer(modifier = Modifier.width(8.dp))
             Text(if (isLoadingModel) stringResource(R.string.downloaded_file_loading_model) else stringResource(R.string.downloaded_file_start_chat))
@@ -415,36 +331,6 @@ private fun FileDetailContent(
             Spacer(modifier = Modifier.width(8.dp))
             Text(if (isDeleting) stringResource(R.string.downloaded_file_deleting) else stringResource(R.string.downloaded_file_delete))
         }
-    }
-}
-
-/** Inline row shown while the GGUF header parse (context window / vision) runs. */
-@Composable
-private fun MetaLoadingRow(icon: ImageVector, label: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            icon,
-            contentDescription = null,
-            modifier = Modifier.size(18.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        CircularProgressIndicator(
-            modifier = Modifier.size(16.dp),
-            strokeWidth = 2.dp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.width(10.dp))
-        Text(
-            label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }
 

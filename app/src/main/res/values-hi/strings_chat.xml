@@ -48,7 +48,7 @@
     <string name="chat_open_chats_content_description">चैट खोलें</string>
     <string name="chat_settings_content_description">सेटिंग्स</string>
     <string name="chat_no_models_title">अभी कोई मॉडल नहीं</string>
-    <string name="chat_no_models_body">ऑफ़लाइन चैट शुरू करने के लिए LiteRT-LM (.litertlm), MediaPipe (.task), TFLite (.tflite) या GGUF (.gguf) मॉडल डाउनलोड करें।</string>
+    <string name="chat_no_models_body">ऑफ़लाइन चैट करने के लिए कोई LiteRT-LM मॉडल डाउनलोड करें।</string>
     <string name="chat_browse_models">मॉडल देखें</string>
     <string name="chat_choose_downloaded_model_body">शुरू करने के लिए ऊपर एक डाउनलोड किया गया मॉडल चुनें।</string>
 

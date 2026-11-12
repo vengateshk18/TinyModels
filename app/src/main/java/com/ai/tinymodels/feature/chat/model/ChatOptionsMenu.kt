@@ -13,7 +13,10 @@ sealed interface PlusMenuItem {
     /** Photo-attach entry. Disabled with reason text when model lacks vision. */
     data class AttachPhoto(
         val enabled: Boolean,
-        /** Resource for the disabled reason. Null = enabled or just busy. */
+        /**
+         * Resource id of the human-readable reason shown when disabled
+         * (e.g. "This model can't read photos..."). Null = enabled or just busy.
+         */
         @StringRes val disabledReasonRes: Int? = null
     ) : PlusMenuItem
 
@@ -28,13 +31,11 @@ sealed interface PlusMenuItem {
 /**
  * Builds the "+" menu in fixed order: photo first, then web search.
  *
- * Text-only models show a disabled photo entry with explanatory text, so the
- * user learns why they cannot attach photos.
- *
  * @param webSearchAvailable global availability gate (Settings switch).
  * @param webSearchEnabled per-chat opt-in.
  * @param canAttachPhoto whether a photo can be picked right now.
  * @param supportsVision whether the loaded model has a vision encoder.
+ *   Text-only models show a disabled photo entry with explanatory text.
  */
 fun buildPlusMenuItems(
     webSearchAvailable: Boolean,
@@ -44,7 +45,8 @@ fun buildPlusMenuItems(
 ): List<PlusMenuItem> = listOf(
     PlusMenuItem.AttachPhoto(
         enabled = supportsVision && canAttachPhoto,
-        disabledReasonRes = if (supportsVision) null else R.string.chat_attach_photo_unavailable
+        disabledReasonRes = if (supportsVision) null
+        else R.string.chat_attach_photo_unavailable
     ),
     PlusMenuItem.WebSearch(
         checked = webSearchAvailable && webSearchEnabled,

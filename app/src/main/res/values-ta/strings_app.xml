@@ -80,7 +80,7 @@
     <string name="benchmark_error_not_enough_ram">இந்த மாதிரியை ஏற்ற கட்டை RAM இல்லை (~%1$d MB தேவை, %2$d MB உள்ளது). மற்ற செயலிகளை மூடி மீண்டும் முயற்சிக்கவும்.</string>
     <string name="benchmark_error_failed_to_load">மாதிரியை ஏற்ற முடியவில்லை</string>
     <string name="settings_import_model">மாதிரியை இறக்குமதி</string>
-    <string name="settings_import_model_subtitle">.litertlm, .task, .tflite அல்லது .gguf கோப்பை இறக்குமதி செய்யுங்கள்</string>
+    <string name="settings_import_model_subtitle">வெளிப்புற சேமிப்பிலிருந்து ஒரு .litertlm கோப்பைச் சேர்</string>
     <string name="settings_import_model_note">இறக்குமதி செய்யப்பட்ட மாதிரிகள் உங்கள் நூலகத்தில் «இறக்குமதி» என்ற குறியுடன் தோன்றும். பதிவிறக்கப்பட்ட கோப்பைப் பகிர ஒரு கோப்பைத் திறந்து ஏற்றுமதி பயன்படுத்தவும்.</string>
 
     <!-- ================= Theme / backend choices ================= -->
@@ -217,5 +217,74 @@
     <string name="settings_view_intro">அறிமுகத்தைப் பார்</string>
     <string name="settings_view_intro_subtitle">TinyModels சுற்றுலாவை மீண்டும் எடு</string>
     <string name="benchmark_ttft_line">TTFT %1$.0f ms · p95 %2$.0f ms</string>
+
+    <string name="settings_section_home_screen">முகப்புத் திரை</string>
+
+    <!-- Home screen widget -->
+    <string name="settings_add_widget">முகப்புத் திரையில் விட்ஜெட்டைச் சேர்க்கவும்</string>
+    <string name="settings_add_widget_subtitle">விரைவு அணுகலுக்காக TinyModels-ஐ உங்கள் முகப்புத் திரையில் வைக்கவும்</string>
+    <string name="settings_add_widget_not_supported">இந்தச் சாதனத்தில் இங்கிருந்து விட்ஜெட்டைச் சேர்க்க முடியாது. முகப்புத் திரையை நீண்ட நேரம் அழுத்தி, விட்ஜெட்களில் இருந்து TinyModels-ஐச் சேர்க்கவும்.</string>
+    <string name="settings_add_widget_added">விட்ஜெட் முகப்புத் திரையில் சேர்க்கப்பட்டது</string>
+
+    <!-- Color themes -->
+    <string name="settings_color_theme">வண்ண தீம்</string>
+    <string name="settings_color_theme_subtitle">பயன்பாட்டின் வண்ணத் தொகுப்பைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="settings_color_theme_sheet_title">வண்ண தீமைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="theme_default">இயல்புநிலை</string>
+    <string name="theme_github">GitHub</string>
+    <string name="theme_vercel">Vercel</string>
+    <string name="theme_night_owl">Night Owl</string>
+    <string name="theme_dracula">Dracula</string>
+    <string name="theme_nord">Nord</string>
+    <string name="theme_catppuccin">Catppuccin</string>
+
+    <!-- Storage screen -->
+    <string name="settings_storage">சேமிப்பகம்</string>
+    <string name="settings_storage_subtitle">மாதிரிகள், அரட்டைகள், தரவுத்தளம் மற்றும் தனித்த கோப்புகளின் பயன்பாட்டைப் பார்க்கவும்</string>
+    <string name="storage_title">சேமிப்பகம்</string>
+    <string name="storage_total_tracked">கண்காணிக்கப்பட்ட பயன்பாட்டு தரவு</string>
+    <string name="storage_total_tracked_subtitle">மாதிரிகள், அரட்டைகள், தரவுத்தளம், பகுதி பதிவிறக்கங்கள் மற்றும் தனித்த கோப்புகள்</string>
+    <string name="storage_models_section">பதிவிறக்கப்பட்ட மாதிரிகள்</string>
+    <string name="storage_models_count">%1$d பதிவிறக்கப்பட்ட கோப்பு(கள்)</string>
+    <string name="storage_no_downloaded_models">பதிவிறக்கப்பட்ட மாதிரி கோப்புகள் எதுவும் இல்லை</string>
+    <string name="storage_chats_db_section">அரட்டைகள் &amp; தரவுத்தளம்</string>
+    <string name="storage_chats_summary">%1$d அரட்டை(கள்) · %2$d செய்தி(கள்)</string>
+    <string name="storage_database">தரவுத்தளம் (tiny_models.db)</string>
+    <string name="storage_database_wal">தரவுத்தள WAL/SHM</string>
+    <string name="storage_chat_images">அரட்டை படங்கள்</string>
+    <string name="storage_total_tokens">உருவாக்கப்பட்ட மொத்த டோக்கன்கள்</string>
+    <string name="storage_partial_downloads">பகுதி / இடைநிறுத்தப்பட்ட பதிவிறக்கங்கள்</string>
+    <string name="storage_partial_downloads_subtitle">%1$d இடைநிறுத்தப்பட்ட அல்லது செயலில் உள்ள பதிவிறக்க பதிவு(கள்). பகுதி .part கோப்புகள் கீழே காட்டப்படுகின்றன.</string>
+    <string name="storage_no_partial_downloads">பகுதி பதிவிறக்க கோப்புகள் எதுவும் இல்லை</string>
+    <string name="storage_orphan_files">தனித்த கோப்புகள்</string>
+    <string name="storage_orphan_files_subtitle">பதிவிறக்கப்பட்ட மாதிரிகளாக கண்காணிக்கப்படாத பயன்பாட்டு மாதிரி சேமிப்பக கோப்புகள்</string>
+    <string name="storage_no_orphan_files">தனித்த கோப்புகள் எதுவும் இல்லை</string>
+
+    <!-- Privacy & security -->
+    <string name="settings_section_privacy_security">தனியுரிமை &amp; பாதுகாப்பு</string>
+    <string name="settings_privacy">தனியுரிமைக் கொள்கை</string>
+    <string name="settings_privacy_subtitle">TinyModels உங்கள் தரவை எவ்வாறு கையாளுகிறது என்பதைப் படிக்கவும்</string>
+    <string name="settings_security">பாதுகாப்பு</string>
+    <string name="settings_security_subtitle">TinyModels பாதுகாப்பு நடைமுறைகளை அறிக</string>
+
+
+    <string name="storage_refresh">புதுப்பி</string>
+    <string name="storage_chats_section">அரட்டைகள் &amp; சேமிப்பகம்</string>
+    <string name="storage_images_count">%1$d படம்(கள்)</string>
+    <string name="storage_no_chats">நீக்க அரட்டைகள் இல்லை</string>
+    <string name="storage_chat_messages_count">%1$d செய்தி(கள்)</string>
+    <string name="storage_delete">நீக்கு</string>
+    <string name="storage_delete_confirm_title">உருப்படியை நீக்கவா?</string>
+    <string name="storage_delete_model_file_body">"%1$s" ஐ நீக்கவா? இது பதிவிறக்கப்பட்ட மாதிரி கோப்பை உங்கள் சாதனத்திலிருந்து நீக்கி சேமிப்பக கண்காணிப்பை புதுப்பிக்கும்.</string>
+    <string name="storage_delete_partial_body">பகுதி பதிவிறக்கம் "%1$s" ஐ நீக்கவா? இது மீதமுள்ள .part தரவை நீக்கி புதிதாக தொடங்க உதவும்.</string>
+    <string name="storage_delete_orphan_body">தனித்த கோப்பு "%1$s" ஐ நீக்கவா? இந்த கோப்பு பதிவிறக்கப்பட்ட மாதிரியாக கண்காணிக்கப்படவில்லை.</string>
+    <string name="storage_delete_chat_title">அரட்டையை நீக்கவா?</string>
+    <string name="storage_delete_chat_body">"%1$s" மற்றும் அதன் செய்திகளை நீக்கவா? இதை மாற்ற முடியாது.</string>
+    <string name="storage_reset_app">பயன்பாட்டு தரவை மீட்டமை</string>
+    <string name="storage_reset_app_subtitle">அனைத்து அரட்டைகள், பதிவிறக்கப்பட்ட மாதிரிகள், பகுதி/தனித்த கோப்புகள், அரட்டை படங்கள் ஆகியவற்றை நீக்கி அமைப்புகளை மீட்டமைக்கும். மாற்ற முடியாது.</string>
+    <string name="storage_reset_confirm_title">அனைத்து பயன்பாட்டு தரவையும் மீட்டமைக்கவா?</string>
+    <string name="storage_reset_confirm_body">இது அரட்டைகள், பதிவிறக்கப்பட்ட மாதிரிகள்/கோப்புகள், பகுதி பதிவிறக்கங்கள், தனித்த கோப்புகள், அரட்டை படங்களை நீக்கி அமைப்புகள்/அறிமுகத்தை மீட்டமைக்கும். நீங்கள் புதிதாக தொடங்குவீர்கள்.</string>
+    <string name="storage_reset_confirm_action">மீட்டமை</string>
+
     <string name="model_import_projector_not_model">இது ஒரு விஷன் புரொஜெக்டர் (mmproj), மொழி மாதிரி அல்ல. முக்கிய .gguf மாதிரியை இறக்குமதி செய்யவும் — புரொஜெக்டர்கள் தானாகவே பதிவிறக்கப்பட்டு இணைக்கப்படும்.</string>
 </resources>

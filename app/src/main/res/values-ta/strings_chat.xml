@@ -48,7 +48,7 @@
     <string name="chat_open_chats_content_description">சாட்களைத் திற</string>
     <string name="chat_settings_content_description">அமைப்புகள்</string>
     <string name="chat_no_models_title">இன்னும் மாதிரிகள் இல்லை</string>
-    <string name="chat_no_models_body">ஆஃப்லைன் சாட் தொடங்க LiteRT-LM (.litertlm), MediaPipe (.task), TFLite (.tflite) அல்லது GGUF (.gguf) மாதிரியைப் பதிவிறக்கவும்.</string>
+    <string name="chat_no_models_body">இண்டர்னெட் இல்லாமல் சாட் செய்ய LiteRT-LM மாதிரியைப் பதிவிறக்கவும்.</string>
     <string name="chat_browse_models">மாதிரிகளைப் பார்க்கவும்</string>
     <string name="chat_choose_downloaded_model_body">தொடங்க மேலே ஒரு பதிவிறக்கப்பட்ட மாதிரியைத் தேர்ந்தெடுக்கவும்.</string>
 

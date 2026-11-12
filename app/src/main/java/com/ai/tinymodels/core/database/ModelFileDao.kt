@@ -16,6 +16,9 @@ interface ModelFileDao {
     @Query("SELECT * FROM model_files WHERE status = 'DOWNLOADED'")
     fun observeDownloaded(): Flow<List<ModelFileEntity>>
 
+    @Query("SELECT * FROM model_files WHERE status = 'PAUSED'")
+    fun observePaused(): Flow<List<ModelFileEntity>>
+
     @Query("SELECT * FROM model_files WHERE modelId = :modelId AND fileName = :fileName")
     suspend fun getByModelIdAndFile(modelId: String, fileName: String): ModelFileEntity?
 
@@ -72,4 +75,7 @@ interface ModelFileDao {
 
     @Query("SELECT * FROM model_files WHERE modelId = :modelId")
     suspend fun getByModelId(modelId: String): List<ModelFileEntity>
+
+    @Query("SELECT * FROM model_files")
+    suspend fun getAll(): List<ModelFileEntity>
 }

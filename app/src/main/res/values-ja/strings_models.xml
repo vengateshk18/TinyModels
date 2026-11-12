@@ -71,6 +71,7 @@
 
     <!-- ================= Active downloads ================= -->
     <string name="downloads_active_title">アクティブなダウンロード (%1$d)</string>
+    <string name="downloads_paused_title">一時停止中のダウンロード (%1$d)</string>
     <string name="downloads_cancel_content_description">ダウンロードをキャンセル</string>
     <string name="downloads_waiting_for_network">ネットワークを待機中…</string>
     <string name="downloads_progress_bytes">%1$s / %2$s</string>
@@ -82,6 +83,8 @@
 
     <!-- ================= Filters ================= -->
     <string name="model_filter_all">すべて</string>
+    <string name="model_filter_text_generation">テキスト生成</string>
+    <string name="model_filter_image_generation">画像生成</string>
 
     <!-- ================= Shared state views ================= -->
     <string name="state_error_title">問題が発生しました</string>
@@ -108,19 +111,15 @@
     <string name="model_details_resume_desc">ダウンロードを再開</string>
     <string name="model_details_retry_desc">ダウンロードを再試行</string>
     <string name="model_details_pause_desc">ダウンロードを一時停止</string>
-    <string name="downloaded_file_reading_context">コンテキストウィンドウを読み取り中…</string>
-    <string name="downloaded_file_detecting_vision">ビジョン対応を検出中…</string>
-    <string name="downloaded_file_context_window">コンテキストウィンドウ</string>
-    <string name="downloaded_file_context_tokens">%1$d トークン（モデルメタデータより）</string>
-    <string name="downloaded_file_vision">ビジョン</string>
-    <string name="downloaded_file_vision_supported">対応済み（mmproj ダウンロード済み）</string>
-    <string name="downloaded_file_vision_text_only">テキストのみ</string>
-    <string name="downloaded_file_projector_title">ビジョンプロジェクター</string>
-    <string name="downloaded_file_projector_body">このファイルはマルチモーダルモデルが使う画像エンコーダー（mmproj）です。単体では読み込めません。同じフォルダのメイン .gguf ファイルを開いてビジョンチャットしてください。</string>
     <string name="downloaded_file_projector_error">これはビジョンプロジェクター（mmproj）であり、言語モデルではありません。メインの .gguf モデルを開いてください。ビジョンにこのプロジェクターを使います。</string>
+    <string name="downloaded_file_projector_title">ビジョンプロジェクター</string>
     <string name="model_details_vision_banner">ビジョンプロジェクター（mmproj）を含みます — 選んだ GGUF モデルと一緒に自動でダウンロードされます。</string>
     <string name="model_details_vision_supported">ビジョン：対応（プロジェクター同梱）</string>
     <string name="model_details_vision_text_only">ビジョン：テキストのみ</string>
     <string name="model_details_context_after_download">コンテキストウィンドウ：ダウンロード後に検出</string>
     <string name="models_updated_on">%1$s に更新</string>
+    <string name="model_format_litertlm" translatable="false">LiteRT-LM</string>
+    <string name="model_format_gguf" translatable="false">GGUF</string>
+    <string name="model_format_mediapipe" translatable="false">MediaPipe</string>
+    <string name="model_format_tflite" translatable="false">TFLite</string>
 </resources>

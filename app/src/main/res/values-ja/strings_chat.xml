@@ -46,7 +46,7 @@
     <string name="chat_open_chats_content_description">チャットを開く</string>
     <string name="chat_settings_content_description">設定</string>
     <string name="chat_no_models_title">モデルがありません</string>
-    <string name="chat_no_models_body">オフラインでチャットするには、LiteRT-LM（.litertlm）、MediaPipe（.task）、TFLite（.tflite）、GGUF（.gguf）モデルをダウンロードしてください。</string>
+    <string name="chat_no_models_body">オフラインでチャットするには LiteRT-LM モデルをダウンロードしてください。</string>
     <string name="chat_browse_models">モデルを閲覧</string>
     <string name="chat_choose_downloaded_model_body">上のダウンロード済みモデルを選んで開始してください。</string>
 

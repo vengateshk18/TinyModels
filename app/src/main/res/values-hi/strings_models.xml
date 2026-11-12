@@ -71,6 +71,7 @@
 
     <!-- ================= Active downloads ================= -->
     <string name="downloads_active_title">चल रही डाउनलोड (%1$d)</string>
+    <string name="downloads_paused_title">रुके हुए डाउनलोड (%1$d)</string>
     <string name="downloads_cancel_content_description">डाउनलोड रद्द करें</string>
     <string name="downloads_waiting_for_network">नेटवर्क की प्रतीक्षा हो रही है…</string>
     <string name="downloads_speed_only">%1$s/से</string>
@@ -79,6 +80,8 @@
 
     <!-- ================= Filters ================= -->
     <string name="model_filter_all">सभी</string>
+    <string name="model_filter_text_generation">टेक्स्ट जनरेशन</string>
+    <string name="model_filter_image_generation">इमेज जनरेशन</string>
 
     <!-- ================= Shared state views ================= -->
     <string name="state_error_title">कुछ गड़बड़ हो गई</string>
@@ -109,19 +112,15 @@
     <string name="model_details_resume_desc">डाउनलोड फिर शुरू करें</string>
     <string name="model_details_retry_desc">डाउनलोड दोबारा कोशिश करें</string>
     <string name="model_details_pause_desc">डाउनलोड रोकें</string>
-    <string name="downloaded_file_reading_context">कॉन्टेक्स्ट विंडो पढ़ी जा रही है…</string>
-    <string name="downloaded_file_detecting_vision">विज़न समर्थन जाँचा जा रहा है…</string>
-    <string name="downloaded_file_context_window">कॉन्टेक्स्ट विंडो</string>
-    <string name="downloaded_file_context_tokens">%1$d टोकन (मॉडल मेटाडेटा से)</string>
-    <string name="downloaded_file_vision">विज़न</string>
-    <string name="downloaded_file_vision_supported">समर्थित (mmproj डाउनलोड किया गया)</string>
-    <string name="downloaded_file_vision_text_only">केवल टेक्स्ट</string>
-    <string name="downloaded_file_projector_title">विज़न प्रोजेक्टर</string>
-    <string name="downloaded_file_projector_body">यह फ़ाइल उस इमेज एनकोडर (mmproj) है जो मल्टीमोडल मॉडल इस्तेमाल करता है। इसे अकेले लोड नहीं किया जा सकता — विज़न के साथ चैट करने के लिए उसी फ़ोल्डर की मुख्य .gguf फ़ाइल खोलें।</string>
     <string name="downloaded_file_projector_error">यह एक विज़न प्रोजेक्टर (mmproj) है, भाषा मॉडल नहीं। मुख्य .gguf मॉडल खोलें — वही इस प्रोजेक्टर से विज़न उपयोग करता है।</string>
+    <string name="downloaded_file_projector_title">विज़न प्रोजेक्टर</string>
     <string name="model_details_vision_banner">इसमें विज़न प्रोजेक्टर (mmproj) शामिल है — आपके चुने किसी भी GGUF मॉडल के साथ यह अपने आप डाउनलोड होता है।</string>
     <string name="model_details_vision_supported">विज़न: समर्थित (प्रोजेक्टर शामिल)</string>
     <string name="model_details_vision_text_only">विज़न: केवल टेक्स्ट</string>
     <string name="model_details_context_after_download">कॉन्टेक्स्ट विंडो: डाउनलोड के बाद पहचानी जाती है</string>
     <string name="models_updated_on">%1$s को अपडेट किया गया</string>
+    <string name="model_format_litertlm" translatable="false">LiteRT-LM</string>
+    <string name="model_format_gguf" translatable="false">GGUF</string>
+    <string name="model_format_mediapipe" translatable="false">MediaPipe</string>
+    <string name="model_format_tflite" translatable="false">TFLite</string>
 </resources>
