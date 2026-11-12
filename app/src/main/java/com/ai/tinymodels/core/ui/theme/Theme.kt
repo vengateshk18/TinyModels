@@ -12,10 +12,11 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import com.ai.tinymodels.domain.model.AppTheme
 import com.ai.tinymodels.domain.model.FontChoice
 import com.ai.tinymodels.domain.model.ThemeMode
 
-private val lightScheme = lightColorScheme(
+internal val lightScheme = lightColorScheme(
     primary = primaryLight,
     onPrimary = onPrimaryLight,
     primaryContainer = primaryContainerLight,
@@ -53,7 +54,7 @@ private val lightScheme = lightColorScheme(
     surfaceContainerHighest = surfaceContainerHighestLight,
 )
 
-private val darkScheme = darkColorScheme(
+internal val darkScheme = darkColorScheme(
     primary = primaryDark,
     onPrimary = onPrimaryDark,
     primaryContainer = primaryContainerDark,
@@ -97,23 +98,28 @@ private val darkScheme = darkColorScheme(
  * system navigation bar) can read tokens like `surfaceContainer` without
  * duplicating the dynamic-color / light-dark selection logic.
  */
-fun resolveColorScheme(context: Context, darkTheme: Boolean, dynamicColor: Boolean): ColorScheme =
+fun resolveColorScheme(
+    context: Context,
+    darkTheme: Boolean,
+    dynamicColor: Boolean,
+    appTheme: AppTheme = AppTheme.DEFAULT
+): ColorScheme =
     when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        darkTheme -> darkScheme
-        else -> lightScheme
+        else -> colorSchemeFor(appTheme, darkTheme)
     }
 
 /**
- * App-wide theme. Honors the user's [ThemeMode] + dynamic-color preference.
- * When dynamic color is disabled (or unavailable < API 31), falls back to the
- * custom Material Theme Builder palette (light/dark).
+ * App-wide theme. Honors the user's [ThemeMode], [AppTheme], and dynamic-color
+ * preference. When dynamic color is enabled (API 31+), it takes precedence over
+ * the selected palette; otherwise the chosen palette is applied in light/dark.
  */
 @Composable
 fun TinyModelsTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
+    appTheme: AppTheme = AppTheme.DEFAULT,
     dynamicColor: Boolean = true,
     fontChoice: FontChoice = FontChoice.SYSTEM,
     fontScale: Float = 1.0f,
@@ -125,7 +131,7 @@ fun TinyModelsTheme(
         ThemeMode.DARK -> true
     }
 
-    val colorScheme = resolveColorScheme(LocalContext.current, darkTheme, dynamicColor)
+    val colorScheme = resolveColorScheme(LocalContext.current, darkTheme, dynamicColor, appTheme)
 
     // Rebuild the Typography only when the font actually changes. Without this,
     // any recomposition of the theme recreates all 15 text styles, which makes

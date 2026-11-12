@@ -224,4 +224,15 @@
     <string name="settings_add_widget_not_supported">இந்தச் சாதனத்தில் இங்கிருந்து விட்ஜெட்டைச் சேர்க்க முடியாது. முகப்புத் திரையை நீண்ட நேரம் அழுத்தி, விட்ஜெட்களில் இருந்து TinyModels-ஐச் சேர்க்கவும்.</string>
     <string name="settings_add_widget_added">விட்ஜெட் முகப்புத் திரையில் சேர்க்கப்பட்டது</string>
 
+    <!-- Color themes -->
+    <string name="settings_color_theme">வண்ண தீம்</string>
+    <string name="settings_color_theme_subtitle">பயன்பாட்டின் வண்ணத் தொகுப்பைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="settings_color_theme_sheet_title">வண்ண தீமைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="theme_default">இயல்புநிலை</string>
+    <string name="theme_github">GitHub</string>
+    <string name="theme_vercel">Vercel</string>
+    <string name="theme_night_owl">Night Owl</string>
+    <string name="theme_dracula">Dracula</string>
+    <string name="theme_nord">Nord</string>
+    <string name="theme_catppuccin">Catppuccin</string>
 </resources>

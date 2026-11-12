@@ -248,4 +248,15 @@
     <string name="settings_add_widget_not_supported">Home screen widget can’t be added from here on this device. Long-press your home screen and add TinyModels from Widgets.</string>
     <string name="settings_add_widget_added">Widget added to home screen</string>
 
+    <!-- Color themes -->
+    <string name="settings_color_theme">Color theme</string>
+    <string name="settings_color_theme_subtitle">Choose the app’s color palette</string>
+    <string name="settings_color_theme_sheet_title">Choose color theme</string>
+    <string name="theme_default">Default</string>
+    <string name="theme_github">GitHub</string>
+    <string name="theme_vercel">Vercel</string>
+    <string name="theme_night_owl">Night Owl</string>
+    <string name="theme_dracula">Dracula</string>
+    <string name="theme_nord">Nord</string>
+    <string name="theme_catppuccin">Catppuccin</string>
 </resources>

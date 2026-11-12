@@ -97,7 +97,8 @@ class MainActivity : ComponentActivity() {
         val initialNavBarColor = resolveColorScheme(
             context = this,
             darkTheme = initialDarkTheme,
-            dynamicColor = initialSettings.useDynamicColor
+            dynamicColor = initialSettings.useDynamicColor,
+            appTheme = initialSettings.appTheme
         ).surfaceContainer.toArgb()
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.auto(
@@ -133,7 +134,8 @@ class MainActivity : ComponentActivity() {
             val navBarColor = resolveColorScheme(
                 context = this@MainActivity,
                 darkTheme = darkTheme,
-                dynamicColor = settings.useDynamicColor
+                dynamicColor = settings.useDynamicColor,
+                appTheme = settings.appTheme
             ).surfaceContainer.toArgb()
 
             LaunchedEffect(darkTheme, navBarColor) {
@@ -170,6 +172,7 @@ class MainActivity : ComponentActivity() {
 
             TinyModelsTheme(
                 themeMode = settings.themeMode,
+                appTheme = settings.appTheme,
                 dynamicColor = settings.useDynamicColor,
                 fontChoice = settings.fontChoice,
                 fontScale = settings.fontScale

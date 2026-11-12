@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,9 +27,11 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -77,9 +80,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ai.tinymodels.core.common.AppLocale
 import com.ai.tinymodels.core.ui.components.bottomSheetTopSafePadding
+import com.ai.tinymodels.core.ui.theme.colorSchemeFor
 import com.ai.tinymodels.R
 import com.ai.tinymodels.domain.model.AppLanguage
 import com.ai.tinymodels.domain.model.AppSettings
+import com.ai.tinymodels.domain.model.AppTheme
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.FontChoice
 import com.ai.tinymodels.domain.model.ThemeMode
@@ -263,6 +268,23 @@ private fun AppearanceSection(settings: AppSettings, viewModel: SettingsViewMode
         checked = settings.useDynamicColor,
         onCheckedChange = { viewModel.setDynamicColor(it) }
     )
+    Spacer(modifier = Modifier.height(12.dp))
+    var showThemeSheet by remember { mutableStateOf(false) }
+    NavigationRow(
+        label = stringResource(R.string.settings_color_theme),
+        subtitle = stringResource(appThemeLabel(settings.appTheme)),
+        onClick = { showThemeSheet = true }
+    )
+    if (showThemeSheet) {
+        ColorThemeBottomSheet(
+            selected = settings.appTheme,
+            onSelect = {
+                viewModel.setAppTheme(it)
+                showThemeSheet = false
+            },
+            onDismiss = { showThemeSheet = false }
+        )
+    }
     Spacer(modifier = Modifier.height(12.dp))
     var showFontSheet by remember { mutableStateOf(false) }
     FontRow(
@@ -906,6 +928,96 @@ private fun themeModeLabel(mode: ThemeMode): Int = when (mode) {
 }
 
 /** Localized display name for each inference backend preference. */
+@StringRes
+private fun appThemeLabel(theme: AppTheme): Int = when (theme) {
+    AppTheme.DEFAULT -> R.string.theme_default
+    AppTheme.GITHUB -> R.string.theme_github
+    AppTheme.VERCEL -> R.string.theme_vercel
+    AppTheme.NIGHT_OWL -> R.string.theme_night_owl
+    AppTheme.DRACULA -> R.string.theme_dracula
+    AppTheme.NORD -> R.string.theme_nord
+    AppTheme.CATPPUCCIN -> R.string.theme_catppuccin
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ColorThemeBottomSheet(
+    selected: AppTheme,
+    onSelect: (AppTheme) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        contentWindowInsets = { WindowInsets(0) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .bottomSheetTopSafePadding()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .windowInsetsPadding(
+                    WindowInsets.systemBars
+                        .union(WindowInsets.displayCutout)
+                        .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+                )
+                .padding(bottom = 16.dp)
+        ) {
+            Text(
+                stringResource(R.string.settings_color_theme_sheet_title),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+            Text(
+                stringResource(R.string.settings_color_theme_subtitle),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            val previewDark = isSystemInDarkTheme()
+            AppTheme.entries.forEach { theme ->
+                val scheme = colorSchemeFor(theme, darkTheme = previewDark)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelect(theme) }
+                        .padding(vertical = 12.dp, horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = theme == selected,
+                        onClick = { onSelect(theme) }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(appThemeLabel(theme)),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(18.dp)
+                                .background(scheme.primary, CircleShape)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .size(18.dp)
+                                .background(scheme.secondary, CircleShape)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 @StringRes
 private fun backendLabel(backend: BackendPreference): Int = when (backend) {
     BackendPreference.AUTO -> R.string.settings_backend_auto

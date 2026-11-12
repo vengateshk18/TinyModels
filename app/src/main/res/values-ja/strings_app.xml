@@ -226,4 +226,15 @@
     <string name="settings_add_widget_not_supported">この端末ではここからウィジェットを追加できません。ホーム画面を長押しして、ウィジェットから TinyModels を追加してください。</string>
     <string name="settings_add_widget_added">ホーム画面にウィジェットを追加しました</string>
 
+    <!-- Color themes -->
+    <string name="settings_color_theme">カラーテーマ</string>
+    <string name="settings_color_theme_subtitle">アプリの配色を選択</string>
+    <string name="settings_color_theme_sheet_title">カラーテーマを選択</string>
+    <string name="theme_default">デフォルト</string>
+    <string name="theme_github">GitHub</string>
+    <string name="theme_vercel">Vercel</string>
+    <string name="theme_night_owl">Night Owl</string>
+    <string name="theme_dracula">Dracula</string>
+    <string name="theme_nord">Nord</string>
+    <string name="theme_catppuccin">Catppuccin</string>
 </resources>

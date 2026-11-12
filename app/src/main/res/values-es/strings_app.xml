@@ -224,4 +224,15 @@
     <string name="settings_add_widget_not_supported">No se puede añadir el widget desde aquí en este dispositivo. Mantén pulsada la pantalla de inicio y añade TinyModels desde Widgets.</string>
     <string name="settings_add_widget_added">Widget añadido a la pantalla de inicio</string>
 
+    <!-- Color themes -->
+    <string name="settings_color_theme">Tema de color</string>
+    <string name="settings_color_theme_subtitle">Elige la paleta de colores de la app</string>
+    <string name="settings_color_theme_sheet_title">Elegir tema de color</string>
+    <string name="theme_default">Predeterminado</string>
+    <string name="theme_github">GitHub</string>
+    <string name="theme_vercel">Vercel</string>
+    <string name="theme_night_owl">Night Owl</string>
+    <string name="theme_dracula">Dracula</string>
+    <string name="theme_nord">Nord</string>
+    <string name="theme_catppuccin">Catppuccin</string>
 </resources>

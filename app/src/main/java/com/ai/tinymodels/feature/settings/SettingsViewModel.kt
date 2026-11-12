@@ -9,6 +9,7 @@ import com.ai.tinymodels.core.common.AppLocaleStore
 import com.ai.tinymodels.core.common.AppResult
 import com.ai.tinymodels.domain.model.AppLanguage
 import com.ai.tinymodels.domain.model.AppSettings
+import com.ai.tinymodels.domain.model.AppTheme
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.FontChoice
 import com.ai.tinymodels.domain.model.ThemeMode
@@ -58,6 +59,10 @@ class SettingsViewModel @Inject constructor(
     val isImporting: StateFlow<Boolean> = _isImporting.asStateFlow()
 
     fun setThemeMode(mode: ThemeMode) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setThemeMode(mode) }
+    fun setAppTheme(theme: AppTheme) = viewModelScope.launch(Dispatchers.Default) {
+        settingsRepository.setAppTheme(theme)
+        settingsRepository.setDynamicColor(false)
+    }
     fun setDynamicColor(enabled: Boolean) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setDynamicColor(enabled) }
     fun setFontChoice(choice: FontChoice) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setFontChoice(choice) }
     fun setFontScale(scale: Float) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setFontScale(scale) }

@@ -7,6 +7,7 @@ import com.ai.tinymodels.core.common.AppResult
 import com.ai.tinymodels.core.common.AppLocaleStore
 import com.ai.tinymodels.core.common.fakeStringContext
 import com.ai.tinymodels.domain.model.AppSettings
+import com.ai.tinymodels.domain.model.AppTheme
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.DownloadedModel
 import com.ai.tinymodels.domain.model.DownloadedModelFile
@@ -133,6 +134,18 @@ class SettingsViewModelTest {
         assertEquals(R.string.settings_chat_history_cleared.toString(), awaitResult(viewModel))
         coVerify { chatRepo.clearAllChats() }
     }
+
+    @Test
+    fun `selecting app theme disables dynamic color`() = runBlocking {
+        settingsRepo.settingsFlow.value = AppSettings(useDynamicColor = true)
+        val viewModel = vm()
+
+        viewModel.setAppTheme(AppTheme.DRACULA)
+        kotlinx.coroutines.delay(50)
+
+        assertEquals(AppTheme.DRACULA, settingsRepo.settingsFlow.value.appTheme)
+        assertEquals(false, settingsRepo.settingsFlow.value.useDynamicColor)
+    }
 }
 
 /** SettingsRepository fake with in-memory settings + token. */
@@ -151,16 +164,39 @@ private class FakeSettingsRepository : SettingsRepository {
         tokenFlow.value = token
     }
 
-    override suspend fun setThemeMode(mode: ThemeMode) {}
-    override suspend fun setDynamicColor(enabled: Boolean) {}
-    override suspend fun setFontChoice(choice: FontChoice) {}
-    override suspend fun setFontScale(scale: Float) {}
-    override suspend fun setDefaultBackend(backend: BackendPreference) {}
-    override suspend fun setWebSearchEnabled(enabled: Boolean) {}
-    override suspend fun setWifiOnlyDownloads(enabled: Boolean) {}
-    override suspend fun setAutoLoadLastModel(enabled: Boolean) {}
-    override suspend fun setKeepScreenOn(enabled: Boolean) {}
-    override suspend fun setShowTokenCounts(enabled: Boolean) {}
+    override suspend fun setThemeMode(mode: ThemeMode) {
+        settingsFlow.value = settingsFlow.value.copy(themeMode = mode)
+    }
+    override suspend fun setAppTheme(theme: AppTheme) {
+        settingsFlow.value = settingsFlow.value.copy(appTheme = theme)
+    }
+    override suspend fun setDynamicColor(enabled: Boolean) {
+        settingsFlow.value = settingsFlow.value.copy(useDynamicColor = enabled)
+    }
+    override suspend fun setFontChoice(choice: FontChoice) {
+        settingsFlow.value = settingsFlow.value.copy(fontChoice = choice)
+    }
+    override suspend fun setFontScale(scale: Float) {
+        settingsFlow.value = settingsFlow.value.copy(fontScale = scale)
+    }
+    override suspend fun setDefaultBackend(backend: BackendPreference) {
+        settingsFlow.value = settingsFlow.value.copy(defaultBackend = backend)
+    }
+    override suspend fun setWebSearchEnabled(enabled: Boolean) {
+        settingsFlow.value = settingsFlow.value.copy(webSearchEnabled = enabled)
+    }
+    override suspend fun setWifiOnlyDownloads(enabled: Boolean) {
+        settingsFlow.value = settingsFlow.value.copy(wifiOnlyDownloads = enabled)
+    }
+    override suspend fun setAutoLoadLastModel(enabled: Boolean) {
+        settingsFlow.value = settingsFlow.value.copy(autoLoadLastModel = enabled)
+    }
+    override suspend fun setKeepScreenOn(enabled: Boolean) {
+        settingsFlow.value = settingsFlow.value.copy(keepScreenOn = enabled)
+    }
+    override suspend fun setShowTokenCounts(enabled: Boolean) {
+        settingsFlow.value = settingsFlow.value.copy(showTokenCounts = enabled)
+    }
     override suspend fun setOnboardingCompleted(completed: Boolean) {
         settingsFlow.value = settingsFlow.value.copy(onboardingCompleted = completed)
     }

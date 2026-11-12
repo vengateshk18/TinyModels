@@ -1,6 +1,7 @@
 package com.ai.tinymodels.domain.repository
 
 import com.ai.tinymodels.domain.model.AppSettings
+import com.ai.tinymodels.domain.model.AppTheme
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.FontChoice
 import com.ai.tinymodels.domain.model.ThemeMode
@@ -18,6 +19,7 @@ interface SettingsRepository {
     suspend fun getSettings(): AppSettings
 
     suspend fun setThemeMode(mode: ThemeMode)
+    suspend fun setAppTheme(theme: AppTheme)
     suspend fun setDynamicColor(enabled: Boolean)
     suspend fun setFontChoice(choice: FontChoice)
     suspend fun setFontScale(scale: Float)

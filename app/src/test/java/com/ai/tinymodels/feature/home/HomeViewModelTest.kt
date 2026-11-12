@@ -474,6 +474,7 @@ private class FakeHomeSettingsRepository : com.ai.tinymodels.domain.repository.S
     override suspend fun getHuggingFaceToken(): String? = null
     override suspend fun setHuggingFaceToken(token: String?) {}
     override suspend fun setThemeMode(mode: com.ai.tinymodels.domain.model.ThemeMode) {}
+    override suspend fun setAppTheme(theme: com.ai.tinymodels.domain.model.AppTheme) {}
     override suspend fun setDynamicColor(enabled: Boolean) {}
     override suspend fun setFontChoice(choice: com.ai.tinymodels.domain.model.FontChoice) {}
     override suspend fun setFontScale(scale: Float) {}

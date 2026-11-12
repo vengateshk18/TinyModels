@@ -224,4 +224,15 @@
     <string name="settings_add_widget_not_supported">इस डिवाइस पर यहाँ से विजेट नहीं जोड़ा जा सकता। होम स्क्रीन को लंबे समय तक दबाएँ और विजेट्स से TinyModels जोड़ें।</string>
     <string name="settings_add_widget_added">विजेट होम स्क्रीन पर जोड़ दिया गया</string>
 
+    <!-- Color themes -->
+    <string name="settings_color_theme">रंग थीम</string>
+    <string name="settings_color_theme_subtitle">ऐप की रंग पैलेट चुनें</string>
+    <string name="settings_color_theme_sheet_title">रंग थीम चुनें</string>
+    <string name="theme_default">डिफ़ॉल्ट</string>
+    <string name="theme_github">GitHub</string>
+    <string name="theme_vercel">Vercel</string>
+    <string name="theme_night_owl">Night Owl</string>
+    <string name="theme_dracula">Dracula</string>
+    <string name="theme_nord">Nord</string>
+    <string name="theme_catppuccin">Catppuccin</string>
 </resources>
