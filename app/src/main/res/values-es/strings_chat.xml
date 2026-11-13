@@ -169,4 +169,5 @@
     <string name="chat_voice_input_permission_denied">Se necesita permiso de micrófono para la entrada de voz</string>
     <string name="chat_voice_input_unavailable">La entrada de voz no está disponible en este dispositivo</string>
     <string name="chat_voice_input_error">No se pudo entender el audio. Inténtalo de nuevo.</string>
+    <string name="chat_speak_message">Leer este mensaje en voz alta</string>
 </resources>

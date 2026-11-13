@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -57,6 +58,8 @@ fun MessageBubble(
     onRegenerate: (() -> Unit)? = null,
     onEdit: ((String) -> Unit)? = null,
     onCopied: (() -> Unit)? = null,
+    /** Speak this message aloud (assistant, completed). */
+    onSpeak: (() -> Unit)? = null,
     /** Show the stored per-message token count in the footer (Settings). */
     showTokenCounts: Boolean = false
 ) {
@@ -143,7 +146,7 @@ fun MessageBubble(
             }
         }
         // Timestamp + action row below the bubble.
-        MessageFooter(message, onRegenerate, onCopy = copy, showTokenCounts = showTokenCounts)
+        MessageFooter(message, onRegenerate, onCopy = copy, onSpeak = if (!isUser) onSpeak else null, showTokenCounts = showTokenCounts)
     }
 }
 
@@ -158,17 +161,19 @@ private fun MessageFooter(
     message: UiChatMessage,
     onRegenerate: (() -> Unit)?,
     onCopy: (() -> Unit)?,
+    onSpeak: (() -> Unit)?,
     showTokenCounts: Boolean
 ) {
     if (message.timestamp <= 0L) return
     val context = LocalContext.current
     val showRegen = !message.isUser && !message.isStreaming && onRegenerate != null
     val showCopy = !message.isStreaming && message.text.isNotBlank() && onCopy != null
+    val showSpeak = !message.isUser && !message.isStreaming && message.text.isNotBlank() && onSpeak != null
     val showTokens = showTokenCounts && !message.isStreaming && (message.tokenCount ?: 0) > 0
     val label = remember(message.id, message.completedAt, message.isStreaming) {
         buildTimestampLabel(message, context)
     }
-    if (label.isBlank() && !showRegen && !showCopy && !showTokens) return
+    if (label.isBlank() && !showRegen && !showCopy && !showSpeak && !showTokens) return
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = if (message.isUser) Arrangement.End else Arrangement.Start,
@@ -206,6 +211,22 @@ private fun MessageFooter(
                 Icon(
                     imageVector = Icons.Filled.ContentCopy,
                     contentDescription = stringResource(R.string.chat_message_copy_content_description),
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        if (showSpeak) {
+            if (label.isNotBlank() || showCopy) {
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+            IconButton(
+                onClick = onSpeak!!,
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                    contentDescription = stringResource(R.string.chat_speak_message),
                     modifier = Modifier.size(16.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )

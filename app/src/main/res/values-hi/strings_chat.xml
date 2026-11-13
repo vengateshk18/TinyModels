@@ -166,4 +166,5 @@
     <string name="chat_voice_input_permission_denied">वॉइस इनपुट के लिए माइक्रोफ़ोन अनुमति चाहिए</string>
     <string name="chat_voice_input_unavailable">इस डिवाइस पर वॉइस इनपुट उपलब्ध नहीं है</string>
     <string name="chat_voice_input_error">आवाज़ समझ नहीं आई। फिर से कोशिश करें।</string>
+    <string name="chat_speak_message">यह संदेश बोलकर सुनाएं</string>
 </resources>

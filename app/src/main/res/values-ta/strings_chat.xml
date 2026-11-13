@@ -166,4 +166,5 @@
     <string name="chat_voice_input_permission_denied">குரல் உள்ளீட்டிற்கு மைக்ரோஃபோன் அனுமதி தேவை</string>
     <string name="chat_voice_input_unavailable">இந்த சாதனத்தில் குரல் உள்ளீடு கிடைக்கவில்லை</string>
     <string name="chat_voice_input_error">பேச்சை புரிந்துகொள்ள முடியவில்லை. மீண்டும் முயற்சிக்கவும்.</string>
+    <string name="chat_speak_message">இந்த செய்தியை பேசு</string>
 </resources>

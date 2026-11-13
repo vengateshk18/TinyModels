@@ -247,39 +247,62 @@ fun ChatInputBar(
             }
         }
         Spacer(modifier = Modifier.width(8.dp))
-        OutlinedTextField(
-            value = text,
-            onValueChange = { text = it },
-            modifier = Modifier
-                .weight(1f)
-                .heightIn(min = 52.dp, max = 160.dp),
-            placeholder = {
+        if (isListening) {
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = 52.dp)
+                    .clip(RoundedCornerShape(26.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                VoiceListeningBars(
+                    levelDb = voiceRmsDb,
+                    color = MaterialTheme.colorScheme.error
+                )
                 Text(
-                    if (isModelReady) {
-                        stringResource(R.string.chat_input_hint_ready)
-                    } else {
-                        stringResource(R.string.chat_input_hint_load_model)
-                    },
+                    text = stringResource(R.string.chat_voice_input_listening),
+                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            },
-            shape = RoundedCornerShape(26.dp),
-            maxLines = 5,
-            // Editable whenever a model is loaded — including while the
-            // assistant streams, so the next prompt can be typed. Sending is
-            // still gated on stopping the generation first (stop button).
-            enabled = isModelReady,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent,
-                disabledBorderColor = Color.Transparent,
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow
-            ),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-            keyboardActions = KeyboardActions(onSend = { doSend() })
-        )
+            }
+        } else {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = 52.dp, max = 160.dp),
+                placeholder = {
+                    Text(
+                        if (isModelReady) {
+                            stringResource(R.string.chat_input_hint_ready)
+                        } else {
+                            stringResource(R.string.chat_input_hint_load_model)
+                        },
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
+                shape = RoundedCornerShape(26.dp),
+                maxLines = 5,
+                // Editable whenever a model is loaded — including while the
+                // assistant streams, so the next prompt can be typed. Sending is
+                // still gated on stopping the generation first (stop button).
+                enabled = isModelReady,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    disabledBorderColor = Color.Transparent,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                ),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                keyboardActions = KeyboardActions(onSend = { doSend() })
+            )
+        }
         Spacer(modifier = Modifier.width(8.dp))
         // Mic button: press and hold to speak, release to send.
         val micEnabled = (isModelReady && !isGenerating) || isListening
@@ -302,15 +325,13 @@ fun ChatInputBar(
                 },
             contentAlignment = Alignment.Center
         ) {
-            if (isListening) {
-                VoiceListeningBars(levelDb = voiceRmsDb, color = micFg)
-            } else {
-                Icon(
-                    imageVector = Icons.Filled.Mic,
-                    contentDescription = stringResource(R.string.chat_voice_input_start),
-                    tint = if (micEnabled) micFg else micFg.copy(alpha = 0.38f)
-                )
-            }
+            Icon(
+                imageVector = if (isListening) Icons.Filled.Stop else Icons.Filled.Mic,
+                contentDescription = stringResource(
+                    if (isListening) R.string.chat_voice_input_stop else R.string.chat_voice_input_start
+                ),
+                tint = if (micEnabled) micFg else micFg.copy(alpha = 0.38f)
+            )
         }
         Spacer(modifier = Modifier.width(8.dp))
         AnimatedContent(

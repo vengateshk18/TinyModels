@@ -124,13 +124,15 @@ fun ChatRoomScreen(
     // ---- Voice output (TTS) ----
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
     var ttsReady by remember { mutableStateOf(false) }
+    var ttsRequested by remember { mutableStateOf(false) }
+    var pendingSpeakText by remember { mutableStateOf<String?>(null) }
     val speechChunker = remember { SpeechTextChunker() }
     var lastSpokenMessageId by remember { mutableStateOf<String?>(null) }
     var lastSpokenTextLength by remember { mutableStateOf(0) }
 
-    // Lazy-init TTS only when voice output is enabled to avoid blocking chat entry.
-    LaunchedEffect(uiState.voiceOutputEnabled) {
-        if (uiState.voiceOutputEnabled && tts == null) {
+    // Lazy-init TTS on demand (auto-speak enabled or per-message speak tap).
+    LaunchedEffect(ttsRequested) {
+        if (ttsRequested && tts == null) {
             val engine = TextToSpeech(context) { status ->
                 ttsReady = status == TextToSpeech.SUCCESS
             }
@@ -154,12 +156,50 @@ fun ChatRoomScreen(
             })
             tts = engine
         }
+    }
+
+    // Request TTS when auto-speak is enabled.
+    LaunchedEffect(uiState.voiceOutputEnabled) {
+        if (uiState.voiceOutputEnabled) ttsRequested = true
         if (!uiState.voiceOutputEnabled) {
             runCatching { tts?.stop() }
             speechChunker.reset()
             lastSpokenMessageId = null
             lastSpokenTextLength = 0
             viewModel.onEvent(ChatEvent.SetSpeaking(false))
+        }
+    }
+
+    fun speakMessageText(text: String) {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) return
+        ttsRequested = true
+        val engine = tts
+        if (engine != null && ttsReady) {
+            // Interrupt any auto-streaming speech and speak the selected message.
+            runCatching { engine.stop() }
+            speechChunker.reset()
+            lastSpokenMessageId = null
+            lastSpokenTextLength = 0
+            val utteranceId = "msg-${UUID.randomUUID()}"
+            engine.speak(trimmed, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
+        } else {
+            pendingSpeakText = trimmed
+        }
+    }
+
+    // Speak pending on-demand text once TTS becomes ready.
+    LaunchedEffect(ttsReady, pendingSpeakText) {
+        val engine = tts
+        val pending = pendingSpeakText
+        if (engine != null && ttsReady && !pending.isNullOrBlank()) {
+            runCatching { engine.stop() }
+            speechChunker.reset()
+            lastSpokenMessageId = null
+            lastSpokenTextLength = 0
+            val utteranceId = "msg-${UUID.randomUUID()}"
+            engine.speak(pending, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
+            pendingSpeakText = null
         }
     }
 
@@ -173,7 +213,7 @@ fun ChatRoomScreen(
         }
     }
 
-    // Speak assistant replies as they stream/complete.
+    // Auto-speak assistant replies as they stream/complete (when enabled).
     LaunchedEffect(
         uiState.voiceOutputEnabled,
         ttsReady,
@@ -413,16 +453,6 @@ fun ChatRoomScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.onEvent(ChatEvent.ToggleVoiceOutput) }) {
-                        Icon(
-                            imageVector = if (uiState.voiceOutputEnabled) {
-                                Icons.AutoMirrored.Filled.VolumeUp
-                            } else {
-                                Icons.AutoMirrored.Filled.VolumeOff
-                            },
-                            contentDescription = stringResource(R.string.chat_voice_output_toggle)
-                        )
-                    }
                     if (uiState.model is ModelChipState.Ready) {
                         // Circular context-usage indicator — fills with the
                         // fraction of the model's context window in use.
@@ -479,7 +509,8 @@ fun ChatRoomScreen(
                         onEditMessage = { id, text -> editingMessage = id to text },
                         onCopied = {
                             copyScope.launch { snackbarHostState.showSnackbar(copiedToClipboardMessage) }
-                        }
+                        },
+                        onSpeakMessage = { speakMessageText(it) }
                     )
                 }
             }
@@ -596,7 +627,8 @@ private fun MessageListRoom(
     uiState: ChatUiState,
     onEvent: (ChatEvent) -> Unit,
     onEditMessage: (String, String) -> Unit,
-    onCopied: () -> Unit
+    onCopied: () -> Unit,
+    onSpeakMessage: (String) -> Unit = {}
 ) {
     var showSummary by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
@@ -640,6 +672,9 @@ private fun MessageListRoom(
                     { text -> onEditMessage(message.id, text) }
                 } else null,
                 onCopied = onCopied,
+                onSpeak = if (!message.isUser && !message.isStreaming) {
+                    { onSpeakMessage(message.text) }
+                } else null,
                 showTokenCounts = uiState.showTokenCounts
             )
         }
