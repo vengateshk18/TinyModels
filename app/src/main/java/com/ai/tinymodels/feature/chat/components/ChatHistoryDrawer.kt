@@ -128,7 +128,7 @@ private fun ChatHistoryRow(
     val container = if (isActive) {
         MaterialTheme.colorScheme.secondaryContainer
     } else {
-        MaterialTheme.colorScheme.surface
+        MaterialTheme.colorScheme.surfaceContainerHigh
     }
     androidx.compose.material3.Surface(
         color = container,

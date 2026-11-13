@@ -851,7 +851,7 @@ private fun ContextMetricsSheet(
     androidx.compose.material3.ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         contentWindowInsets = { WindowInsets(0) },
         // Same treatment as the inference-settings sheet: keep the sheet
         // surface below the status bar, and never partially expand (which

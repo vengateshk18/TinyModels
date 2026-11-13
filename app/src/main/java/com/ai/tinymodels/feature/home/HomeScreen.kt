@@ -42,6 +42,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -239,7 +240,11 @@ private fun FirstTimeHome(
         Spacer(modifier = Modifier.height(12.dp))
 
         // ---- Browse-all fallback ----
-        OutlinedButton(onClick = onBrowseModels, modifier = Modifier.fillMaxWidth()) {
+        OutlinedButton(
+            onClick = onBrowseModels,
+            modifier = Modifier.fillMaxWidth(),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+        ) {
             Text(stringResource(R.string.home_browse_all_models))
         }
 
@@ -449,13 +454,19 @@ private fun RecommendedModelCard(
                             Text(stringResource(R.string.common_retry))
                         }
                         if (isAuthError) {
-                            OutlinedButton(onClick = onOpenSettings) {
+                            OutlinedButton(
+                                onClick = onOpenSettings,
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+                            ) {
                                 Icon(Icons.Filled.Settings, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(stringResource(R.string.home_add_token))
                             }
                         }
-                        OutlinedButton(onClick = { onOpenModelPage(recommended.hfUrl) }) {
+                        OutlinedButton(
+                            onClick = { onOpenModelPage(recommended.hfUrl) },
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+                        ) {
                             Icon(Icons.Filled.OpenInNew, contentDescription = null, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(stringResource(R.string.home_model_page))
@@ -568,7 +579,7 @@ private fun DashboardHome(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
                 )
             ) {
                 Row(
@@ -578,7 +589,7 @@ private fun DashboardHome(
                     Text(
                         stringResource(R.string.home_thermal_advisory),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.weight(1f)
                     )
                     IconButton(onClick = { advisoryDismissed = true }) {
@@ -586,7 +597,7 @@ private fun DashboardHome(
                             Icons.Filled.Close,
                             contentDescription = stringResource(R.string.common_dismiss),
                             modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.onTertiaryContainer
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                     }
                 }
@@ -885,9 +896,10 @@ private fun LastUsedModelCard(
                     OutlinedButton(
                         onClick = { onNewChat(state.lastUsedModel?.modelId) },
                         modifier = Modifier.weight(1f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)),
                         colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            contentColor = MaterialTheme.colorScheme.primary
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     ) {
                         Text(stringResource(R.string.home_new_chat))

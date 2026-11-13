@@ -319,10 +319,12 @@ private fun ChatSessionRow(
         onClick = onClick,
         shape = RoundedCornerShape(18.dp),
         color = if (chat.isPinned) {
-            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f)
+            MaterialTheme.colorScheme.secondaryContainer
         } else {
-            MaterialTheme.colorScheme.surfaceContainerLow
+            MaterialTheme.colorScheme.surfaceContainerHigh
         },
+        tonalElevation = 1.dp,
+        shadowElevation = 0.dp,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)

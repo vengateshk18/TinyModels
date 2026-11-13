@@ -25,8 +25,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -120,46 +122,61 @@ private fun ModelFileRow(
     isActive: Boolean,
     onClick: () -> Unit
 ) {
-    Row(
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(14.dp),
+        color = if (isActive) {
+            MaterialTheme.colorScheme.secondaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHigh
+        },
+        tonalElevation = 1.dp,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(vertical = 4.dp)
     ) {
-        Icon(
-            Icons.Filled.Memory,
-            contentDescription = null,
-            modifier = Modifier.size(20.dp),
-            tint = if (isActive) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = file.fileName
-                    .substringAfterLast('/')
-                    .removeSuffix(TinyConstants.MODEL_FILE_EXTENSION)
-                    .uppercase(),
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = if (isActive) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = Formatters.formatBytes(file.sizeBytes, LocalContext.current.resources),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        if (isActive) {
-            Spacer(modifier = Modifier.width(8.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Icon(
-                Icons.Filled.CheckCircle,
-                contentDescription = stringResource(R.string.chat_model_active_content_description),
-                tint = MaterialTheme.colorScheme.primary
+                Icons.Filled.Memory,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = if (isActive) MaterialTheme.colorScheme.onSecondaryContainer
+                else MaterialTheme.colorScheme.onSurfaceVariant
             )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = file.fileName
+                        .substringAfterLast('/')
+                        .removeSuffix(TinyConstants.MODEL_FILE_EXTENSION)
+                        .uppercase(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    color = if (isActive) MaterialTheme.colorScheme.onSecondaryContainer
+                    else MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = Formatters.formatBytes(file.sizeBytes, LocalContext.current.resources),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (isActive) MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
+                    else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            if (isActive) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    Icons.Filled.CheckCircle,
+                    contentDescription = stringResource(R.string.chat_model_active_content_description),
+                    tint = if (isActive) MaterialTheme.colorScheme.onSecondaryContainer
+                    else MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }
