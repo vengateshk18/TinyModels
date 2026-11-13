@@ -167,4 +167,6 @@
     <string name="chat_voice_input_unavailable">इस डिवाइस पर वॉइस इनपुट उपलब्ध नहीं है</string>
     <string name="chat_voice_input_error">आवाज़ समझ नहीं आई। फिर से कोशिश करें।</string>
     <string name="chat_speak_message">यह संदेश बोलकर सुनाएं</string>
+    <string name="chat_voice_input_processing">आवाज़ प्रोसेस हो रही है…</string>
+    <string name="chat_stop_speaking">बोलना बंद करें</string>
 </resources>

@@ -19,8 +19,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -60,6 +62,12 @@ fun MessageBubble(
     onCopied: (() -> Unit)? = null,
     /** Speak this message aloud (assistant, completed). */
     onSpeak: (() -> Unit)? = null,
+    /** Stop speaking this message. */
+    onStopSpeak: (() -> Unit)? = null,
+    /** TTS is initializing/loading for this message. */
+    isSpeakLoading: Boolean = false,
+    /** This message is currently being spoken. */
+    isSpeaking: Boolean = false,
     /** Show the stored per-message token count in the footer (Settings). */
     showTokenCounts: Boolean = false
 ) {
@@ -146,7 +154,7 @@ fun MessageBubble(
             }
         }
         // Timestamp + action row below the bubble.
-        MessageFooter(message, onRegenerate, onCopy = copy, onSpeak = if (!isUser) onSpeak else null, showTokenCounts = showTokenCounts)
+        MessageFooter(message, onRegenerate, onCopy = copy, onSpeak = if (!isUser) onSpeak else null, onStopSpeak = if (!isUser) onStopSpeak else null, isSpeakLoading = !isUser && isSpeakLoading, isSpeaking = !isUser && isSpeaking, showTokenCounts = showTokenCounts)
     }
 }
 
@@ -162,13 +170,16 @@ private fun MessageFooter(
     onRegenerate: (() -> Unit)?,
     onCopy: (() -> Unit)?,
     onSpeak: (() -> Unit)?,
+    onStopSpeak: (() -> Unit)?,
+    isSpeakLoading: Boolean,
+    isSpeaking: Boolean,
     showTokenCounts: Boolean
 ) {
     if (message.timestamp <= 0L) return
     val context = LocalContext.current
     val showRegen = !message.isUser && !message.isStreaming && onRegenerate != null
     val showCopy = !message.isStreaming && message.text.isNotBlank() && onCopy != null
-    val showSpeak = !message.isUser && !message.isStreaming && message.text.isNotBlank() && onSpeak != null
+    val showSpeak = !message.isUser && !message.isStreaming && message.text.isNotBlank() && (onSpeak != null || onStopSpeak != null || isSpeakLoading || isSpeaking)
     val showTokens = showTokenCounts && !message.isStreaming && (message.tokenCount ?: 0) > 0
     val label = remember(message.id, message.completedAt, message.isStreaming) {
         buildTimestampLabel(message, context)
@@ -220,16 +231,42 @@ private fun MessageFooter(
             if (label.isNotBlank() || showCopy) {
                 Spacer(modifier = Modifier.width(4.dp))
             }
-            IconButton(
-                onClick = onSpeak!!,
-                modifier = Modifier.size(24.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                    contentDescription = stringResource(R.string.chat_speak_message),
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            when {
+                isSpeakLoading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                isSpeaking && onStopSpeak != null -> {
+                    IconButton(
+                        onClick = onStopSpeak,
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Stop,
+                            contentDescription = stringResource(R.string.chat_stop_speaking),
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                onSpeak != null -> {
+                    IconButton(
+                        onClick = onSpeak,
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                            contentDescription = stringResource(R.string.chat_speak_message),
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         }
         if (showRegen) {

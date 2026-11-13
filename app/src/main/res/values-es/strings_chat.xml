@@ -170,4 +170,6 @@
     <string name="chat_voice_input_unavailable">La entrada de voz no está disponible en este dispositivo</string>
     <string name="chat_voice_input_error">No se pudo entender el audio. Inténtalo de nuevo.</string>
     <string name="chat_speak_message">Leer este mensaje en voz alta</string>
+    <string name="chat_voice_input_processing">Procesando voz…</string>
+    <string name="chat_stop_speaking">Detener lectura</string>
 </resources>

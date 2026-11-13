@@ -170,4 +170,6 @@
     <string name="chat_voice_input_unavailable">La saisie vocale n\'est pas disponible sur cet appareil</string>
     <string name="chat_voice_input_error">Impossible de comprendre la voix. Réessayez.</string>
     <string name="chat_speak_message">Lire ce message à voix haute</string>
+    <string name="chat_voice_input_processing">Traitement de la voix…</string>
+    <string name="chat_stop_speaking">Arrêter la lecture</string>
 </resources>

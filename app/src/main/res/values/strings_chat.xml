@@ -165,4 +165,6 @@
     <string name="chat_voice_input_unavailable">Voice input is not available on this device</string>
     <string name="chat_voice_input_error">Couldn’t understand speech. Try again.</string>
     <string name="chat_speak_message">Speak this message</string>
+    <string name="chat_voice_input_processing">Processing voice…</string>
+    <string name="chat_stop_speaking">Stop speaking</string>
 </resources>

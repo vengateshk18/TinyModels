@@ -164,4 +164,6 @@
     <string name="chat_voice_input_unavailable">この端末では音声入力を利用できません</string>
     <string name="chat_voice_input_error">音声を認識できませんでした。もう一度お試しください。</string>
     <string name="chat_speak_message">このメッセージを読み上げる</string>
+    <string name="chat_voice_input_processing">音声を処理中…</string>
+    <string name="chat_stop_speaking">読み上げを停止</string>
 </resources>

@@ -126,6 +126,10 @@ fun ChatRoomScreen(
     var ttsReady by remember { mutableStateOf(false) }
     var ttsRequested by remember { mutableStateOf(false) }
     var pendingSpeakText by remember { mutableStateOf<String?>(null) }
+    var pendingSpeakMessageId by remember { mutableStateOf<String?>(null) }
+    var manualTtsLoadingMessageId by remember { mutableStateOf<String?>(null) }
+    var manualSpeakingMessageId by remember { mutableStateOf<String?>(null) }
+    var manualSpeechActive by remember { mutableStateOf(false) }
     val speechChunker = remember { SpeechTextChunker() }
     var lastSpokenMessageId by remember { mutableStateOf<String?>(null) }
     var lastSpokenTextLength by remember { mutableStateOf(0) }
@@ -143,15 +147,27 @@ fun ChatRoomScreen(
 
                 override fun onDone(utteranceId: String?) {
                     viewModel.onEvent(ChatEvent.SetSpeaking(false))
+                    if (manualSpeechActive) {
+                        manualSpeechActive = false
+                        manualSpeakingMessageId = null
+                    }
                 }
 
                 @Deprecated("Deprecated in Java")
                 override fun onError(utteranceId: String?) {
                     viewModel.onEvent(ChatEvent.SetSpeaking(false))
+                    if (manualSpeechActive) {
+                        manualSpeechActive = false
+                        manualSpeakingMessageId = null
+                    }
                 }
 
                 override fun onError(utteranceId: String?, errorCode: Int) {
                     viewModel.onEvent(ChatEvent.SetSpeaking(false))
+                    if (manualSpeechActive) {
+                        manualSpeechActive = false
+                        manualSpeakingMessageId = null
+                    }
                 }
             })
             tts = engine
@@ -166,14 +182,43 @@ fun ChatRoomScreen(
             speechChunker.reset()
             lastSpokenMessageId = null
             lastSpokenTextLength = 0
+            manualSpeechActive = false
+            manualSpeakingMessageId = null
+            manualTtsLoadingMessageId = null
+            pendingSpeakMessageId = null
+            pendingSpeakText = null
             viewModel.onEvent(ChatEvent.SetSpeaking(false))
         }
     }
 
-    fun speakMessageText(text: String) {
+    fun stopSpeaking() {
+        runCatching { tts?.stop() }
+        manualSpeechActive = false
+        manualSpeakingMessageId = null
+        manualTtsLoadingMessageId = null
+        pendingSpeakMessageId = null
+        pendingSpeakText = null
+        speechChunker.reset()
+        lastSpokenMessageId = null
+        lastSpokenTextLength = 0
+        viewModel.onEvent(ChatEvent.SetSpeaking(false))
+    }
+
+    fun speakMessageText(messageId: String, text: String) {
         val trimmed = text.trim()
         if (trimmed.isEmpty()) return
+        // Toggle stop if already speaking/loading this message.
+        if (manualSpeakingMessageId == messageId || manualTtsLoadingMessageId == messageId || pendingSpeakMessageId == messageId) {
+            stopSpeaking()
+            return
+        }
         ttsRequested = true
+        manualSpeechActive = false
+        manualSpeakingMessageId = null
+        manualTtsLoadingMessageId = null
+        pendingSpeakMessageId = null
+        pendingSpeakText = null
+
         val engine = tts
         if (engine != null && ttsReady) {
             // Interrupt any auto-streaming speech and speak the selected message.
@@ -181,25 +226,34 @@ fun ChatRoomScreen(
             speechChunker.reset()
             lastSpokenMessageId = null
             lastSpokenTextLength = 0
-            val utteranceId = "msg-${UUID.randomUUID()}"
+            manualSpeechActive = true
+            manualSpeakingMessageId = messageId
+            val utteranceId = "manual-${messageId}-${UUID.randomUUID()}"
             engine.speak(trimmed, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
         } else {
+            manualTtsLoadingMessageId = messageId
+            pendingSpeakMessageId = messageId
             pendingSpeakText = trimmed
         }
     }
 
     // Speak pending on-demand text once TTS becomes ready.
-    LaunchedEffect(ttsReady, pendingSpeakText) {
+    LaunchedEffect(ttsReady, pendingSpeakText, pendingSpeakMessageId) {
         val engine = tts
         val pending = pendingSpeakText
-        if (engine != null && ttsReady && !pending.isNullOrBlank()) {
+        val msgId = pendingSpeakMessageId
+        if (engine != null && ttsReady && !pending.isNullOrBlank() && !msgId.isNullOrBlank()) {
             runCatching { engine.stop() }
             speechChunker.reset()
             lastSpokenMessageId = null
             lastSpokenTextLength = 0
-            val utteranceId = "msg-${UUID.randomUUID()}"
+            manualTtsLoadingMessageId = null
+            manualSpeechActive = true
+            manualSpeakingMessageId = msgId
+            val utteranceId = "manual-${msgId}-${UUID.randomUUID()}"
             engine.speak(pending, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
             pendingSpeakText = null
+            pendingSpeakMessageId = null
         }
     }
 
@@ -210,6 +264,11 @@ fun ChatRoomScreen(
             viewModel.onEvent(ChatEvent.SetSpeaking(false))
             tts = null
             ttsReady = false
+            manualSpeechActive = false
+            manualSpeakingMessageId = null
+            manualTtsLoadingMessageId = null
+            pendingSpeakMessageId = null
+            pendingSpeakText = null
         }
     }
 
@@ -219,10 +278,15 @@ fun ChatRoomScreen(
         ttsReady,
         uiState.messages,
         uiState.streamingMessageId,
-        uiState.generation
+        uiState.generation,
+        manualSpeechActive,
+        manualTtsLoadingMessageId,
+        pendingSpeakMessageId
     ) {
         val engine = tts
         if (!uiState.voiceOutputEnabled || !ttsReady || engine == null) return@LaunchedEffect
+        // Don't interfere while a manual per-message speak is loading/playing.
+        if (manualSpeechActive || manualTtsLoadingMessageId != null || pendingSpeakMessageId != null) return@LaunchedEffect
 
         val last = uiState.messages.lastOrNull() ?: run {
             speechChunker.reset(); lastSpokenMessageId = null; lastSpokenTextLength = 0; return@LaunchedEffect
@@ -276,19 +340,24 @@ fun ChatRoomScreen(
     var voiceRmsDb by remember { mutableStateOf(0f) }
     var holdToTalkActive by remember { mutableStateOf(false) }
     var pendingVoiceStart by remember { mutableStateOf(false) }
+    var isVoiceProcessing by remember { mutableStateOf(false) }
 
     fun stopListeningCancel() {
         holdToTalkActive = false
         pendingVoiceStart = false
         voiceRmsDb = 0f
+        isVoiceProcessing = false
         runCatching { speechRecognizer?.cancel() }
         viewModel.onEvent(ChatEvent.SetListening(false))
     }
 
     fun stopListeningAndSend() {
+        if (!holdToTalkActive && !uiState.isListening) return
         holdToTalkActive = false
         pendingVoiceStart = false
         voiceRmsDb = 0f
+        isVoiceProcessing = true
+        viewModel.onEvent(ChatEvent.SetListening(false))
         // Finalize recognition so onResults can deliver the transcript.
         runCatching { speechRecognizer?.stopListening() }
     }
@@ -316,6 +385,7 @@ fun ChatRoomScreen(
 
         holdToTalkActive = true
         voiceRmsDb = 0f
+        isVoiceProcessing = false
 
         val recognizer = speechRecognizer ?: SpeechRecognizer.createSpeechRecognizer(context).also { speechRecognizer = it }
         recognizer.setRecognitionListener(object : RecognitionListener {
@@ -337,6 +407,7 @@ fun ChatRoomScreen(
                 val wasHolding = holdToTalkActive
                 holdToTalkActive = false
                 voiceRmsDb = 0f
+                isVoiceProcessing = false
                 viewModel.onEvent(ChatEvent.SetListening(false))
                 // Don't spam errors for expected no-speech during quick press/release.
                 if (wasHolding && error != SpeechRecognizer.ERROR_NO_MATCH && error != SpeechRecognizer.ERROR_SPEECH_TIMEOUT) {
@@ -349,6 +420,7 @@ fun ChatRoomScreen(
             override fun onResults(results: Bundle?) {
                 holdToTalkActive = false
                 voiceRmsDb = 0f
+                isVoiceProcessing = false
                 viewModel.onEvent(ChatEvent.SetListening(false))
                 val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 val transcript = matches?.firstOrNull()?.trim().orEmpty()
@@ -406,8 +478,8 @@ fun ChatRoomScreen(
         }
     }
     val onVoicePressRelease: () -> Unit = {
-        if (holdToTalkActive || uiState.isListening) {
-            stopListeningAndSend()
+        if (holdToTalkActive || uiState.isListening || isVoiceProcessing) {
+            if (!isVoiceProcessing) stopListeningAndSend()
         } else {
             pendingVoiceStart = false
         }
@@ -510,7 +582,10 @@ fun ChatRoomScreen(
                         onCopied = {
                             copyScope.launch { snackbarHostState.showSnackbar(copiedToClipboardMessage) }
                         },
-                        onSpeakMessage = { speakMessageText(it) }
+                        onSpeakMessage = { id, text -> speakMessageText(id, text) },
+                        onStopSpeaking = { stopSpeaking() },
+                        manualTtsLoadingMessageId = manualTtsLoadingMessageId,
+                        manualSpeakingMessageId = manualSpeakingMessageId
                     )
                 }
             }
@@ -526,6 +601,7 @@ fun ChatRoomScreen(
                 onToggleWebSearch = { viewModel.onEvent(ChatEvent.ToggleWebSearch(it)) },
                 supportsVision = uiState.isVisionModel,
                 isListening = uiState.isListening,
+                isVoiceProcessing = isVoiceProcessing,
                 voiceRmsDb = voiceRmsDb,
                 onVoicePressStart = onVoicePressStart,
                 onVoicePressRelease = onVoicePressRelease
@@ -628,7 +704,10 @@ private fun MessageListRoom(
     onEvent: (ChatEvent) -> Unit,
     onEditMessage: (String, String) -> Unit,
     onCopied: () -> Unit,
-    onSpeakMessage: (String) -> Unit = {}
+    onSpeakMessage: (String, String) -> Unit = { _, _ -> },
+    onStopSpeaking: () -> Unit = {},
+    manualTtsLoadingMessageId: String? = null,
+    manualSpeakingMessageId: String? = null
 ) {
     var showSummary by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
@@ -673,8 +752,13 @@ private fun MessageListRoom(
                 } else null,
                 onCopied = onCopied,
                 onSpeak = if (!message.isUser && !message.isStreaming) {
-                    { onSpeakMessage(message.text) }
+                    { onSpeakMessage(message.id, message.text) }
                 } else null,
+                onStopSpeak = if (!message.isUser && !message.isStreaming) {
+                    { onStopSpeaking() }
+                } else null,
+                isSpeakLoading = manualTtsLoadingMessageId == message.id,
+                isSpeaking = manualSpeakingMessageId == message.id,
                 showTokenCounts = uiState.showTokenCounts
             )
         }

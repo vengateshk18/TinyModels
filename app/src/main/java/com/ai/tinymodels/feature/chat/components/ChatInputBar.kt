@@ -110,6 +110,8 @@ fun ChatInputBar(
     supportsVision: Boolean = false,
     /** Whether the microphone is currently listening for voice input. */
     isListening: Boolean = false,
+    /** Voice input released and waiting for speech-to-text processing. */
+    isVoiceProcessing: Boolean = false,
     /** Current microphone RMS level in dB (approx -2..10) for listening animation. */
     voiceRmsDb: Float = 0f,
     /** Called when user presses and holds the mic button to start voice input. */
@@ -247,7 +249,7 @@ fun ChatInputBar(
             }
         }
         Spacer(modifier = Modifier.width(8.dp))
-        if (isListening) {
+        if (isListening || isVoiceProcessing) {
             Row(
                 modifier = Modifier
                     .weight(1f)
@@ -258,15 +260,28 @@ fun ChatInputBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                VoiceListeningBars(
-                    levelDb = voiceRmsDb,
-                    color = MaterialTheme.colorScheme.error
-                )
-                Text(
-                    text = stringResource(R.string.chat_voice_input_listening),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                if (isListening) {
+                    VoiceListeningBars(
+                        levelDb = voiceRmsDb,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    Text(
+                        text = stringResource(R.string.chat_voice_input_listening),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = stringResource(R.string.chat_voice_input_processing),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         } else {
             OutlinedTextField(
@@ -305,7 +320,7 @@ fun ChatInputBar(
         }
         Spacer(modifier = Modifier.width(8.dp))
         // Mic button: press and hold to speak, release to send.
-        val micEnabled = (isModelReady && !isGenerating) || isListening
+        val micEnabled = ((isModelReady && !isGenerating) || isListening) && !isVoiceProcessing
         val micBg = if (isListening) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surfaceContainerHighest
         val micFg = if (isListening) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSurfaceVariant
         Box(
@@ -317,9 +332,9 @@ fun ChatInputBar(
                     detectTapGestures(
                         onPress = {
                             if (!micEnabled) return@detectTapGestures
-                            if (!isListening) onVoicePressStart()
+                            if (!isListening && !isVoiceProcessing) onVoicePressStart()
                             tryAwaitRelease()
-                            onVoicePressRelease()
+                            if (!isVoiceProcessing) onVoicePressRelease()
                         }
                     )
                 },

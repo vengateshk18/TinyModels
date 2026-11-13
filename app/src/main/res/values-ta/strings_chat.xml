@@ -167,4 +167,6 @@
     <string name="chat_voice_input_unavailable">இந்த சாதனத்தில் குரல் உள்ளீடு கிடைக்கவில்லை</string>
     <string name="chat_voice_input_error">பேச்சை புரிந்துகொள்ள முடியவில்லை. மீண்டும் முயற்சிக்கவும்.</string>
     <string name="chat_speak_message">இந்த செய்தியை பேசு</string>
+    <string name="chat_voice_input_processing">குரல் செயலாக்கப்படுகிறது…</string>
+    <string name="chat_stop_speaking">பேசுவதை நிறுத்து</string>
 </resources>
