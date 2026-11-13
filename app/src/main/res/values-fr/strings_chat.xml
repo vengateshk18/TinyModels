@@ -158,4 +158,15 @@
     <string name="chat_room_compacted_notice">Les messages plus anciens ont été résumés pour tenir dans la fenêtre de contexte</string>
     <string name="chat_error_unsupported_format">Les fichiers %1$s ne sont pas encore pris en charge par le moteur sur l’appareil.</string>
     <string name="chat_compaction_no_active_chat">Aucun chat actif à compacter</string>
+
+    <!-- Voice chat -->
+    <string name="chat_voice_input_start">Démarrer la saisie vocale</string>
+    <string name="chat_voice_input_stop">Arrêter l\'écoute</string>
+    <string name="chat_voice_input_listening">Écoute…</string>
+    <string name="chat_voice_output_on">Lire les réponses à voix haute : activé</string>
+    <string name="chat_voice_output_off">Lire les réponses à voix haute : désactivé</string>
+    <string name="chat_voice_output_toggle">Activer ou désactiver la lecture des réponses</string>
+    <string name="chat_voice_input_permission_denied">L\'autorisation du microphone est nécessaire pour la saisie vocale</string>
+    <string name="chat_voice_input_unavailable">La saisie vocale n\'est pas disponible sur cet appareil</string>
+    <string name="chat_voice_input_error">Impossible de comprendre la voix. Réessayez.</string>
 </resources>

@@ -121,7 +121,13 @@ data class ChatUiState(
     /** Keep the screen awake while generating (from app settings). */
     val keepScreenOn: Boolean = true,
     /** Show per-message token counts in footers (from app settings). */
-    val showTokenCounts: Boolean = false
+    val showTokenCounts: Boolean = false,
+    /** Auto-speak assistant replies using text-to-speech. */
+    val voiceOutputEnabled: Boolean = false,
+    /** Microphone is actively listening for voice input. */
+    val isListening: Boolean = false,
+    /** Text-to-speech is currently speaking a reply. */
+    val isSpeaking: Boolean = false
 ) {
     val canSend: Boolean
         get() = model is ModelChipState.Ready && generation == GenerationState.IDLE
@@ -162,4 +168,10 @@ sealed interface ChatEvent {
     data object CompactConversation : ChatEvent
     /** Toggle the per-chat web_search tool (from the + menu in the input bar). */
     data class ToggleWebSearch(val enabled: Boolean) : ChatEvent
+    /** Toggle auto-speaking assistant replies. */
+    data object ToggleVoiceOutput : ChatEvent
+    /** Update microphone listening state (managed by UI speech recognizer). */
+    data class SetListening(val listening: Boolean) : ChatEvent
+    /** Update text-to-speech speaking state (managed by UI TTS). */
+    data class SetSpeaking(val speaking: Boolean) : ChatEvent
 }

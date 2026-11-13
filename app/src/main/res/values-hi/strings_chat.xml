@@ -155,4 +155,15 @@
     <string name="chat_room_compacted_notice">संदर्भ विंडो में फ़िट करने के लिए पुराने संदेशों का सारांश बनाया गया</string>
     <string name="chat_error_unsupported_format">%1$s फ़ाइलें अभी डिवाइस पर उपलब्ध रनटाइम द्वारा समर्थित नहीं हैं।</string>
     <string name="chat_compaction_no_active_chat">कॉम्पैक्ट करने के लिए कोई सक्रिय चैट नहीं</string>
+
+    <!-- Voice chat -->
+    <string name="chat_voice_input_start">वॉइस इनपुट शुरू करें</string>
+    <string name="chat_voice_input_stop">सुनना बंद करें</string>
+    <string name="chat_voice_input_listening">सुन रहा है…</string>
+    <string name="chat_voice_output_on">जवाब बोलकर सुनाएं: चालू</string>
+    <string name="chat_voice_output_off">जवाब बोलकर सुनाएं: बंद</string>
+    <string name="chat_voice_output_toggle">जवाब बोलकर सुनाना चालू/बंद करें</string>
+    <string name="chat_voice_input_permission_denied">वॉइस इनपुट के लिए माइक्रोफ़ोन अनुमति चाहिए</string>
+    <string name="chat_voice_input_unavailable">इस डिवाइस पर वॉइस इनपुट उपलब्ध नहीं है</string>
+    <string name="chat_voice_input_error">आवाज़ समझ नहीं आई। फिर से कोशिश करें।</string>
 </resources>

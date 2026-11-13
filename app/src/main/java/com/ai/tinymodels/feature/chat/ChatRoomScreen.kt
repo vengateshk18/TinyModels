@@ -1,5 +1,16 @@
 package com.ai.tinymodels.feature.chat
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -15,6 +26,8 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,6 +41,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,10 +50,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.launch
 import com.ai.tinymodels.R
 import com.ai.tinymodels.core.ui.components.bottomSheetTopSafePadding
@@ -55,6 +71,7 @@ import com.ai.tinymodels.feature.chat.components.ModelLoadingDialog
 import com.ai.tinymodels.feature.chat.model.ChatEvent
 import com.ai.tinymodels.feature.chat.model.ChatUiState
 import com.ai.tinymodels.feature.chat.model.ModelChipState
+import com.ai.tinymodels.feature.chat.voice.SpeechTextChunker
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -71,6 +88,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.WindowInsetsSides
 import java.util.Locale
+import java.util.UUID
 
 /**
  * Full-screen chat room for a single session (chatId from nav args).
@@ -99,6 +117,220 @@ fun ChatRoomScreen(
     androidx.compose.runtime.DisposableEffect(holdAwake) {
         view.keepScreenOn = holdAwake
         onDispose { view.keepScreenOn = false }
+    }
+
+    val context = LocalContext.current
+
+    // ---- Voice output (TTS) ----
+    var tts by remember { mutableStateOf<TextToSpeech?>(null) }
+    var ttsReady by remember { mutableStateOf(false) }
+    val speechChunker = remember { SpeechTextChunker() }
+    var lastSpokenMessageId by remember { mutableStateOf<String?>(null) }
+    var lastSpokenTextLength by remember { mutableStateOf(0) }
+
+    DisposableEffect(context) {
+        val engine = TextToSpeech(context) { status ->
+            ttsReady = status == TextToSpeech.SUCCESS
+        }
+        engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+            override fun onStart(utteranceId: String?) {
+                viewModel.onEvent(ChatEvent.SetSpeaking(true))
+            }
+
+            override fun onDone(utteranceId: String?) {
+                viewModel.onEvent(ChatEvent.SetSpeaking(false))
+            }
+
+            @Deprecated("Deprecated in Java")
+            override fun onError(utteranceId: String?) {
+                viewModel.onEvent(ChatEvent.SetSpeaking(false))
+            }
+
+            override fun onError(utteranceId: String?, errorCode: Int) {
+                viewModel.onEvent(ChatEvent.SetSpeaking(false))
+            }
+        })
+        tts = engine
+        onDispose {
+            runCatching { engine.stop() }
+            runCatching { engine.shutdown() }
+            viewModel.onEvent(ChatEvent.SetSpeaking(false))
+            tts = null
+            ttsReady = false
+        }
+    }
+
+    // Stop speaking when voice output is turned off.
+    LaunchedEffect(uiState.voiceOutputEnabled) {
+        if (!uiState.voiceOutputEnabled) {
+            runCatching { tts?.stop() }
+            speechChunker.reset()
+            lastSpokenMessageId = null
+            lastSpokenTextLength = 0
+            viewModel.onEvent(ChatEvent.SetSpeaking(false))
+        }
+    }
+
+    // Speak assistant replies as they stream/complete.
+    LaunchedEffect(
+        uiState.voiceOutputEnabled,
+        ttsReady,
+        uiState.messages,
+        uiState.streamingMessageId,
+        uiState.generation
+    ) {
+        val engine = tts
+        if (!uiState.voiceOutputEnabled || !ttsReady || engine == null) return@LaunchedEffect
+
+        val last = uiState.messages.lastOrNull() ?: run {
+            speechChunker.reset(); lastSpokenMessageId = null; lastSpokenTextLength = 0; return@LaunchedEffect
+        }
+        // Stop/reset if conversation ended with a user turn (new prompt) or nothing to speak.
+        if (last.isUser) {
+            runCatching { engine.stop() }
+            speechChunker.reset()
+            lastSpokenMessageId = null
+            lastSpokenTextLength = 0
+            viewModel.onEvent(ChatEvent.SetSpeaking(false))
+            return@LaunchedEffect
+        }
+
+        val assistant = last
+        if (assistant.id != lastSpokenMessageId) {
+            runCatching { engine.stop() }
+            speechChunker.reset()
+            lastSpokenMessageId = assistant.id
+            lastSpokenTextLength = 0
+        }
+
+        val text = assistant.text
+        if (text.length < lastSpokenTextLength) {
+            runCatching { engine.stop() }
+            speechChunker.reset()
+            lastSpokenTextLength = 0
+        }
+
+        val newChunks = speechChunker.consume(text)
+        newChunks.forEach { chunk ->
+            val utteranceId = "${assistant.id}-${UUID.randomUUID()}"
+            engine.speak(chunk, TextToSpeech.QUEUE_ADD, null, utteranceId)
+        }
+
+        val isDoneStreaming = !assistant.isStreaming &&
+            (uiState.streamingMessageId == null || uiState.streamingMessageId != assistant.id)
+        if (isDoneStreaming) {
+            val tail = speechChunker.flush(text)
+            if (!tail.isNullOrBlank()) {
+                val utteranceId = "${assistant.id}-tail-${UUID.randomUUID()}"
+                engine.speak(tail, TextToSpeech.QUEUE_ADD, null, utteranceId)
+            }
+        }
+        lastSpokenTextLength = text.length
+    }
+
+    // ---- Voice input (STT) ----
+    val speechRecognizerAvailable = remember(context) { SpeechRecognizer.isRecognitionAvailable(context) }
+    var speechRecognizer by remember { mutableStateOf<SpeechRecognizer?>(null) }
+
+    fun stopListeningInternal() {
+        runCatching { speechRecognizer?.stopListening() }
+        runCatching { speechRecognizer?.cancel() }
+        viewModel.onEvent(ChatEvent.SetListening(false))
+    }
+
+    DisposableEffect(context) {
+        onDispose {
+            runCatching { speechRecognizer?.destroy() }
+            speechRecognizer = null
+        }
+    }
+
+    fun startListening() {
+        if (!speechRecognizerAvailable) {
+            copyScope.launch {
+                snackbarHostState.showSnackbar(context.getString(R.string.chat_voice_input_unavailable))
+            }
+            return
+        }
+        if (uiState.isListening) {
+            stopListeningInternal()
+            return
+        }
+        if (!uiState.isModelReady || uiState.generation == GenerationState.GENERATING) return
+        // Stop any ongoing TTS so the mic doesn't pick it up.
+        runCatching { tts?.stop() }
+        viewModel.onEvent(ChatEvent.SetSpeaking(false))
+
+        val recognizer = speechRecognizer ?: SpeechRecognizer.createSpeechRecognizer(context).also { speechRecognizer = it }
+        recognizer.setRecognitionListener(object : RecognitionListener {
+            override fun onReadyForSpeech(params: Bundle?) {
+                viewModel.onEvent(ChatEvent.SetListening(true))
+            }
+
+            override fun onBeginningOfSpeech() {}
+            override fun onRmsChanged(rmsdB: Float) {}
+            override fun onBufferReceived(buffer: ByteArray?) {}
+            override fun onEndOfSpeech() {
+                viewModel.onEvent(ChatEvent.SetListening(false))
+            }
+
+            override fun onError(error: Int) {
+                viewModel.onEvent(ChatEvent.SetListening(false))
+                val messageRes = when (error) {
+                    SpeechRecognizer.ERROR_NO_MATCH,
+                    SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> R.string.chat_voice_input_error
+                    else -> R.string.chat_voice_input_error
+                }
+                copyScope.launch { snackbarHostState.showSnackbar(context.getString(messageRes)) }
+            }
+
+            override fun onResults(results: Bundle?) {
+                viewModel.onEvent(ChatEvent.SetListening(false))
+                val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                val transcript = matches?.firstOrNull()?.trim().orEmpty()
+                if (transcript.isNotEmpty()) {
+                    viewModel.onEvent(ChatEvent.SendMessage(transcript, null))
+                }
+            }
+
+            override fun onPartialResults(partialResults: Bundle?) {}
+            override fun onEvent(eventType: Int, params: Bundle?) {}
+        })
+
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, false)
+            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+            putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+        }
+        runCatching {
+            recognizer.startListening(intent)
+            viewModel.onEvent(ChatEvent.SetListening(true))
+        }.onFailure {
+            viewModel.onEvent(ChatEvent.SetListening(false))
+            copyScope.launch {
+                snackbarHostState.showSnackbar(context.getString(R.string.chat_voice_input_unavailable))
+            }
+        }
+    }
+
+    val recordAudioPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) startListening() else copyScope.launch {
+            snackbarHostState.showSnackbar(context.getString(R.string.chat_voice_input_permission_denied))
+        }
+    }
+
+    val onVoiceInputClick: () -> Unit = {
+        if (uiState.isListening) {
+            stopListeningInternal()
+        } else {
+            val granted = ContextCompat.checkSelfPermission(
+                context, Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+            if (granted) startListening() else recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
     }
 
     LaunchedEffect(uiState.error) {
@@ -141,6 +373,16 @@ fun ChatRoomScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { viewModel.onEvent(ChatEvent.ToggleVoiceOutput) }) {
+                        Icon(
+                            imageVector = if (uiState.voiceOutputEnabled) {
+                                Icons.AutoMirrored.Filled.VolumeUp
+                            } else {
+                                Icons.AutoMirrored.Filled.VolumeOff
+                            },
+                            contentDescription = stringResource(R.string.chat_voice_output_toggle)
+                        )
+                    }
                     if (uiState.model is ModelChipState.Ready) {
                         // Circular context-usage indicator — fills with the
                         // fraction of the model's context window in use.
@@ -211,7 +453,9 @@ fun ChatRoomScreen(
                 webSearchAvailable = uiState.webSearchAvailable,
                 webSearchEnabled = uiState.webSearchEnabled,
                 onToggleWebSearch = { viewModel.onEvent(ChatEvent.ToggleWebSearch(it)) },
-                supportsVision = uiState.isVisionModel
+                supportsVision = uiState.isVisionModel,
+                isListening = uiState.isListening,
+                onVoiceInputClick = { onVoiceInputClick() }
             )
         }
     }

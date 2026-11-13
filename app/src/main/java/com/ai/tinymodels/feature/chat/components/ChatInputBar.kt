@@ -33,6 +33,8 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.DropdownMenu
@@ -100,7 +102,11 @@ fun ChatInputBar(
     /** Toggle the per-chat web_search tool. */
     onToggleWebSearch: (Boolean) -> Unit = {},
     /** Whether the loaded model has a vision encoder (hides photo entry when false). */
-    supportsVision: Boolean = false
+    supportsVision: Boolean = false,
+    /** Whether the microphone is currently listening for voice input. */
+    isListening: Boolean = false,
+    /** Toggle voice input (start/stop speech recognition). */
+    onVoiceInputClick: () -> Unit = {}
 ) {
     // Saved across configuration changes (rotation, dark-mode switch, resize)
     // so an in-progress message and its attached photo are never dropped.
@@ -266,6 +272,27 @@ fun ChatInputBar(
             keyboardActions = KeyboardActions(onSend = { doSend() })
         )
         Spacer(modifier = Modifier.width(8.dp))
+        // Mic button for voice input (auto-sends transcript, so requires ready+idle).
+        FilledIconButton(
+            onClick = onVoiceInputClick,
+            enabled = (isModelReady && !isGenerating) || isListening,
+            modifier = Modifier.size(44.dp),
+            shape = CircleShape,
+            colors = IconButtonDefaults.filledIconButtonColors(
+                containerColor = if (isListening) MaterialTheme.colorScheme.errorContainer
+                else MaterialTheme.colorScheme.surfaceContainerHighest,
+                contentColor = if (isListening) MaterialTheme.colorScheme.onErrorContainer
+                else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        ) {
+            Icon(
+                imageVector = if (isListening) Icons.Filled.Stop else Icons.Filled.Mic,
+                contentDescription = stringResource(
+                    if (isListening) R.string.chat_voice_input_stop else R.string.chat_voice_input_start
+                )
+            )
+        }
+        Spacer(modifier = Modifier.width(8.dp))
         AnimatedContent(
             targetState = isGenerating,
             transitionSpec = { fadeIn() togetherWith fadeOut() },
@@ -302,9 +329,10 @@ fun ChatInputBar(
                 }
             }
         }
-        }
     }
 }
+}
+
 
 /**
  * Small section label inside the "+" menu, separating media actions from tools.

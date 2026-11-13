@@ -158,4 +158,15 @@
     <string name="chat_room_compacted_notice">Los mensajes anteriores se resumieron para ajustarse a la ventana de contexto</string>
     <string name="chat_error_unsupported_format">Los archivos %1$s aún no son compatibles con el motor en el dispositivo.</string>
     <string name="chat_compaction_no_active_chat">No hay un chat activo para compactar</string>
+
+    <!-- Voice chat -->
+    <string name="chat_voice_input_start">Iniciar entrada de voz</string>
+    <string name="chat_voice_input_stop">Dejar de escuchar</string>
+    <string name="chat_voice_input_listening">Escuchando…</string>
+    <string name="chat_voice_output_on">Leer respuestas en voz alta: activado</string>
+    <string name="chat_voice_output_off">Leer respuestas en voz alta: desactivado</string>
+    <string name="chat_voice_output_toggle">Activar o desactivar lectura de respuestas</string>
+    <string name="chat_voice_input_permission_denied">Se necesita permiso de micrófono para la entrada de voz</string>
+    <string name="chat_voice_input_unavailable">La entrada de voz no está disponible en este dispositivo</string>
+    <string name="chat_voice_input_error">No se pudo entender el audio. Inténtalo de nuevo.</string>
 </resources>
