@@ -92,7 +92,7 @@ class SettingsViewModel @Inject constructor(
 
     // ---- Model Import ----
 
-    /** Import a .litertlm file from a user-picked document URI. */
+    /** Import a supported model file from a user-picked document URI. */
     fun importModel(sourceUri: Uri) {
         _isImporting.value = true
         viewModelScope.launch(Dispatchers.IO) {

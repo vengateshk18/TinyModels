@@ -228,6 +228,13 @@ class GgufRuntime @Inject constructor(
                 )
             }
             loadedContextSize = ctx
+            // Prefer fine-grained token streaming over large native batches so
+            // replies flow continuously instead of arriving in ~256-char chunks.
+            try {
+                engine.setTokenBatchSize(1)
+            } catch (t: Throwable) {
+                TinyLog.w(TAG, "load:engine setTokenBatchSize failed: ${t.message}")
+            }
             TinyLog.i(TAG, "load:engine OK arch=${md?.architecture ?: "unknown"} ctx=$ctx")
 
             // Optional vision projector (mmproj). Loaded only when requested AND

@@ -72,7 +72,7 @@
     <string name="settings_chat_history_cleared">チャット履歴を消去しました</string>
     <string name="settings_model_imported">モデルをインポートしました: %1$s</string>
     <string name="settings_import_failed">インポートに失敗しました: %1$s</string>
-    <string name="model_import_invalid_file_type">ファイル形式が無効です。.litertlm ファイルのみサポートされます。</string>
+    <string name="model_import_invalid_file_type">ファイル形式が無効です。対応形式: .litertlm、.gguf、.task、.tflite。</string>
     <string name="model_import_file_not_found">デバイスにファイルが見つかりません: %1$s</string>
     <string name="model_import_create_failed">保存先ファイルの作成に失敗しました: %1$s</string>
     <string name="model_import_write_failed">保存先ファイルに書き込めません: %1$s</string>
@@ -83,7 +83,7 @@
     <string name="benchmark_error_not_enough_ram">このモデルを読み込むのに十分な空き RAM がありません（約 %1$d MB 必要、%2$d MB 利用可能）。他のアプリを閉じて再試行してください。</string>
     <string name="benchmark_error_failed_to_load">モデルの読み込みに失敗しました</string>
     <string name="settings_import_model">モデルをインポート</string>
-    <string name="settings_import_model_subtitle">外部ストレージから .litertlm ファイルを追加</string>
+    <string name="settings_import_model_subtitle">外部ストレージからモデルファイル（.litertlm、.gguf、.task、.tflite）を追加</string>
     <string name="settings_import_model_note">インポートしたモデルは「インポート済み」タグ付きでライブラリに表示されます。ダウンロード済みファイルを共有するには、開いてエクスポートを使用してください。</string>
 
     <!-- ================= Theme / backend choices ================= -->

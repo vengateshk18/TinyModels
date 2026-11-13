@@ -77,14 +77,12 @@ private const val REVEAL_TICK_MS = 33L
 /**
  * Characters to reveal on the next tick for [backlog] unrevealed chars.
  *
- * The generous minimum (2) keeps slow token streams visibly moving, while the
- * backlog-proportional part lets a large native batch (the GGUF engine groups
- * callbacks by ~256 chars) catch up within roughly a second instead of
- * appearing as four lines at once. The cap stops a huge batch from turning
- * back into a single jump.
+ * GGUF/native callbacks can deliver ~256 chars at once. Revealing backlog
+ * aggressively lets each batch flow in immediately instead of trickling over
+ * many ticks and appearing as stalled "loading" gaps between batches.
  */
 internal fun revealStep(backlog: Int): Int =
-    if (backlog <= 0) 0 else (backlog / 8).coerceIn(2, 10)
+    if (backlog <= 0) 0 else backlog.coerceAtLeast(2)
 
 /**
  * Clamps a requested reveal offset to [text] and never leaves a high surrogate

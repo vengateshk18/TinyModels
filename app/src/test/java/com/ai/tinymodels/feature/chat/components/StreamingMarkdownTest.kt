@@ -51,15 +51,18 @@ class StreamingMarkdownTest {
     }
 
     @Test
-    fun `reveal step stays gentle for small token arrivals`() {
+    fun `reveal step shows small arrivals immediately`() {
         assertEquals(2, revealStep(1))
-        assertEquals(2, revealStep(8))
+        assertEquals(8, revealStep(8))
     }
 
     @Test
-    fun `reveal step grows with a large native batch but stays capped`() {
-        assertTrue(revealStep(80) > revealStep(20))
-        assertEquals(10, revealStep(1_000))
+    fun `reveal step catches up quickly for large batched arrivals`() {
+        // GGUF/native callbacks can deliver ~256 chars at once; reveal them fast
+        // so the reply flows continuously instead of trickling chunk-by-chunk.
+        assertTrue(revealStep(80) >= 40)
+        assertTrue(revealStep(256) >= 128)
+        assertEquals(1_000, revealStep(1_000))
     }
 
     @Test

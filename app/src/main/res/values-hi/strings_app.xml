@@ -69,7 +69,7 @@
     <string name="settings_chat_history_cleared">चैट इतिहास मिटा दिया गया</string>
     <string name="settings_model_imported">मॉडल आयातित: %1$s</string>
     <string name="settings_import_failed">आयात विफल: %1$s</string>
-    <string name="model_import_invalid_file_type">अमान्य फ़ाइल प्रकार। केवल .litertlm फ़ाइलें समर्थित हैं।</string>
+    <string name="model_import_invalid_file_type">अमान्य फ़ाइल प्रकार। समर्थित फ़ॉर्मैट: .litertlm, .gguf, .task, .tflite।</string>
     <string name="model_import_file_not_found">डिवाइस पर फ़ाइल नहीं मिली: %1$s</string>
     <string name="model_import_create_failed">गंतव्य फ़ाइल नहीं बनाई जा सकी: %1$s</string>
     <string name="model_import_write_failed">गंतव्य फ़ाइल में लिखा नहीं जा सका: %1$s</string>
@@ -80,7 +80,7 @@
     <string name="benchmark_error_not_enough_ram">इस मॉडल को लोड करने के लिए पर्याप्त खाली RAM नहीं है (~%1$d MB चाहिए, %2$d MB उपलब्ध है)। दूसरे ऐप बंद करके फिर कोशिश करें।</string>
     <string name="benchmark_error_failed_to_load">मॉडल लोड नहीं हो सका</string>
     <string name="settings_import_model">मॉडल आयात करें</string>
-    <string name="settings_import_model_subtitle">बाहरी स्टोरेज से .litertlm फ़ाइल जोड़ें</string>
+    <string name="settings_import_model_subtitle">बाहरी स्टोरेज से एक मॉडल फ़ाइल (.litertlm, .gguf, .task, .tflite) जोड़ें</string>
     <string name="settings_import_model_note">आयातित मॉडल आपकी लाइब्रेरी में «आयातित» टैग के साथ दिखते हैं। किसी डाउनलोड की गई फ़ाइल साझा करने के लिए उसे खोलें और निर्यात करें।</string>
 
     <!-- ================= Theme / backend choices ================= -->

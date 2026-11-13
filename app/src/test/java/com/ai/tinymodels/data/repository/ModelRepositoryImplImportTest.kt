@@ -26,7 +26,7 @@ import org.junit.Test
 
 /**
  * Validates the SAF import guards in [ModelRepositoryImpl.importModel]:
- * non-`.litertlm` files are rejected and already-registered files are not
+ * unsupported model files are rejected and already-registered files are not
  * duplicated.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -68,7 +68,7 @@ class ModelRepositoryImplImportTest {
     }
 
     @Test
-    fun `import rejects non-litertlm files`() = runTest {
+    fun `import rejects unsupported model files`() = runTest {
         val result = repo.importModel(sourceUriServing("notes.txt"))
 
         assertTrue(result is AppResult.Error)

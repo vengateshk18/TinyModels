@@ -69,7 +69,7 @@
     <string name="settings_chat_history_cleared">Historial de chats borrado</string>
     <string name="settings_model_imported">Modelo importado: %1$s</string>
     <string name="settings_import_failed">Error al importar: %1$s</string>
-    <string name="model_import_invalid_file_type">Tipo de archivo no válido. Solo se admiten archivos .litertlm.</string>
+    <string name="model_import_invalid_file_type">Tipo de archivo no válido. Formatos compatibles: .litertlm, .gguf, .task, .tflite.</string>
     <string name="model_import_file_not_found">Archivo no encontrado en el dispositivo: %1$s</string>
     <string name="model_import_create_failed">No se pudo crear el archivo de destino: %1$s</string>
     <string name="model_import_write_failed">No se puede escribir en el archivo de destino: %1$s</string>
@@ -80,7 +80,7 @@
     <string name="benchmark_error_not_enough_ram">No hay suficiente RAM libre para cargar este modelo (hacen falta ~%1$d MB y hay %2$d MB). Cierra otras apps e inténtalo de nuevo.</string>
     <string name="benchmark_error_failed_to_load">No se pudo cargar el modelo</string>
     <string name="settings_import_model">Importar modelo</string>
-    <string name="settings_import_model_subtitle">Añade un archivo .litertlm desde el almacenamiento externo</string>
+    <string name="settings_import_model_subtitle">Añade un archivo de modelo (.litertlm, .gguf, .task, .tflite) desde el almacenamiento externo</string>
     <string name="settings_import_model_note">Los modelos importados aparecen en tu biblioteca con la etiqueta «Importado». Para compartir un archivo descargado, ábrelo y usa Exportar.</string>
 
     <!-- ================= Theme / backend choices ================= -->

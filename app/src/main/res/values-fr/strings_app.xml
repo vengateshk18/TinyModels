@@ -72,7 +72,7 @@
     <string name="settings_chat_history_cleared">Historique des conversations effacé</string>
     <string name="settings_model_imported">Modèle importé : %1$s</string>
     <string name="settings_import_failed">Échec de l\'importation : %1$s</string>
-    <string name="model_import_invalid_file_type">Type de fichier invalide. Seuls les fichiers .litertlm sont pris en charge.</string>
+    <string name="model_import_invalid_file_type">Type de fichier invalide. Formats pris en charge : .litertlm, .gguf, .task, .tflite.</string>
     <string name="model_import_file_not_found">Fichier introuvable sur l\'appareil : %1$s</string>
     <string name="model_import_create_failed">Échec de la création du fichier de destination : %1$s</string>
     <string name="model_import_write_failed">Impossible d\'écrire dans le fichier de destination : %1$s</string>
@@ -83,7 +83,7 @@
     <string name="benchmark_error_not_enough_ram">Pas assez de RAM libre pour charger ce modèle (besoin d\'environ %1$d Mo, disponible %2$d Mo). Fermez d\'autres applications et réessayez.</string>
     <string name="benchmark_error_failed_to_load">Échec du chargement du modèle</string>
     <string name="settings_import_model">Importer un modèle</string>
-    <string name="settings_import_model_subtitle">Ajouter un fichier .litertlm depuis un stockage externe</string>
+    <string name="settings_import_model_subtitle">Ajouter un fichier de modèle (.litertlm, .gguf, .task, .tflite) depuis un stockage externe</string>
     <string name="settings_import_model_note">Les modèles importés apparaissent dans votre bibliothèque avec une étiquette « Importé ». Pour partager un fichier téléchargé, ouvrez-le et utilisez Exporter.</string>
 
     <!-- ================= Theme / backend choices ================= -->

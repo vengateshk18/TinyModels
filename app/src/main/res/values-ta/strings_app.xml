@@ -69,7 +69,7 @@
     <string name="settings_chat_history_cleared">சாட் வரலாறு அழிக்கப்பட்டது</string>
     <string name="settings_model_imported">மாதிரி இறக்குமதி செய்யப்பட்டது: %1$s</string>
     <string name="settings_import_failed">இறக்குமதி தோல்வி: %1$s</string>
-    <string name="model_import_invalid_file_type">தவறான கோப்பு வகை. .litertlm கோப்புகள் மட்டுமே ஆதரிக்கப்படுகின்றன.</string>
+    <string name="model_import_invalid_file_type">தவறான கோப்பு வகை. ஆதரிக்கப்படும் வடிவங்கள்: .litertlm, .gguf, .task, .tflite.</string>
     <string name="model_import_file_not_found">சாதனத்தில் கோப்பு கிடைக்கவில்லை: %1$s</string>
     <string name="model_import_create_failed">இலக்குக் கோப்பை உருவாக்க முடியவில்லை: %1$s</string>
     <string name="model_import_write_failed">இலக்குக் கோப்பில் எழுத முடியவில்லை: %1$s</string>
@@ -80,7 +80,7 @@
     <string name="benchmark_error_not_enough_ram">இந்த மாதிரியை ஏற்ற கட்டை RAM இல்லை (~%1$d MB தேவை, %2$d MB உள்ளது). மற்ற செயலிகளை மூடி மீண்டும் முயற்சிக்கவும்.</string>
     <string name="benchmark_error_failed_to_load">மாதிரியை ஏற்ற முடியவில்லை</string>
     <string name="settings_import_model">மாதிரியை இறக்குமதி</string>
-    <string name="settings_import_model_subtitle">வெளிப்புற சேமிப்பிலிருந்து ஒரு .litertlm கோப்பைச் சேர்</string>
+    <string name="settings_import_model_subtitle">வெளிப்புற சேமிப்பிலிருந்து ஒரு மாதிரி கோப்பை (.litertlm, .gguf, .task, .tflite) சேர்க்கவும்</string>
     <string name="settings_import_model_note">இறக்குமதி செய்யப்பட்ட மாதிரிகள் உங்கள் நூலகத்தில் «இறக்குமதி» என்ற குறியுடன் தோன்றும். பதிவிறக்கப்பட்ட கோப்பைப் பகிர ஒரு கோப்பைத் திறந்து ஏற்றுமதி பயன்படுத்தவும்.</string>
 
     <!-- ================= Theme / backend choices ================= -->
