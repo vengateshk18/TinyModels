@@ -3,6 +3,7 @@ package com.ai.tinymodels.feature.chat.components
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -13,6 +14,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +27,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -61,6 +65,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -105,8 +110,12 @@ fun ChatInputBar(
     supportsVision: Boolean = false,
     /** Whether the microphone is currently listening for voice input. */
     isListening: Boolean = false,
-    /** Toggle voice input (start/stop speech recognition). */
-    onVoiceInputClick: () -> Unit = {}
+    /** Current microphone RMS level in dB (approx -2..10) for listening animation. */
+    voiceRmsDb: Float = 0f,
+    /** Called when user presses and holds the mic button to start voice input. */
+    onVoicePressStart: () -> Unit = {},
+    /** Called when user releases the mic button to stop and send voice input. */
+    onVoicePressRelease: () -> Unit = {}
 ) {
     // Saved across configuration changes (rotation, dark-mode switch, resize)
     // so an in-progress message and its attached photo are never dropped.
@@ -272,25 +281,36 @@ fun ChatInputBar(
             keyboardActions = KeyboardActions(onSend = { doSend() })
         )
         Spacer(modifier = Modifier.width(8.dp))
-        // Mic button for voice input (auto-sends transcript, so requires ready+idle).
-        FilledIconButton(
-            onClick = onVoiceInputClick,
-            enabled = (isModelReady && !isGenerating) || isListening,
-            modifier = Modifier.size(44.dp),
-            shape = CircleShape,
-            colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = if (isListening) MaterialTheme.colorScheme.errorContainer
-                else MaterialTheme.colorScheme.surfaceContainerHighest,
-                contentColor = if (isListening) MaterialTheme.colorScheme.onErrorContainer
-                else MaterialTheme.colorScheme.onSurfaceVariant
-            )
+        // Mic button: press and hold to speak, release to send.
+        val micEnabled = (isModelReady && !isGenerating) || isListening
+        val micBg = if (isListening) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surfaceContainerHighest
+        val micFg = if (isListening) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSurfaceVariant
+        Box(
+            modifier = Modifier
+                .size(52.dp)
+                .clip(CircleShape)
+                .background(if (micEnabled) micBg else micBg.copy(alpha = 0.5f))
+                .pointerInput(micEnabled, isListening) {
+                    detectTapGestures(
+                        onPress = {
+                            if (!micEnabled) return@detectTapGestures
+                            if (!isListening) onVoicePressStart()
+                            tryAwaitRelease()
+                            onVoicePressRelease()
+                        }
+                    )
+                },
+            contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = if (isListening) Icons.Filled.Stop else Icons.Filled.Mic,
-                contentDescription = stringResource(
-                    if (isListening) R.string.chat_voice_input_stop else R.string.chat_voice_input_start
+            if (isListening) {
+                VoiceListeningBars(levelDb = voiceRmsDb, color = micFg)
+            } else {
+                Icon(
+                    imageVector = Icons.Filled.Mic,
+                    contentDescription = stringResource(R.string.chat_voice_input_start),
+                    tint = if (micEnabled) micFg else micFg.copy(alpha = 0.38f)
                 )
-            )
+            }
         }
         Spacer(modifier = Modifier.width(8.dp))
         AnimatedContent(
@@ -425,6 +445,45 @@ private fun PhotoPreviewRow(
                 Icons.Filled.Close,
                 contentDescription = stringResource(R.string.chat_remove_photo_content_description),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+
+@Composable
+private fun VoiceListeningBars(
+    levelDb: Float,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    // Normalize RMS dB (-2..10 typical) into 0..1 amplitude.
+    val norm = ((levelDb + 2f) / 12f).coerceIn(0f, 1f)
+    val t by rememberInfiniteTransition(label = "voiceBars").animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 600, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "voiceBarsT"
+    )
+    val multipliers = listOf(0.45f, 0.85f, 1.0f, 0.7f, 0.5f)
+    Row(
+        modifier = modifier.height(20.dp),
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        multipliers.forEachIndexed { i, m ->
+            val phase = (t + i * 0.17f) % 1f
+            val wave = if (phase < 0.5f) phase * 2f else (1f - phase) * 2f
+            val h = 6f + (14f * norm * m * (0.35f + 0.65f * wave))
+            Box(
+                modifier = Modifier
+                    .width(3.dp)
+                    .height(h.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(color)
             )
         }
     }

@@ -229,7 +229,9 @@ private fun ChatScreenContent(
                 onEvent(ChatEvent.UpdateInferenceSettings(settings))
                 onEvent(ChatEvent.CloseInferenceSettings)
             },
-            onDismiss = { onEvent(ChatEvent.CloseInferenceSettings) }
+            onDismiss = { onEvent(ChatEvent.CloseInferenceSettings) },
+            voiceOutputEnabled = uiState.voiceOutputEnabled,
+            onVoiceOutputChange = { onEvent(ChatEvent.ToggleVoiceOutput) }
         )
     }
 }

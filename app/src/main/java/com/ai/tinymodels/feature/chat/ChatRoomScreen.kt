@@ -128,46 +128,48 @@ fun ChatRoomScreen(
     var lastSpokenMessageId by remember { mutableStateOf<String?>(null) }
     var lastSpokenTextLength by remember { mutableStateOf(0) }
 
-    DisposableEffect(context) {
-        val engine = TextToSpeech(context) { status ->
-            ttsReady = status == TextToSpeech.SUCCESS
-        }
-        engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-            override fun onStart(utteranceId: String?) {
-                viewModel.onEvent(ChatEvent.SetSpeaking(true))
-            }
-
-            override fun onDone(utteranceId: String?) {
-                viewModel.onEvent(ChatEvent.SetSpeaking(false))
-            }
-
-            @Deprecated("Deprecated in Java")
-            override fun onError(utteranceId: String?) {
-                viewModel.onEvent(ChatEvent.SetSpeaking(false))
-            }
-
-            override fun onError(utteranceId: String?, errorCode: Int) {
-                viewModel.onEvent(ChatEvent.SetSpeaking(false))
-            }
-        })
-        tts = engine
-        onDispose {
-            runCatching { engine.stop() }
-            runCatching { engine.shutdown() }
-            viewModel.onEvent(ChatEvent.SetSpeaking(false))
-            tts = null
-            ttsReady = false
-        }
-    }
-
-    // Stop speaking when voice output is turned off.
+    // Lazy-init TTS only when voice output is enabled to avoid blocking chat entry.
     LaunchedEffect(uiState.voiceOutputEnabled) {
+        if (uiState.voiceOutputEnabled && tts == null) {
+            val engine = TextToSpeech(context) { status ->
+                ttsReady = status == TextToSpeech.SUCCESS
+            }
+            engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                override fun onStart(utteranceId: String?) {
+                    viewModel.onEvent(ChatEvent.SetSpeaking(true))
+                }
+
+                override fun onDone(utteranceId: String?) {
+                    viewModel.onEvent(ChatEvent.SetSpeaking(false))
+                }
+
+                @Deprecated("Deprecated in Java")
+                override fun onError(utteranceId: String?) {
+                    viewModel.onEvent(ChatEvent.SetSpeaking(false))
+                }
+
+                override fun onError(utteranceId: String?, errorCode: Int) {
+                    viewModel.onEvent(ChatEvent.SetSpeaking(false))
+                }
+            })
+            tts = engine
+        }
         if (!uiState.voiceOutputEnabled) {
             runCatching { tts?.stop() }
             speechChunker.reset()
             lastSpokenMessageId = null
             lastSpokenTextLength = 0
             viewModel.onEvent(ChatEvent.SetSpeaking(false))
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            runCatching { tts?.stop() }
+            runCatching { tts?.shutdown() }
+            viewModel.onEvent(ChatEvent.SetSpeaking(false))
+            tts = null
+            ttsReady = false
         }
     }
 
@@ -228,14 +230,27 @@ fun ChatRoomScreen(
         lastSpokenTextLength = text.length
     }
 
-    // ---- Voice input (STT) ----
+    // ---- Voice input (STT), press-and-hold to speak ----
     val speechRecognizerAvailable = remember(context) { SpeechRecognizer.isRecognitionAvailable(context) }
     var speechRecognizer by remember { mutableStateOf<SpeechRecognizer?>(null) }
+    var voiceRmsDb by remember { mutableStateOf(0f) }
+    var holdToTalkActive by remember { mutableStateOf(false) }
+    var pendingVoiceStart by remember { mutableStateOf(false) }
 
-    fun stopListeningInternal() {
-        runCatching { speechRecognizer?.stopListening() }
+    fun stopListeningCancel() {
+        holdToTalkActive = false
+        pendingVoiceStart = false
+        voiceRmsDb = 0f
         runCatching { speechRecognizer?.cancel() }
         viewModel.onEvent(ChatEvent.SetListening(false))
+    }
+
+    fun stopListeningAndSend() {
+        holdToTalkActive = false
+        pendingVoiceStart = false
+        voiceRmsDb = 0f
+        // Finalize recognition so onResults can deliver the transcript.
+        runCatching { speechRecognizer?.stopListening() }
     }
 
     DisposableEffect(context) {
@@ -245,21 +260,22 @@ fun ChatRoomScreen(
         }
     }
 
-    fun startListening() {
+    fun startListeningHold() {
         if (!speechRecognizerAvailable) {
             copyScope.launch {
                 snackbarHostState.showSnackbar(context.getString(R.string.chat_voice_input_unavailable))
             }
             return
         }
-        if (uiState.isListening) {
-            stopListeningInternal()
-            return
-        }
         if (!uiState.isModelReady || uiState.generation == GenerationState.GENERATING) return
+        if (uiState.isListening) return
+
         // Stop any ongoing TTS so the mic doesn't pick it up.
         runCatching { tts?.stop() }
         viewModel.onEvent(ChatEvent.SetSpeaking(false))
+
+        holdToTalkActive = true
+        voiceRmsDb = 0f
 
         val recognizer = speechRecognizer ?: SpeechRecognizer.createSpeechRecognizer(context).also { speechRecognizer = it }
         recognizer.setRecognitionListener(object : RecognitionListener {
@@ -268,23 +284,31 @@ fun ChatRoomScreen(
             }
 
             override fun onBeginningOfSpeech() {}
-            override fun onRmsChanged(rmsdB: Float) {}
+            override fun onRmsChanged(rmsdB: Float) {
+                voiceRmsDb = rmsdB
+            }
             override fun onBufferReceived(buffer: ByteArray?) {}
             override fun onEndOfSpeech() {
-                viewModel.onEvent(ChatEvent.SetListening(false))
+                // Keep listening state until results/error for hold-to-talk flow.
+                voiceRmsDb = 0f
             }
 
             override fun onError(error: Int) {
+                val wasHolding = holdToTalkActive
+                holdToTalkActive = false
+                voiceRmsDb = 0f
                 viewModel.onEvent(ChatEvent.SetListening(false))
-                val messageRes = when (error) {
-                    SpeechRecognizer.ERROR_NO_MATCH,
-                    SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> R.string.chat_voice_input_error
-                    else -> R.string.chat_voice_input_error
+                // Don't spam errors for expected no-speech during quick press/release.
+                if (wasHolding && error != SpeechRecognizer.ERROR_NO_MATCH && error != SpeechRecognizer.ERROR_SPEECH_TIMEOUT) {
+                    copyScope.launch { snackbarHostState.showSnackbar(context.getString(R.string.chat_voice_input_error)) }
+                } else if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) {
+                    copyScope.launch { snackbarHostState.showSnackbar(context.getString(R.string.chat_voice_input_error)) }
                 }
-                copyScope.launch { snackbarHostState.showSnackbar(context.getString(messageRes)) }
             }
 
             override fun onResults(results: Bundle?) {
+                holdToTalkActive = false
+                voiceRmsDb = 0f
                 viewModel.onEvent(ChatEvent.SetListening(false))
                 val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 val transcript = matches?.firstOrNull()?.trim().orEmpty()
@@ -307,6 +331,8 @@ fun ChatRoomScreen(
             recognizer.startListening(intent)
             viewModel.onEvent(ChatEvent.SetListening(true))
         }.onFailure {
+            holdToTalkActive = false
+            voiceRmsDb = 0f
             viewModel.onEvent(ChatEvent.SetListening(false))
             copyScope.launch {
                 snackbarHostState.showSnackbar(context.getString(R.string.chat_voice_input_unavailable))
@@ -317,19 +343,33 @@ fun ChatRoomScreen(
     val recordAudioPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) startListening() else copyScope.launch {
-            snackbarHostState.showSnackbar(context.getString(R.string.chat_voice_input_permission_denied))
+        if (granted && pendingVoiceStart) {
+            pendingVoiceStart = false
+            startListeningHold()
+        } else {
+            pendingVoiceStart = false
+            if (!granted) copyScope.launch {
+                snackbarHostState.showSnackbar(context.getString(R.string.chat_voice_input_permission_denied))
+            }
         }
     }
 
-    val onVoiceInputClick: () -> Unit = {
-        if (uiState.isListening) {
-            stopListeningInternal()
+    val onVoicePressStart: () -> Unit = {
+        val granted = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+        if (granted) {
+            startListeningHold()
         } else {
-            val granted = ContextCompat.checkSelfPermission(
-                context, Manifest.permission.RECORD_AUDIO
-            ) == PackageManager.PERMISSION_GRANTED
-            if (granted) startListening() else recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            pendingVoiceStart = true
+            recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
+    val onVoicePressRelease: () -> Unit = {
+        if (holdToTalkActive || uiState.isListening) {
+            stopListeningAndSend()
+        } else {
+            pendingVoiceStart = false
         }
     }
 
@@ -455,7 +495,9 @@ fun ChatRoomScreen(
                 onToggleWebSearch = { viewModel.onEvent(ChatEvent.ToggleWebSearch(it)) },
                 supportsVision = uiState.isVisionModel,
                 isListening = uiState.isListening,
-                onVoiceInputClick = { onVoiceInputClick() }
+                voiceRmsDb = voiceRmsDb,
+                onVoicePressStart = onVoicePressStart,
+                onVoicePressRelease = onVoicePressRelease
             )
         }
     }
@@ -513,7 +555,9 @@ fun ChatRoomScreen(
                 viewModel.onEvent(ChatEvent.UpdateInferenceSettings(it))
                 viewModel.onEvent(ChatEvent.CloseInferenceSettings)
             },
-            onDismiss = { viewModel.onEvent(ChatEvent.CloseInferenceSettings) }
+            onDismiss = { viewModel.onEvent(ChatEvent.CloseInferenceSettings) },
+            voiceOutputEnabled = uiState.voiceOutputEnabled,
+            onVoiceOutputChange = { viewModel.onEvent(ChatEvent.ToggleVoiceOutput) }
         )
     }
 }
