@@ -102,6 +102,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -146,6 +147,7 @@ fun SettingsScreen(
     var showClearDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
+    val resources = LocalResources.current
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
@@ -210,7 +212,7 @@ fun SettingsScreen(
                     } else {
                         scope.launch {
                             snackbarHostState.showSnackbar(
-                                context.getString(R.string.settings_add_widget_not_supported)
+                                resources.getString(R.string.settings_add_widget_not_supported)
                             )
                         }
                     }

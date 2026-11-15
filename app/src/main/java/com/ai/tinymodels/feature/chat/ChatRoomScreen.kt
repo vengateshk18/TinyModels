@@ -51,6 +51,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -119,6 +120,8 @@ fun ChatRoomScreen(
     }
 
     val context = LocalContext.current
+    // Configuration-aware: redraws/refetches strings on locale or font-scale changes.
+    val resources = LocalResources.current
 
     // ---- Voice output (TTS) ----
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
@@ -280,7 +283,7 @@ fun ChatRoomScreen(
     fun startListeningHold() {
         if (!speechRecognizerAvailable) {
             copyScope.launch {
-                snackbarHostState.showSnackbar(context.getString(R.string.chat_voice_input_unavailable))
+                snackbarHostState.showSnackbar(resources.getString(R.string.chat_voice_input_unavailable))
             }
             return
         }
@@ -319,9 +322,9 @@ fun ChatRoomScreen(
                 viewModel.onEvent(ChatEvent.SetListening(false))
                 // Don't spam errors for expected no-speech during quick press/release.
                 if (wasHolding && error != SpeechRecognizer.ERROR_NO_MATCH && error != SpeechRecognizer.ERROR_SPEECH_TIMEOUT) {
-                    copyScope.launch { snackbarHostState.showSnackbar(context.getString(R.string.chat_voice_input_error)) }
+                    copyScope.launch { snackbarHostState.showSnackbar(resources.getString(R.string.chat_voice_input_error)) }
                 } else if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) {
-                    copyScope.launch { snackbarHostState.showSnackbar(context.getString(R.string.chat_voice_input_error)) }
+                    copyScope.launch { snackbarHostState.showSnackbar(resources.getString(R.string.chat_voice_input_error)) }
                 }
             }
 
@@ -355,7 +358,7 @@ fun ChatRoomScreen(
             voiceRmsDb = 0f
             viewModel.onEvent(ChatEvent.SetListening(false))
             copyScope.launch {
-                snackbarHostState.showSnackbar(context.getString(R.string.chat_voice_input_unavailable))
+                snackbarHostState.showSnackbar(resources.getString(R.string.chat_voice_input_unavailable))
             }
         }
     }
@@ -369,7 +372,7 @@ fun ChatRoomScreen(
         } else {
             pendingVoiceStart = false
             if (!granted) copyScope.launch {
-                snackbarHostState.showSnackbar(context.getString(R.string.chat_voice_input_permission_denied))
+                snackbarHostState.showSnackbar(resources.getString(R.string.chat_voice_input_permission_denied))
             }
         }
     }
