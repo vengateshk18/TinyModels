@@ -18,6 +18,33 @@ class HuggingFaceApi @Inject constructor(
     companion object {
         private const val API_BASE = TinyConstants.HUGGING_FACE_API_BASE_URL
         private const val HUB_BASE = TinyConstants.HUGGING_FACE_HUB_BASE_URL
+
+        /**
+         * Build the catalog URL. Pure so the query shape is unit-tested: the
+         * browse list must never silently scope itself to a single author —
+         * scoping is the caller's explicit choice (see `branchesFor`), and a
+         * hidden default here silently hides every other publisher.
+         */
+        fun buildModelListUrl(
+            search: String?,
+            pipelineTag: String?,
+            author: String?,
+            limit: Int = 100,
+        ): String {
+            val params = mutableListOf(
+                "limit=$limit",
+                "direction=-1",
+                "sort=downloads",
+                "full=true"
+            )
+            search?.takeIf { it.isNotBlank() }?.let { params.add("search=${encode(it)}") }
+            author?.takeIf { it.isNotBlank() }?.let { params.add("author=${encode(it)}") }
+            pipelineTag?.takeIf { it.isNotBlank() }?.let { params.add("filter=${encode(it)}") }
+            return "$API_BASE?${params.joinToString("&")}"
+        }
+
+        private fun encode(value: String): String =
+            java.net.URLEncoder.encode(value, "UTF-8")
     }
 
     /** GET the model list. Overload supporting arbitrary search + pipeline filtering. */
@@ -26,23 +53,7 @@ class HuggingFaceApi @Inject constructor(
         pipelineTag: String? = null,
         author: String? = null,
         limit: Int = 100
-    ): String {
-        val params = mutableListOf(
-            "limit=$limit",
-            "direction=-1",
-            "sort=downloads",
-            "full=true"
-        )
-        when {
-            !search.isNullOrBlank() -> params.add("search=${java.net.URLEncoder.encode(search, "UTF-8")}")
-            author != null -> params.add("author=${java.net.URLEncoder.encode(author, "UTF-8")}")
-            else -> params.add("author=litert-community")
-        }
-        pipelineTag?.takeIf { it.isNotBlank() }?.let {
-            params.add("filter=${java.net.URLEncoder.encode(it, "UTF-8")}")
-        }
-        return get("$API_BASE?${params.joinToString("&")}")
-    }
+    ): String = get(buildModelListUrl(search, pipelineTag, author, limit))
 
     /** GET full details for a single model. */
     fun getModelDetails(modelId: String): String = get("$API_BASE/$modelId")
