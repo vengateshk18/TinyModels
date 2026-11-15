@@ -158,9 +158,6 @@
     <string name="chat_voice_input_start">Start voice input</string>
     <string name="chat_voice_input_stop">Stop listening</string>
     <string name="chat_voice_input_listening">Listening…</string>
-    <string name="chat_voice_output_on">Speak replies: on</string>
-    <string name="chat_voice_output_off">Speak replies: off</string>
-    <string name="chat_voice_output_toggle">Toggle speak replies</string>
     <string name="chat_voice_input_permission_denied">Microphone permission is needed for voice input</string>
     <string name="chat_voice_input_unavailable">Voice input is not available on this device</string>
     <string name="chat_voice_input_error">Couldn’t understand speech. Try again.</string>

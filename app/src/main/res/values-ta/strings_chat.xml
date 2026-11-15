@@ -160,9 +160,6 @@
     <string name="chat_voice_input_start">குரல் உள்ளீட்டை தொடங்கு</string>
     <string name="chat_voice_input_stop">கேட்பதை நிறுத்து</string>
     <string name="chat_voice_input_listening">கேட்கிறது…</string>
-    <string name="chat_voice_output_on">பதில்களை பேசுதல்: இயக்கம்</string>
-    <string name="chat_voice_output_off">பதில்களை பேசுதல்: நிறுத்தம்</string>
-    <string name="chat_voice_output_toggle">பதில்களை பேசுதலை மாற்று</string>
     <string name="chat_voice_input_permission_denied">குரல் உள்ளீட்டிற்கு மைக்ரோஃபோன் அனுமதி தேவை</string>
     <string name="chat_voice_input_unavailable">இந்த சாதனத்தில் குரல் உள்ளீடு கிடைக்கவில்லை</string>
     <string name="chat_voice_input_error">பேச்சை புரிந்துகொள்ள முடியவில்லை. மீண்டும் முயற்சிக்கவும்.</string>

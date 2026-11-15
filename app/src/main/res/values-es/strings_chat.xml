@@ -163,9 +163,6 @@
     <string name="chat_voice_input_start">Iniciar entrada de voz</string>
     <string name="chat_voice_input_stop">Dejar de escuchar</string>
     <string name="chat_voice_input_listening">Escuchando…</string>
-    <string name="chat_voice_output_on">Leer respuestas en voz alta: activado</string>
-    <string name="chat_voice_output_off">Leer respuestas en voz alta: desactivado</string>
-    <string name="chat_voice_output_toggle">Activar o desactivar lectura de respuestas</string>
     <string name="chat_voice_input_permission_denied">Se necesita permiso de micrófono para la entrada de voz</string>
     <string name="chat_voice_input_unavailable">La entrada de voz no está disponible en este dispositivo</string>
     <string name="chat_voice_input_error">No se pudo entender el audio. Inténtalo de nuevo.</string>

@@ -163,9 +163,6 @@
     <string name="chat_voice_input_start">Démarrer la saisie vocale</string>
     <string name="chat_voice_input_stop">Arrêter l\'écoute</string>
     <string name="chat_voice_input_listening">Écoute…</string>
-    <string name="chat_voice_output_on">Lire les réponses à voix haute : activé</string>
-    <string name="chat_voice_output_off">Lire les réponses à voix haute : désactivé</string>
-    <string name="chat_voice_output_toggle">Activer ou désactiver la lecture des réponses</string>
     <string name="chat_voice_input_permission_denied">L\'autorisation du microphone est nécessaire pour la saisie vocale</string>
     <string name="chat_voice_input_unavailable">La saisie vocale n\'est pas disponible sur cet appareil</string>
     <string name="chat_voice_input_error">Impossible de comprendre la voix. Réessayez.</string>

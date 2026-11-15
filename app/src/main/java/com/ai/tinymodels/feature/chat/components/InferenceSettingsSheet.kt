@@ -29,7 +29,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -60,9 +59,7 @@ import kotlin.math.roundToInt
 fun InferenceSettingsSheet(
     current: InferenceSettings,
     onSave: (InferenceSettings) -> Unit,
-    onDismiss: () -> Unit,
-    voiceOutputEnabled: Boolean = false,
-    onVoiceOutputChange: ((Boolean) -> Unit)? = null
+    onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -157,35 +154,6 @@ fun InferenceSettingsSheet(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            if (onVoiceOutputChange != null) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.chat_voice_output_toggle),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = stringResource(
-                                if (voiceOutputEnabled) R.string.chat_voice_output_on else R.string.chat_voice_output_off
-                            ),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Switch(
-                        checked = voiceOutputEnabled,
-                        onCheckedChange = onVoiceOutputChange
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-            }
 
             // System instruction
             OutlinedTextField(

@@ -157,9 +157,6 @@
     <string name="chat_voice_input_start">音声入力を開始</string>
     <string name="chat_voice_input_stop">聞き取りを停止</string>
     <string name="chat_voice_input_listening">聞き取り中…</string>
-    <string name="chat_voice_output_on">返信の読み上げ: オン</string>
-    <string name="chat_voice_output_off">返信の読み上げ: オフ</string>
-    <string name="chat_voice_output_toggle">返信の読み上げを切り替え</string>
     <string name="chat_voice_input_permission_denied">音声入力にはマイクの権限が必要です</string>
     <string name="chat_voice_input_unavailable">この端末では音声入力を利用できません</string>
     <string name="chat_voice_input_error">音声を認識できませんでした。もう一度お試しください。</string>

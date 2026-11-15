@@ -71,7 +71,6 @@ import com.ai.tinymodels.feature.chat.components.ModelLoadingDialog
 import com.ai.tinymodels.feature.chat.model.ChatEvent
 import com.ai.tinymodels.feature.chat.model.ChatUiState
 import com.ai.tinymodels.feature.chat.model.ModelChipState
-import com.ai.tinymodels.feature.chat.voice.SpeechTextChunker
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -130,9 +129,6 @@ fun ChatRoomScreen(
     var manualTtsLoadingMessageId by remember { mutableStateOf<String?>(null) }
     var manualSpeakingMessageId by remember { mutableStateOf<String?>(null) }
     var manualSpeechActive by remember { mutableStateOf(false) }
-    val speechChunker = remember { SpeechTextChunker() }
-    var lastSpokenMessageId by remember { mutableStateOf<String?>(null) }
-    var lastSpokenTextLength by remember { mutableStateOf(0) }
 
     // Lazy-init TTS on demand (auto-speak enabled or per-message speak tap).
     LaunchedEffect(ttsRequested) {
@@ -174,23 +170,6 @@ fun ChatRoomScreen(
         }
     }
 
-    // Request TTS when auto-speak is enabled.
-    LaunchedEffect(uiState.voiceOutputEnabled) {
-        if (uiState.voiceOutputEnabled) ttsRequested = true
-        if (!uiState.voiceOutputEnabled) {
-            runCatching { tts?.stop() }
-            speechChunker.reset()
-            lastSpokenMessageId = null
-            lastSpokenTextLength = 0
-            manualSpeechActive = false
-            manualSpeakingMessageId = null
-            manualTtsLoadingMessageId = null
-            pendingSpeakMessageId = null
-            pendingSpeakText = null
-            viewModel.onEvent(ChatEvent.SetSpeaking(false))
-        }
-    }
-
     fun stopSpeaking() {
         runCatching { tts?.stop() }
         manualSpeechActive = false
@@ -198,9 +177,6 @@ fun ChatRoomScreen(
         manualTtsLoadingMessageId = null
         pendingSpeakMessageId = null
         pendingSpeakText = null
-        speechChunker.reset()
-        lastSpokenMessageId = null
-        lastSpokenTextLength = 0
         viewModel.onEvent(ChatEvent.SetSpeaking(false))
     }
 
@@ -221,11 +197,8 @@ fun ChatRoomScreen(
 
         val engine = tts
         if (engine != null && ttsReady) {
-            // Interrupt any auto-streaming speech and speak the selected message.
+            // Interrupt anything already playing and speak the selected message.
             runCatching { engine.stop() }
-            speechChunker.reset()
-            lastSpokenMessageId = null
-            lastSpokenTextLength = 0
             manualSpeechActive = true
             manualSpeakingMessageId = messageId
             val utteranceId = "manual-${messageId}-${UUID.randomUUID()}"
@@ -244,9 +217,6 @@ fun ChatRoomScreen(
         val msgId = pendingSpeakMessageId
         if (engine != null && ttsReady && !pending.isNullOrBlank() && !msgId.isNullOrBlank()) {
             runCatching { engine.stop() }
-            speechChunker.reset()
-            lastSpokenMessageId = null
-            lastSpokenTextLength = 0
             manualTtsLoadingMessageId = null
             manualSpeechActive = true
             manualSpeakingMessageId = msgId
@@ -270,68 +240,6 @@ fun ChatRoomScreen(
             pendingSpeakMessageId = null
             pendingSpeakText = null
         }
-    }
-
-    // Auto-speak assistant replies as they stream/complete (when enabled).
-    LaunchedEffect(
-        uiState.voiceOutputEnabled,
-        ttsReady,
-        uiState.messages,
-        uiState.streamingMessageId,
-        uiState.generation,
-        manualSpeechActive,
-        manualTtsLoadingMessageId,
-        pendingSpeakMessageId
-    ) {
-        val engine = tts
-        if (!uiState.voiceOutputEnabled || !ttsReady || engine == null) return@LaunchedEffect
-        // Don't interfere while a manual per-message speak is loading/playing.
-        if (manualSpeechActive || manualTtsLoadingMessageId != null || pendingSpeakMessageId != null) return@LaunchedEffect
-
-        val last = uiState.messages.lastOrNull() ?: run {
-            speechChunker.reset(); lastSpokenMessageId = null; lastSpokenTextLength = 0; return@LaunchedEffect
-        }
-        // Stop/reset if conversation ended with a user turn (new prompt) or nothing to speak.
-        if (last.isUser) {
-            runCatching { engine.stop() }
-            speechChunker.reset()
-            lastSpokenMessageId = null
-            lastSpokenTextLength = 0
-            viewModel.onEvent(ChatEvent.SetSpeaking(false))
-            return@LaunchedEffect
-        }
-
-        val assistant = last
-        if (assistant.id != lastSpokenMessageId) {
-            runCatching { engine.stop() }
-            speechChunker.reset()
-            lastSpokenMessageId = assistant.id
-            lastSpokenTextLength = 0
-        }
-
-        val text = assistant.text
-        if (text.length < lastSpokenTextLength) {
-            runCatching { engine.stop() }
-            speechChunker.reset()
-            lastSpokenTextLength = 0
-        }
-
-        val newChunks = speechChunker.consume(text)
-        newChunks.forEach { chunk ->
-            val utteranceId = "${assistant.id}-${UUID.randomUUID()}"
-            engine.speak(chunk, TextToSpeech.QUEUE_ADD, null, utteranceId)
-        }
-
-        val isDoneStreaming = !assistant.isStreaming &&
-            (uiState.streamingMessageId == null || uiState.streamingMessageId != assistant.id)
-        if (isDoneStreaming) {
-            val tail = speechChunker.flush(text)
-            if (!tail.isNullOrBlank()) {
-                val utteranceId = "${assistant.id}-tail-${UUID.randomUUID()}"
-                engine.speak(tail, TextToSpeech.QUEUE_ADD, null, utteranceId)
-            }
-        }
-        lastSpokenTextLength = text.length
     }
 
     // ---- Voice input (STT), press-and-hold to speak ----
@@ -662,9 +570,7 @@ fun ChatRoomScreen(
                 viewModel.onEvent(ChatEvent.UpdateInferenceSettings(it))
                 viewModel.onEvent(ChatEvent.CloseInferenceSettings)
             },
-            onDismiss = { viewModel.onEvent(ChatEvent.CloseInferenceSettings) },
-            voiceOutputEnabled = uiState.voiceOutputEnabled,
-            onVoiceOutputChange = { viewModel.onEvent(ChatEvent.ToggleVoiceOutput) }
+            onDismiss = { viewModel.onEvent(ChatEvent.CloseInferenceSettings) }
         )
     }
 }

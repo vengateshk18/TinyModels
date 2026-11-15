@@ -217,7 +217,6 @@ class ChatViewModel @Inject constructor(
             ChatEvent.CloseInferenceSettings -> _uiState.update { it.copy(showInferenceSettings = false) }
             ChatEvent.CompactConversation -> compactNow()
             is ChatEvent.ToggleWebSearch -> toggleWebSearch(event.enabled)
-            ChatEvent.ToggleVoiceOutput -> _uiState.update { it.copy(voiceOutputEnabled = !it.voiceOutputEnabled) }
             is ChatEvent.SetListening -> _uiState.update { it.copy(isListening = event.listening) }
             is ChatEvent.SetSpeaking -> _uiState.update { it.copy(isSpeaking = event.speaking) }
         }
