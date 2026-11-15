@@ -906,7 +906,10 @@ class ChatViewModel @Inject constructor(
         } else {
             older
         }
-        val digest = activeSession.summarizeOlderTurns(digestInput)
+        val digest = SessionBudget.acceptDigest(
+            activeSession.summarizeOlderTurns(digestInput),
+            SessionBudget.digestTokenBudget(budget),
+        )
         if (digest == null) {
             // Summarization failed — the rebuild below still trims to budget.
             // Release the mutex so rebuildSession can re-acquire it.

@@ -26,6 +26,16 @@ object SessionBudget {
     /** Fraction of the context budget reserved for the assistant's reply. */
     const val GENERATION_HEADROOM_RATIO = 0.25
 
+    /**
+     * Ceiling for a compaction digest. The digest is folded into the system
+     * instruction of every later prompt, so its cost is paid on every single
+     * turn — a fat summary is a permanent tax on the context window.
+     */
+    const val MAX_DIGEST_TOKENS = 256
+
+    /** Floor, so a tiny window still gets a digest worth keeping. */
+    const val MIN_DIGEST_TOKENS = 64
+
     /** Prompt used when asking the model to digest older turns. */
     const val SUMMARIZE_PROMPT =
         "Summarize the following conversation so far in under 200 tokens. " +
@@ -77,4 +87,30 @@ object SessionBudget {
                 append(it)
             }
         }.takeIf { it.isNotBlank() }
+
+    /**
+     * How many tokens a digest may hold for a given context window: an eighth
+     * of it, clamped. A digest that can never exceed this cannot grow back
+     * into the problem compaction just solved (iterative summarization feeds
+     * the previous digest back in, so an unbounded one creeps up every round).
+     */
+    fun digestTokenBudget(windowTokens: Int): Int =
+        (windowTokens / 8).coerceIn(MIN_DIGEST_TOKENS, MAX_DIGEST_TOKENS)
+
+    /**
+     * Accept a model-produced digest, enforcing [maxTokens]. Blank or null
+     * input means summarization failed and the caller must fall back to the
+     * plain trim. Over-long input is cut at a sentence boundary where possible
+     * so the stored digest reads like a note rather than a severed word.
+     */
+    fun acceptDigest(text: String?, maxTokens: Int = MAX_DIGEST_TOKENS): String? {
+        val normalized = text?.trim().orEmpty()
+        if (normalized.isEmpty()) return null
+        val charLimit = maxTokens.coerceAtLeast(1) * CHARS_PER_TOKEN
+        if (normalized.length <= charLimit) return normalized
+        val head = normalized.take(charLimit)
+        // Prefer a clean end, but never give back most of the digest for it.
+        val boundary = head.indexOfLast { it == '.' || it == '!' || it == '?' || it == '\n' }
+        return if (boundary >= charLimit / 2) head.substring(0, boundary + 1).trim() else head.trim()
+    }
 }

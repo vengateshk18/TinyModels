@@ -1,6 +1,8 @@
 package com.ai.tinymodels.core.inference.runtime
 
 import com.ai.tinymodels.core.common.TinyLog
+import com.ai.tinymodels.core.inference.gguf.GgufCompaction
+import com.ai.tinymodels.core.inference.gguf.GgufDigestAttempt
 import com.ai.tinymodels.domain.model.SamplerSettings
 import com.dark.gguf_lib.GGMLEngine
 import com.dark.gguf_lib.models.GenerationEvent
@@ -155,8 +157,28 @@ class GgufChatSession(
      * One-shot (non-streaming) summarization of older turns, used by the
      * context-compaction flow. Returns null on failure — the caller then
      * falls back to the plain sliding-window trim.
+     *
+     * The vendored engine owns the summarize call (`compact`), which runs the
+     * model outside the live chat turn. Everything the app decides —
+     * transcript, token ceiling, acceptance — lives in [GgufCompaction] so it
+     * stays unit-tested.
      */
-    override suspend fun summarizeOlderTurns(older: List<ChatTurn>): String? = null
+    override suspend fun summarizeOlderTurns(older: List<ChatTurn>): String? =
+        runtime.withEngineLock {
+            GgufCompaction.digest(older, maxContextTokens) { transcript, maxSummaryTokens ->
+                try {
+                    val result = engine.compact(
+                        transcript,
+                        maxSummaryTokens,
+                        SessionBudget.SUMMARIZE_PROMPT,
+                    ) { }
+                    GgufDigestAttempt(result.summary, result.success)
+                } catch (throwable: Throwable) {
+                    TinyLog.w(TAG, "GGUF compaction failed: ${throwable.message}")
+                    GgufDigestAttempt(null, success = false)
+                }
+            }
+        }
 
     /**
      * Route text vs vision traffic the way ToolNeuron's InferenceCoordinator
