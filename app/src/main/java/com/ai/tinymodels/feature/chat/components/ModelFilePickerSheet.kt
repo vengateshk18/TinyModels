@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.TinyConstants
 import com.ai.tinymodels.core.ui.Formatters
+import com.ai.tinymodels.core.ui.components.bottomSheetTopSafePadding
 import com.ai.tinymodels.domain.model.DownloadedModelFile
 
 /**
@@ -53,15 +54,15 @@ fun ModelFilePickerSheet(
     onSelect: (modelId: String, fileName: String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         // Suppress the sheet's built-in inset handling so we control it precisely.
         contentWindowInsets = { WindowInsets(0) },
-        // No fixed height — Material3 anchors the sheet flush to the bottom of the
-        // screen and it grows upward to fit its content.
-        modifier = Modifier.fillMaxWidth()
+        // Keep below status bar; anchor to bottom and let it grow to fit content.
+        modifier = Modifier.bottomSheetTopSafePadding()
     ) {
         Column(
             modifier = Modifier
@@ -95,7 +96,9 @@ fun ModelFilePickerSheet(
                 )
             } else {
                 LazyColumn(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false),
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(
                         start = 16.dp, end = 16.dp, bottom = 24.dp
                     )
