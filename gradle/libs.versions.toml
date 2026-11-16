@@ -21,7 +21,7 @@ androidxHilt = "1.4.0"
 navigationCompose = "2.9.4"
 datastore = "1.1.7"
 kotlinxCoroutines = "1.10.2"
-markdown = "0.45.0"
+markdown = "0.46.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
