@@ -74,6 +74,18 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun `settings reflects current repo value immediately`() {
+        settingsRepo.settingsFlow.value = AppSettings(
+            themeMode = ThemeMode.LIGHT,
+            useDynamicColor = false
+        )
+        val viewModel = vm()
+
+        assertEquals(ThemeMode.LIGHT, viewModel.settings.value.themeMode)
+        assertEquals(false, viewModel.settings.value.useDynamicColor)
+    }
+
+    @Test
     fun `import success reports model id`() = runBlocking {
         modelRepo.importResult = AppResult.Success(
             DownloadedModel("a/b", null, null, null, "/tmp", 0L)

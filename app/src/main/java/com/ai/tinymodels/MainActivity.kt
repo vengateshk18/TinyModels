@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
@@ -124,11 +125,13 @@ class MainActivity : ComponentActivity() {
             // Mirror the bottom NavigationBar's container color
             // (surfaceContainer) so the system navigation bar reads as a
             // continuation of it instead of a mismatched scrim.
-            val navBarColor = resolveColorScheme(
-                context = this@MainActivity,
-                darkTheme = darkTheme,
-                dynamicColor = settings.useDynamicColor
-            ).surfaceContainer.toArgb()
+            val navBarColor = remember(darkTheme, settings.useDynamicColor) {
+                resolveColorScheme(
+                    context = this@MainActivity,
+                    darkTheme = darkTheme,
+                    dynamicColor = settings.useDynamicColor
+                ).surfaceContainer.toArgb()
+            }
 
             LaunchedEffect(darkTheme, navBarColor) {
                 enableEdgeToEdge(
