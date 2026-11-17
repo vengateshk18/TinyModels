@@ -82,8 +82,8 @@ android {
         applicationId = "com.ai.tinymodels"
         minSdk = 29
         targetSdk = 37
-        versionCode = versionCodeOverride ?: 6
-        versionName = versionNameOverride ?: "1.0.5"
+        versionCode = versionCodeOverride ?: 7
+        versionName = versionNameOverride ?: "1.0.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

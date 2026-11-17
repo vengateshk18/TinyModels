@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -167,21 +168,43 @@ fun ChatInputBar(
             canAttachPhoto = isModelReady && !isGenerating,
             supportsVision = supportsVision
         )
-        Box {
-            IconButton(
+        Box(modifier = Modifier.padding(bottom = 4.dp)) {
+            FilledTonalIconButton(
                 onClick = { menuExpanded = true },
-                modifier = Modifier.padding(bottom = 4.dp)
+                modifier = Modifier.size(44.dp),
+                shape = CircleShape,
+                colors = IconButtonDefaults.filledTonalIconButtonColors(
+                    containerColor = if (webSearchEnabled) {
+                        MaterialTheme.colorScheme.secondaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainerHigh
+                    },
+                    contentColor = if (webSearchEnabled) {
+                        MaterialTheme.colorScheme.onSecondaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                )
             ) {
                 Icon(
                     Icons.Filled.Add,
-                    contentDescription = stringResource(R.string.chat_options_content_description),
-                    tint = if (webSearchEnabled) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurfaceVariant
+                    contentDescription = stringResource(R.string.chat_options_content_description)
+                )
+            }
+            if (webSearchEnabled) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(10.dp)
+                        .background(MaterialTheme.colorScheme.primary, CircleShape)
                 )
             }
             DropdownMenu(
                 expanded = menuExpanded,
-                onDismissRequest = { menuExpanded = false }
+                onDismissRequest = { menuExpanded = false },
+                shape = RoundedCornerShape(20.dp),
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                tonalElevation = 2.dp
             ) {
                 menuItems.forEachIndexed { index, item ->
                     when (item) {

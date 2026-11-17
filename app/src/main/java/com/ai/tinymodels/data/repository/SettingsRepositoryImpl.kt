@@ -1,6 +1,7 @@
 package com.ai.tinymodels.data.repository
 
 import android.content.Context
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
@@ -14,9 +15,15 @@ import com.ai.tinymodels.domain.model.FontChoice
 import com.ai.tinymodels.domain.model.ThemeMode
 import com.ai.tinymodels.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -26,6 +33,8 @@ private val Context.dataStore by preferencesDataStore(name = "tiny_models_settin
 class SettingsRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : SettingsRepository {
+
+    private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private object Keys {
         val THEME_MODE = stringPreferencesKey(TinyConstants.PREFS_THEME_MODE)
@@ -44,28 +53,33 @@ class SettingsRepositoryImpl @Inject constructor(
         val HUGGINGFACE_TOKEN = stringPreferencesKey(TinyConstants.PREFS_HUGGING_FACE_TOKEN)
     }
 
-    override val settings: Flow<AppSettings> = context.dataStore.data.map { prefs ->
-        AppSettings(
-            themeMode = prefs[Keys.THEME_MODE]?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() }
-                ?: ThemeMode.DARK,
-            appTheme = prefs[Keys.APP_THEME]?.let { runCatching { AppTheme.valueOf(it) }.getOrNull() }
-                ?: AppTheme.DEFAULT,
-            useDynamicColor = prefs[Keys.DYNAMIC_COLOR] ?: true,
-            fontChoice = prefs[Keys.FONT_CHOICE]?.let { runCatching { FontChoice.valueOf(it) }.getOrNull() }
-                ?: FontChoice.SYSTEM,
-            fontScale = prefs[Keys.FONT_SCALE] ?: 1.0f,
-            defaultBackend = prefs[Keys.DEFAULT_BACKEND]?.let { runCatching { BackendPreference.valueOf(it) }.getOrNull() }
-                ?: BackendPreference.AUTO,
-            webSearchEnabled = prefs[Keys.WEB_SEARCH_ENABLED] ?: true,
-            wifiOnlyDownloads = prefs[Keys.WIFI_ONLY_DOWNLOADS] ?: false,
-            autoLoadLastModel = prefs[Keys.AUTO_LOAD_LAST_MODEL] ?: true,
-            keepScreenOn = prefs[Keys.KEEP_SCREEN_ON] ?: true,
-            showTokenCounts = prefs[Keys.SHOW_TOKEN_COUNTS] ?: false,
-            onboardingCompleted = prefs[Keys.ONBOARDING_COMPLETED] ?: false
-        )
-    }
+    private fun Preferences.toAppSettings() = AppSettings(
+        themeMode = this[Keys.THEME_MODE]?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() }
+            ?: ThemeMode.DARK,
+        appTheme = this[Keys.APP_THEME]?.let { runCatching { AppTheme.valueOf(it) }.getOrNull() }
+            ?: AppTheme.DEFAULT,
+        useDynamicColor = this[Keys.DYNAMIC_COLOR] ?: true,
+        fontChoice = this[Keys.FONT_CHOICE]?.let { runCatching { FontChoice.valueOf(it) }.getOrNull() }
+            ?: FontChoice.SYSTEM,
+        fontScale = this[Keys.FONT_SCALE] ?: 1.0f,
+        defaultBackend = this[Keys.DEFAULT_BACKEND]?.let { runCatching { BackendPreference.valueOf(it) }.getOrNull() }
+            ?: BackendPreference.AUTO,
+        webSearchEnabled = this[Keys.WEB_SEARCH_ENABLED] ?: true,
+        wifiOnlyDownloads = this[Keys.WIFI_ONLY_DOWNLOADS] ?: false,
+        autoLoadLastModel = this[Keys.AUTO_LOAD_LAST_MODEL] ?: true,
+        keepScreenOn = this[Keys.KEEP_SCREEN_ON] ?: true,
+        showTokenCounts = this[Keys.SHOW_TOKEN_COUNTS] ?: false,
+        onboardingCompleted = this[Keys.ONBOARDING_COMPLETED] ?: false
+    )
 
-    override suspend fun getSettings(): AppSettings = settings.first()
+    // Hot, eagerly-shared state so collectors (and Settings) see the latest
+    // persisted values immediately instead of a default-then-real flip.
+    override val settings: StateFlow<AppSettings> = context.dataStore.data
+        .map { prefs -> prefs.toAppSettings() }
+        .stateIn(repositoryScope, SharingStarted.Eagerly, AppSettings())
+
+    override suspend fun getSettings(): AppSettings =
+        context.dataStore.data.first().toAppSettings()
 
     override suspend fun setThemeMode(mode: ThemeMode) {
         context.dataStore.edit { it[Keys.THEME_MODE] = mode.name }

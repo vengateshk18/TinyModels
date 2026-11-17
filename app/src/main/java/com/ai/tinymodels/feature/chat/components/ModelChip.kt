@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.TinyConstants
+import com.ai.tinymodels.core.ui.components.bottomSheetTopSafePadding
 import com.ai.tinymodels.domain.model.DownloadedModel
 import com.ai.tinymodels.feature.chat.model.ModelChipState
 
@@ -116,16 +117,19 @@ fun ModelPickerSheet(
     onSelect: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         // Suppress the sheet's built-in inset handling so we control it precisely.
         contentWindowInsets = { WindowInsets(0) },
-        modifier = Modifier.fillMaxWidth()
+        // Keep below status bar; anchor to bottom and let it grow to fit content.
+        modifier = Modifier.bottomSheetTopSafePadding()
     ) {
         Column(
             modifier = Modifier
+                .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .windowInsetsPadding(
                     WindowInsets.systemBars
@@ -133,9 +137,17 @@ fun ModelPickerSheet(
                         .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
                 )
         ) {
-            Text(stringResource(R.string.chat_model_choose_title), style = MaterialTheme.typography.titleMedium)
+            Text(
+                stringResource(R.string.chat_model_choose_title),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(top = 4.dp)
+            )
             Spacer(modifier = Modifier.height(8.dp))
-            LazyColumn {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = false)
+            ) {
                 items(models, key = { it.modelId }) { model ->
                     ModelPickerRow(
                         model = model,

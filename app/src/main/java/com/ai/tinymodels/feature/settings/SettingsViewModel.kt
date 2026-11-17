@@ -45,7 +45,12 @@ class SettingsViewModel @Inject constructor(
     }
 
     val settings: StateFlow<AppSettings> = settingsRepository.settings
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppSettings())
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = (settingsRepository.settings as? StateFlow<AppSettings>)?.value
+                ?: AppSettings()
+        )
 
     /** Stored Hugging Face access token, or null when unset. */
     val huggingFaceToken: StateFlow<String?> = settingsRepository.huggingFaceToken

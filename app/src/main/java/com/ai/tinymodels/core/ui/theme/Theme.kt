@@ -131,7 +131,10 @@ fun TinyModelsTheme(
         ThemeMode.DARK -> true
     }
 
-    val colorScheme = resolveColorScheme(LocalContext.current, darkTheme, dynamicColor, appTheme)
+    val context = LocalContext.current
+    val colorScheme = remember(context, darkTheme, dynamicColor, appTheme) {
+        resolveColorScheme(context, darkTheme, dynamicColor, appTheme)
+    }
 
     // Rebuild the Typography only when the font actually changes. Without this,
     // any recomposition of the theme recreates all 15 text styles, which makes

@@ -862,12 +862,17 @@ private fun FontBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        // Suppress the sheet's built-in inset handling so we control it precisely.
         contentWindowInsets = { WindowInsets(0) },
-        modifier = Modifier.fillMaxWidth()
+        // Keep the sheet below the status bar and let it anchor to the bottom
+        // while growing to fit content (never force a fixed/full height).
+        modifier = Modifier.bottomSheetTopSafePadding()
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp)
                 .windowInsetsPadding(
                     WindowInsets.systemBars.union(WindowInsets.displayCutout)
@@ -911,13 +916,18 @@ internal fun LanguageBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        // Suppress the sheet's built-in inset handling so we control it precisely.
         contentWindowInsets = { WindowInsets(0) },
-        modifier = Modifier.fillMaxWidth().bottomSheetTopSafePadding()
+        // Keep the sheet below the status bar and let it anchor to the bottom
+        // while growing to fit content (scrolls in landscape).
+        modifier = Modifier.bottomSheetTopSafePadding()
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .testTag(LANGUAGE_SHEET_CONTENT_TAG)
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp)
                 .windowInsetsPadding(
                     WindowInsets.systemBars.union(WindowInsets.displayCutout)
