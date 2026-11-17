@@ -6,11 +6,15 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.text.format.Formatter
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -70,6 +74,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -142,6 +147,8 @@ fun SettingsScreen(
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val clearResult by viewModel.clearResult.collectAsStateWithLifecycle()
     val isImporting by viewModel.isImporting.collectAsStateWithLifecycle()
+    val importProgress by viewModel.importProgress.collectAsStateWithLifecycle()
+    val importToast by viewModel.importToast.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var showClearDialog by remember { mutableStateOf(false) }
@@ -166,86 +173,82 @@ fun SettingsScreen(
         }
     }
 
-    val safeTopHorizontal = WindowInsets.systemBars.union(WindowInsets.displayCutout)
-        .only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
-
-    Scaffold(
-        contentWindowInsets = safeTopHorizontal,
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.settings_title), fontWeight = FontWeight.SemiBold) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                )
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            AppearanceSection(settings, viewModel)
-            ChatInferenceSection(settings, viewModel)
-            DownloadsModelsSection(
-                settings = settings,
-                viewModel = viewModel,
-                onImportClick = { importLauncher.launch(arrayOf("*/*")) },
-                onStorage = onStorage
-            )
-            AccountsSection(viewModel)
-            HomeScreenSection(
-                onAddWidget = {
-                    val appWidgetManager = context.getSystemService(AppWidgetManager::class.java)
-                    val provider = ComponentName(context, TinyModelsWidgetReceiver::class.java)
-                    if (appWidgetManager?.isRequestPinAppWidgetSupported == true) {
-                        appWidgetManager.requestPinAppWidget(provider, null, null)
-                    } else {
-                        scope.launch {
-                            snackbarHostState.showSnackbar(
-                                resources.getString(R.string.settings_add_widget_not_supported)
-                            )
-                        }
-                    }
-                }
-            )
-            ToolsAboutSection(
-                onBenchmark = onBenchmark,
-                onDeviceInfo = onDeviceInfo,
-                onViewIntro = onViewIntro
-            )
-            PrivacySecuritySection(onPrivacy = onPrivacy, onSecurity = onSecurity)
-            SupportSection()
-            DataSection(onClearHistory = { showClearDialog = true })
-            Spacer(modifier = Modifier.height(8.dp))
+    LaunchedEffect(importToast) {
+        importToast?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            viewModel.consumeImportToast()
         }
     }
 
-    if (isImporting) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                CircularProgressIndicator()
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    stringResource(R.string.settings_importing_model),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface
+    BackHandler(enabled = isImporting) { /* Block back while importing */ }
+
+    val safeTopHorizontal = WindowInsets.systemBars.union(WindowInsets.displayCutout)
+        .only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            contentWindowInsets = safeTopHorizontal,
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(R.string.settings_title), fontWeight = FontWeight.SemiBold) },
+                    navigationIcon = {
+                        IconButton(onClick = onBack, enabled = !isImporting) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    )
                 )
+            },
+            snackbarHost = { SnackbarHost(snackbarHostState) }
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                AppearanceSection(settings, viewModel)
+                ChatInferenceSection(settings, viewModel)
+                DownloadsModelsSection(
+                    settings = settings,
+                    viewModel = viewModel,
+                    onImportClick = { importLauncher.launch(arrayOf("*/*")) },
+                    onStorage = onStorage
+                )
+                AccountsSection(viewModel)
+                HomeScreenSection(
+                    onAddWidget = {
+                        val appWidgetManager = context.getSystemService(AppWidgetManager::class.java)
+                        val provider = ComponentName(context, TinyModelsWidgetReceiver::class.java)
+                        if (appWidgetManager?.isRequestPinAppWidgetSupported == true) {
+                            appWidgetManager.requestPinAppWidget(provider, null, null)
+                        } else {
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    resources.getString(R.string.settings_add_widget_not_supported)
+                                )
+                            }
+                        }
+                    }
+                )
+                ToolsAboutSection(
+                    onBenchmark = onBenchmark,
+                    onDeviceInfo = onDeviceInfo,
+                    onViewIntro = onViewIntro
+                )
+                PrivacySecuritySection(onPrivacy = onPrivacy, onSecurity = onSecurity)
+                SupportSection()
+                DataSection(onClearHistory = { showClearDialog = true })
+                Spacer(modifier = Modifier.height(8.dp))
             }
+        }
+
+        if (isImporting) {
+            ImportProgressOverlay(progress = importProgress)
         }
     }
 
@@ -266,6 +269,77 @@ fun SettingsScreen(
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun ImportProgressOverlay(progress: ModelImportProgress?) {
+    val context = LocalContext.current
+    val percent = progress?.percent
+    val detail = when {
+        progress == null -> null
+        percent != null -> "$percent%"
+        progress.bytesCopied > 0L -> Formatter.formatShortFileSize(context, progress.bytesCopied)
+        else -> null
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.45f))
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) { /* consume touches: import cannot be dismissed */ },
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 28.dp, vertical = 24.dp)
+                    .width(260.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (percent != null) {
+                    LinearProgressIndicator(
+                        progress = { percent / 100f },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                } else {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = stringResource(R.string.settings_importing_model),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                if (detail != null) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = if (percent != null && progress != null && progress.totalBytes > 0L) {
+                            "$percent% · ${Formatter.formatShortFileSize(context, progress.bytesCopied)} / ${Formatter.formatShortFileSize(context, progress.totalBytes)}"
+                        } else {
+                            detail
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = stringResource(R.string.settings_importing_model_keep_open),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
 

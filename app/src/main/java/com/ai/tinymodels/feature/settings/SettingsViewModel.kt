@@ -27,6 +27,18 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class ModelImportProgress(
+    val bytesCopied: Long,
+    val totalBytes: Long
+) {
+    val percent: Int?
+        get() = if (totalBytes > 0L) {
+            ((bytesCopied.coerceAtMost(totalBytes) * 100L) / totalBytes).toInt().coerceIn(0, 100)
+        } else {
+            null
+        }
+}
+
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -63,6 +75,13 @@ class SettingsViewModel @Inject constructor(
     private val _isImporting = MutableStateFlow(false)
     val isImporting: StateFlow<Boolean> = _isImporting.asStateFlow()
 
+    private val _importProgress = MutableStateFlow<ModelImportProgress?>(null)
+    val importProgress: StateFlow<ModelImportProgress?> = _importProgress.asStateFlow()
+
+    /** One-shot toast message for import success/failure. */
+    private val _importToast = MutableStateFlow<String?>(null)
+    val importToast: StateFlow<String?> = _importToast.asStateFlow()
+
     fun setThemeMode(mode: ThemeMode) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setThemeMode(mode) }
     fun setAppTheme(theme: AppTheme) = viewModelScope.launch(Dispatchers.Default) {
         settingsRepository.setAppTheme(theme)
@@ -95,20 +114,28 @@ class SettingsViewModel @Inject constructor(
 
     fun consumeClearResult() { _clearResult.value = null }
 
+    fun consumeImportToast() { _importToast.value = null }
+
     // ---- Model Import ----
 
     /** Import a supported model file from a user-picked document URI. */
     fun importModel(sourceUri: Uri) {
+        if (_isImporting.value) return
         _isImporting.value = true
+        _importProgress.value = ModelImportProgress(0L, -1L)
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                when (val result = modelRepository.importModel(sourceUri)) {
-                    is AppResult.Success -> _clearResult.value =
+                val result = modelRepository.importModel(sourceUri) { copied, total ->
+                    _importProgress.value = ModelImportProgress(copied, total)
+                }
+                _importToast.value = when (result) {
+                    is AppResult.Success ->
                         context.getString(R.string.settings_model_imported, result.data.modelId)
-                    is AppResult.Error -> _clearResult.value =
+                    is AppResult.Error ->
                         context.getString(R.string.settings_import_failed, result.error.message ?: "")
                 }
             } finally {
+                _importProgress.value = null
                 _isImporting.value = false
             }
         }

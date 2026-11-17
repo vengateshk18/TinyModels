@@ -74,6 +74,15 @@ class SettingsViewModelTest {
         error("Timed out waiting for clearResult")
     }
 
+    private suspend fun awaitImportToast(viewModel: SettingsViewModel): String {
+        val start = System.currentTimeMillis()
+        while (System.currentTimeMillis() - start < 5_000) {
+            viewModel.importToast.value?.let { return it }
+            delay(50)
+        }
+        error("Timed out waiting for importToast")
+    }
+
     @Test
     fun `settings reflects current repo value immediately`() {
         settingsRepo.settingsFlow.value = AppSettings(
@@ -87,7 +96,7 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `import success reports model id`() = runBlocking {
+    fun `import success reports model id as toast`() = runBlocking {
         modelRepo.importResult = AppResult.Success(
             DownloadedModel("a/b", null, null, null, "/tmp", 0L)
         )
@@ -96,28 +105,46 @@ class SettingsViewModelTest {
         viewModel.importModel(mockk<Uri>())
         assertEquals(
             "${R.string.settings_model_imported}(a/b)",
-            awaitResult(viewModel)
+            awaitImportToast(viewModel)
         )
-    }
-
-    @Test
-    fun `import failure reports error`() = runBlocking {
-        modelRepo.importResult = AppResult.Error(AppError.Unknown("bad file"))
-        val viewModel = vm()
-
-        viewModel.importModel(mockk<Uri>())
-        assertTrue(awaitResult(viewModel).startsWith(R.string.settings_import_failed.toString()))
-    }
-
-    @Test
-    fun `consumeClearResult clears message`() = runBlocking {
-        modelRepo.importResult = AppResult.Error(AppError.Unknown("bad file"))
-        val viewModel = vm()
-
-        viewModel.importModel(mockk<Uri>())
-        awaitResult(viewModel)
-        viewModel.consumeClearResult()
         assertNull(viewModel.clearResult.value)
+    }
+
+    @Test
+    fun `import failure reports error as toast`() = runBlocking {
+        modelRepo.importResult = AppResult.Error(AppError.Unknown("bad file"))
+        val viewModel = vm()
+
+        viewModel.importModel(mockk<Uri>())
+        assertTrue(awaitImportToast(viewModel).startsWith(R.string.settings_import_failed.toString()))
+        assertNull(viewModel.clearResult.value)
+    }
+
+    @Test
+    fun `consumeImportToast clears import message`() = runBlocking {
+        modelRepo.importResult = AppResult.Error(AppError.Unknown("bad file"))
+        val viewModel = vm()
+
+        viewModel.importModel(mockk<Uri>())
+        awaitImportToast(viewModel)
+        viewModel.consumeImportToast()
+        assertNull(viewModel.importToast.value)
+    }
+
+    @Test
+    fun `import reports live progress and clears it when finished`() = runBlocking {
+        modelRepo.importResult = AppResult.Success(
+            DownloadedModel("a/b", null, null, null, "/tmp", 0L)
+        )
+        modelRepo.progressUpdates = listOf(0L to 100L, 50L to 100L, 100L to 100L)
+        val viewModel = vm()
+
+        viewModel.importModel(mockk<Uri>())
+        awaitImportToast(viewModel)
+
+        assertEquals(listOf(50, 100), modelRepo.observedPercents)
+        assertNull(viewModel.importProgress.value)
+        assertEquals(false, viewModel.isImporting.value)
     }
 
     @Test
@@ -220,8 +247,19 @@ private class FakeSettingsRepository : SettingsRepository {
 private class FakeImportModelRepository : ModelRepository {
     var importResult: AppResult<DownloadedModel> =
         AppResult.Error(AppError.Unknown("not stubbed"))
+    var progressUpdates: List<Pair<Long, Long>> = emptyList()
+    val observedPercents = mutableListOf<Int>()
 
-    override suspend fun importModel(sourceUri: Uri): AppResult<DownloadedModel> = importResult
+    override suspend fun importModel(
+        sourceUri: Uri,
+        onProgress: (bytesCopied: Long, totalBytes: Long) -> Unit
+    ): AppResult<DownloadedModel> {
+        progressUpdates.forEach { (copied, total) ->
+            onProgress(copied, total)
+            if (total > 0L) observedPercents += ((copied.coerceAtMost(total) * 100L) / total).toInt()
+        }
+        return importResult
+    }
 
     override fun observeDownloadedModels(): Flow<List<DownloadedModel>> =
         MutableStateFlow(emptyList())

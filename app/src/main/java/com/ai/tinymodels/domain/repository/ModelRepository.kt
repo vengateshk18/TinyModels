@@ -64,5 +64,8 @@ interface ModelRepository {
     suspend fun exportModelFile(modelId: String, fileName: String, destinationUri: Uri): AppResult<Uri>
     
     /** Import a model file (.litertlm, .task, .tflite or .gguf) via SAF. */
-    suspend fun importModel(sourceUri: Uri): AppResult<DownloadedModel>
+    suspend fun importModel(
+        sourceUri: Uri,
+        onProgress: (bytesCopied: Long, totalBytes: Long) -> Unit = { _, _ -> }
+    ): AppResult<DownloadedModel>
 }

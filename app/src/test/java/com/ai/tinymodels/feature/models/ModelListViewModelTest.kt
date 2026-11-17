@@ -274,7 +274,8 @@ private class FakeListModelRepository : ModelRepository {
             com.ai.tinymodels.core.common.AppError.Unknown("not supported in tests")
         )
     override suspend fun importModel(
-        sourceUri: android.net.Uri
+        sourceUri: android.net.Uri,
+        onProgress: (bytesCopied: Long, totalBytes: Long) -> Unit
     ): com.ai.tinymodels.core.common.AppResult<com.ai.tinymodels.domain.model.DownloadedModel> =
         com.ai.tinymodels.core.common.AppResult.Error(
             com.ai.tinymodels.core.common.AppError.Unknown("not supported in tests")

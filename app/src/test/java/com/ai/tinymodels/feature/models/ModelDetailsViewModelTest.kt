@@ -536,6 +536,7 @@ private class FakeModelRepository : ModelRepository {
         destinationUri: android.net.Uri
     ): AppResult<android.net.Uri> = AppResult.Error(AppError.Unknown("not supported in tests"))
     override suspend fun importModel(
-        sourceUri: android.net.Uri
+        sourceUri: android.net.Uri,
+        onProgress: (bytesCopied: Long, totalBytes: Long) -> Unit
     ): AppResult<DownloadedModel> = AppResult.Error(AppError.Unknown("not supported in tests"))
 }

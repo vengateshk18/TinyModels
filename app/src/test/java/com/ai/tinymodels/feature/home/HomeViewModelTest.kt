@@ -336,7 +336,10 @@ private class FakeHomeModelRepository : ModelRepository {
         destinationUri: android.net.Uri
     ): com.ai.tinymodels.core.common.AppResult<android.net.Uri> =
         throw NotImplementedError()
-    override suspend fun importModel(sourceUri: android.net.Uri): com.ai.tinymodels.core.common.AppResult<DownloadedModel> =
+    override suspend fun importModel(
+        sourceUri: android.net.Uri,
+        onProgress: (bytesCopied: Long, totalBytes: Long) -> Unit
+    ): com.ai.tinymodels.core.common.AppResult<DownloadedModel> =
         throw NotImplementedError()
 }
 

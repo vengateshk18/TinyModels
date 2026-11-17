@@ -287,4 +287,5 @@
     <string name="storage_reset_confirm_action">மீட்டமை</string>
 
     <string name="model_import_projector_not_model">இது ஒரு விஷன் புரொஜெக்டர் (mmproj), மொழி மாதிரி அல்ல. முக்கிய .gguf மாதிரியை இறக்குமதி செய்யவும் — புரொஜெக்டர்கள் தானாகவே பதிவிறக்கப்பட்டு இணைக்கப்படும்.</string>
+    <string name="settings_importing_model_keep_open">இறக்குமதி செய்யும் போது இந்தத் திரையைத் திறந்து வைத்திருங்கள்.</string>
 </resources>

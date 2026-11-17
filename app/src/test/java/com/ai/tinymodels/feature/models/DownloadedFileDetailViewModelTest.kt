@@ -291,6 +291,9 @@ private class FakeFileDetailRepository : ModelRepository {
         localPath: String?,
         error: String?
     ) {}
-    override suspend fun importModel(sourceUri: Uri): AppResult<DownloadedModel> =
+    override suspend fun importModel(
+        sourceUri: Uri,
+        onProgress: (bytesCopied: Long, totalBytes: Long) -> Unit
+    ): AppResult<DownloadedModel> =
         AppResult.Error(AppError.Unknown("not stubbed"))
 }

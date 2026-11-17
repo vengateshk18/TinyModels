@@ -287,4 +287,5 @@
     <string name="storage_reset_confirm_action">Restablecer datos</string>
 
     <string name="model_import_projector_not_model">Este es un proyector de visión (mmproj), no un modelo de lenguaje. Importa el modelo .gguf principal: los proyectores se descargan y se emparejan automáticamente.</string>
+    <string name="settings_importing_model_keep_open">Mantén esta pantalla abierta mientras se importa.</string>
 </resources>

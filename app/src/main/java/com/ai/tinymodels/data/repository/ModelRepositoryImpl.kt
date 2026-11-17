@@ -303,12 +303,15 @@ class ModelRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun importModel(sourceUri: Uri): AppResult<DownloadedModel> =
+    override suspend fun importModel(
+        sourceUri: Uri,
+        onProgress: (bytesCopied: Long, totalBytes: Long) -> Unit
+    ): AppResult<DownloadedModel> =
         withContext(dispatchers.io) {
             AppResult.runCatching(
                 errorMapper = { e -> AppError.Unknown(e.message, e) }
             ) {
-                                val fileName = getFileNameFromUri(sourceUri)
+                val fileName = getFileNameFromUri(sourceUri)
                     ?: throw IllegalStateException(context.getString(R.string.model_import_no_file_name))
 
                 if (!fileName.isModelFile()) {
@@ -342,9 +345,24 @@ class ModelRepositoryImpl @Inject constructor(
                 modelDir.mkdirs()
                 val targetFile = File(modelDir, fileName)
 
+                val totalBytes = runCatching {
+                    context.contentResolver.openAssetFileDescriptor(sourceUri, "r")?.use { afd ->
+                        if (afd.length >= 0) afd.length else -1L
+                    } ?: -1L
+                }.getOrDefault(-1L)
+
                 context.contentResolver.openInputStream(sourceUri)?.use { input ->
                     targetFile.outputStream().use { output ->
-                        input.copyTo(output)
+                        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                        var copied = 0L
+                        onProgress(0L, totalBytes)
+                        while (true) {
+                            val read = input.read(buffer)
+                            if (read <= 0) break
+                            output.write(buffer, 0, read)
+                            copied += read
+                            onProgress(copied, totalBytes)
+                        }
                     }
                 } ?: throw IllegalStateException(context.getString(R.string.model_import_open_failed))
 
