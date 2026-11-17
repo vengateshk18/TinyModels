@@ -166,4 +166,11 @@
     <string name="chat_speak_message">यह संदेश बोलकर सुनाएं</string>
     <string name="chat_voice_input_processing">आवाज़ प्रोसेस हो रही है…</string>
     <string name="chat_stop_speaking">बोलना बंद करें</string>
+
+    <!-- Web search sources -->
+    <string name="chat_sources_count_one">1 स्रोत</string>
+    <string name="chat_sources_count_other">%1$d स्रोत</string>
+    <string name="chat_sources_sheet_title">स्रोत</string>
+    <string name="chat_sources_searched_for">खोजा गया</string>
+    <string name="chat_source_open_content_description">स्रोत खोलें</string>
 </resources>

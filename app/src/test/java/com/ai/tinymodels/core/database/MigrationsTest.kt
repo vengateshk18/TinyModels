@@ -69,4 +69,13 @@ class MigrationsTest {
         Migrations.MIGRATION_11_12.migrate(db)
         verify(exactly = 0) { db.execSQL(any<String>()) }
     }
+
+    @Test
+    fun `migration 12 to 13 adds webSearchSources to messages`() {
+        val db = mockk<SupportSQLiteDatabase> {
+            every { execSQL(any()) } returns Unit
+        }
+        Migrations.MIGRATION_12_13.migrate(db)
+        verify { db.execSQL("ALTER TABLE messages ADD COLUMN webSearchSources TEXT") }
+    }
 }

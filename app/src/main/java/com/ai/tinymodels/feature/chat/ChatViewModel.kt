@@ -1091,9 +1091,15 @@ class ChatViewModel @Inject constructor(
             }
 
             TinyLog.i(TAG, "JOURNEY: starting generation (assistantId=$assistantId)")
-            val prompt = maybeAugmentWithSearch(activeChatId, text)
-                .ifBlank { appContext.getString(R.string.chat_default_photo_prompt) }
-            runGeneration(activeChatId, assistantId, prompt, listOfNotNull(savedImagePath))
+            val augmentation = maybeAugmentWithSearch(activeChatId, text)
+            val prompt = augmentation.prompt.ifBlank { appContext.getString(R.string.chat_default_photo_prompt) }
+            runGeneration(
+                activeChatId,
+                assistantId,
+                prompt,
+                listOfNotNull(savedImagePath),
+                augmentation.sources
+            )
         }
     }
 
@@ -1134,19 +1140,25 @@ class ChatViewModel @Inject constructor(
             }
         }
 
+    /** Prompt sent to the model for a turn, plus any web sources to show with the reply. */
+    private data class PromptAugmentation(
+        val prompt: String,
+        val sources: List<WebSearchResult> = emptyList()
+    )
+
     /**
      * App-side auto-search (primary trigger). Tiny on-device models often skip
      * tool calls entirely — this does not need their cooperation.
      *
-     * Returns the prompt to send: either [WebSearchPrompt.webSearchPrompt] /
-     * [WebSearchPrompt.webRecallPrompt] output, or the raw [text] when search
-     * is off, unneeded, empty, or failed (model then answers from knowledge).
-     * The raw user message is still what gets persisted; only this turn's
-     * prompt is augmented. Sources are kept in [lastSearchSources] for
+     * Returns the prompt to send and the sources that informed it (shown under
+     * the reply). The raw user message is still what gets persisted; only this
+     * turn's prompt is augmented. Sources are kept in [lastSearchSources] for
      * follow-up recall.
      */
-    private suspend fun maybeAugmentWithSearch(chatId: String, text: String): String {
-        if (!_uiState.value.webSearchAvailable || !_uiState.value.webSearchEnabled) return text
+    private suspend fun maybeAugmentWithSearch(chatId: String, text: String): PromptAugmentation {
+        if (!_uiState.value.webSearchAvailable || !_uiState.value.webSearchEnabled) {
+            return PromptAugmentation(text)
+        }
         // Fresh search when the message wants live info.
         if (WebSearchQuery.needsWebSearch(text)) {
             return try {
@@ -1155,7 +1167,7 @@ class ChatViewModel @Inject constructor(
                     .takeLast(3)
                     .map { it.content }
                 val sent = WebSearchQuery.searchQueryFrom(text, previous)
-                if (sent.isBlank()) return text
+                if (sent.isBlank()) return PromptAugmentation(text)
                 val started = System.currentTimeMillis()
                 val results = webSearchRepository.search(sent)
                 val ms = System.currentTimeMillis() - started
@@ -1165,26 +1177,35 @@ class ChatViewModel @Inject constructor(
                         TAG,
                         "JOURNEY: web_search auto (${results.results.size} results, lead=${results.leadText.length} chars) in ${ms}ms for \"$sent\""
                     )
-                    WebSearchPrompt.webSearchPrompt(results, text)
+                    PromptAugmentation(
+                        prompt = WebSearchPrompt.webSearchPrompt(results, text),
+                        sources = results.results
+                    )
                 } else {
                     TinyLog.w(
                         TAG,
                         "JOURNEY: web_search auto empty (blocked=${results.blocked}) in ${ms}ms for \"$sent\""
                     )
                     if (results.blocked) {
-                        "$text\n\n(Note: live web search was blocked just now; answer from your own knowledge and say so.)"
+                        PromptAugmentation(
+                            "$text\n\n(Note: live web search was blocked just now; answer from your own knowledge and say so.)"
+                        )
                     } else {
                         // Fall back to prior sources rather than nothing.
                         val prior = lastSearchSources[chatId].orEmpty()
-                        if (prior.isNotEmpty()) WebSearchPrompt.webRecallPrompt(prior, text) else text
+                        if (prior.isNotEmpty()) {
+                            PromptAugmentation(WebSearchPrompt.webRecallPrompt(prior, text), prior)
+                        } else {
+                            PromptAugmentation(text)
+                        }
                     }
                 }
             } catch (e: WebSearchException) {
                 TinyLog.w(TAG, "JOURNEY: web_search auto failed: ${e.message}")
-                text
+                PromptAugmentation(text)
             } catch (e: Exception) {
                 TinyLog.w(TAG, "JOURNEY: web_search auto failed unexpectedly: ${e.message}")
-                text
+                PromptAugmentation(text)
             }
         }
         // Follow-up with no fresh need: re-show prior sources so the model
@@ -1192,16 +1213,17 @@ class ChatViewModel @Inject constructor(
         val prior = lastSearchSources[chatId].orEmpty()
         if (prior.isNotEmpty() && WebSearchQuery.readsAsFollowUp(text)) {
             TinyLog.i(TAG, "JOURNEY: web_search recall (${prior.size} sources) for follow-up \"$text\"")
-            return WebSearchPrompt.webRecallPrompt(prior, text)
+            return PromptAugmentation(WebSearchPrompt.webRecallPrompt(prior, text), prior)
         }
-        return text
+        return PromptAugmentation(text)
     }
 
     private fun runGeneration(
         chatId: String,
         assistantId: String,
         prompt: String,
-        imagePaths: List<String> = emptyList()
+        imagePaths: List<String> = emptyList(),
+        webSearchSources: List<WebSearchResult> = emptyList()
     ) {
         val activeSession = session
         if (activeSession == null) {
@@ -1230,7 +1252,10 @@ class ChatViewModel @Inject constructor(
                         throwable
                     )
                     // Persist partial, then surface the error.
-                    persistAssistant(chatId, assistantId, buffer.toString(), isComplete = false)
+                    persistAssistant(
+                        chatId, assistantId, buffer.toString(),
+                        isComplete = false, webSearchSources = webSearchSources
+                    )
                     _uiState.update {
                         it.copy(
                             generation = GenerationState.IDLE,
@@ -1272,13 +1297,22 @@ class ChatViewModel @Inject constructor(
                         "${buffer.length} chars, ~${buffer.length / 4} tokens " +
                         "(~${if (totalMs > 0) (buffer.length / 4 * 1000 / totalMs) else 0} tokens/s)"
                 )
-                persistAssistant(chatId, assistantId, buffer.toString(), isComplete = true, completedAt = finishedAt)
+                persistAssistant(
+                    chatId, assistantId, buffer.toString(),
+                    isComplete = true, completedAt = finishedAt, webSearchSources = webSearchSources
+                )
                 _uiState.update { s ->
                     s.copy(
                         generation = GenerationState.IDLE,
                         streamingMessageId = null,
                         messages = s.messages.map { m ->
-                            if (m.id == assistantId) m.copy(isStreaming = false, completedAt = finishedAt) else m
+                            if (m.id == assistantId) {
+                                m.copy(
+                                    isStreaming = false,
+                                    completedAt = finishedAt,
+                                    webSearchSources = webSearchSources
+                                )
+                            } else m
                         }
                     )
                 }
@@ -1308,7 +1342,10 @@ class ChatViewModel @Inject constructor(
             val chatId = _uiState.value.activeChatId ?: return@launch
             val streaming = _uiState.value.messages.lastOrNull { !it.isUser } ?: return@launch
             if (streaming.text.isNotBlank()) {
-                persistAssistant(chatId, streaming.id, streaming.text, isComplete = false)
+                persistAssistant(
+                    chatId, streaming.id, streaming.text,
+                    isComplete = false, webSearchSources = streaming.webSearchSources
+                )
             }
         }
     }
@@ -1363,7 +1400,9 @@ class ChatViewModel @Inject constructor(
                 )
             }
 
-            runGeneration(chatId, newAssistantId, lastUser.text)
+            val augmentation = maybeAugmentWithSearch(chatId, lastUser.text)
+            val prompt = augmentation.prompt.ifBlank { appContext.getString(R.string.chat_default_photo_prompt) }
+            runGeneration(chatId, newAssistantId, prompt, webSearchSources = augmentation.sources)
         }
     }
 
@@ -1424,7 +1463,9 @@ class ChatViewModel @Inject constructor(
                     )
                 )
             }
-            runGeneration(chatId, newAssistantId, text)
+            val augmentation = maybeAugmentWithSearch(chatId, text)
+            val prompt = augmentation.prompt.ifBlank { appContext.getString(R.string.chat_default_photo_prompt) }
+            runGeneration(chatId, newAssistantId, prompt, webSearchSources = augmentation.sources)
         }
     }
 
@@ -1433,7 +1474,8 @@ class ChatViewModel @Inject constructor(
         id: String,
         text: String,
         isComplete: Boolean,
-        completedAt: Long? = if (isComplete) System.currentTimeMillis() else null
+        completedAt: Long? = if (isComplete) System.currentTimeMillis() else null,
+        webSearchSources: List<WebSearchResult> = emptyList()
     ) {
         if (text.isBlank()) return
         chatRepository.saveMessage(
@@ -1445,7 +1487,8 @@ class ChatViewModel @Inject constructor(
                 tokenCount = SessionBudget.estimateTokens(text),
                 createdAt = System.currentTimeMillis(),
                 isComplete = isComplete,
-                completedAt = completedAt
+                completedAt = completedAt,
+                webSearchSources = webSearchSources
             )
         )
     }
@@ -1477,7 +1520,8 @@ class ChatViewModel @Inject constructor(
         timestamp = createdAt,
         completedAt = completedAt,
         tokenCount = tokenCount.takeIf { isComplete },
-        imagePath = imagePath
+        imagePath = imagePath,
+        webSearchSources = webSearchSources
     )
 
     /**

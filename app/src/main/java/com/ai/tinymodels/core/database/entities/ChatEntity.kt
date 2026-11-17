@@ -50,5 +50,7 @@ data class MessageEntity(
     /** Wall-clock time when generation finished (assistant messages only). */
     val completedAt: Long? = null,
     /** Absolute path of an attached photo (user messages only, DB v9). Null when text-only. */
-    val imagePath: String? = null
+    val imagePath: String? = null,
+    /** JSON array of web-search sources used for this assistant reply (DB v13). */
+    val webSearchSources: String? = null
 )

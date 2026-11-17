@@ -164,4 +164,11 @@
     <string name="chat_speak_message">Speak this message</string>
     <string name="chat_voice_input_processing">Processing voice…</string>
     <string name="chat_stop_speaking">Stop speaking</string>
+
+    <!-- Web search sources -->
+    <string name="chat_sources_count_one">1 source</string>
+    <string name="chat_sources_count_other">%1$d sources</string>
+    <string name="chat_sources_sheet_title">Sources</string>
+    <string name="chat_sources_searched_for">Searched for</string>
+    <string name="chat_source_open_content_description">Open source</string>
 </resources>

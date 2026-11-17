@@ -9,6 +9,7 @@ import com.ai.tinymodels.domain.model.ChatMessage
 import com.ai.tinymodels.domain.model.ChatSummary
 import com.ai.tinymodels.domain.model.InferenceSettings
 import com.ai.tinymodels.domain.model.BackendPreference
+import com.ai.tinymodels.domain.model.WebSearchSourcesCodec
 import com.ai.tinymodels.domain.repository.ChatRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -198,7 +199,8 @@ class ChatRepositoryImpl @Inject constructor(
         createdAt = createdAt,
         isComplete = isComplete,
         completedAt = completedAt,
-        imagePath = imagePath
+        imagePath = imagePath,
+        webSearchSources = WebSearchSourcesCodec.fromJson(webSearchSources)
     )
 
     private fun ChatMessage.toEntity() = MessageEntity(
@@ -210,6 +212,7 @@ class ChatRepositoryImpl @Inject constructor(
         createdAt = createdAt,
         isComplete = isComplete,
         completedAt = completedAt,
-        imagePath = imagePath
+        imagePath = imagePath,
+        webSearchSources = webSearchSources.takeIf { it.isNotEmpty() }?.let { WebSearchSourcesCodec.toJson(it) }
     )
 }

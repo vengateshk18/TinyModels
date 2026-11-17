@@ -169,4 +169,11 @@
     <string name="chat_speak_message">Leer este mensaje en voz alta</string>
     <string name="chat_voice_input_processing">Procesando voz…</string>
     <string name="chat_stop_speaking">Detener lectura</string>
+
+    <!-- Web search sources -->
+    <string name="chat_sources_count_one">1 fuente</string>
+    <string name="chat_sources_count_other">%1$d fuentes</string>
+    <string name="chat_sources_sheet_title">Fuentes</string>
+    <string name="chat_sources_searched_for">Búsqueda</string>
+    <string name="chat_source_open_content_description">Abrir fuente</string>
 </resources>

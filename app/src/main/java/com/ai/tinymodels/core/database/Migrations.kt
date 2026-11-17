@@ -112,6 +112,17 @@ object Migrations {
         }
     }
 
+    /**
+     * v12 → v13: adds `webSearchSources` to `messages` — a JSON array of
+     * sources (title/url/snippet/query) used for an assistant reply, shown in
+     * the chat UI. Null for messages with no web sources.
+     */
+    val MIGRATION_12_13 = object : Migration(12, 13) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE messages ADD COLUMN webSearchSources TEXT")
+        }
+    }
+
     val MIGRATION_4_5 = object : Migration(4, 5) {
         override fun migrate(db: SupportSQLiteDatabase) {
             // 1. Create the new model_files table.

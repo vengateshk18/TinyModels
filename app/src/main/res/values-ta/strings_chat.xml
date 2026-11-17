@@ -166,4 +166,11 @@
     <string name="chat_speak_message">இந்த செய்தியை பேசு</string>
     <string name="chat_voice_input_processing">குரல் செயலாக்கப்படுகிறது…</string>
     <string name="chat_stop_speaking">பேசுவதை நிறுத்து</string>
+
+    <!-- Web search sources -->
+    <string name="chat_sources_count_one">1 மூலம்</string>
+    <string name="chat_sources_count_other">%1$d ஆதாரங்கள்</string>
+    <string name="chat_sources_sheet_title">ஆதாரங்கள்</string>
+    <string name="chat_sources_searched_for">தேடியது</string>
+    <string name="chat_source_open_content_description">ஆதாரத்தைத் திற</string>
 </resources>

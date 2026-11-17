@@ -2,6 +2,7 @@ package com.ai.tinymodels.feature.chat.model
 
 import androidx.compose.runtime.Immutable
 import com.ai.tinymodels.domain.model.InferenceSettings
+import com.ai.tinymodels.domain.model.WebSearchResult
 
 /** A message rendered in the chat list. */
 @Immutable
@@ -16,7 +17,9 @@ data class UiChatMessage(
     /** Estimated tokens for this message (null for in-flight placeholders). */
     val tokenCount: Int? = null,
     /** Absolute path of an attached photo (user messages, multimodal models). */
-    val imagePath: String? = null
+    val imagePath: String? = null,
+    /** Web-search sources used to produce this assistant reply, if any. */
+    val webSearchSources: List<WebSearchResult> = emptyList()
 )
 
 /** State of the model chip shown in the top bar. */

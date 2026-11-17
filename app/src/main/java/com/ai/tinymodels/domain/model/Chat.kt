@@ -33,7 +33,9 @@ data class ChatMessage(
     /** Wall-clock time when generation finished (assistant messages only). */
     val completedAt: Long? = null,
     /** Absolute path of an attached photo (user messages, multimodal models). */
-    val imagePath: String? = null
+    val imagePath: String? = null,
+    /** Web-search sources used to produce this assistant reply, if any. */
+    val webSearchSources: List<WebSearchResult> = emptyList()
 ) {
     enum class Role { USER, ASSISTANT, SYSTEM }
 }
