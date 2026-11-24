@@ -124,4 +124,32 @@
     <string name="model_format_gguf" translatable="false">GGUF</string>
     <string name="model_format_mediapipe" translatable="false">MediaPipe</string>
     <string name="model_format_tflite" translatable="false">TFLite</string>
+
+    <!-- Hub discovery / device-fit -->
+    <string name="models_feed_popular">Populares</string>
+    <string name="models_feed_trending">Tendencia</string>
+    <string name="models_feed_new">Nuevos</string>
+    <string name="models_feed_updated">Actualizados recientemente</string>
+    <string name="models_tag_filter_label">Etiqueta</string>
+    <string name="models_tag_filter_any">Cualquier etiqueta</string>
+    <string name="model_details_license">Licencia</string>
+    <string name="model_details_parameters">Parámetros</string>
+    <string name="model_details_context_length">Longitud de contexto</string>
+    <string name="model_details_architecture">Arquitectura</string>
+    <string name="model_details_device_fit">Compatibilidad del dispositivo</string>
+    <string name="model_details_recommended_variant">Recomendado para este dispositivo</string>
+    <string name="model_details_not_recommended_tag">No recomendado</string>
+    <string name="model_details_may_be_slow">Puede ejecutarse lento o requerir menos contexto en este dispositivo.</string>
+    <string name="model_details_fit_borderline">△ Puede ir lento en este dispositivo</string>
+    <string name="model_details_fit_unknown">Compatibilidad desconocida</string>
+    <string name="model_details_not_recommended">No recomendado para este dispositivo (%1$s de RAM). Prueba un archivo más pequeño o más cuantizado.</string>
+
+    <!-- Browse filters UI -->
+    <string name="models_filters">Filtros</string>
+    <string name="models_filters_title">Filtros de búsqueda</string>
+    <string name="models_filter_format">Formato</string>
+    <string name="models_filter_feed">Ordenar por</string>
+    <string name="models_clear_filters">Limpiar</string>
+    <string name="models_apply_filters">Aplicar</string>
+    <string name="models_load_more">Cargar más</string>
 </resources>

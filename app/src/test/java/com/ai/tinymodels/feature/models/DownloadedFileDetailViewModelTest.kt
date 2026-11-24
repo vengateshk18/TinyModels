@@ -275,8 +275,12 @@ private class FakeFileDetailRepository : ModelRepository {
     override suspend fun listModels(
         search: String?,
         filter: ModelFilter,
+        feed: com.ai.tinymodels.domain.model.ModelFeed,
+        tag: String?,
         limit: Int
     ): AppResult<CatalogPage> = throw NotImplementedError()
+    override suspend fun getModelTagTypes(): AppResult<Map<String, List<String>>> = AppResult.Success(emptyMap())
+    override suspend fun getModelFileSizes(modelId: String): AppResult<Map<String, Long>> = AppResult.Success(emptyMap())
     override suspend fun getModelDetails(modelId: String): AppResult<ModelDetails> =
         throw NotImplementedError()
     override suspend fun getDownloadedModel(modelId: String): DownloadedModel? = null

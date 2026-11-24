@@ -2,10 +2,12 @@
     <!-- Shared UI actions and labels -->
     <string name="common_cancel">ரத்து</string>
     <string name="common_retry">மீண்டும் முயற்சி</string>
+    <string name="common_resume">தொடரவும்</string>
     <string name="common_back">பின்செல்</string>
     <string name="common_dismiss">நிராகரி</string>
     <string name="common_delete">நீக்கு</string>
     <string name="common_close">மூடு</string>
+    <string name="common_open">திற</string>
     <string name="common_yes">ஆம்</string>
     <string name="common_no">இல்லை</string>
     <string name="common_unknown">தெரியவில்லை</string>

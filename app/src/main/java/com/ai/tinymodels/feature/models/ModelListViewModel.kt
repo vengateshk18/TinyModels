@@ -1,17 +1,22 @@
 package com.ai.tinymodels.feature.models
 
+import android.content.Context
+import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.AppError
 import com.ai.tinymodels.core.common.AppResult
 import com.ai.tinymodels.core.network.NetworkErrorMapper
 import com.ai.tinymodels.core.network.NetworkMonitor
 import com.ai.tinymodels.domain.model.CATALOG_PAGE_SIZE
+import com.ai.tinymodels.domain.model.ModelFeed
 import com.ai.tinymodels.domain.model.ModelFilter
 import com.ai.tinymodels.domain.model.ModelSummary
 import com.ai.tinymodels.domain.repository.ModelRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
@@ -22,8 +27,19 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class ModelImportProgress(
+    val bytesCopied: Long,
+    val totalBytes: Long
+) {
+    val percent: Int?
+        get() = if (totalBytes > 0L) {
+            ((bytesCopied.coerceAtMost(totalBytes) * 100L) / totalBytes).toInt().coerceIn(0, 100)
+        } else null
+}
+
 @HiltViewModel
 class ModelListViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val modelRepository: ModelRepository,
     private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
@@ -37,10 +53,15 @@ class ModelListViewModel @Inject constructor(
         val isOffline: Boolean = false,
         val searchQuery: String = "",
         val selectedFilter: ModelFilter = ModelFilter.ALL,
+        val selectedFeed: ModelFeed = ModelFeed.POPULAR,
+        val selectedTag: String? = null,
+        val tagTypes: Map<String, List<String>> = emptyMap(),
         /** True when the hub may hold more matches — shows the "Load more" footer. */
         val hasMore: Boolean = false,
         /** True while "Load more" is fetching; the current list stays visible. */
-        val isLoadingMore: Boolean = false
+        val isLoadingMore: Boolean = false,
+        val isImporting: Boolean = false,
+        val importProgress: ModelImportProgress? = null
     ) {
         /** Friendly, user-presentable copy for [error], as a localized resource. */
         @get:StringRes
@@ -55,15 +76,50 @@ class ModelListViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
+    private val _importToast = MutableStateFlow<String?>(null)
+    val importToast: StateFlow<String?> = _importToast.asStateFlow()
+
     private var searchJob: Job? = null
     private var fetchJob: Job? = null
 
     /** Raw models fetched per branch; "Load more" grows this in page steps. */
     private var pageLimit = CATALOG_PAGE_SIZE
 
+    fun consumeImportToast() { _importToast.value = null }
+
+    fun importModel(sourceUri: Uri) {
+        if (_uiState.value.isImporting) return
+        _uiState.update { it.copy(isImporting = true, importProgress = ModelImportProgress(0L, -1L)) }
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val result = modelRepository.importModel(sourceUri) { copied, total ->
+                    _uiState.update { it.copy(importProgress = ModelImportProgress(copied, total)) }
+                }
+                _importToast.value = when (result) {
+                    is AppResult.Success ->
+                        context.getString(R.string.settings_model_imported, result.data.modelId)
+                    is AppResult.Error ->
+                        context.getString(R.string.settings_import_failed, result.error.message ?: "")
+                }
+            } finally {
+                _uiState.update { it.copy(isImporting = false, importProgress = null) }
+            }
+        }
+    }
+
     init {
         refresh()
+        loadTags()
         observeConnectivity()
+    }
+
+    private fun loadTags() {
+        viewModelScope.launch {
+            when (val result = modelRepository.getModelTagTypes()) {
+                is AppResult.Success -> _uiState.update { it.copy(tagTypes = result.data) }
+                is AppResult.Error -> Unit
+            }
+        }
     }
 
     /** Tracks connectivity and auto-retries the last failed fetch on reconnect. */
@@ -74,7 +130,8 @@ class ModelListViewModel @Inject constructor(
                 _uiState.update { it.copy(isOffline = !online) }
                 // Auto-retry once when we come back online after a failed fetch.
                 if (wasOnline == false && online && _uiState.value.error != null) {
-                    fetch(_uiState.value.searchQuery, _uiState.value.selectedFilter)
+                    val s = _uiState.value
+                    fetch(s.searchQuery, s.selectedFilter, s.selectedFeed, s.selectedTag)
                 }
                 wasOnline = online
             }
@@ -82,7 +139,8 @@ class ModelListViewModel @Inject constructor(
     }
 
     fun refresh() {
-        fetch(_uiState.value.searchQuery, _uiState.value.selectedFilter)
+        val s = _uiState.value
+        fetch(s.searchQuery, s.selectedFilter, s.selectedFeed, s.selectedTag)
     }
 
     /** Debounced search — waits 500ms after the user stops typing. */
@@ -92,14 +150,36 @@ class ModelListViewModel @Inject constructor(
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
             delay(500)
-            fetch(query, _uiState.value.selectedFilter)
+            val s = _uiState.value
+            fetch(query, s.selectedFilter, s.selectedFeed, s.selectedTag)
         }
     }
 
     fun setFilter(filter: ModelFilter) {
         _uiState.update { it.copy(selectedFilter = filter) }
         pageLimit = CATALOG_PAGE_SIZE
-        fetch(_uiState.value.searchQuery, filter)
+        val s = _uiState.value
+        fetch(s.searchQuery, filter, s.selectedFeed, s.selectedTag)
+    }
+
+    fun setFeed(feed: ModelFeed) {
+        _uiState.update { it.copy(selectedFeed = feed) }
+        pageLimit = CATALOG_PAGE_SIZE
+        val s = _uiState.value
+        fetch(s.searchQuery, s.selectedFilter, feed, s.selectedTag)
+    }
+
+    fun setTag(tag: String?) {
+        _uiState.update { it.copy(selectedTag = tag) }
+        pageLimit = CATALOG_PAGE_SIZE
+        val s = _uiState.value
+        fetch(s.searchQuery, s.selectedFilter, s.selectedFeed, tag)
+    }
+
+    fun applyBrowseOptions(feed: ModelFeed, filter: ModelFilter, tag: String?) {
+        _uiState.update { it.copy(selectedFeed = feed, selectedFilter = filter, selectedTag = tag) }
+        pageLimit = CATALOG_PAGE_SIZE
+        fetch(_uiState.value.searchQuery, filter, feed, tag)
     }
 
     /** Widens the fetched window by one page; driven by the "Load more" footer. */
@@ -107,10 +187,16 @@ class ModelListViewModel @Inject constructor(
         val state = _uiState.value
         if (state.isLoading || state.isLoadingMore || !state.hasMore) return
         pageLimit += CATALOG_PAGE_SIZE
-        fetch(state.searchQuery, state.selectedFilter, isLoadMore = true)
+        fetch(state.searchQuery, state.selectedFilter, state.selectedFeed, state.selectedTag, isLoadMore = true)
     }
 
-    private fun fetch(query: String, filter: ModelFilter, isLoadMore: Boolean = false) {
+    private fun fetch(
+        query: String,
+        filter: ModelFilter,
+        feed: ModelFeed = _uiState.value.selectedFeed,
+        tag: String? = _uiState.value.selectedTag,
+        isLoadMore: Boolean = false
+    ) {
         // Last request wins: cancel any in-flight fetch so a stale response can
         // never overwrite a newer one (rapid typing, filter taps, load-more).
         fetchJob?.cancel()
@@ -125,7 +211,7 @@ class ModelListViewModel @Inject constructor(
             _uiState.update {
                 it.copy(isLoading = !isLoadMore, isLoadingMore = isLoadMore, error = null)
             }
-            when (val result = modelRepository.listModels(query, filter, pageLimit)) {
+            when (val result = modelRepository.listModels(query, filter, feed, tag, pageLimit)) {
                 is AppResult.Success ->
                     _uiState.update {
                         it.copy(

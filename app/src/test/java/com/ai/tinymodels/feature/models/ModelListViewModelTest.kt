@@ -2,9 +2,11 @@ package com.ai.tinymodels.feature.models
 
 import com.ai.tinymodels.core.common.AppError
 import com.ai.tinymodels.core.common.AppResult
+import com.ai.tinymodels.core.common.fakeStringContext
 import com.ai.tinymodels.core.network.NetworkMonitor
 import com.ai.tinymodels.domain.model.CATALOG_PAGE_SIZE
 import com.ai.tinymodels.domain.model.CatalogPage
+import com.ai.tinymodels.domain.model.ModelFeed
 import com.ai.tinymodels.domain.model.ModelFilter
 import com.ai.tinymodels.domain.model.ModelSummary
 import com.ai.tinymodels.domain.repository.ModelRepository
@@ -36,6 +38,8 @@ class ModelListViewModelTest {
         override val isOnline = MutableStateFlow(true)
     }
 
+    private val context = fakeStringContext()
+
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -47,7 +51,7 @@ class ModelListViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun vm() = ModelListViewModel(repo, networkMonitor)
+    private fun vm() = ModelListViewModel(context, repo, networkMonitor)
 
     @Test
     fun `fetch succeeds and populates models`() = runTest {
@@ -212,6 +216,31 @@ class ModelListViewModelTest {
         assertEquals(listOf("org/b"), viewModel.uiState.value.models.map { it.modelId })
     }
 
+    @Test
+    fun `applyBrowseOptions updates feed filter tag and fetches with them`() = runTest {
+        val viewModel = vm()
+        advanceUntilIdle()
+        val before = repo.calls.size
+
+        viewModel.applyBrowseOptions(
+            feed = com.ai.tinymodels.domain.model.ModelFeed.TRENDING,
+            filter = ModelFilter.GGUF,
+            tag = "license:apache-2.0"
+        )
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals(com.ai.tinymodels.domain.model.ModelFeed.TRENDING, state.selectedFeed)
+        assertEquals(ModelFilter.GGUF, state.selectedFilter)
+        assertEquals("license:apache-2.0", state.selectedTag)
+        assertEquals(before + 1, repo.calls.size)
+        val call = repo.calls.last()
+        assertEquals(ModelFilter.GGUF, call.filter)
+        assertEquals(com.ai.tinymodels.domain.model.ModelFeed.TRENDING, call.feed)
+        assertEquals("license:apache-2.0", call.tag)
+        assertEquals(CATALOG_PAGE_SIZE, call.limit)
+    }
+
     private fun sampleModel(modelId: String = "org/model") = ModelSummary(
         id = modelId,
         modelId = modelId,
@@ -228,7 +257,13 @@ class ModelListViewModelTest {
 
 /** Minimal in-memory ModelRepository for tests (list-focused). */
 private class FakeListModelRepository : ModelRepository {
-    data class Call(val search: String?, val filter: ModelFilter, val limit: Int)
+    data class Call(
+        val search: String?,
+        val filter: ModelFilter,
+        val feed: com.ai.tinymodels.domain.model.ModelFeed,
+        val tag: String?,
+        val limit: Int
+    )
 
     var result: AppResult<CatalogPage> = AppResult.Success(CatalogPage(emptyList(), hasMore = false))
     val calls = mutableListOf<Call>()
@@ -237,12 +272,16 @@ private class FakeListModelRepository : ModelRepository {
     override suspend fun listModels(
         search: String?,
         filter: ModelFilter,
+        feed: com.ai.tinymodels.domain.model.ModelFeed,
+        tag: String?,
         limit: Int
     ): AppResult<CatalogPage> {
-        val call = Call(search, filter, limit)
+        val call = Call(search, filter, feed, tag, limit)
         calls += call
         return onListModels?.invoke(call) ?: result
     }
+    override suspend fun getModelTagTypes(): AppResult<Map<String, List<String>>> = AppResult.Success(emptyMap())
+    override suspend fun getModelFileSizes(modelId: String): AppResult<Map<String, Long>> = AppResult.Success(emptyMap())
 
     override suspend fun getModelDetails(modelId: String) = throw NotImplementedError()
 

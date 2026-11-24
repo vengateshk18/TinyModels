@@ -21,13 +21,23 @@ interface ModelRepository {
      *
      * @param search user query; blank browses [filter]'s default branches.
      * @param filter chip selection — controls default branches + format filtering.
+     * @param feed ordering/feed (downloads, trending, newest, recently updated).
+     * @param tag optional Hub tag filter from model tag taxonomy.
      * @param limit raw models fetched per branch (grows with "load more").
      */
     suspend fun listModels(
         search: String? = null,
         filter: ModelFilter = ModelFilter.ALL,
+        feed: com.ai.tinymodels.domain.model.ModelFeed = com.ai.tinymodels.domain.model.ModelFeed.POPULAR,
+        tag: String? = null,
         limit: Int = CATALOG_PAGE_SIZE
     ): AppResult<CatalogPage>
+
+    /** Fetch Hub model tag taxonomy grouped by type. */
+    suspend fun getModelTagTypes(): AppResult<Map<String, List<String>>>
+
+    /** Fetch file sizes from the model repo tree (path -> bytes) for device-fit checks. */
+    suspend fun getModelFileSizes(modelId: String): AppResult<Map<String, Long>>
 
     suspend fun getModelDetails(modelId: String): AppResult<ModelDetails>
 

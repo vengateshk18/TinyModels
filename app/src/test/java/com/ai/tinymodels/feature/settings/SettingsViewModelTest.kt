@@ -264,8 +264,16 @@ private class FakeImportModelRepository : ModelRepository {
     override fun observeDownloadedModels(): Flow<List<DownloadedModel>> =
         MutableStateFlow(emptyList())
 
-    override suspend fun listModels(search: String?, filter: com.ai.tinymodels.domain.model.ModelFilter, limit: Int): AppResult<com.ai.tinymodels.domain.model.CatalogPage> =
+    override suspend fun listModels(
+        search: String?,
+        filter: com.ai.tinymodels.domain.model.ModelFilter,
+        feed: com.ai.tinymodels.domain.model.ModelFeed,
+        tag: String?,
+        limit: Int
+    ): AppResult<com.ai.tinymodels.domain.model.CatalogPage> =
         AppResult.Success(com.ai.tinymodels.domain.model.CatalogPage(emptyList(), false))
+    override suspend fun getModelTagTypes(): AppResult<Map<String, List<String>>> = AppResult.Success(emptyMap())
+    override suspend fun getModelFileSizes(modelId: String): AppResult<Map<String, Long>> = AppResult.Success(emptyMap())
     override suspend fun getModelDetails(modelId: String): AppResult<ModelDetails> =
         throw NotImplementedError()
     override suspend fun getDownloadedModel(modelId: String): DownloadedModel? = null

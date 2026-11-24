@@ -4,10 +4,12 @@
     <!-- Shared UI actions and labels (usable from any feature) -->
     <string name="common_cancel">Annuler</string>
     <string name="common_retry">Réessayer</string>
+    <string name="common_resume">Reprendre</string>
     <string name="common_back">Retour</string>
     <string name="common_dismiss">Ignorer</string>
     <string name="common_delete">Supprimer</string>
     <string name="common_close">Fermer</string>
+    <string name="common_open">Ouvrir</string>
     <string name="common_yes">Oui</string>
     <string name="common_no">Non</string>
     <string name="common_unknown">Inconnu</string>

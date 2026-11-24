@@ -11,9 +11,12 @@ import com.ai.tinymodels.core.common.MemoryUtils
 import com.ai.tinymodels.core.common.StorageUtils
 import com.ai.tinymodels.core.network.NetworkErrorMapper
 import com.ai.tinymodels.core.network.NetworkMonitor
+import com.ai.tinymodels.domain.model.DeviceFitAdvisor
+import com.ai.tinymodels.domain.model.DeviceFitLevel
 import com.ai.tinymodels.domain.model.DownloadedModelFile
 import com.ai.tinymodels.domain.model.FileDownloadStatus
 import com.ai.tinymodels.domain.model.ModelDetails
+import com.ai.tinymodels.domain.model.ModelDeviceFit
 import com.ai.tinymodels.domain.repository.ModelRepository
 import com.ai.tinymodels.domain.usecase.model.DownloadModelUseCase
 import com.ai.tinymodels.domain.usecase.model.DownloadPaths
@@ -62,7 +65,8 @@ class ModelDetailsViewModel @Inject constructor(
         /** Render-ready state for every file row, keyed by file name. */
         val fileStates: Map<String, FileRowState> = emptyMap(),
         /** Total device RAM — used for the per-file capacity indicator. */
-        val deviceRamBytes: Long = 0L
+        val deviceRamBytes: Long = 0L,
+        val deviceFit: ModelDeviceFit? = null
     ) {
         /** Best-known total size: model repo size, else what the worker reports. */
         val totalSizeBytes: Long
@@ -157,6 +161,8 @@ class ModelDetailsViewModel @Inject constructor(
                     _uiState.update { it.copy(isLoading = false, model = result.data) }
                     // Pre-register model files for per-file tracking
                     modelRepository.preRegisterModel(result.data)
+                    recomputeDeviceFit(result.data, _uiState.value.fileSizes)
+                    fetchTreeSizes(result.data)
                     // Calculate per-file sizes in parallel
                     calculateFileSizes(result.data)
                 }
@@ -165,6 +171,46 @@ class ModelDetailsViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun fetchTreeSizes(model: ModelDetails) {
+        viewModelScope.launch {
+            when (val result = modelRepository.getModelFileSizes(model.id)) {
+                is AppResult.Success -> {
+                    val relevant = result.data.filterKeys { key ->
+                        key in model.allRunnableFiles || key.substringAfterLast('/') in model.allRunnableFiles
+                    }
+                    if (relevant.isNotEmpty()) {
+                        val normalized = buildMap {
+                            relevant.forEach { (path, size) ->
+                                val name = if (path in model.allRunnableFiles) path else path.substringAfterLast('/')
+                                if (name in model.allRunnableFiles) put(name, size)
+                            }
+                        }
+                        if (normalized.isNotEmpty()) {
+                            _uiState.update { state ->
+                                val mergedSizes = state.fileSizes + normalized
+                                val mergedStatuses = state.fileSizeStatuses + normalized.keys.associateWith { FileSizeStatus.KNOWN }
+                                state.copy(fileSizes = mergedSizes, fileSizeStatuses = mergedStatuses)
+                            }
+                            recomputeDeviceFit(model, _uiState.value.fileSizes)
+                        }
+                    }
+                }
+                is AppResult.Error -> Unit
+            }
+        }
+    }
+
+    private fun recomputeDeviceFit(model: ModelDetails?, fileSizes: Map<String, Long> = _uiState.value.fileSizes) {
+        val m = model ?: _uiState.value.model ?: return
+        val fit = DeviceFitAdvisor.assess(
+            model = m,
+            deviceRamBytes = _uiState.value.deviceRamBytes,
+            fileSizes = fileSizes,
+            availableStorageBytes = storageUtils.freeBytes()
+        )
+        _uiState.update { it.copy(deviceFit = fit) }
     }
 
     private fun observeDownloaded() {
@@ -240,6 +286,7 @@ class ModelDetailsViewModel @Inject constructor(
                     }
                 )
             }
+            recomputeDeviceFit(model)
             return
         }
 
@@ -255,6 +302,7 @@ class ModelDetailsViewModel @Inject constructor(
                             fileSizeStatuses = it.fileSizeStatuses + (fileName to FileSizeStatus.KNOWN)
                         )
                     }
+                    recomputeDeviceFit(model, _uiState.value.fileSizes)
                 } catch (_: Exception) {
                     _uiState.update {
                         it.copy(
@@ -263,6 +311,7 @@ class ModelDetailsViewModel @Inject constructor(
                     }
                 }
             }
+            recomputeDeviceFit(model)
         }
     }
 
@@ -328,6 +377,12 @@ class ModelDetailsViewModel @Inject constructor(
             // The tracking rows stay. They are the only thing the row's live
             // progress attaches to — deleting them would make the next download
             // run (and show in the notification) while the row looks idle.
+            modelRepository.updateFileStatus(modelId, fileName, FileDownloadStatus.NOT_DOWNLOADED)
+            // Worker marks in-flight files PAUSED on cancellation in a
+            // NonCancellable block; re-apply after it settles so "Cancel"
+            // doesn't briefly look like a paused/resumable download.
+            kotlinx.coroutines.delay(500)
+            downloadModel.discardPartial(modelId, fileName)
             modelRepository.updateFileStatus(modelId, fileName, FileDownloadStatus.NOT_DOWNLOADED)
         }
     }

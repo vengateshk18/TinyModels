@@ -127,4 +127,32 @@
     <string name="model_format_gguf" translatable="false">GGUF</string>
     <string name="model_format_mediapipe" translatable="false">MediaPipe</string>
     <string name="model_format_tflite" translatable="false">TFLite</string>
+
+    <!-- Hub discovery / device-fit -->
+    <string name="models_feed_popular">Popular</string>
+    <string name="models_feed_trending">Trending</string>
+    <string name="models_feed_new">New</string>
+    <string name="models_feed_updated">Recently updated</string>
+    <string name="models_tag_filter_label">Tag</string>
+    <string name="models_tag_filter_any">Any tag</string>
+    <string name="model_details_license">License</string>
+    <string name="model_details_parameters">Parameters</string>
+    <string name="model_details_context_length">Context length</string>
+    <string name="model_details_architecture">Architecture</string>
+    <string name="model_details_device_fit">Device fit</string>
+    <string name="model_details_recommended_variant">Recommended for this device</string>
+    <string name="model_details_not_recommended_tag">Not recommended</string>
+    <string name="model_details_may_be_slow">May run slowly or need reduced context on this device.</string>
+    <string name="model_details_fit_borderline">△ May be slow on this device</string>
+    <string name="model_details_fit_unknown">Fit unknown</string>
+    <string name="model_details_not_recommended">Not recommended for this device (%1$s RAM). Try a smaller or more quantized file.</string>
+
+    <!-- Browse filters UI -->
+    <string name="models_filters">Filters</string>
+    <string name="models_filters_title">Browse filters</string>
+    <string name="models_filter_format">Format</string>
+    <string name="models_filter_feed">Sort by</string>
+    <string name="models_clear_filters">Clear</string>
+    <string name="models_apply_filters">Apply</string>
+    <string name="models_load_more">Load more</string>
 </resources>

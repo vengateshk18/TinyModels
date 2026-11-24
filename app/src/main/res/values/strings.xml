@@ -5,11 +5,13 @@
     <!-- Shared UI actions and labels (usable from any feature) -->
     <string name="common_cancel">Cancel</string>
     <string name="common_retry">Retry</string>
+    <string name="common_resume">Resume</string>
     <string name="common_back">Back</string>
     <string name="common_dismiss">Dismiss</string>
     <string name="common_delete">Delete</string>
     <string name="common_save">Save</string>
     <string name="common_close">Close</string>
+    <string name="common_open">Open</string>
     <string name="common_yes">Yes</string>
     <string name="common_no">No</string>
     <string name="common_unknown">Unknown</string>

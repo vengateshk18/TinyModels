@@ -2,10 +2,12 @@
     <!-- Shared UI actions and labels -->
     <string name="common_cancel">रद्द करें</string>
     <string name="common_retry">पुनः प्रयास करें</string>
+    <string name="common_resume">फिर से शुरू करें</string>
     <string name="common_back">वापस</string>
     <string name="common_dismiss">खारिज करें</string>
     <string name="common_delete">हटाएँ</string>
     <string name="common_close">बंद करें</string>
+    <string name="common_open">खोलें</string>
     <string name="common_yes">हाँ</string>
     <string name="common_no">नहीं</string>
     <string name="common_unknown">अज्ञात</string>

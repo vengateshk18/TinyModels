@@ -18,11 +18,30 @@ class HuggingFaceApiUrlTest {
 
         assertTrue(url.startsWith("https://huggingface.co/api/models?"))
         assertTrue(url.contains("limit=100"))
-        assertTrue(url.contains("full=true"))
         assertTrue(url.contains("sort=downloads"))
         assertTrue(url.contains("direction=-1"))
         assertFalse(url.contains("author="))
         assertFalse(url.contains("search="))
+    }
+
+    @Test
+    fun `supports sort and expand parameters`() {
+        val url = HuggingFaceApi.buildModelListUrl(
+            search = null,
+            pipelineTag = "text-generation",
+            author = null,
+            limit = 30,
+            sort = "trendingScore",
+            expand = listOf("downloads", "likes", "gguf", "safetensors", "cardData")
+        )
+
+        assertTrue(url.contains("sort=trendingScore"))
+        assertTrue(url.contains("expand=downloads"))
+        assertTrue(url.contains("expand=likes"))
+        assertTrue(url.contains("expand=gguf"))
+        assertTrue(url.contains("expand=safetensors"))
+        assertTrue(url.contains("expand=cardData"))
+        assertFalse(url.contains("full=true"))
     }
 
     @Test

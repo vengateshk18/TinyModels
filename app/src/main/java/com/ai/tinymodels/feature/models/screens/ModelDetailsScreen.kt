@@ -97,15 +97,18 @@ import com.ai.tinymodels.core.common.AppError
 import com.ai.tinymodels.core.ui.Formatters
 import com.ai.tinymodels.core.ui.components.ErrorState
 import com.ai.tinymodels.core.ui.components.OfflineState
+import com.ai.tinymodels.domain.model.DeviceFitAdvisor
+import com.ai.tinymodels.domain.model.DeviceFitLevel
 import com.ai.tinymodels.domain.model.FileDownloadStatus
+import com.ai.tinymodels.domain.model.ModelDetails
+import com.ai.tinymodels.domain.model.ModelDeviceFit
 import com.ai.tinymodels.domain.model.isVisionProjectorFile
 import com.ai.tinymodels.domain.usecase.model.DownloadEta
-import com.ai.tinymodels.domain.usecase.model.FileSizeStatus
-import com.ai.tinymodels.domain.usecase.model.FileRowPhase
-import com.ai.tinymodels.domain.usecase.model.FileRowState
-import com.ai.tinymodels.domain.model.ModelDetails
 import com.ai.tinymodels.domain.usecase.model.DownloadState
 import com.ai.tinymodels.domain.usecase.model.DownloadStatus
+import com.ai.tinymodels.domain.usecase.model.FileRowPhase
+import com.ai.tinymodels.domain.usecase.model.FileRowState
+import com.ai.tinymodels.domain.usecase.model.FileSizeStatus
 import com.ai.tinymodels.feature.models.ModelDetailsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -155,7 +158,9 @@ fun ModelDetailsScreen(
         // Oversized-file confirmation: the user explicitly wants a file this
         // device cannot load. Let them, but make the cost clear up front.
         oversizedFile?.let { pending ->
-            val pendingSize = uiState.getFileSize(pending)
+            val pendingSize = uiState.getFileSize(pending).takeIf { it > 0 }
+                ?: uiState.deviceFit?.files?.firstOrNull { it.fileName == pending }?.estimatedBytes
+                ?: 0L
             AlertDialog(
                 onDismissRequest = { oversizedFile = null },
                 icon = { Icon(Icons.Filled.Warning, contentDescription = null) },
@@ -266,10 +271,12 @@ fun ModelDetailsScreen(
                         model = uiState.model!!,
                         uiState = uiState,
                         onDownload = { name ->
-                            if (uiState.isFileLoadable(name)) {
-                                viewModel.onDownloadFileClicked(name)
-                            } else {
+                            val fit = uiState.deviceFit?.files?.firstOrNull { it.fileName == name }?.level
+                            val shouldWarn = !uiState.isFileLoadable(name) || fit == DeviceFitLevel.TOO_LARGE
+                            if (shouldWarn) {
                                 oversizedFile = name
+                            } else {
+                                viewModel.onDownloadFileClicked(name)
                             }
                         },
                         onPause = viewModel::onPauseFile,
@@ -416,11 +423,16 @@ private fun AboutCard(model: ModelDetails) {
                 stringResource(R.string.model_details_created),
                 Formatters.formatDate(model.createdAt, LocalContext.current.resources)
             )
+            model.license?.takeIf { it.isNotBlank() }?.let { InfoRow(stringResource(R.string.model_details_license), it) }
+            DeviceFitAdvisor.formatParams(model.parameterCount)?.let { InfoRow(stringResource(R.string.model_details_parameters), it) }
+            model.contextLength?.takeIf { it > 0 }?.let { InfoRow(stringResource(R.string.model_details_context_length), it.toString()) }
+            model.ggufArchitecture?.takeIf { it.isNotBlank() }?.let { InfoRow(stringResource(R.string.model_details_architecture), it) }
             model.baseModel?.takeIf { it.isNotBlank() }?.let { InfoRow(stringResource(R.string.model_details_base_model), it) }
             model.sha?.takeIf { it.isNotBlank() }?.let { InfoRow(stringResource(R.string.model_details_revision), it.take(10)) }
         }
     }
 }
+
 
 @Composable
 private fun InfoRow(label: String, value: String) {
@@ -490,6 +502,7 @@ private fun InteractiveFilesCard(
             Spacer(modifier = Modifier.height(12.dp))
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 files.forEach { fileName ->
+                    val fitInfo = uiState.deviceFit?.files?.firstOrNull { it.fileName == fileName }
                     FileRow(
                         fileName = fileName,
                         hasVisionSupport = hasVisionSupport,
@@ -497,6 +510,9 @@ private fun InteractiveFilesCard(
                         fileSize = uiState.getFileSize(fileName),
                         sizeStatus = uiState.fileSizeStatus(fileName),
                         isLoadable = uiState.isFileLoadable(fileName),
+                        fitLevel = fitInfo?.level,
+                        isRecommended = uiState.deviceFit?.recommendedFile == fileName,
+                        contextLength = uiState.model?.contextLength,
                         error = uiState.fileError(fileName),
                         onDownload = { onDownload(fileName) },
                         onPause = { onPause(fileName) },
@@ -523,6 +539,9 @@ private fun FileRow(
     fileSize: Long,
     sizeStatus: FileSizeStatus,
     isLoadable: Boolean,
+    fitLevel: DeviceFitLevel?,
+    isRecommended: Boolean,
+    contextLength: Int?,
     error: String?,
     onDownload: () -> Unit,
     onPause: () -> Unit,
@@ -540,6 +559,7 @@ private fun FileRow(
         },
         label = "fileRowBorder"
     )
+    val isGguf = fileName.endsWith(".gguf", ignoreCase = true)
 
     Surface(
         modifier = Modifier
@@ -552,87 +572,222 @@ private fun FileRow(
         border = BorderStroke(1.dp, borderColor)
     ) {
         Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        fileName.substringAfterLast("/"),
-                        style = MaterialTheme.typography.titleSmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(modifier = Modifier.height(3.dp))
-                    FileMetaLine(
-                        state = state,
-                        fileSize = fileSize,
-                        sizeStatus = sizeStatus,
-                        isLoadable = isLoadable
+            Text(
+                fileName.substringAfterLast("/"),
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            FileMetaLine(
+                state = state,
+                fileSize = fileSize,
+                sizeStatus = sizeStatus,
+                isLoadable = isLoadable,
+                fitLevel = fitLevel
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (isRecommended) {
+                    FileTagChip(
+                        label = stringResource(R.string.model_details_recommended_variant),
+                        container = MaterialTheme.colorScheme.tertiaryContainer,
+                        content = MaterialTheme.colorScheme.onTertiaryContainer
                     )
                 }
-                Spacer(modifier = Modifier.width(12.dp))
-                FileActions(
-                    state = state,
-                    onDownload = onDownload,
-                    onPause = onPause,
-                    onResume = onResume,
-                    onDiscard = onDiscard
+                val formatLabel = when {
+                    fileName.endsWith(".gguf", ignoreCase = true) -> "GGUF"
+                    fileName.endsWith(".litertlm", ignoreCase = true) -> "LiteRT-LM"
+                    fileName.endsWith(".task", ignoreCase = true) -> "Task"
+                    fileName.endsWith(".tflite", ignoreCase = true) -> "TFLite"
+                    else -> null
+                }
+                formatLabel?.let {
+                    FileTagChip(
+                        label = it,
+                        container = MaterialTheme.colorScheme.secondaryContainer,
+                        content = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
+                val quantLabel = Regex("(?i)(IQ\\d_[A-Z0-9]+|Q\\d_K_[A-Z]|Q\\d_[0-9A-Z]+|Q\\d|F16|BF16|F32|INT8|INT4|[45]-?bit)")
+                    .find(fileName)?.value?.uppercase()
+                quantLabel?.let {
+                    FileTagChip(
+                        label = it,
+                        container = MaterialTheme.colorScheme.primaryContainer,
+                        content = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+                val visionLabel = when {
+                    isGguf && hasVisionSupport -> stringResource(R.string.model_details_vision_supported)
+                    isGguf -> stringResource(R.string.model_details_vision_text_only)
+                    else -> stringResource(R.string.model_details_vision_text_only)
+                }
+                FileTagChip(
+                    label = visionLabel,
+                    container = if (isGguf && hasVisionSupport) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.secondaryContainer,
+                    content = if (isGguf && hasVisionSupport) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                val contextLabel = contextLength?.takeIf { it > 0 }?.let { ctx ->
+                    val k = ctx / 1000.0
+                    val kText = if (k >= 10) "${k.toInt()}k" else String.format("%.1fk", k)
+                    "${stringResource(R.string.model_details_context_length)} $kText"
+                } ?: "${stringResource(R.string.model_details_context_length)} —"
+                FileTagChip(
+                    label = contextLabel,
+                    container = MaterialTheme.colorScheme.secondaryContainer,
+                    content = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             }
 
-            // GGUF hints: the projector decision and the fact that the real
-            // context window is only known once the header is on disk.
-            if (fileName.endsWith(".gguf", ignoreCase = true)) {
-                Spacer(modifier = Modifier.height(6.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        if (hasVisionSupport) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = if (hasVisionSupport) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        stringResource(
-                            if (hasVisionSupport) R.string.model_details_vision_supported
-                            else R.string.model_details_vision_text_only
-                        ),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (hasVisionSupport) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+            Spacer(modifier = Modifier.height(12.dp))
+            FileActionArea(
+                state = state,
+                error = error,
+                onDownload = onDownload,
+                onPause = onPause,
+                onResume = onResume,
+                onDiscard = onDiscard,
+                onDownloadedClick = onDownloadedClick
+            )
+        }
+    }
+}
+
+@Composable
+private fun FileTagChip(label: String, container: Color, content: Color) {
+    Surface(color = container, shape = MaterialTheme.shapes.small) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = content,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun FileMetaLine(
+    state: FileRowState,
+    fileSize: Long,
+    sizeStatus: FileSizeStatus,
+    isLoadable: Boolean,
+    fitLevel: DeviceFitLevel?
+) {
+    val sizeKnown = fileSize > 0
+    val sizeText = when {
+        sizeKnown -> Formatters.formatBytes(fileSize, LocalContext.current.resources)
+        state.phase == FileRowPhase.DOWNLOADED -> null
+        sizeStatus == FileSizeStatus.LOADING -> stringResource(R.string.model_details_size_loading)
+        else -> stringResource(R.string.model_details_size_unknown)
+    }
+
+    val fitLabel = when {
+        state.phase == FileRowPhase.DOWNLOADED ->
+            stringResource(R.string.model_details_status_downloaded) to MaterialTheme.colorScheme.primary
+        fitLevel == DeviceFitLevel.TOO_LARGE || (sizeKnown && !isLoadable) ->
+            stringResource(R.string.model_details_too_large_short) to MaterialTheme.colorScheme.error
+        fitLevel == DeviceFitLevel.BORDERLINE ->
+            stringResource(R.string.model_details_fit_borderline) to MaterialTheme.colorScheme.tertiary
+        fitLevel == DeviceFitLevel.GOOD ->
+            stringResource(R.string.model_details_fits_device) to MaterialTheme.colorScheme.primary
+        fitLevel == DeviceFitLevel.UNKNOWN && !sizeKnown ->
+            stringResource(R.string.model_details_fit_unknown) to MaterialTheme.colorScheme.onSurfaceVariant
+        sizeKnown ->
+            stringResource(R.string.model_details_fits_device) to MaterialTheme.colorScheme.onSurfaceVariant
+        else -> null
+    }
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        val parts = buildList {
+            sizeText?.let { add(it to MaterialTheme.colorScheme.onSurfaceVariant) }
+            fitLabel?.let { add(it) }
+        }
+        parts.forEachIndexed { index, (text, tint) ->
+            if (index > 0) {
+                Text("  ·  ", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelMedium,
+                color = tint,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+private fun FileActionArea(
+    state: FileRowState,
+    error: String?,
+    onDownload: () -> Unit,
+    onPause: () -> Unit,
+    onResume: () -> Unit,
+    onDiscard: () -> Unit,
+    onDownloadedClick: () -> Unit
+) {
+    val phase = state.phase
+    when (phase) {
+        FileRowPhase.IDLE -> {
+            Button(onClick = onDownload, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.downloads_button))
+            }
+        }
+        FileRowPhase.DOWNLOADING, FileRowPhase.QUEUED -> {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(onClick = onPause, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.Filled.Pause, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(stringResource(R.string.notification_pause))
                 }
-                Spacer(modifier = Modifier.height(2.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Filled.Memory,
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        stringResource(R.string.model_details_context_after_download),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                OutlinedButton(onClick = onDiscard, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
-
-            AnimatedVisibility(visible = phase == FileRowPhase.DOWNLOADING || phase == FileRowPhase.QUEUED) {
-                Column {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    ActiveProgress(state)
+            Spacer(modifier = Modifier.height(8.dp))
+            ActiveProgress(state)
+        }
+        FileRowPhase.PAUSED -> {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                Button(onClick = onResume, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(stringResource(R.string.common_resume))
+                }
+                OutlinedButton(onClick = onDiscard, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
-
-            AnimatedVisibility(visible = phase == FileRowPhase.PAUSED) {
-                Column {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    PausedProgress(state)
+            Spacer(modifier = Modifier.height(8.dp))
+            PausedProgress(state)
+        }
+        FileRowPhase.FAILED -> {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                Button(onClick = onDownload, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(stringResource(R.string.common_retry))
+                }
+                OutlinedButton(onClick = onDiscard, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
-
-            if (phase == FileRowPhase.FAILED && !error.isNullOrBlank()) {
+            if (!error.isNullOrBlank()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     error,
@@ -643,53 +798,13 @@ private fun FileRow(
                 )
             }
         }
-    }
-}
-
-/**
- * When the size cannot be read we say so — a spinner forever would be a lie,
- * and a bare "unknown" tells the user neither what is happening nor that we
- * stopped asking.
- */
-@Composable
-private fun FileMetaLine(
-    state: FileRowState,
-    fileSize: Long,
-    sizeStatus: FileSizeStatus,
-    isLoadable: Boolean
-) {
-    val sizeKnown = fileSize > 0
-    val sizeText = when {
-        sizeKnown -> Formatters.formatBytes(fileSize, LocalContext.current.resources)
-        state.phase == FileRowPhase.DOWNLOADED -> null
-        sizeStatus == FileSizeStatus.LOADING -> stringResource(R.string.model_details_size_loading)
-        else -> stringResource(R.string.model_details_size_unknown)
-    }
-
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        sizeText?.let { label ->
-            Text(
-                label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+        FileRowPhase.DOWNLOADED -> {
+            OutlinedButton(onClick = onDownloadedClick, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Filled.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.common_open))
+            }
         }
-        val (label, tint) = when {
-            state.phase == FileRowPhase.DOWNLOADED ->
-                stringResource(R.string.model_details_status_downloaded) to MaterialTheme.colorScheme.primary
-            sizeKnown && !isLoadable ->
-                stringResource(R.string.model_details_too_large_short) to MaterialTheme.colorScheme.error
-            sizeKnown ->
-                stringResource(R.string.model_details_fits_device) to MaterialTheme.colorScheme.onSurfaceVariant
-            else -> return@Row
-        }
-        Text(
-            if (sizeText != null) "  ·  $label" else label,
-            style = MaterialTheme.typography.labelMedium,
-            color = tint,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
     }
 }
 

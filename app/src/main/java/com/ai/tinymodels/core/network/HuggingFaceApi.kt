@@ -30,17 +30,31 @@ class HuggingFaceApi @Inject constructor(
             pipelineTag: String?,
             author: String?,
             limit: Int = 100,
+            sort: String = "downloads",
+            expand: List<String> = emptyList(),
+            tagFilter: String? = null,
         ): String {
             val params = mutableListOf(
                 "limit=$limit",
                 "direction=-1",
-                "sort=downloads",
-                "full=true"
+                "sort=${encode(sort)}"
             )
+            if (expand.isEmpty()) {
+                params.add("full=true")
+            } else {
+                expand.forEach { params.add("expand=${encode(it)}") }
+            }
             search?.takeIf { it.isNotBlank() }?.let { params.add("search=${encode(it)}") }
             author?.takeIf { it.isNotBlank() }?.let { params.add("author=${encode(it)}") }
             pipelineTag?.takeIf { it.isNotBlank() }?.let { params.add("filter=${encode(it)}") }
+            tagFilter?.takeIf { it.isNotBlank() }?.let { params.add("filter=${encode(it)}") }
             return "$API_BASE?${params.joinToString("&")}"
+        }
+
+        fun buildModelDetailsUrl(modelId: String, expand: List<String> = emptyList()): String {
+            val base = "$API_BASE/$modelId"
+            if (expand.isEmpty()) return base
+            return "$base?${expand.joinToString("&") { "expand=${encode(it)}" }}"
         }
 
         private fun encode(value: String): String =
@@ -52,11 +66,37 @@ class HuggingFaceApi @Inject constructor(
         search: String? = null,
         pipelineTag: String? = null,
         author: String? = null,
-        limit: Int = 100
-    ): String = get(buildModelListUrl(search, pipelineTag, author, limit))
+        limit: Int = 100,
+        sort: String = "downloads",
+        expand: List<String> = emptyList(),
+        tagFilter: String? = null,
+    ): String = get(buildModelListUrl(search, pipelineTag, author, limit, sort, expand, tagFilter))
 
     /** GET full details for a single model. */
-    fun getModelDetails(modelId: String): String = get("$API_BASE/$modelId")
+    fun getModelDetails(modelId: String, expand: List<String> = emptyList()): String =
+        get(buildModelDetailsUrl(modelId, expand))
+
+    /** GET model tag taxonomy grouped by type (e.g. library, language, license, pipeline_tag). */
+    fun getModelTagsByType(): String = get("$HUB_BASE/api/models-tags-by-type")
+
+    /** GET repository tree (file/folder entries, optionally recursive) for device-fit/file inspection. */
+    fun getModelTree(
+        modelId: String,
+        revision: String = "main",
+        path: String = "",
+        recursive: Boolean = true,
+        expand: Boolean = false
+    ): String {
+        val encodedPath = path.trim('/').split('/').filter { it.isNotBlank() }
+            .joinToString("/") { encode(it) }
+        val suffix = if (encodedPath.isEmpty()) revision else "$revision/$encodedPath"
+        val params = buildList {
+            if (recursive) add("recursive=true")
+            if (expand) add("expand=true")
+        }
+        val query = if (params.isEmpty()) "" else "?${params.joinToString("&")}"
+        return get("$HUB_BASE/api/models/$modelId/tree/$suffix$query")
+    }
 
     /** Resolve URL for a downloadable model file. */
     fun fileUrl(modelId: String, fileName: String): String =
@@ -77,7 +117,7 @@ class HuggingFaceApi @Inject constructor(
     }
 
     private fun get(url: String): String {
-        val request = Request.Builder().url(url).get().build()
+        val request = auth.authorize(Request.Builder().url(url).get()).build()
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) {
                 throw HttpException(response.code, "HTTP ${response.code}: ${response.message}")

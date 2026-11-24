@@ -13,7 +13,10 @@ data class ModelSummary(
     val libraryName: String?,
     val pipelineTag: String?,
     val lastModified: String?,
-    val siblings: List<String> = emptyList()
+    val siblings: List<String> = emptyList(),
+    val createdAt: String? = null,
+    val trendingScore: Double? = null,
+    val license: String? = null
 ) {
     /** True if any sibling file is a runnable runtime format. */
     val hasRuntimeFiles: Boolean
@@ -117,7 +120,17 @@ data class ModelDetails(
     /** Sample prompts from the model card (HF `widgetData[].text`). */
     val widgetPrompts: List<String>,
     /** Upstream base model (from cardData.base_model). */
-    val baseModel: String?
+    val baseModel: String?,
+    val license: String? = null,
+    val trendingScore: Double? = null,
+    /** Best-effort parameter count from safetensors/gguf metadata. */
+    val parameterCount: Long? = null,
+    /** Best-effort max context length from gguf/config metadata. */
+    val contextLength: Int? = null,
+    /** Total bytes of GGUF weights reported by Hub metadata, when available. */
+    val ggufTotalBytes: Long? = null,
+    /** GGUF architecture (e.g. llama, gemma), when available. */
+    val ggufArchitecture: String? = null
 ) {
     /** Files that can be run by the LiteRT-LM runtime. */
     val liteRtFiles: List<String>

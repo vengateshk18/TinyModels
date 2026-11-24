@@ -4,10 +4,12 @@
     <!-- Shared UI actions and labels (usable from any feature) -->
     <string name="common_cancel">キャンセル</string>
     <string name="common_retry">再試行</string>
+    <string name="common_resume">再開</string>
     <string name="common_back">戻る</string>
     <string name="common_dismiss">閉じる</string>
     <string name="common_delete">削除</string>
     <string name="common_close">閉じる</string>
+    <string name="common_open">開く</string>
     <string name="common_yes">はい</string>
     <string name="common_no">いいえ</string>
     <string name="common_unknown">不明</string>

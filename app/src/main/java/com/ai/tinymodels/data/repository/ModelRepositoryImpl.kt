@@ -54,10 +54,17 @@ class ModelRepositoryImpl @Inject constructor(
 
     // ---- Remote catalog ----
 
-    override suspend fun listModels(search: String?, filter: ModelFilter, limit: Int): AppResult<CatalogPage> =
+    override suspend fun listModels(
+        search: String?,
+        filter: ModelFilter,
+        feed: com.ai.tinymodels.domain.model.ModelFeed,
+        tag: String?,
+        limit: Int
+    ): AppResult<CatalogPage> =
         withContext(dispatchers.io) {
             val query = search?.trim().orEmpty()
-            val cacheKey = "${filter.name}|${query.lowercase()}|$limit"
+            val normalizedTag = tag?.trim()?.takeIf { it.isNotBlank() }
+            val cacheKey = "${filter.name}|${feed.name}|${normalizedTag.orEmpty()}|${query.lowercase()}|$limit"
             catalogCache.get(cacheKey)?.let { return@withContext AppResult.Success(it) }
 
             AppResult.runCatching(errorMapper = NetworkErrorMapper::toAppError) {
@@ -67,7 +74,7 @@ class ModelRepositoryImpl @Inject constructor(
                 // than failing the whole catalog.
                 val outcomes = coroutineScope {
                     branches.map { branch ->
-                        async { runCatchingNonCancellable { fetchBranch(branch, limit) } }
+                        async { runCatchingNonCancellable { fetchBranch(branch, limit, feed.sort, normalizedTag) } }
                     }.awaitAll()
                 }
                 val successes = outcomes.mapNotNull { it.getOrNull() }
@@ -79,19 +86,105 @@ class ModelRepositoryImpl @Inject constructor(
                 val merged = LinkedHashMap<String, ModelSummary>()
                 successes.flatMap { it.models }.forEach { merged.putIfAbsent(it.modelId, it) }
 
+                val sorted = when (feed) {
+                    com.ai.tinymodels.domain.model.ModelFeed.TRENDING ->
+                        merged.values
+                            .filter { it.hasRuntimeFiles }
+                            .filter { model -> filter.format?.let(model::hasFormat) ?: true }
+                            .filter { !MobileFit.isTooLargeForMobile(it) }
+                            .sortedWith(
+                                compareByDescending<ModelSummary> { MobileFit.isMobileFriendly(it) }
+                                    .thenByDescending { it.trendingScore ?: 0.0 }
+                                    .thenByDescending { it.downloads ?: 0L }
+                            )
+                    com.ai.tinymodels.domain.model.ModelFeed.NEW ->
+                        merged.values
+                            .filter { it.hasRuntimeFiles }
+                            .filter { model -> filter.format?.let(model::hasFormat) ?: true }
+                            .filter { !MobileFit.isTooLargeForMobile(it) }
+                            .sortedWith(
+                                compareByDescending<ModelSummary> { MobileFit.isMobileFriendly(it) }
+                                    .thenByDescending { it.createdAt.orEmpty() }
+                                    .thenByDescending { it.downloads ?: 0L }
+                            )
+                    com.ai.tinymodels.domain.model.ModelFeed.UPDATED ->
+                        merged.values
+                            .filter { it.hasRuntimeFiles }
+                            .filter { model -> filter.format?.let(model::hasFormat) ?: true }
+                            .filter { !MobileFit.isTooLargeForMobile(it) }
+                            .sortedWith(
+                                compareByDescending<ModelSummary> { MobileFit.isMobileFriendly(it) }
+                                    .thenByDescending { it.lastModified.orEmpty() }
+                                    .thenByDescending { it.downloads ?: 0L }
+                            )
+                    else ->
+                        merged.values
+                            .filter { it.hasRuntimeFiles }
+                            .filter { model -> filter.format?.let(model::hasFormat) ?: true }
+                            .filter { !MobileFit.isTooLargeForMobile(it) }
+                            .sortedWith(
+                                compareByDescending<ModelSummary> { MobileFit.isMobileFriendly(it) }
+                                    .thenByDescending { it.downloads ?: 0L }
+                            )
+                }
+
                 val page = CatalogPage(
-                    models = merged.values
-                        .filter { it.hasRuntimeFiles }
-                        .filter { model -> filter.format?.let(model::hasFormat) ?: true }
-                        .filter { !MobileFit.isTooLargeForMobile(it) }
-                        .sortedWith(
-                            compareByDescending<ModelSummary> { MobileFit.isMobileFriendly(it) }
-                                .thenByDescending { it.downloads ?: 0L }
-                        ),
+                    models = sorted,
                     hasMore = successes.any { it.hitLimit }
                 )
                 catalogCache.put(cacheKey, page)
                 page
+            }
+        }
+
+    override suspend fun getModelTagTypes(): AppResult<Map<String, List<String>>> =
+        withContext(dispatchers.io) {
+            AppResult.runCatching(errorMapper = NetworkErrorMapper::toAppError) {
+                val json = api.getModelTagsByType()
+                val root = org.json.JSONObject(json)
+                val result = linkedMapOf<String, List<String>>()
+                val keys = root.keys()
+                while (keys.hasNext()) {
+                    val key = keys.next()
+                    val arr = root.optJSONArray(key) ?: continue
+                    val values = buildList {
+                        for (i in 0 until arr.length()) {
+                            val item = arr.opt(i)
+                            val label = when (item) {
+                                is String -> item
+                                is org.json.JSONObject -> item.optString("id").ifBlank { item.optString("label") }
+                                else -> item?.toString().orEmpty()
+                            }
+                            if (label.isNotBlank()) add(label)
+                        }
+                    }
+                    if (values.isNotEmpty()) result[key] = values.distinct()
+                }
+                result
+            }
+        }
+
+    override suspend fun getModelFileSizes(modelId: String): AppResult<Map<String, Long>> =
+        withContext(dispatchers.io) {
+            AppResult.runCatching(errorMapper = NetworkErrorMapper::toAppError) {
+                val json = api.getModelTree(modelId)
+                val array = org.json.JSONArray(json)
+                buildMap {
+                    for (i in 0 until array.length()) {
+                        val obj = array.optJSONObject(i) ?: continue
+                        val path = obj.optString("path").ifBlank { obj.optString("rfilename") }
+                        if (path.isBlank()) continue
+                        val type = obj.optString("type")
+                        if (type.isNotBlank() && type != "file" && type != "blob") continue
+                        val lfsSize = obj.optJSONObject("lfs")?.optLong("size", 0L) ?: 0L
+                        val size = when {
+                            lfsSize > 0L -> lfsSize
+                            obj.optLong("size", 0L) > 0L -> obj.optLong("size", 0L)
+                            else -> 0L
+                        }
+                        if (size > 0L) put(path, size)
+                    }
+                }
             }
         }
 
@@ -125,11 +218,42 @@ class ModelRepositoryImpl @Inject constructor(
         }
     }
 
-    private fun fetchBranch(branch: CatalogBranch, limit: Int): BranchFetch {
-        val json = api.listModels(branch.search, CATALOG_PIPELINE_TAG, branch.author, limit)
+    private fun fetchBranch(
+        branch: CatalogBranch,
+        limit: Int,
+        sort: String,
+        tag: String?
+    ): BranchFetch {
+        val expand = listOf(
+            "downloads", "likes", "lastModified", "createdAt", "trendingScore",
+            "tags", "pipeline_tag", "library_name", "siblings", "gated", "cardData"
+        )
+        val json = api.listModels(
+            search = branch.search,
+            pipelineTag = CATALOG_PIPELINE_TAG,
+            author = branch.author,
+            limit = limit,
+            sort = sort,
+            expand = expand,
+            tagFilter = tag
+        )
         val models = ModelDtoParser.parseModelList(json)
         return BranchFetch(models = models, hitLimit = models.size >= limit)
     }
+
+    override suspend fun getModelDetails(modelId: String): AppResult<ModelDetails> =
+        withContext(dispatchers.io) {
+            AppResult.runCatching(
+                errorMapper = NetworkErrorMapper::toAppError
+            ) {
+                val expand = listOf(
+                    "downloads", "likes", "lastModified", "createdAt", "trendingScore",
+                    "tags", "pipeline_tag", "library_name", "siblings", "gated",
+                    "cardData", "config", "gguf", "safetensors", "widgetData", "sha", "usedStorage"
+                )
+                ModelDtoParser.parseDetails(api.getModelDetails(modelId, expand))
+            }
+        }
 
     /** Like [Result.runCatching] but lets coroutine cancellation abort the fetch. */
     private suspend fun <T> runCatchingNonCancellable(block: suspend () -> T): Result<T> = try {
@@ -139,15 +263,6 @@ class ModelRepositoryImpl @Inject constructor(
     } catch (throwable: Throwable) {
         Result.failure(throwable)
     }
-
-    override suspend fun getModelDetails(modelId: String): AppResult<ModelDetails> =
-        withContext(dispatchers.io) {
-            AppResult.runCatching(
-                errorMapper = NetworkErrorMapper::toAppError
-            ) {
-                ModelDtoParser.parseDetails(api.getModelDetails(modelId))
-            }
-        }
 
     // ---- Local downloads ----
 

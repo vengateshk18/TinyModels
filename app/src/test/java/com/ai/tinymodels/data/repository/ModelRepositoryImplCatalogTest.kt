@@ -47,11 +47,12 @@ class ModelRepositoryImplCatalogTest {
 
     @Before
     fun setUp() {
-        every { api.listModels(any(), any(), any(), any()) } answers {
+        every { api.listModels(any(), any(), any(), any(), any(), any(), any()) } answers {
             val key = firstArg<String?>() ?: thirdArg<String?>().orEmpty()
             if (key in failingBranches) throw IOException("boom-$key")
             (catalog[key] ?: emptyList()).joinToString(",", "[", "]")
         }
+        every { api.getModelTagsByType() } returns "{}"
     }
 
     private fun modelJson(
@@ -84,9 +85,9 @@ class ModelRepositoryImplCatalogTest {
             page.models.map { it.modelId }
         )
         assertFalse(page.hasMore)
-        verify(exactly = 1) { api.listModels("litertlm", "text-generation", null, 100) }
-        verify(exactly = 1) { api.listModels(null, "text-generation", "litert-community", 100) }
-        verify(exactly = 1) { api.listModels("gguf", "text-generation", null, 100) }
+        verify(exactly = 1) { api.listModels("litertlm", "text-generation", null, 100, any(), any(), any()) }
+        verify(exactly = 1) { api.listModels(null, "text-generation", "litert-community", 100, any(), any(), any()) }
+        verify(exactly = 1) { api.listModels("gguf", "text-generation", null, 100, any(), any(), any()) }
     }
 
     @Test
@@ -96,8 +97,8 @@ class ModelRepositoryImplCatalogTest {
         val page = (repo().listModels("  qwen  ", ModelFilter.ALL, 50) as AppResult.Success).data
 
         assertEquals(listOf("q/one"), page.models.map { it.modelId })
-        verify(exactly = 1) { api.listModels("qwen", "text-generation", null, 50) }
-        verify(exactly = 0) { api.listModels("gguf", any(), any(), any()) }
+        verify(exactly = 1) { api.listModels("qwen", "text-generation", null, 50, any(), any(), any()) }
+        verify(exactly = 0) { api.listModels("gguf", any(), any(), any(), any(), any(), any()) }
     }
 
     @Test
@@ -168,8 +169,8 @@ class ModelRepositoryImplCatalogTest {
         val page = (repo().listModels(null, ModelFilter.GGUF, 100) as AppResult.Success).data
 
         assertEquals(listOf("g/gguf"), page.models.map { it.modelId })
-        verify(exactly = 1) { api.listModels("gguf", "text-generation", null, 100) }
-        verify(exactly = 0) { api.listModels("litertlm", any(), any(), any()) }
+        verify(exactly = 1) { api.listModels("gguf", "text-generation", null, 100, any(), any(), any()) }
+        verify(exactly = 0) { api.listModels("litertlm", any(), any(), any(), any(), any(), any()) }
     }
 
     @Test
@@ -229,6 +230,6 @@ class ModelRepositoryImplCatalogTest {
         repository.listModels(null, ModelFilter.GGUF, 100)
         repository.listModels(null, ModelFilter.GGUF, 100)
 
-        verify(exactly = 1) { api.listModels("gguf", "text-generation", null, 100) }
+        verify(exactly = 1) { api.listModels("gguf", "text-generation", null, 100, any(), any(), any()) }
     }
 }

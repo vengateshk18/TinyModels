@@ -2,10 +2,12 @@
     <!-- Shared UI actions and labels -->
     <string name="common_cancel">Cancelar</string>
     <string name="common_retry">Reintentar</string>
+    <string name="common_resume">Reanudar</string>
     <string name="common_back">Atrás</string>
     <string name="common_dismiss">Descartar</string>
     <string name="common_delete">Eliminar</string>
     <string name="common_close">Cerrar</string>
+    <string name="common_open">Abrir</string>
     <string name="common_yes">Sí</string>
     <string name="common_no">No</string>
     <string name="common_unknown">Desconocido</string>

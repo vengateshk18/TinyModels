@@ -16,6 +16,7 @@ class ModelDtoParserTest {
       "tags": ["litert-lm", "gemma3", "text-generation", "license:gemma"],
       "downloads": 1151,
       "likes": 247,
+      "trendingScore": 42,
       "modelId": "litert-community/functiongemma-270m-ft-mobile-actions",
       "author": "litert-community",
       "sha": "f752a74080682b379823794defdbbdf8c2663609",
@@ -29,6 +30,9 @@ class ModelDtoParserTest {
         {"text": "Explain quantum computing in simple terms."}
       ],
       "cardData": {"base_model": "google/functiongemma-270m-it", "license": "gemma"},
+      "config": {"model_type": "gemma3_text"},
+      "gguf": {"total": 286720000, "architecture": "gemma3", "context_length": 8192},
+      "safetensors": {"total": 270000000, "parameters": {"BF16": 270000000}},
       "siblings": [
         {"rfilename": ".gitattributes"},
         {"rfilename": "README.md"},
@@ -54,8 +58,42 @@ class ModelDtoParserTest {
         assertEquals("2026-08-31T13:49:04.000Z", d.lastModified)
         assertEquals("2026-02-25T23:13:08.000Z", d.createdAt)
         assertEquals("google/functiongemma-270m-it", d.baseModel)
+        assertEquals("gemma", d.license)
         assertEquals(1432447106L, d.usedStorage)
         assertEquals(false, d.disabled)
+        assertEquals(42.0, d.trendingScore ?: 0.0, 0.001)
+        assertEquals(270000000L, d.parameterCount)
+        assertEquals(8192, d.contextLength)
+        assertEquals(286720000L, d.ggufTotalBytes)
+        assertEquals("gemma3", d.ggufArchitecture)
+    }
+
+    @Test
+    fun parsesSummaryTrendingAndCreatedAt() {
+        val listJson = """
+        [
+          {
+            "id": "org/model",
+            "modelId": "org/model",
+            "author": "org",
+            "likes": 5,
+            "downloads": 10,
+            "trendingScore": 7.5,
+            "tags": ["text-generation","license:apache-2.0"],
+            "library_name": "gguf",
+            "pipeline_tag": "text-generation",
+            "lastModified": "2026-01-02T00:00:00.000Z",
+            "createdAt": "2026-01-01T00:00:00.000Z",
+            "siblings": [{"rfilename":"m-q4_k_m.gguf"}]
+          }
+        ]
+        """.trimIndent()
+        val list = ModelDtoParser.parseModelList(listJson)
+        assertEquals(1, list.size)
+        val s = list.first()
+        assertEquals("2026-01-01T00:00:00.000Z", s.createdAt)
+        assertEquals(7.5, s.trendingScore ?: 0.0, 0.001)
+        assertEquals("apache-2.0", s.license)
     }
 
     @Test

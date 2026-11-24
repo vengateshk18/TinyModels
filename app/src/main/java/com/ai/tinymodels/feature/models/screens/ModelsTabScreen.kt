@@ -9,28 +9,49 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
+import android.content.Intent
+import android.text.format.Formatter
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FileUpload
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -38,7 +59,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
@@ -48,18 +72,22 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -70,12 +98,15 @@ import com.ai.tinymodels.core.ui.Formatters
 import com.ai.tinymodels.core.ui.components.EmptyState
 import com.ai.tinymodels.core.ui.components.ErrorState
 import com.ai.tinymodels.core.ui.components.OfflineState
+import com.ai.tinymodels.core.ui.components.bottomSheetTopSafePadding
 import com.ai.tinymodels.domain.model.DownloadedModelFile
 import com.ai.tinymodels.domain.model.MobileFit
+import com.ai.tinymodels.domain.model.ModelFeed
 import com.ai.tinymodels.domain.model.ModelFilter
 import com.ai.tinymodels.domain.model.ModelSummary
 import com.ai.tinymodels.domain.usecase.model.ActiveDownload
 import com.ai.tinymodels.feature.models.DownloadedModelsViewModel
+import com.ai.tinymodels.feature.models.ModelImportProgress
 import com.ai.tinymodels.feature.models.ModelListViewModel
 import com.ai.tinymodels.feature.models.components.ActiveDownloadsSection
 import java.util.UUID
@@ -94,10 +125,36 @@ fun ModelsTabScreen(
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val uiState by listViewModel.uiState.collectAsStateWithLifecycle()
+    val importToast by listViewModel.importToast.collectAsStateWithLifecycle()
     val downloadedModels by downloadedViewModel.models.collectAsStateWithLifecycle()
     val downloadedFiles by downloadedViewModel.downloadedFiles.collectAsStateWithLifecycle()
     val totalSizeBytes by downloadedViewModel.totalSizeBytes.collectAsStateWithLifecycle()
     val activeDownloads by downloadedViewModel.activeDownloads.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    var showFilterSheet by remember { mutableStateOf(false) }
+    var showSortSheet by remember { mutableStateOf(false) }
+
+    val modelPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        try {
+            context.contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        } catch (_: SecurityException) {
+            // Best-effort: persistable permission not always available.
+        }
+        listViewModel.importModel(uri)
+    }
+
+    LaunchedEffect(importToast) {
+        val message = importToast ?: return@LaunchedEffect
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        listViewModel.consumeImportToast()
+    }
+
+    BackHandler(enabled = uiState.isImporting) { }
 
     // Tab screen — outer Scaffold already handled the bottom nav-bar inset.
     // Only top + horizontal needed here.
@@ -109,6 +166,41 @@ fun ModelsTabScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.models_title)) },
+                actions = {
+                    if (selectedTab == 0) {
+                        val filterActive = uiState.selectedFilter != ModelFilter.ALL || uiState.selectedTag != null
+                        IconButton(onClick = { showFilterSheet = true }) {
+                            if (filterActive) {
+                                BadgedBox(badge = { Badge() }) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.filter_asset),
+                                        contentDescription = stringResource(R.string.models_filters)
+                                    )
+                                }
+                            } else {
+                                Icon(
+                                    painter = painterResource(R.drawable.filter_asset),
+                                    contentDescription = stringResource(R.string.models_filters)
+                                )
+                            }
+                        }
+                        IconButton(onClick = { showSortSheet = true }) {
+                            Icon(
+                                painter = painterResource(R.drawable.sort_asset),
+                                contentDescription = stringResource(R.string.models_filter_feed)
+                            )
+                        }
+                    }
+                    IconButton(
+                        onClick = { modelPicker.launch(arrayOf("*/*")) },
+                        enabled = !uiState.isImporting
+                    ) {
+                        Icon(
+                            Icons.Filled.FileUpload,
+                            contentDescription = stringResource(R.string.settings_import_model)
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer
                 )
@@ -137,7 +229,6 @@ fun ModelsTabScreen(
                 0 -> BrowseContent(
                     uiState = uiState,
                     onSearch = listViewModel::search,
-                    onFilterChange = listViewModel::setFilter,
                     onLoadMore = listViewModel::loadMore,
                     onRetry = listViewModel::refresh,
                     onModelClick = onModelClick
@@ -151,18 +242,101 @@ fun ModelsTabScreen(
                 )
             }
         }
+
+        if (uiState.isImporting) {
+            ImportProgressOverlay(progress = uiState.importProgress)
+        }
+    }
+
+    if (showFilterSheet) {
+        FilterSheet(
+            initialFilter = uiState.selectedFilter,
+            initialTag = uiState.selectedTag,
+            tagTypes = uiState.tagTypes,
+            onApply = { filter, tag ->
+                listViewModel.applyBrowseOptions(uiState.selectedFeed, filter, tag)
+                showFilterSheet = false
+            },
+            onDismiss = { showFilterSheet = false }
+        )
+    }
+
+    if (showSortSheet) {
+        SortSheet(
+            initialFeed = uiState.selectedFeed,
+            onApply = { feed ->
+                listViewModel.applyBrowseOptions(feed, uiState.selectedFilter, uiState.selectedTag)
+                showSortSheet = false
+            },
+            onDismiss = { showSortSheet = false }
+        )
     }
 }
 
+@Composable
+private fun ImportProgressOverlay(progress: ModelImportProgress?) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.45f))
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) { },
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(32.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = stringResource(R.string.settings_importing_model),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                val percent = progress?.percent
+                if (percent != null) {
+                    LinearProgressIndicator(
+                        progress = { percent / 100f },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "$percent%",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    Spacer(modifier = Modifier.height(8.dp))
+                    val copied = progress?.bytesCopied ?: 0L
+                    if (copied > 0L) {
+                        Text(
+                            text = Formatter.formatShortFileSize(LocalContext.current, copied),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
 
-// ---- Browse content with search + filter chips ----
+// ---- Browse content ----
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BrowseContent(
     uiState: ModelListViewModel.UiState,
     onSearch: (String) -> Unit,
-    onFilterChange: (ModelFilter) -> Unit,
     onLoadMore: () -> Unit,
     onRetry: () -> Unit,
     onModelClick: (String) -> Unit
@@ -171,7 +345,9 @@ private fun BrowseContent(
         OutlinedTextField(
             value = uiState.searchQuery,
             onValueChange = onSearch,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             placeholder = { Text(stringResource(R.string.models_search_placeholder)) },
             singleLine = true,
             leadingIcon = {
@@ -184,19 +360,7 @@ private fun BrowseContent(
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             shape = MaterialTheme.shapes.large
         )
-        FlowRow(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            ModelFilter.entries.forEach { filter ->
-                FilterChip(
-                    selected = uiState.selectedFilter == filter,
-                    onClick = { onFilterChange(filter) },
-                    label = { Text(stringResource(filter.labelRes)) }
-                )
-            }
-        }
+
         when {
             uiState.isLoading ->
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -217,12 +381,10 @@ private fun BrowseContent(
                 )
             else ->
                 LazyColumn(
-                    // top/horizontal: 16dp; bottom: 16dp list gap + 24dp breathing
-                    // room above the nav bar so the last card is never clipped.
                     contentPadding = PaddingValues(
                         start = 16.dp,
                         end = 16.dp,
-                        top = 16.dp,
+                        top = 4.dp,
                         bottom = 40.dp
                     ),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -245,13 +407,175 @@ private fun BrowseContent(
                                     )
                                 } else {
                                     TextButton(onClick = onLoadMore) {
-                                        Text("Load more")
+                                        Text(stringResource(R.string.models_load_more))
                                     }
                                 }
                             }
                         }
                     }
                 }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+private fun FilterSheet(
+    initialFilter: ModelFilter,
+    initialTag: String?,
+    tagTypes: Map<String, List<String>>,
+    onApply: (ModelFilter, String?) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var draftFilter by remember(initialFilter, initialTag) { mutableStateOf(initialFilter) }
+    var draftTag by remember(initialFilter, initialTag) { mutableStateOf(initialTag) }
+    val allTags = remember(tagTypes) {
+        buildList {
+            tagTypes["library"]?.let { addAll(it) }
+            tagTypes["pipeline_tag"]?.let { addAll(it) }
+            tagTypes["license"]?.let { addAll(it.map { tag -> if (tag.startsWith("license:")) tag else "license:$tag" }) }
+            tagTypes["language"]?.take(10)?.let { addAll(it) }
+            tagTypes["other"]?.take(10)?.let { addAll(it) }
+        }.distinct().take(40)
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        contentWindowInsets = { WindowInsets(0) },
+        modifier = Modifier.bottomSheetTopSafePadding()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .windowInsetsPadding(
+                    WindowInsets.systemBars.union(WindowInsets.displayCutout)
+                        .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+                )
+                .padding(bottom = 8.dp)
+        ) {
+            Text(stringResource(R.string.models_filters_title), style = MaterialTheme.typography.titleLarge)
+            Spacer(modifier = Modifier.height(12.dp))
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Text(stringResource(R.string.models_filter_format), style = MaterialTheme.typography.titleSmall)
+                Spacer(modifier = Modifier.height(8.dp))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ModelFilter.entries.forEach { filter ->
+                        FilterChip(
+                            selected = draftFilter == filter,
+                            onClick = { draftFilter = filter },
+                            label = { Text(stringResource(filter.labelRes)) }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(stringResource(R.string.models_tag_filter_label), style = MaterialTheme.typography.titleSmall)
+                Spacer(modifier = Modifier.height(8.dp))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(
+                        selected = draftTag == null,
+                        onClick = { draftTag = null },
+                        label = { Text(stringResource(R.string.models_tag_filter_any)) }
+                    )
+                    allTags.forEach { tag ->
+                        FilterChip(
+                            selected = draftTag == tag,
+                            onClick = { draftTag = if (draftTag == tag) null else tag },
+                            label = { Text(tag.removePrefix("license:"), maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(
+                    onClick = {
+                        draftFilter = ModelFilter.ALL
+                        draftTag = null
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(stringResource(R.string.models_clear_filters))
+                }
+                Button(
+                    onClick = { onApply(draftFilter, draftTag) },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(stringResource(R.string.models_apply_filters))
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+private fun SortSheet(
+    initialFeed: ModelFeed,
+    onApply: (ModelFeed) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var draftFeed by remember(initialFeed) { mutableStateOf(initialFeed) }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        contentWindowInsets = { WindowInsets(0) },
+        modifier = Modifier.bottomSheetTopSafePadding()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .windowInsetsPadding(
+                    WindowInsets.systemBars.union(WindowInsets.displayCutout)
+                        .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+                )
+                .padding(bottom = 8.dp)
+        ) {
+            Text(stringResource(R.string.models_filter_feed), style = MaterialTheme.typography.titleLarge)
+            Spacer(modifier = Modifier.height(12.dp))
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                ModelFeed.entries.forEach { feed ->
+                    FilterChip(
+                        selected = draftFeed == feed,
+                        onClick = { draftFeed = feed },
+                        label = { Text(stringResource(feed.labelRes)) }
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(
+                    onClick = { draftFeed = ModelFeed.POPULAR },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(stringResource(R.string.models_clear_filters))
+                }
+                Button(
+                    onClick = { onApply(draftFeed) },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(stringResource(R.string.models_apply_filters))
+                }
+            }
         }
     }
 }
