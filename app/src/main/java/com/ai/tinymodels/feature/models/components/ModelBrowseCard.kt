@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FolderCopy
@@ -128,9 +129,9 @@ fun ModelBrowseCard(model: ModelSummary, onClick: () -> Unit) {
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     val downloads = Formatters.formatCount(model.downloads ?: 0)
                     Stat(
@@ -159,21 +160,14 @@ fun ModelBrowseCard(model: ModelSummary, onClick: () -> Unit) {
                             )
                         )
                     }
-                }
-                // One date only, right-aligned under the stats — never repeated
-                // next to the chips like the old card did.
-                model.lastModified?.takeIf { it.isNotBlank() }?.let { date ->
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = stringResource(
-                            R.string.models_updated_on,
-                            Formatters.formatDate(date, resources)
-                        ),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        modifier = Modifier.align(Alignment.End)
-                    )
+                    model.lastModified?.takeIf { it.isNotBlank() }?.let { date ->
+                        val formattedDate = Formatters.formatDate(date, resources)
+                        Stat(
+                            icon = Icons.Filled.CalendarMonth,
+                            text = formattedDate,
+                            description = stringResource(R.string.models_updated_on, formattedDate)
+                        )
+                    }
                 }
             }
         }
