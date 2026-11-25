@@ -53,7 +53,11 @@
     <string name="settings_report_bug">பிழையைத் தெரிவிக்கவும்</string>
     <string name="settings_report_bug_subtitle">ஏதோ உடைந்ததா? எங்களுக்குத் தெரியப்படுத்துங்கள்</string>
 
-    <string name="settings_section_about">பற்றி</string>
+        <string name="settings_update_available_title">பயன்பாட்டு புதுப்பிப்பு</string>
+    <string name="settings_update_available_message">Play Store-இல் TinyModels-இன் புதிய பதிப்பு கிடைக்கிறது.</string>
+    <string name="settings_update_action">புதுப்பி</string>
+
+<string name="settings_section_about">பற்றி</string>
     <string name="settings_benchmark">பென்ச்மார்க்</string>
     <string name="settings_benchmark_subtitle">ஏற்றும் நேரம், TTFT மற்றும் டோக்கன்/வினாடியை அளவிடுங்கள்</string>
     <string name="settings_device_information">சாதன தகவல்</string>

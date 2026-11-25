@@ -6,6 +6,7 @@ import com.ai.tinymodels.core.inference.gguf.GgufDigestAttempt
 import com.ai.tinymodels.domain.model.SamplerSettings
 import com.dark.gguf_lib.GGMLEngine
 import com.dark.gguf_lib.models.GenerationEvent
+import android.util.Log
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
@@ -67,6 +68,7 @@ class GgufChatSession(
             close(IllegalStateException("Session is closed"))
             return@callbackFlow
         }
+        Log.i("GGUF_LOAD", "send:start chars=${text.length} images=${imagePaths.size} turns=${turns.size} loaded=${engine.isLoaded}")
         synchronized(transcriptLock) { turns.addLast(ChatTurn(ChatTurn.Role.USER, text, imagePaths)) }
         countPrompt(text)
         repeat(imagePaths.size) { countImage() }
@@ -92,7 +94,12 @@ class GgufChatSession(
                 // unload/reload (model swap, memory trim, benchmark) can never
                 // touch the weights mid-decode.
                 runtime.withEngineLock {
+                    // Full transcript is sent each time; reset stale KV state to avoid
+                    // native crashes/state corruption across generations.
+                    runCatching { engine.resetKvCache() }
+                        .onFailure { Log.w("GGUF_LOAD", "resetKvCache failed: ${it.message}") }
                     val flow = engineFlow(messagesJson, imagePaths)
+                    Log.i("GGUF_LOAD", "send:collecting maxTokens=$generationTokens vlm=${imagePaths.isNotEmpty() && engine.isVlmLoaded}")
                     flow.collect { event ->
                         when (event) {
                             is GenerationEvent.Token -> {
@@ -113,10 +120,13 @@ class GgufChatSession(
                         }
                     }
                 }
+                Log.i("GGUF_LOAD", "send:complete chars=${accumulated.length}")
                 close()
             } catch (e: CancellationException) {
+                Log.i("GGUF_LOAD", "send:cancelled chars=${accumulated.length}")
                 throw e
             } catch (t: Throwable) {
+                Log.e("GGUF_LOAD", "send:failed chars=${accumulated.length} err=${t.message}", t)
                 TinyLog.e(TAG, "GGUF generate failed: ${t.message}", t)
                 close(t)
             } finally {

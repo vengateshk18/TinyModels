@@ -75,6 +75,19 @@ internal object GgufDiagnostics {
     fun isProjectorArchitecture(architecture: String?): Boolean =
         architecture?.equals("clip", ignoreCase = true) == true
 
+    /**
+     * Architectures known to be unsupported by the bundled gguf_lib AAR.
+     * Loading them natively can SIGSEGV the process, so fail fast with a clear message.
+     */
+    private val BUNDLED_UNSUPPORTED_ARCHITECTURES = setOf("lfm3")
+
+    fun bundledRuntimeUnsupportedReason(architecture: String?): String? {
+        val arch = architecture?.trim()?.lowercase()?.takeIf { it.isNotEmpty() } ?: return null
+        if (arch !in BUNDLED_UNSUPPORTED_ARCHITECTURES) return null
+        return "Model architecture '$architecture' is not supported by the bundled GGUF runtime (gguf_lib). " +
+            "Update app/libs/gguf_lib-release.aar (and tn_security-release.aar if needed) to a build that supports this architecture."
+    }
+
     /** One-line description for logcat. */
     fun describe(file: File): String {
         val header = readHeader(file)

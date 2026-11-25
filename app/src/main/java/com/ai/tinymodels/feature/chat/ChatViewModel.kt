@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.ai.tinymodels.core.common.DispatcherProvider
 import com.ai.tinymodels.core.common.TinyLog
 import com.ai.tinymodels.core.common.InferenceError
+import com.ai.tinymodels.core.play.InAppReviewManager
 import com.ai.tinymodels.R
 import com.ai.tinymodels.core.inference.InferenceException
 import com.ai.tinymodels.core.inference.ModelContextInspector
@@ -41,9 +42,12 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
@@ -75,12 +79,20 @@ class ChatViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val webSearchToolSet: WebSearchToolSet,
     private val webSearchRepository: WebSearchRepository,
+    private val inAppReviewManager: InAppReviewManager,
     @dagger.hilt.android.qualifiers.ApplicationContext private val appContext: android.content.Context,
     private val dispatchers: DispatcherProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChatUiState())
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
+
+    private val _reviewRequest = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val reviewRequest: SharedFlow<Unit> = _reviewRequest.asSharedFlow()
+
+    fun requestInAppReview(activity: android.app.Activity) {
+        viewModelScope.launch { inAppReviewManager.launchReview(activity) }
+    }
 
     /** Downloaded models (parents) for the picker sheet. */
     val downloadedModels: StateFlow<List<DownloadedModel>> =
@@ -564,7 +576,7 @@ class ChatViewModel @Inject constructor(
     }
 
     /** Build a fresh [ChatSession] restoring prior turns for [chatId]. */
-    private suspend fun rebuildSession(chatId: String) {
+    private suspend fun rebuildSession(chatId: String, excludeMessageIds: Set<String> = emptySet()) {
         session?.close()
         session = null
         val chat = chatRepository.getChat(chatId)
@@ -573,7 +585,11 @@ class ChatViewModel @Inject constructor(
         // is carried by the digest instead (folded into the system prompt).
         val cutoff = chat?.compactedUpToCreatedAt
         val history = chatRepository.getMessages(chatId)
-            .filter { it.isComplete && !SessionBudget.isCoveredByDigest(it.createdAt, cutoff) }
+            .filter {
+                it.isComplete &&
+                    !SessionBudget.isCoveredByDigest(it.createdAt, cutoff) &&
+                    it.id !in excludeMessageIds
+            }
             .map {
                 ChatTurn(
                     role = if (it.role == ChatMessage.Role.USER) ChatTurn.Role.USER else ChatTurn.Role.ASSISTANT,
@@ -1318,6 +1334,9 @@ class ChatViewModel @Inject constructor(
                 }
                 // Compact the conversation if it has outgrown the context budget.
                 maybeCompact(chatId)
+                if (inAppReviewManager.recordSuccessfulChatAndShouldPrompt()) {
+                    _reviewRequest.tryEmit(Unit)
+                }
             }
             updateContextUsage()
             TinyLog.i(
@@ -1383,9 +1402,10 @@ class ChatViewModel @Inject constructor(
 
             // Rebuild so the deleted reply leaves the native KV cache AND the
             // token counter — otherwise the stale reply keeps occupying context
-            // forever and the usage number only ever grows.
+            // forever and the usage number only ever grows. Exclude the user
+            // message being re-sent; runGeneration will feed it to the session.
             TinyLog.i(TAG, "JOURNEY: regenerate — rebuilding session to drop stale reply")
-            rebuildSession(chatId)
+            rebuildSession(chatId, excludeMessageIds = setOf(lastUser.id))
 
             // Create a new streaming placeholder.
             val newAssistantId = java.util.UUID.randomUUID().toString()
@@ -1449,7 +1469,8 @@ class ChatViewModel @Inject constructor(
             }
 
             // Rebuild the session so the edited prompt is the latest turn.
-            rebuildSession(chatId)
+            // Exclude the edited message; runGeneration sends it to the session.
+            rebuildSession(chatId, excludeMessageIds = setOf(messageId))
 
             // Start a fresh generation.
             val newAssistantId = java.util.UUID.randomUUID().toString()

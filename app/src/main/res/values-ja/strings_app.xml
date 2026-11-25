@@ -56,7 +56,11 @@
     <string name="settings_report_bug">バグを報告</string>
     <string name="settings_report_bug_subtitle">問題を見つけましたか？お知らせください</string>
 
-    <string name="settings_section_about">アプリについて</string>
+        <string name="settings_update_available_title">アプリの更新</string>
+    <string name="settings_update_available_message">Play ストアで TinyModels の新しいバージョンが利用できます。</string>
+    <string name="settings_update_action">更新</string>
+
+<string name="settings_section_about">アプリについて</string>
     <string name="settings_benchmark">ベンチマーク</string>
     <string name="settings_benchmark_subtitle">読み込み時間、TTFT、トークン/秒を計測</string>
     <string name="settings_device_information">デバイス情報</string>

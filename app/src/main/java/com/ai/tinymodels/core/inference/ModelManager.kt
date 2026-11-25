@@ -227,7 +227,11 @@ class ModelManager @Inject constructor(
                         continue
                     }
                     lastFailure = InferenceError.LoadFailed(throwable.message, throwable)
-                    TinyLog.w(TAG, "Load failed on $preference: ${throwable.message}")
+                    val msg = "Load failed on $preference for $modelId " +
+                        "(${modelFile.name}, ${modelFile.length()} bytes, format=${format.displayName}): " +
+                        "${throwable.javaClass.simpleName}: ${throwable.message}"
+                    android.util.Log.e("GGUF_LOAD", msg, throwable)
+                    TinyLog.e(TAG, msg, throwable)
                     break
                 }
             }

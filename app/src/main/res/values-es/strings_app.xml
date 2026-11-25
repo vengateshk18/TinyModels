@@ -53,7 +53,11 @@
     <string name="settings_report_bug">Informar de un error</string>
     <string name="settings_report_bug_subtitle">¿Has encontrado algo roto? Cuéntanoslo</string>
 
-    <string name="settings_section_about">Acerca de</string>
+        <string name="settings_update_available_title">Actualización de la app</string>
+    <string name="settings_update_available_message">Hay una versión más nueva de TinyModels disponible en Play Store.</string>
+    <string name="settings_update_action">Actualizar</string>
+
+<string name="settings_section_about">Acerca de</string>
     <string name="settings_benchmark">Benchmark</string>
     <string name="settings_benchmark_subtitle">Mide el tiempo de carga, el TTFT y los tokens/s</string>
     <string name="settings_device_information">Información del dispositivo</string>

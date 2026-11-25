@@ -196,6 +196,13 @@ dependencies {
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
 
+    // Google Play In-App Review / Update
+    implementation(libs.google.play.review)
+    implementation(libs.google.play.review.ktx)
+    implementation(libs.google.play.app.update)
+    implementation(libs.google.play.app.update.ktx)
+    implementation(libs.kotlinx.coroutines.play.services)
+
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.json)

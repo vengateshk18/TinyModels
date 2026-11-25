@@ -53,7 +53,11 @@
     <string name="settings_report_bug">बग की सूचना दें</string>
     <string name="settings_report_bug_subtitle">कुछ टूटा मिला? हमें बताएँ</string>
 
-    <string name="settings_section_about">परिचय</string>
+        <string name="settings_update_available_title">ऐप अपडेट</string>
+    <string name="settings_update_available_message">Play Store पर TinyModels का नया संस्करण उपलब्ध है।</string>
+    <string name="settings_update_action">अपडेट करें</string>
+
+<string name="settings_section_about">परिचय</string>
     <string name="settings_benchmark">बेंचमार्क</string>
     <string name="settings_benchmark_subtitle">लोड समय, TTFT और टोकन/सेकंड मापें</string>
     <string name="settings_device_information">डिवाइस की जानकारी</string>

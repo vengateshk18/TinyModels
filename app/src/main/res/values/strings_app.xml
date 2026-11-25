@@ -68,7 +68,11 @@
     <string name="settings_report_bug">Report a bug</string>
     <string name="settings_report_bug_subtitle">Found something broken? Let us know</string>
 
-    <string name="settings_section_about">About</string>
+        <string name="settings_update_available_title">App update</string>
+    <string name="settings_update_available_message">A newer version of TinyModels is available on Play Store.</string>
+    <string name="settings_update_action">Update</string>
+
+<string name="settings_section_about">About</string>
     <string name="settings_benchmark">Benchmark</string>
     <string name="settings_benchmark_subtitle">Score speed, memory, and thermal behaviour</string>
     <string name="settings_device_information">Device information</string>

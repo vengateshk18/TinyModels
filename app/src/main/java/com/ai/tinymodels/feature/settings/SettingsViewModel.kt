@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.AppLocaleStore
 import com.ai.tinymodels.core.common.AppResult
+import com.ai.tinymodels.core.play.AppUpdateChecker
 import com.ai.tinymodels.domain.model.AppLanguage
 import com.ai.tinymodels.domain.model.AppSettings
 import com.ai.tinymodels.domain.model.AppTheme
@@ -16,6 +17,7 @@ import com.ai.tinymodels.domain.model.ThemeMode
 import com.ai.tinymodels.domain.repository.ChatRepository
 import com.ai.tinymodels.domain.repository.ModelRepository
 import com.ai.tinymodels.domain.repository.SettingsRepository
+import com.google.android.play.core.appupdate.AppUpdateInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -45,7 +47,8 @@ class SettingsViewModel @Inject constructor(
     private val appLocaleStore: AppLocaleStore,
     private val settingsRepository: SettingsRepository,
     private val chatRepository: ChatRepository,
-    private val modelRepository: ModelRepository
+    private val modelRepository: ModelRepository,
+    private val appUpdateChecker: AppUpdateChecker
 ) : ViewModel() {
 
     /** Currently selected app language (drives the Appearance → Language row). */
@@ -81,6 +84,33 @@ class SettingsViewModel @Inject constructor(
     /** One-shot toast message for import success/failure. */
     private val _importToast = MutableStateFlow<String?>(null)
     val importToast: StateFlow<String?> = _importToast.asStateFlow()
+
+    private val _availableUpdate = MutableStateFlow<AppUpdateInfo?>(null)
+    val availableUpdate: StateFlow<AppUpdateInfo?> = _availableUpdate.asStateFlow()
+
+    init {
+        checkForAppUpdate()
+    }
+
+    fun checkForAppUpdate() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _availableUpdate.value = appUpdateChecker.getAvailableUpdate()
+        }
+    }
+
+    fun startFlexibleUpdate(
+        activity: android.app.Activity,
+        launcher: androidx.activity.result.ActivityResultLauncher<androidx.activity.result.IntentSenderRequest>
+    ): Boolean {
+        val info = _availableUpdate.value ?: return false
+        val started = appUpdateChecker.startFlexibleUpdate(activity, info, launcher)
+        if (!started) {
+            _availableUpdate.value = null
+        }
+        return started
+    }
+
+    fun clearAvailableUpdate() { _availableUpdate.value = null }
 
     fun setThemeMode(mode: ThemeMode) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setThemeMode(mode) }
     fun setAppTheme(theme: AppTheme) = viewModelScope.launch(Dispatchers.Default) {

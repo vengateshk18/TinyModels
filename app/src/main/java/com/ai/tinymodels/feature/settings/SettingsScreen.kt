@@ -61,6 +61,7 @@ import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material.icons.filled.Widgets
@@ -149,12 +150,16 @@ fun SettingsScreen(
     val isImporting by viewModel.isImporting.collectAsStateWithLifecycle()
     val importProgress by viewModel.importProgress.collectAsStateWithLifecycle()
     val importToast by viewModel.importToast.collectAsStateWithLifecycle()
+    val availableUpdate by viewModel.availableUpdate.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var showClearDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val resources = LocalResources.current
+    val updateLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { /* Play handles the update flow UI/result; availability is refreshed on next check. */ }
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
@@ -211,6 +216,22 @@ fun SettingsScreen(
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                availableUpdate?.let {
+                    UpdateAvailableSection(
+                        onUpdate = {
+                            val activity = context as? Activity
+                            val launched = activity != null && viewModel.startFlexibleUpdate(activity, updateLauncher)
+                            if (!launched) {
+                                context.startActivity(
+                                    Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse("https://play.google.com/store/apps/details?id=${context.packageName}")
+                                    )
+                                )
+                            }
+                        }
+                    )
+                }
                 AppearanceSection(settings, viewModel)
                 ChatInferenceSection(settings, viewModel)
                 DownloadsModelsSection(
@@ -344,6 +365,35 @@ private fun ImportProgressOverlay(progress: ModelImportProgress?) {
 }
 
 // ---- Sections ----
+
+@Composable
+private fun UpdateAvailableSection(onUpdate: () -> Unit) {
+    SettingsSection(
+        title = stringResource(R.string.settings_update_available_title),
+        icon = Icons.Filled.SystemUpdate
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            LeadingIcon(Icons.Filled.SystemUpdate, tint = MaterialTheme.colorScheme.primary)
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.settings_update_available_message),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            TextButton(onClick = onUpdate) {
+                Text(stringResource(R.string.settings_update_action))
+            }
+        }
+    }
+}
 
 @Composable
 private fun AppearanceSection(settings: AppSettings, viewModel: SettingsViewModel) {

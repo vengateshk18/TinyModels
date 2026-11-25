@@ -66,6 +66,15 @@ fun ChatScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val downloadedModels by viewModel.downloadedModels.collectAsStateWithLifecycle()
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    LaunchedEffect(viewModel) {
+        viewModel.reviewRequest.collect {
+            (context as? android.app.Activity)?.let { activity ->
+                viewModel.requestInAppReview(activity)
+            }
+        }
+    }
 
     ChatScreenContent(
         uiState = uiState,

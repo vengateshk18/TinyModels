@@ -6,6 +6,8 @@ import com.ai.tinymodels.core.common.AppError
 import com.ai.tinymodels.core.common.AppResult
 import com.ai.tinymodels.core.common.AppLocaleStore
 import com.ai.tinymodels.core.common.fakeStringContext
+import com.ai.tinymodels.core.play.AppUpdateChecker
+import com.google.android.play.core.appupdate.AppUpdateInfo
 import com.ai.tinymodels.domain.model.AppSettings
 import com.ai.tinymodels.domain.model.AppTheme
 import com.ai.tinymodels.domain.model.BackendPreference
@@ -47,6 +49,7 @@ class SettingsViewModelTest {
     private val settingsRepo = FakeSettingsRepository()
     private val chatRepo = mockk<ChatRepository>(relaxed = true)
     private val modelRepo = FakeImportModelRepository()
+    private val appUpdateChecker = FakeAppUpdateChecker()
 
     @Before
     fun setUp() {
@@ -63,7 +66,7 @@ class SettingsViewModelTest {
     /** Real store over a mocked Context — the language preference has no bearing here. */
     private val appLocaleStore = AppLocaleStore(context)
 
-    private fun vm() = SettingsViewModel(context, appLocaleStore, settingsRepo, chatRepo, modelRepo)
+    private fun vm() = SettingsViewModel(context, appLocaleStore, settingsRepo, chatRepo, modelRepo, appUpdateChecker)
 
     private suspend fun awaitResult(viewModel: SettingsViewModel): String {
         val start = System.currentTimeMillis()
@@ -185,6 +188,16 @@ class SettingsViewModelTest {
         assertEquals(AppTheme.DRACULA, settingsRepo.settingsFlow.value.appTheme)
         assertEquals(false, settingsRepo.settingsFlow.value.useDynamicColor)
     }
+}
+
+private class FakeAppUpdateChecker : AppUpdateChecker {
+    var availableUpdate: AppUpdateInfo? = null
+    override suspend fun getAvailableUpdate(): AppUpdateInfo? = availableUpdate
+    override fun startFlexibleUpdate(
+        activity: android.app.Activity,
+        appUpdateInfo: AppUpdateInfo,
+        launcher: androidx.activity.result.ActivityResultLauncher<androidx.activity.result.IntentSenderRequest>
+    ): Boolean = false
 }
 
 /** SettingsRepository fake with in-memory settings + token. */

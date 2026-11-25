@@ -1,6 +1,8 @@
 package com.ai.tinymodels.di
 
 import com.ai.tinymodels.core.common.SnackbarManager
+import com.ai.tinymodels.core.play.AppUpdateChecker
+import com.ai.tinymodels.core.play.PlayAppUpdateChecker
 import com.ai.tinymodels.data.repository.ChatRepositoryImpl
 import com.ai.tinymodels.data.repository.ModelRepositoryImpl
 import com.ai.tinymodels.data.repository.SettingsRepositoryImpl
@@ -35,6 +37,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindWebSearchRepository(impl: WebSearchRepositoryImpl): WebSearchRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAppUpdateChecker(impl: PlayAppUpdateChecker): AppUpdateChecker
 
     companion object {
         @Provides

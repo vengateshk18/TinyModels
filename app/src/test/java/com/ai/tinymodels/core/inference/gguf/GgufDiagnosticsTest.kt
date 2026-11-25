@@ -128,4 +128,28 @@ class GgufDiagnosticsTest {
 
         assertTrue(reason.contains("metadata could not be parsed"))
     }
+
+    @Test
+    fun `bundled runtime rejects known unsupported architecture`() {
+        val reason = GgufDiagnostics.bundledRuntimeUnsupportedReason("lfm3")
+
+        assertNotNull(reason)
+        assertTrue(reason!!.contains("lfm3"))
+        assertTrue(reason.contains("not supported by the bundled GGUF runtime"))
+    }
+
+    @Test
+    fun `bundled runtime unsupported check is case insensitive and trims`() {
+        assertNotNull(GgufDiagnostics.bundledRuntimeUnsupportedReason("LFM3"))
+        assertNotNull(GgufDiagnostics.bundledRuntimeUnsupportedReason(" lfm3 "))
+    }
+
+    @Test
+    fun `bundled runtime allows supported or unknown architectures`() {
+        assertNull(GgufDiagnostics.bundledRuntimeUnsupportedReason("llama"))
+        assertNull(GgufDiagnostics.bundledRuntimeUnsupportedReason("gemma3"))
+        assertNull(GgufDiagnostics.bundledRuntimeUnsupportedReason(null))
+        assertNull(GgufDiagnostics.bundledRuntimeUnsupportedReason(""))
+        assertNull(GgufDiagnostics.bundledRuntimeUnsupportedReason("  "))
+    }
 }
