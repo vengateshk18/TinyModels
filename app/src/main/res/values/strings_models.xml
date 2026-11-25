@@ -13,6 +13,15 @@
     <string name="models_likes_count">♥ %1$s</string>
     <string name="models_pipeline_default" translatable="false">text-generation</string>
 
+    <!-- Browse card: spec pills and stat descriptions (icons are decorative) -->
+    <string name="models_card_parameters_desc">%1$s parameters</string>
+    <string name="models_card_context_chip">%1$s ctx</string>
+    <string name="models_card_context_desc">%1$s token context window</string>
+    <string name="models_card_vision_chip">Vision</string>
+    <string name="models_card_vision_desc">Supports image input (vision projector included)</string>
+    <string name="models_card_downloads_desc">%1$s downloads</string>
+    <string name="models_card_likes_desc">%1$s likes</string>
+
     <!-- ================= Downloaded models ================= -->
     <string name="downloaded_models_title">Downloaded models</string>
     <string name="downloaded_models_empty_title">No models downloaded</string>

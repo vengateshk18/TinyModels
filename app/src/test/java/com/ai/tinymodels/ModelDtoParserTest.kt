@@ -97,6 +97,23 @@ class ModelDtoParserTest {
     }
 
     @Test
+    fun parsesSummaryContextWindowAndAuthorFromExpandedList() {
+        val listJson = """
+        [{
+          "id": "LiquidAI/LFM3-1.7B-GGUF",
+          "modelId": "LiquidAI/LFM3-1.7B-GGUF",
+          "author": "LiquidAI",
+          "tags": ["gguf"],
+          "siblings": [{"rfilename":"LFM3-1.7B-Q4_K_M.gguf"}],
+          "gguf": {"context_length": 262144}
+        }]
+        """.trimIndent()
+        val summary = ModelDtoParser.parseModelList(listJson).first()
+        assertEquals("LiquidAI", summary.author)
+        assertEquals(262144, summary.contextLength)
+    }
+
+    @Test
     fun gatedModel_isGatedTrue() {
         val d = ModelDtoParser.parseDetails(sampleJson)
         assertEquals("auto", d.gated)

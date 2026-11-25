@@ -23,6 +23,7 @@ import com.ai.tinymodels.domain.repository.ModelRepository
 import com.ai.tinymodels.domain.repository.SettingsRepository
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -86,6 +87,15 @@ class SettingsViewModelTest {
         error("Timed out waiting for importToast")
     }
 
+    private suspend fun awaitProgress(viewModel: SettingsViewModel, percent: Int) {
+        val start = System.currentTimeMillis()
+        while (System.currentTimeMillis() - start < 5_000) {
+            if (viewModel.importProgress.value?.percent == percent) return
+            delay(10)
+        }
+        error("Timed out waiting for import progress $percent%")
+    }
+
     @Test
     fun `settings reflects current repo value immediately`() {
         settingsRepo.settingsFlow.value = AppSettings(
@@ -139,13 +149,19 @@ class SettingsViewModelTest {
         modelRepo.importResult = AppResult.Success(
             DownloadedModel("a/b", null, null, null, "/tmp", 0L)
         )
-        modelRepo.progressUpdates = listOf(0L to 100L, 50L to 100L, 100L to 100L)
+        modelRepo.progressUpdates = listOf(50L to 100L)
+        val gate = CompletableDeferred<Unit>()
+        modelRepo.progressGate = gate
         val viewModel = vm()
 
         viewModel.importModel(mockk<Uri>())
-        awaitImportToast(viewModel)
+        // The fake blocks after reporting progress, so live state is observable.
+        awaitProgress(viewModel, percent = 50)
+        assertEquals(50, viewModel.importProgress.value?.percent)
+        assertTrue(viewModel.isImporting.value)
 
-        assertEquals(listOf(50, 100), modelRepo.observedPercents)
+        gate.complete(Unit)
+        awaitImportToast(viewModel)
         assertNull(viewModel.importProgress.value)
         assertEquals(false, viewModel.isImporting.value)
     }
@@ -261,16 +277,16 @@ private class FakeImportModelRepository : ModelRepository {
     var importResult: AppResult<DownloadedModel> =
         AppResult.Error(AppError.Unknown("not stubbed"))
     var progressUpdates: List<Pair<Long, Long>> = emptyList()
-    val observedPercents = mutableListOf<Int>()
+
+    /** When set, [importModel] suspends after reporting progress until completed. */
+    var progressGate: CompletableDeferred<Unit>? = null
 
     override suspend fun importModel(
         sourceUri: Uri,
         onProgress: (bytesCopied: Long, totalBytes: Long) -> Unit
     ): AppResult<DownloadedModel> {
-        progressUpdates.forEach { (copied, total) ->
-            onProgress(copied, total)
-            if (total > 0L) observedPercents += ((copied.coerceAtMost(total) * 100L) / total).toInt()
-        }
+        progressUpdates.forEach { (copied, total) -> onProgress(copied, total) }
+        progressGate?.await()
         return importResult
     }
 

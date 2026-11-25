@@ -225,7 +225,7 @@ class ModelRepositoryImpl @Inject constructor(
         tag: String?
     ): BranchFetch {
         val expand = listOf(
-            "downloads", "likes", "lastModified", "createdAt", "trendingScore",
+            "author", "downloads", "likes", "lastModified", "createdAt", "trendingScore",
             "tags", "pipeline_tag", "library_name", "siblings", "gated", "cardData"
         )
         val json = api.listModels(

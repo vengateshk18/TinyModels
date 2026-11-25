@@ -33,7 +33,8 @@ object ModelDtoParser {
             siblings = json.optObjectStringList("siblings", "rfilename"),
             createdAt = json.optStringOrNull("createdAt"),
             trendingScore = json.optDoubleOrNull("trendingScore"),
-            license = extractLicense(cardData, tags)
+            license = extractLicense(cardData, tags),
+            contextLength = extractContextLength(json)
         )
     }
 

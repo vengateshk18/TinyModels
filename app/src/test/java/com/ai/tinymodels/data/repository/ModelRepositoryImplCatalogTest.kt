@@ -5,6 +5,7 @@ import com.ai.tinymodels.core.common.DispatcherProvider
 import com.ai.tinymodels.core.database.DownloadedModelDao
 import com.ai.tinymodels.core.database.ModelFileDao
 import com.ai.tinymodels.core.network.HuggingFaceApi
+import com.ai.tinymodels.domain.model.ModelFeed
 import com.ai.tinymodels.domain.model.ModelFilter
 import io.mockk.every
 import io.mockk.mockk
@@ -78,7 +79,7 @@ class ModelRepositoryImplCatalogTest {
             "gguf" to listOf(modelJson("b/three", downloads = 10, files = listOf("three-q4_k_m.gguf")))
         )
 
-        val page = (repo().listModels(null, ModelFilter.ALL, 100) as AppResult.Success).data
+        val page = (repo().listModels(null, ModelFilter.ALL, ModelFeed.POPULAR, null, 100) as AppResult.Success).data
 
         assertEquals(
             listOf("a/one", "litert-community/two", "b/three"),
@@ -94,7 +95,7 @@ class ModelRepositoryImplCatalogTest {
     fun `typed search replaces the browse branches`() = runTest {
         catalog = mapOf("qwen" to listOf(modelJson("q/one")))
 
-        val page = (repo().listModels("  qwen  ", ModelFilter.ALL, 50) as AppResult.Success).data
+        val page = (repo().listModels("  qwen  ", ModelFilter.ALL, ModelFeed.POPULAR, null, 50) as AppResult.Success).data
 
         assertEquals(listOf("q/one"), page.models.map { it.modelId })
         verify(exactly = 1) { api.listModels("qwen", "text-generation", null, 50, any(), any(), any()) }
@@ -110,7 +111,7 @@ class ModelRepositoryImplCatalogTest {
             )
         )
 
-        val page = (repo().listModels("qwen", ModelFilter.ALL, 50) as AppResult.Success).data
+        val page = (repo().listModels("qwen", ModelFilter.ALL, ModelFeed.POPULAR, null, 50) as AppResult.Success).data
 
         assertEquals(listOf("q/ok"), page.models.map { it.modelId })
     }
@@ -124,7 +125,7 @@ class ModelRepositoryImplCatalogTest {
             )
         )
 
-        val page = (repo().listModels("qwen", ModelFilter.ALL, 50) as AppResult.Success).data
+        val page = (repo().listModels("qwen", ModelFilter.ALL, ModelFeed.POPULAR, null, 50) as AppResult.Success).data
 
         assertEquals(listOf("q/ok"), page.models.map { it.modelId })
     }
@@ -138,7 +139,7 @@ class ModelRepositoryImplCatalogTest {
             )
         )
 
-        val page = (repo().listModels("qwen", ModelFilter.ALL, 50) as AppResult.Success).data
+        val page = (repo().listModels("qwen", ModelFilter.ALL, ModelFeed.POPULAR, null, 50) as AppResult.Success).data
 
         assertEquals(listOf("q/small", "q/mid"), page.models.map { it.modelId })
     }
@@ -152,7 +153,7 @@ class ModelRepositoryImplCatalogTest {
             )
         )
 
-        val page = (repo().listModels("qwen", ModelFilter.ALL, 50) as AppResult.Success).data
+        val page = (repo().listModels("qwen", ModelFilter.ALL, ModelFeed.POPULAR, null, 50) as AppResult.Success).data
 
         assertEquals(listOf("q/more", "q/less"), page.models.map { it.modelId })
     }
@@ -166,7 +167,7 @@ class ModelRepositoryImplCatalogTest {
             )
         )
 
-        val page = (repo().listModels(null, ModelFilter.GGUF, 100) as AppResult.Success).data
+        val page = (repo().listModels(null, ModelFilter.GGUF, ModelFeed.POPULAR, null, 100) as AppResult.Success).data
 
         assertEquals(listOf("g/gguf"), page.models.map { it.modelId })
         verify(exactly = 1) { api.listModels("gguf", "text-generation", null, 100, any(), any(), any()) }
@@ -182,7 +183,7 @@ class ModelRepositoryImplCatalogTest {
             )
         )
 
-        val page = (repo().listModels("foo", ModelFilter.LITERTLM, 100) as AppResult.Success).data
+        val page = (repo().listModels("foo", ModelFilter.LITERTLM, ModelFeed.POPULAR, null, 100) as AppResult.Success).data
 
         assertEquals(listOf("f/lite"), page.models.map { it.modelId })
     }
@@ -192,7 +193,7 @@ class ModelRepositoryImplCatalogTest {
         catalog = mapOf("gguf" to listOf(modelJson("b/ok", files = listOf("b-q4_k_m.gguf"))))
         failingBranches = setOf("litertlm")
 
-        val page = (repo().listModels(null, ModelFilter.ALL, 100) as AppResult.Success).data
+        val page = (repo().listModels(null, ModelFilter.ALL, ModelFeed.POPULAR, null, 100) as AppResult.Success).data
 
         assertEquals(listOf("b/ok"), page.models.map { it.modelId })
     }
@@ -201,7 +202,7 @@ class ModelRepositoryImplCatalogTest {
     fun `all branches failing surfaces a typed error`() = runTest {
         failingBranches = setOf("litertlm", "litert-community", "gguf")
 
-        val result = repo().listModels(null, ModelFilter.ALL, 100)
+        val result = repo().listModels(null, ModelFilter.ALL, ModelFeed.POPULAR, null, 100)
 
         assertTrue(result is AppResult.Error)
     }
@@ -216,7 +217,7 @@ class ModelRepositoryImplCatalogTest {
             "litert-community" to listOf(modelJson("c/one"))
         )
 
-        val page = (repo().listModels(null, ModelFilter.ALL, 3) as AppResult.Success).data
+        val page = (repo().listModels(null, ModelFilter.ALL, ModelFeed.POPULAR, null, 3) as AppResult.Success).data
 
         assertTrue(page.hasMore)
         assertEquals(5, page.models.size)
@@ -227,8 +228,8 @@ class ModelRepositoryImplCatalogTest {
         catalog = mapOf("gguf" to listOf(modelJson("g/one", files = listOf("g-q4_k_m.gguf"))))
         val repository = repo()
 
-        repository.listModels(null, ModelFilter.GGUF, 100)
-        repository.listModels(null, ModelFilter.GGUF, 100)
+        repository.listModels(null, ModelFilter.GGUF, ModelFeed.POPULAR, null, 100)
+        repository.listModels(null, ModelFilter.GGUF, ModelFeed.POPULAR, null, 100)
 
         verify(exactly = 1) { api.listModels("gguf", "text-generation", null, 100, any(), any(), any()) }
     }

@@ -37,18 +37,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.InsertDriveFile
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
-import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
@@ -82,7 +78,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -109,6 +104,7 @@ import com.ai.tinymodels.feature.models.DownloadedModelsViewModel
 import com.ai.tinymodels.feature.models.ModelImportProgress
 import com.ai.tinymodels.feature.models.ModelListViewModel
 import com.ai.tinymodels.feature.models.components.ActiveDownloadsSection
+import com.ai.tinymodels.feature.models.components.ModelBrowseCard
 import java.util.UUID
 
 /**
@@ -390,7 +386,7 @@ private fun BrowseContent(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(uiState.models, key = { it.modelId }) { model ->
-                        ModelCard(model = model, onClick = { onModelClick(model.modelId) })
+                        ModelBrowseCard(model = model, onClick = { onModelClick(model.modelId) })
                     }
                     if (uiState.hasMore || uiState.isLoadingMore) {
                         item(key = "load-more") {
@@ -577,154 +573,6 @@ private fun SortSheet(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun ModelCard(model: ModelSummary, onClick: () -> Unit) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top
-            ) {
-                Text(
-                    text = model.modelId,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-            if (model.author.isNotBlank()) {
-                Spacer(modifier = Modifier.height(6.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Filled.Person,
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        model.author,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                StatBadge(Icons.Filled.TrendingUp, Formatters.formatCount(model.downloads ?: 0))
-                StatBadge(Icons.Filled.Favorite, Formatters.formatCount((model.likes ?: 0).toLong()))
-                if (model.runtimeFileCount > 0) {
-                    StatBadge(
-                        Icons.Filled.Download,
-                        pluralStringResource(
-                            R.plurals.models_file_count,
-                            model.runtimeFileCount,
-                            model.runtimeFileCount
-                        )
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(6.dp))
-            model.lastModified?.takeIf { it.isNotBlank() }?.let { date ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Filled.CalendarToday,
-                        contentDescription = null,
-                        modifier = Modifier.size(12.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        stringResource(
-                            R.string.models_updated_on,
-                            Formatters.formatDate(date, LocalContext.current.resources)
-                        ),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Pipeline tag — always shown; defaults to text-generation when
-                // the API omits it (common for LiteRT model repos).
-                PipelineChip(model.pipelineTag?.takeIf { it.isNotBlank() } ?: stringResource(R.string.models_pipeline_default))
-                if (MobileFit.isMobileFriendly(model)) {
-                    MobileReadyChip()
-                }
-                model.libraryName?.takeIf { it.isNotBlank() }?.let { lib ->
-                    SmallChip(lib)
-                }
-                model.lastModified?.takeIf { it.isNotBlank() }?.let { date ->
-                    Text(
-                        Formatters.formatDate(date, LocalContext.current.resources),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun StatBadge(icon: ImageVector, text: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(text, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
-
-@Composable
-private fun PipelineChip(label: String) {
-    Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = MaterialTheme.shapes.small) {
-        Text(
-            label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
-    }
-}
-
-@Composable
-private fun SmallChip(label: String) {
-    Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = MaterialTheme.shapes.small) {
-        Text(
-            label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
-    }
-}
-
-/** Badge for models whose size suggests they run comfortably on a phone. */
-@Composable
-private fun MobileReadyChip() {
-    Surface(color = MaterialTheme.colorScheme.tertiaryContainer, shape = MaterialTheme.shapes.small) {
-        Text(
-            "Mobile-ready",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onTertiaryContainer,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
     }
 }
 

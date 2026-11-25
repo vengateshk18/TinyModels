@@ -16,7 +16,13 @@ data class ModelSummary(
     val siblings: List<String> = emptyList(),
     val createdAt: String? = null,
     val trendingScore: Double? = null,
-    val license: String? = null
+    val license: String? = null,
+    /**
+     * Max context length (tokens) from Hub GGUF metadata, when the API
+     * returned it for this entry. The list endpoint only carries it when
+     * `gguf` is expanded, so it is frequently null — never assume it.
+     */
+    val contextLength: Int? = null
 ) {
     /** True if any sibling file is a runnable runtime format. */
     val hasRuntimeFiles: Boolean
