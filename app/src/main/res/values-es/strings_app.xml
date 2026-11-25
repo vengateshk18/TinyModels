@@ -112,7 +112,7 @@
     <string name="benchmark_run">Ejecutar el benchmark</string>
     <string name="benchmark_progress_prompt">Mensaje %1$s</string>
     <string name="benchmark_progress_warmup"> • calentamiento</string>
-    <string name="benchmark_stat_prompt">Mensaje</string>
+    <string name="benchmark_stat_prompt">Indicación</string>
     <string name="benchmark_stat_tokens">Tokens</string>
     <string name="benchmark_section_model">Modelo</string>
     <string name="benchmark_stat_peak_memory">Memoria máxima (PSS)</string>
@@ -161,7 +161,7 @@
     <string name="benchmark_run_duration">Normalmente 3–10 min, según el modelo</string>
     <string name="benchmark_hero_title">¿Qué tan rápido es realmente este teléfono?</string>
     <string name="benchmark_hero_body">Ejecuta los mismos tres prompts con decodificación voraz, descarta una pasada de calentamiento y luego mide la velocidad estable, la memoria y la caída térmica.</string>
-    <string name="benchmark_hero_chip_prompts">%1$d prompts</string>
+    <string name="benchmark_hero_chip_prompts">%1$d indicaciones</string>
     <string name="benchmark_hero_chip_runs">%1$d ejecuciones de cada uno</string>
     <string name="benchmark_hero_chip_temp">temp. 0</string>
     <string name="benchmark_selected_content_description">Seleccionado</string>

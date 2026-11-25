@@ -152,4 +152,17 @@
     <string name="models_clear_filters">Effacer</string>
     <string name="models_apply_filters">Appliquer</string>
     <string name="models_load_more">Charger plus</string>
+
+    <string name="models_collections_title">Collections</string>
+    <string name="models_collections_subtitle">Sélections pour une utilisation sur l\'appareil</string>
+    <string name="models_collection_empty_title">Aucun modèle exécutable</string>
+    <string name="models_collection_empty_message">Cette collection ne contient aucun modèle pouvant s\'exécuter sur cet appareil pour le moment.</string>
+    <string name="models_all_models_title">Tous les modèles</string>
+    <string name="models_card_parameters_desc">%1$s paramètres</string>
+    <string name="models_card_context_chip">%1$s ctx</string>
+    <string name="models_card_context_desc">Fenêtre de contexte de %1$s jetons</string>
+    <string name="models_card_vision_chip">Vision</string>
+    <string name="models_card_vision_desc">Prend en charge l\'entrée d\'image (projecteur de vision inclus)</string>
+    <string name="models_card_downloads_desc">%1$s téléchargements</string>
+    <string name="models_card_likes_desc">%1$s J\'aime</string>
 </resources>

@@ -32,7 +32,7 @@
     <string name="settings_wifi_only_downloads_subtitle">Attendre une connexion non facturée avant de télécharger les modèles</string>
     <string name="settings_downloads_note">Les fichiers de modèles font plusieurs Go — cela protège votre forfait mobile.</string>
 
-    <string name="settings_section_chat">Conversation</string>
+    <string name="settings_section_chat">Chat</string>
     <string name="settings_auto_load_last_model">Charger automatiquement le dernier modèle</string>
     <string name="settings_auto_load_last_model_subtitle">Charger le modèle précédemment utilisé à l\'ouverture de la conversation</string>
     <string name="settings_keep_screen_on">Garder l\'écran allumé</string>
@@ -50,7 +50,7 @@
     <string name="settings_token_save">Enregistrer</string>
     <string name="settings_token_remove">Supprimer</string>
 
-    <string name="settings_section_support">Support</string>
+    <string name="settings_section_support">Assistance</string>
     <string name="settings_star_on_github">Star sur GitHub</string>
     <string name="settings_star_on_github_subtitle">Soutenir l\'IA gratuite et locale pour tous</string>
     <string name="settings_report_bug">Signaler un bug</string>
@@ -114,8 +114,8 @@
     <string name="benchmark_run">Lancer le benchmark</string>
     <string name="benchmark_progress_prompt">Prompt %1$s</string>
     <string name="benchmark_progress_warmup"> • échauffement</string>
-    <string name="benchmark_stat_prompt">Prompt</string>
-    <string name="benchmark_stat_tokens">Tokens</string>
+    <string name="benchmark_stat_prompt">Invite</string>
+    <string name="benchmark_stat_tokens">Jetons</string>
     <string name="benchmark_section_model">Modèle</string>
     <string name="benchmark_stat_peak_memory">Mémoire pic (PSS)</string>
     <string name="benchmark_stat_backend">Backend</string>
@@ -163,7 +163,7 @@
     <string name="benchmark_run_duration">Généralement 3 à 10 min selon le modèle</string>
     <string name="benchmark_hero_title">À quel point ce téléphone est-il rapide ?</string>
     <string name="benchmark_hero_body">Exécute les trois mêmes prompts en décodage glouton, ignore une passe d’échauffement, puis mesure la vitesse stabilisée, la mémoire et la baisse thermique.</string>
-    <string name="benchmark_hero_chip_prompts">%1$d prompts</string>
+    <string name="benchmark_hero_chip_prompts">%1$d invites</string>
     <string name="benchmark_hero_chip_runs">%1$d exécutions chacun</string>
     <string name="benchmark_hero_chip_temp">temp. 0</string>
     <string name="benchmark_selected_content_description">Sélectionné</string>

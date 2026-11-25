@@ -57,6 +57,18 @@ class HuggingFaceApi @Inject constructor(
             return "$base?${expand.joinToString("&") { "expand=${encode(it)}" }}"
         }
 
+        fun buildCollectionUrl(slug: String): String {
+            val encoded = slug.trim('/').split('/').filter { it.isNotBlank() }
+                .joinToString("/") { encode(it) }
+            return "$HUB_BASE/api/collections/$encoded"
+        }
+
+        fun buildCollectionListUrl(owner: String? = null, limit: Int = 20): String {
+            val params = mutableListOf("limit=$limit")
+            owner?.takeIf { it.isNotBlank() }?.let { params.add("owner=${encode(it)}") }
+            return "$HUB_BASE/api/collections?${params.joinToString("&")}"
+        }
+
         private fun encode(value: String): String =
             java.net.URLEncoder.encode(value, "UTF-8")
     }
@@ -78,6 +90,13 @@ class HuggingFaceApi @Inject constructor(
 
     /** GET model tag taxonomy grouped by type (e.g. library, language, license, pipeline_tag). */
     fun getModelTagsByType(): String = get("$HUB_BASE/api/models-tags-by-type")
+
+    /** GET a Hugging Face collection by slug (`owner/collection-id`). */
+    fun getCollection(slug: String): String = get(buildCollectionUrl(slug))
+
+    /** GET collections, optionally filtered by owner. */
+    fun listCollections(owner: String? = null, limit: Int = 20): String =
+        get(buildCollectionListUrl(owner = owner, limit = limit))
 
     /** GET repository tree (file/folder entries, optionally recursive) for device-fit/file inspection. */
     fun getModelTree(

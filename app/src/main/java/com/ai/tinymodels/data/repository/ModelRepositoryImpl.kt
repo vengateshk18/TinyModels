@@ -15,6 +15,7 @@ import com.ai.tinymodels.core.database.entities.DownloadedModelEntity
 import com.ai.tinymodels.core.database.entities.ModelFileEntity
 import com.ai.tinymodels.core.network.HuggingFaceApi
 import com.ai.tinymodels.core.network.NetworkErrorMapper
+import com.ai.tinymodels.core.network.dto.ModelCollectionDtoParser
 import com.ai.tinymodels.core.network.dto.ModelDtoParser
 import dagger.hilt.android.qualifiers.ApplicationContext
 import com.ai.tinymodels.domain.model.CatalogPage
@@ -22,6 +23,7 @@ import com.ai.tinymodels.domain.model.DownloadedModel
 import com.ai.tinymodels.domain.model.DownloadedModelFile
 import com.ai.tinymodels.domain.model.FileDownloadStatus
 import com.ai.tinymodels.domain.model.MobileFit
+import com.ai.tinymodels.domain.model.ModelCollectionDetail
 import com.ai.tinymodels.domain.model.ModelDetails
 import com.ai.tinymodels.domain.model.ModelFilter
 import com.ai.tinymodels.domain.model.ModelFormat
@@ -254,6 +256,72 @@ class ModelRepositoryImpl @Inject constructor(
                 ModelDtoParser.parseDetails(api.getModelDetails(modelId, expand))
             }
         }
+
+    override suspend fun getBrowseCollections(): AppResult<List<com.ai.tinymodels.domain.model.ModelCollection>> =
+        withContext(dispatchers.io) {
+            AppResult.runCatching(errorMapper = NetworkErrorMapper::toAppError) {
+                val owners = listOf("google", "LiquidAI", "litert-community")
+                val collections = coroutineScope {
+                    owners.map { owner ->
+                        async {
+                            runCatchingNonCancellable {
+                                ModelCollectionDtoParser.parseCollections(api.listCollections(owner = owner, limit = 8))
+                            }.getOrDefault(emptyList())
+                        }
+                    }.awaitAll().flatten()
+                }
+                collections
+                    .filter { it.modelIds.isNotEmpty() }
+                    .distinctBy { it.slug }
+                    .sortedByDescending { it.itemCount }
+                    .take(12)
+            }
+        }
+
+    override suspend fun getCollectionModels(slug: String): AppResult<ModelCollectionDetail> =
+        withContext(dispatchers.io) {
+            AppResult.runCatching(errorMapper = NetworkErrorMapper::toAppError) {
+                val collection = ModelCollectionDtoParser.parseCollection(api.getCollection(slug))
+                val details = coroutineScope {
+                    collection.modelIds.take(20).map { id ->
+                        async {
+                            runCatchingNonCancellable {
+                                val expand = listOf(
+                                    "downloads", "likes", "lastModified", "createdAt", "trendingScore",
+                                    "tags", "pipeline_tag", "library_name", "siblings", "gated", "cardData", "gguf"
+                                )
+                                ModelDtoParser.parseDetails(api.getModelDetails(id, expand))
+                            }.getOrNull()
+                        }
+                    }.awaitAll().filterNotNull()
+                }
+                val models = details
+                    .filter { it.allRunnableFiles.isNotEmpty() }
+                    .filter { !MobileFit.isTooLargeForMobile(it.toSummary()) }
+                    .map { it.toSummary() }
+                ModelCollectionDetail(
+                    collection = collection.copy(itemCount = models.size),
+                    models = models
+                )
+            }
+        }
+
+    private fun ModelDetails.toSummary(): ModelSummary = ModelSummary(
+        id = id,
+        modelId = id,
+        author = author.orEmpty(),
+        likes = likes,
+        downloads = downloads,
+        tags = tags,
+        libraryName = libraryName,
+        pipelineTag = pipelineTag,
+        lastModified = lastModified,
+        siblings = siblings,
+        createdAt = createdAt,
+        trendingScore = trendingScore,
+        license = license,
+        contextLength = contextLength
+    )
 
     /** Like [Result.runCatching] but lets coroutine cancellation abort the fetch. */
     private suspend fun <T> runCatchingNonCancellable(block: suspend () -> T): Result<T> = try {

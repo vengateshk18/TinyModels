@@ -164,4 +164,10 @@
     <string name="models_clear_filters">Clear</string>
     <string name="models_apply_filters">Apply</string>
     <string name="models_load_more">Load more</string>
+
+    <string name="models_collections_title">Collections</string>
+    <string name="models_collections_subtitle">Curated picks for on-device use</string>
+    <string name="models_collection_empty_title">No runnable models</string>
+    <string name="models_collection_empty_message">This collection has no models that can run on this device right now.</string>
+    <string name="models_all_models_title">All models</string>
 </resources>

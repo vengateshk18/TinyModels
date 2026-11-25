@@ -6,6 +6,7 @@ import com.ai.tinymodels.domain.model.CatalogPage
 import com.ai.tinymodels.domain.model.DownloadedModel
 import com.ai.tinymodels.domain.model.DownloadedModelFile
 import com.ai.tinymodels.domain.model.FileDownloadStatus
+import com.ai.tinymodels.domain.model.ModelCollectionDetail
 import com.ai.tinymodels.domain.model.ModelDetails
 import com.ai.tinymodels.domain.model.ModelFilter
 import com.ai.tinymodels.domain.model.ModelSummary
@@ -40,6 +41,14 @@ interface ModelRepository {
     suspend fun getModelFileSizes(modelId: String): AppResult<Map<String, Long>>
 
     suspend fun getModelDetails(modelId: String): AppResult<ModelDetails>
+
+    // ---- Collections ----
+
+    /** Fetch browsable HF collections from curated owners. */
+    suspend fun getBrowseCollections(): AppResult<List<com.ai.tinymodels.domain.model.ModelCollection>>
+
+    /** Fetch a curated HF collection and resolve its model items to browsable summaries. */
+    suspend fun getCollectionModels(slug: String): AppResult<ModelCollectionDetail>
 
     // ---- Local downloads (parents) ----
     fun observeDownloadedModels(): Flow<List<DownloadedModel>>

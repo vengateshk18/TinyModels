@@ -151,4 +151,17 @@
     <string name="models_clear_filters">அழி</string>
     <string name="models_apply_filters">பயன்படுத்து</string>
     <string name="models_load_more">மேலும் ஏற்று</string>
+
+    <string name="models_collections_title">தொகுப்புகள்</string>
+    <string name="models_collections_subtitle">சாதனத்தில் பயன்படுத்த தேர்ந்தெடுக்கப்பட்டவை</string>
+    <string name="models_collection_empty_title">இயக்கக்கூடிய மாதிரிகள் இல்லை</string>
+    <string name="models_collection_empty_message">இந்த தொகுப்பில் தற்போது இந்த சாதனத்தில் இயக்கக்கூடிய மாதிரிகள் எதுவும் இல்லை.</string>
+    <string name="models_all_models_title">அனைத்து மாதிரிகள்</string>
+    <string name="models_card_parameters_desc">%1$s அளவுருக்கள்</string>
+    <string name="models_card_context_chip">%1$s ctx</string>
+    <string name="models_card_context_desc">%1$s டோக்கன் சூழல் சாளரம்</string>
+    <string name="models_card_vision_chip">விஷன்</string>
+    <string name="models_card_vision_desc">பட உள்ளீட்டை ஆதரிக்கிறது (விஷன் ப்ரொஜெக்டர் சேர்க்கப்பட்டுள்ளது)</string>
+    <string name="models_card_downloads_desc">%1$s பதிவிறக்கங்கள்</string>
+    <string name="models_card_likes_desc">%1$s விருப்பங்கள்</string>
 </resources>

@@ -36,12 +36,12 @@
     <string name="home_section_your_models">Vos modèles</string>
     <string name="home_manage_models">Gérer les modèles</string>
     <string name="home_section_your_usage">Votre utilisation</string>
-    <string name="home_stat_chats">conversations</string>
-    <string name="home_stat_tokens">tokens</string>
+    <string name="home_stat_chats">discussions</string>
+    <string name="home_stat_tokens">jetons</string>
     <string name="home_stat_models_tried">modèles essayés</string>
     <string name="home_stat_messages">messages</string>
     <string name="home_stat_chats_this_week">conversations cette semaine</string>
-    <string name="home_stat_compactions">compactions</string>
+    <string name="home_stat_compactions">compactages</string>
     <string name="home_last_session_tps">Dernière session : ~%1$s tok/s</string>
     <string name="home_most_chatted">Le plus discuté</string>
     <string name="home_chat_with_model">Discuter avec %1$s</string>

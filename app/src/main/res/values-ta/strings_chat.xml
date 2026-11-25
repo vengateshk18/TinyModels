@@ -1,6 +1,6 @@
 <resources>
     <!-- ================= Chat list / history ================= -->
-    <string name="chat_tab_title">சாட்கள்</string>
+    <string name="chat_tab_title">அரட்டைகள்</string>
     <string name="chat_new_chat">புதிய சாட்</string>
     <string name="chat_no_conversations">இன்னும் சாட்கள் இல்லை</string>
     <string name="chat_tap_plus_to_start">புதிய சாட்டைத் தொடங்க + அம்புத்தவும்</string>
@@ -83,7 +83,7 @@
     <string name="chat_settings_discard">கைவிடு</string>
     <string name="chat_settings_save">சேமி</string>
     <string name="chat_settings_context_window_note">சூழல் ஜன்னல் தானாகவே நிர்வகிக்கப்படுகிறது — சமவசம் வளர்ந்ததும் பழைய செய்திகள் சுருக்கப்படும்.</string>
-    <string name="chat_settings_backend">பின்பகுதி</string>
+    <string name="chat_settings_backend">பின்தளம்</string>
 
     <!-- ================= Message bubble ================= -->
     <string name="chat_message_copy_content_description">நகலெடு</string>
@@ -169,8 +169,8 @@
 
     <!-- Web search sources -->
     <string name="chat_sources_count_one">1 மூலம்</string>
-    <string name="chat_sources_count_other">%1$d ஆதாரங்கள்</string>
-    <string name="chat_sources_sheet_title">ஆதாரங்கள்</string>
+    <string name="chat_sources_count_other">%1$d மூலங்கள்</string>
+    <string name="chat_sources_sheet_title">மூலங்கள்</string>
     <string name="chat_sources_searched_for">தேடியது</string>
     <string name="chat_source_open_content_description">ஆதாரத்தைத் திற</string>
 </resources>

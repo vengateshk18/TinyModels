@@ -29,7 +29,7 @@
     <string name="settings_wifi_only_downloads_subtitle">மாதிரிகளைப் பதிவிறக்கும் முன் எண்ணிக்கையற்ற இணைப்பைக் காத்திருக்கவும்</string>
     <string name="settings_downloads_note">மாதிரி கோப்புகள் ஜிகாபைட்கள் — இது உங்கள் மொபைல் டேட்டா திட்டத்தைக் காப்பதற்காக.</string>
 
-    <string name="settings_section_chat">சாட்</string>
+    <string name="settings_section_chat">அரட்டை</string>
     <string name="settings_auto_load_last_model">கடைசிய மாதிரியைத் தானாக ஏற்று</string>
     <string name="settings_auto_load_last_model_subtitle">முந்தைய பயன்படுத்திய மாதிரியை ஏற்ற, சாட்டைத் திறக்கும்போது ஏற்றப்படும்</string>
     <string name="settings_keep_screen_on">திரையை இயக்கத்தில் வைத்திரு</string>
@@ -58,7 +58,7 @@
     <string name="settings_update_action">புதுப்பி</string>
 
 <string name="settings_section_about">பற்றி</string>
-    <string name="settings_benchmark">பென்ச்மார்க்</string>
+    <string name="settings_benchmark">பெஞ்ச்மார்க்</string>
     <string name="settings_benchmark_subtitle">ஏற்றும் நேரம், TTFT மற்றும் டோக்கன்/வினாடியை அளவிடுங்கள்</string>
     <string name="settings_device_information">சாதன தகவல்</string>
     <string name="settings_device_information_subtitle">உங்கள் சாதனத்தின் AI திறனைப் பாருங்கள்</string>
@@ -94,12 +94,12 @@
 
     <!-- ================= Bottom navigation ================= -->
     <string name="nav_home">முகப்பு</string>
-    <string name="nav_chat">சாட்</string>
+    <string name="nav_chat">அரட்டை</string>
     <string name="nav_models">மாதிரிகள்</string>
     <string name="nav_settings">அமைப்புகள்</string>
 
     <!-- ================= Benchmark ================= -->
-    <string name="benchmark_title">பென்ச்மார்க்</string>
+    <string name="benchmark_title">பெஞ்ச்மார்க்</string>
     <string name="benchmark_loading_title">மாதிரி ஏற்றப்படுகிறது…</string>
     <string name="benchmark_loading_subtitle">குளிர் ஏற்றம் — இதுவே காலம் அளக்கப்படுகிறது.</string>
     <string name="benchmark_failed_title">பென்ச்மார்க் தோல்வியடைந்தது</string>
@@ -112,11 +112,11 @@
     <string name="benchmark_run">பென்ச்மார்க்கை இயக்கு</string>
     <string name="benchmark_progress_prompt">%1$s கோர்ப்பு</string>
     <string name="benchmark_progress_warmup"> • வெப்பமாக்கல்</string>
-    <string name="benchmark_stat_prompt">கோர்ப்பு</string>
+    <string name="benchmark_stat_prompt">தூண்டல்</string>
     <string name="benchmark_stat_tokens">டோக்கன்கள்</string>
     <string name="benchmark_section_model">மாதிரி</string>
     <string name="benchmark_stat_peak_memory">உச்ச நினைவு (PSS)</string>
-    <string name="benchmark_stat_backend">பின்பகுதி</string>
+    <string name="benchmark_stat_backend">பின்தளம்</string>
     <string name="benchmark_stat_device">சாதனம்</string>
     <string name="benchmark_token_note">டோக்கன்கள் ஸ்ட்ரீம் வெளியீட்டிலிருந்து எண்ணப்படுகின்றன (வெளியீட்டுக்கு ஒரு டோக்கன்). முன்னிடல் வேகம் = கோர்ப்பு டோக்கன்கள் / TTFT, மேலும் முதல் குறிப்பிடும் படிக்கையும் உள்ளடக்கும்.</string>
     <string name="benchmark_rerun">மீண்டும் இயக்கு</string>
@@ -161,7 +161,7 @@
     <string name="benchmark_run_duration">வழக்கமாக 3–10 நிமிடம், மாதிரியைப் பொறுத்தது</string>
     <string name="benchmark_hero_title">இந்த மொபைல் உண்மையில் எவ்வளவு வேகமானது?</string>
     <string name="benchmark_hero_body">அதே மூன்று ப்ராம்ப்ட்களை க்ரீடி டிகோடிங்கில் இயக்கி, ஒரு வார்ம்-அப் சுற்றை நீக்கி, பிறகு நிலையான வேகம், நினைவகம், வெப்ப வீழ்ச்சியை அளவிடுகிறது.</string>
-    <string name="benchmark_hero_chip_prompts">%1$d ப்ராம்ப்ட்கள்</string>
+    <string name="benchmark_hero_chip_prompts">%1$d தூண்டல்கள்</string>
     <string name="benchmark_hero_chip_runs">ஒவ்வொன்றும் %1$d சுற்றுகள்</string>
     <string name="benchmark_hero_chip_temp">temp 0</string>
     <string name="benchmark_selected_content_description">தேர்ந்தெடுக்கப்பட்டது</string>
@@ -198,7 +198,7 @@
     <string name="benchmark_copy">நகலெடு</string>
     <string name="benchmark_prompt_short">குறுகிய</string>
     <string name="benchmark_prompt_medium">நடுத்தர</string>
-    <string name="benchmark_prompt_long">நீண்ட</string>
+    <string name="benchmark_prompt_long">நீண்டது</string>
     <string name="benchmark_thermal_holds">முழு வேகத்தைத் தக்கவைக்கிறது</string>
     <string name="benchmark_thermal_slight">சிறிய வெப்ப வீழ்ச்சி</string>
     <string name="benchmark_thermal_noticeable">கவனிக்கத்தக்க த்ராட்ட்லிங்</string>
@@ -274,9 +274,9 @@
 
     <string name="storage_refresh">புதுப்பி</string>
     <string name="storage_chats_section">அரட்டைகள் &amp; சேமிப்பகம்</string>
-    <string name="storage_images_count">%1$d படம்(கள்)</string>
+    <string name="storage_images_count">%1$d படங்கள்</string>
     <string name="storage_no_chats">நீக்க அரட்டைகள் இல்லை</string>
-    <string name="storage_chat_messages_count">%1$d செய்தி(கள்)</string>
+    <string name="storage_chat_messages_count">%1$d செய்திகள்</string>
     <string name="storage_delete">நீக்கு</string>
     <string name="storage_delete_confirm_title">உருப்படியை நீக்கவா?</string>
     <string name="storage_delete_model_file_body">"%1$s" ஐ நீக்கவா? இது பதிவிறக்கப்பட்ட மாதிரி கோப்பை உங்கள் சாதனத்திலிருந்து நீக்கி சேமிப்பக கண்காணிப்பை புதுப்பிக்கும்.</string>

@@ -55,6 +55,7 @@ import com.ai.tinymodels.feature.chat.ChatRoomScreen
 import com.ai.tinymodels.feature.chat.ChatTabScreen
 import com.ai.tinymodels.feature.models.screens.DownloadedFileDetailScreen
 import com.ai.tinymodels.feature.models.screens.DownloadedModelsScreen
+import com.ai.tinymodels.feature.models.screens.CollectionDetailScreen
 import com.ai.tinymodels.feature.models.screens.ModelDetailsScreen
 import com.ai.tinymodels.feature.models.screens.ModelListScreen
 import com.ai.tinymodels.feature.models.screens.ModelsTabScreen
@@ -156,6 +157,7 @@ fun TinyModelsApp(
                 composable(Routes.MODELS) {
                     ModelsTabScreen(
                         onModelClick = { modelId -> navController.navigate(Routes.modelDetails(modelId)) },
+                        onCollectionClick = { slug -> navController.navigate(Routes.collectionDetail(slug)) },
                         onFileClick = { modelId, fileName ->
                             navController.navigate(Routes.downloadedFileDetail(modelId, fileName))
                         }
@@ -197,6 +199,16 @@ fun TinyModelsApp(
                             navController.navigate(Routes.downloadedFileDetail(modelId, fileName))
                         },
                         onOpenSettings = { navController.navigateToTab(Routes.SETTINGS) }
+                    )
+                }
+
+                composable(
+                    route = Routes.COLLECTION_DETAIL,
+                    arguments = listOf(navArgument("slug") { type = NavType.StringType })
+                ) {
+                    CollectionDetailScreen(
+                        onBack = { navController.popBackStack() },
+                        onModelClick = { modelId -> navController.navigate(Routes.modelDetails(modelId)) }
                     )
                 }
 

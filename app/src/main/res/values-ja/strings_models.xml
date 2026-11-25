@@ -150,4 +150,17 @@
     <string name="models_clear_filters">クリア</string>
     <string name="models_apply_filters">適用</string>
     <string name="models_load_more">さらに読み込む</string>
+
+    <string name="models_collections_title">コレクション</string>
+    <string name="models_collections_subtitle">端末で使える厳選モデル</string>
+    <string name="models_collection_empty_title">実行可能なモデルがありません</string>
+    <string name="models_collection_empty_message">このコレクションには、現在この端末で実行できるモデルがありません。</string>
+    <string name="models_all_models_title">すべてのモデル</string>
+    <string name="models_card_parameters_desc">%1$s パラメータ</string>
+    <string name="models_card_context_chip">%1$s ctx</string>
+    <string name="models_card_context_desc">%1$s トークンのコンテキストウィンドウ</string>
+    <string name="models_card_vision_chip">ビジョン</string>
+    <string name="models_card_vision_desc">画像入力に対応（ビジョンプロジェクタ同梱）</string>
+    <string name="models_card_downloads_desc">%1$s ダウンロード</string>
+    <string name="models_card_likes_desc">%1$s いいね</string>
 </resources>

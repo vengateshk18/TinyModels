@@ -233,4 +233,31 @@ class ModelRepositoryImplCatalogTest {
 
         verify(exactly = 1) { api.listModels("gguf", "text-generation", null, 100, any(), any(), any()) }
     }
+
+    @Test
+    fun `getCollectionModels resolves runnable mobile models`() = runTest {
+        every { api.getCollection("google/gemma-4-qat-mobile-test") } returns """
+            {"slug":"google/gemma-4-qat-mobile-test","title":"Gemma 4 QAT Mobile","description":"d","owner":{"name":"google"},
+             "items":[
+               {"type":"model","id":"google/gemma-4-E2B-it"},
+               {"type":"model","id":"google/gemma-4-31B-it"},
+               {"type":"dataset","id":"google/ignore-me"}
+             ]}
+        """.trimIndent()
+        every { api.getModelDetails("google/gemma-4-E2B-it", any()) } returns """
+            {"id":"google/gemma-4-E2B-it","modelId":"google/gemma-4-E2B-it","author":"google","downloads":100,"likes":1,
+             "tags":["gguf"],"pipeline_tag":"text-generation","siblings":[{"rfilename":"m-q4_k_m.gguf"}]}
+        """.trimIndent()
+        every { api.getModelDetails("google/gemma-4-31B-it", any()) } returns """
+            {"id":"google/gemma-4-31B-it","modelId":"google/gemma-4-31B-it","author":"google","downloads":100,"likes":1,
+             "tags":["gguf"],"pipeline_tag":"text-generation","siblings":[{"rfilename":"m-31b-q4_k_m.gguf"}]}
+        """.trimIndent()
+
+        val result = repo().getCollectionModels("google/gemma-4-qat-mobile-test")
+
+        assertTrue(result is AppResult.Success)
+        val detail = (result as AppResult.Success).data
+        assertEquals("Gemma 4 QAT Mobile", detail.collection.title)
+        assertEquals(listOf("google/gemma-4-E2B-it"), detail.models.map { it.modelId })
+    }
 }

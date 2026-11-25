@@ -12,6 +12,7 @@ object Routes {
 
     // Pushed (full-screen) routes
     const val MODEL_DETAILS = "model_details/{modelId}"
+    const val COLLECTION_DETAIL = "collection_detail/{slug}"
     const val DOWNLOADED_FILE_DETAIL = "downloaded_file_detail/{modelId}/{fileName}"
     const val CHAT_ROOM = "chat_room/{chatId}"
     const val CHAT_ROOM_WITH_PREF = "chat_room/{chatId}?preferredModelId={preferredModelId}"
@@ -26,6 +27,9 @@ object Routes {
 
     /** modelIds contain '/', so they must be URL-encoded for the path segment. */
     fun modelDetails(modelId: String) = "model_details/${Uri.encode(modelId)}"
+
+    /** Collection slugs contain '/', so they must be URL-encoded for the path segment. */
+    fun collectionDetail(slug: String) = "collection_detail/${Uri.encode(slug)}"
 
     /** Downloaded file detail route. */
     fun downloadedFileDetail(modelId: String, fileName: String) =

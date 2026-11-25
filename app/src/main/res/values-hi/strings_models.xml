@@ -151,4 +151,17 @@
     <string name="models_clear_filters">साफ़ करें</string>
     <string name="models_apply_filters">लागू करें</string>
     <string name="models_load_more">और लोड करें</string>
+
+    <string name="models_collections_title">संग्रह</string>
+    <string name="models_collections_subtitle">डिवाइस पर उपयोग के लिए चुने हुए मॉडल</string>
+    <string name="models_collection_empty_title">कोई चलाने योग्य मॉडल नहीं</string>
+    <string name="models_collection_empty_message">इस संग्रह में अभी ऐसा कोई मॉडल नहीं है जो इस डिवाइस पर चल सके।</string>
+    <string name="models_all_models_title">सभी मॉडल</string>
+    <string name="models_card_parameters_desc">%1$s पैरामीटर</string>
+    <string name="models_card_context_chip">%1$s ctx</string>
+    <string name="models_card_context_desc">%1$s टोकन संदर्भ विंडो</string>
+    <string name="models_card_vision_chip">विज़न</string>
+    <string name="models_card_vision_desc">इमेज इनपुट समर्थित (विज़न प्रोजेक्टर शामिल)</string>
+    <string name="models_card_downloads_desc">%1$s डाउनलोड</string>
+    <string name="models_card_likes_desc">%1$s पसंद</string>
 </resources>

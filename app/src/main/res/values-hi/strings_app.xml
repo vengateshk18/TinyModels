@@ -274,7 +274,7 @@
 
     <string name="storage_refresh">रीफ़्रेश</string>
     <string name="storage_chats_section">चैट और स्टोरेज</string>
-    <string name="storage_images_count">%1$d छवि(याँ)</string>
+    <string name="storage_images_count">%1$d छवियाँ</string>
     <string name="storage_no_chats">हटाने के लिए कोई चैट नहीं</string>
     <string name="storage_chat_messages_count">%1$d संदेश</string>
     <string name="storage_delete">हटाएँ</string>

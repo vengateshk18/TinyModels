@@ -163,7 +163,7 @@
     <string name="benchmark_run_duration">通常 3〜10 分（モデルによります）</string>
     <string name="benchmark_hero_title">このスマホは実際どれくらい速い？</string>
     <string name="benchmark_hero_body">同じ 3 つのプロンプトを貪欲法で実行し、ウォームアップを 1 回捨ててから、定常状態の速度・メモリ・熱低下を測定します。</string>
-    <string name="benchmark_hero_chip_prompts">プロンプト %1$d 件</string>
+    <string name="benchmark_hero_chip_prompts">%1$d プロンプト</string>
     <string name="benchmark_hero_chip_runs">各 %1$d 回</string>
     <string name="benchmark_hero_chip_temp">temp 0</string>
     <string name="benchmark_selected_content_description">選択済み</string>
@@ -276,9 +276,9 @@
 
     <string name="storage_refresh">更新</string>
     <string name="storage_chats_section">チャットとストレージ</string>
-    <string name="storage_images_count">画像 %1$d 件</string>
+    <string name="storage_images_count">%1$d 件の画像</string>
     <string name="storage_no_chats">削除できるチャットはありません</string>
-    <string name="storage_chat_messages_count">メッセージ %1$d 件</string>
+    <string name="storage_chat_messages_count">%1$d 件のメッセージ</string>
     <string name="storage_delete">削除</string>
     <string name="storage_delete_confirm_title">項目を削除しますか？</string>
     <string name="storage_delete_model_file_body">「%1$s」を削除しますか？ダウンロード済みモデルファイルを端末から削除し、ストレージ情報を更新します。</string>

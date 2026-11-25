@@ -31,6 +31,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,6 +40,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.FilterList
@@ -96,6 +99,7 @@ import com.ai.tinymodels.core.ui.components.OfflineState
 import com.ai.tinymodels.core.ui.components.bottomSheetTopSafePadding
 import com.ai.tinymodels.domain.model.DownloadedModelFile
 import com.ai.tinymodels.domain.model.MobileFit
+import com.ai.tinymodels.domain.model.ModelCollection
 import com.ai.tinymodels.domain.model.ModelFeed
 import com.ai.tinymodels.domain.model.ModelFilter
 import com.ai.tinymodels.domain.model.ModelSummary
@@ -115,6 +119,7 @@ import java.util.UUID
 @Composable
 fun ModelsTabScreen(
     onModelClick: (String) -> Unit,
+    onCollectionClick: (String) -> Unit = {},
     onFileClick: (modelId: String, fileName: String) -> Unit = { _, _ -> },
     listViewModel: ModelListViewModel = hiltViewModel(),
     downloadedViewModel: DownloadedModelsViewModel = hiltViewModel()
@@ -227,7 +232,8 @@ fun ModelsTabScreen(
                     onSearch = listViewModel::search,
                     onLoadMore = listViewModel::loadMore,
                     onRetry = listViewModel::refresh,
-                    onModelClick = onModelClick
+                    onModelClick = onModelClick,
+                    onCollectionClick = onCollectionClick
                 )
                 1 -> DownloadedContent(
                     downloadedFiles = downloadedFiles,
@@ -335,7 +341,8 @@ private fun BrowseContent(
     onSearch: (String) -> Unit,
     onLoadMore: () -> Unit,
     onRetry: () -> Unit,
-    onModelClick: (String) -> Unit
+    onModelClick: (String) -> Unit,
+    onCollectionClick: (String) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         OutlinedTextField(
@@ -356,6 +363,14 @@ private fun BrowseContent(
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             shape = MaterialTheme.shapes.large
         )
+
+        if (uiState.searchQuery.isBlank() && uiState.collections.isNotEmpty()) {
+            CollectionsSection(
+                collections = uiState.collections,
+                onCollectionClick = onCollectionClick,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+        }
 
         when {
             uiState.isLoading ->
@@ -385,6 +400,15 @@ private fun BrowseContent(
                     ),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
+                    item(key = "models-title") {
+                        Text(
+                            text = if (uiState.searchQuery.isBlank()) stringResource(R.string.models_all_models_title)
+                            else stringResource(R.string.models_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
                     items(uiState.models, key = { it.modelId }) { model ->
                         ModelBrowseCard(model = model, onClick = { onModelClick(model.modelId) })
                     }
@@ -706,6 +730,99 @@ private fun DownloadedFileCard(
                 Icons.Filled.ChevronRight,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun CollectionsSection(
+    collections: List<ModelCollection>,
+    onCollectionClick: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(true) }
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded }
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.models_collections_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    if (expanded) {
+                        Text(
+                            text = stringResource(R.string.models_collections_subtitle),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                Icon(
+                    imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            if (expanded) {
+                LazyRow(
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(collections, key = { it.slug }) { collection ->
+                        CollectionCard(
+                            collection = collection,
+                            onClick = { onCollectionClick(collection.slug) }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CollectionCard(collection: ModelCollection, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.width(220.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Text(
+                text = collection.title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = collection.description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                minLines = 2,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = collection.owner,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }

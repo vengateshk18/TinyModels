@@ -34,7 +34,7 @@
     <string name="home_section_your_models">உங்கள் மாதிரிகள்</string>
     <string name="home_manage_models">மாதிரிகளை நிர்வகிக்கவும்</string>
     <string name="home_section_your_usage">உங்கள் பயன்பாடு</string>
-    <string name="home_stat_chats">சாட்கள்</string>
+    <string name="home_stat_chats">அரட்டைகள்</string>
     <string name="home_stat_tokens">டோக்கன்கள்</string>
     <string name="home_stat_models_tried">முயற்சிக்கப்பட்ட மாதிரிகள்</string>
     <string name="home_stat_messages">செய்திகள்</string>
@@ -70,7 +70,7 @@
     <string name="device_info_browse_models">மாதிரிகளைப் பார்க்கவும்</string>
 
     <!-- ================= AI capability levels ================= -->
-    <string name="device_capability_excellent">மிகச் சிறப்பு</string>
+    <string name="device_capability_excellent">சிறப்பு</string>
     <string name="device_capability_good">நல்லது</string>
     <string name="device_capability_limited">மட்டுப்படுத்தப்பட்டது</string>
     <string name="device_capability_low">குறைவு</string>
@@ -91,7 +91,7 @@
     <string name="device_insights_64bit">64-பிட்</string>
 
     <!-- Thermal status labels -->
-    <string name="device_thermal_normal">சாதாரணம்</string>
+    <string name="device_thermal_normal">இயல்பு</string>
     <string name="device_thermal_light">மெல்லிய வெப்பம்</string>
     <string name="device_thermal_moderate">மிதமான வெப்பம்</string>
     <string name="device_thermal_severe">தீவிர வெப்பம்</string>

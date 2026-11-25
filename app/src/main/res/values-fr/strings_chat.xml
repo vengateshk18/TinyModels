@@ -1,6 +1,6 @@
 <resources>
     <!-- ================= Chat list / history ================= -->
-    <string name="chat_tab_title">Conversations</string>
+    <string name="chat_tab_title">Discussions</string>
     <string name="chat_new_chat">Nouvelle conversation</string>
     <string name="chat_no_conversations">Aucune conversation pour l\'instant</string>
     <string name="chat_tap_plus_to_start">Appuyez sur + pour commencer</string>
@@ -39,9 +39,9 @@
     <string name="chat_room_compacted_summary">Résumé compacté</string>
     <string name="chat_room_summary_present">Présent (%1$d car.)</string>
     <string name="chat_room_summary_none">Aucun pour l\'instant</string>
-    <string name="chat_room_tokens_used_of_total">%1$d / %2$d tokens</string>
+    <string name="chat_room_tokens_used_of_total">%1$d / %2$d jetons</string>
     <string name="chat_room_context_explainer">Les anciens messages sont résumés automatiquement lorsque l\'utilisation atteint %1$d%% du budget.</string>
-    <string name="chat_room_tokens_label">%1$d tokens</string>
+    <string name="chat_room_tokens_label">%1$d jetons</string>
     <string name="chat_room_compact_hint">Résume les anciens messages en un condensé pour libérer de l\'espace de contexte.</string>
     <string name="chat_room_compacting">Compactage…</string>
     <string name="chat_room_compact_conversation">Compacter la conversation</string>

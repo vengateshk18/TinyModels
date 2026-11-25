@@ -41,7 +41,7 @@
     <string name="home_stat_models_tried">試したモデル</string>
     <string name="home_stat_messages">メッセージ</string>
     <string name="home_stat_chats_this_week">今週のチャット</string>
-    <string name="home_stat_compactions">コンパクション</string>
+    <string name="home_stat_compactions">圧縮</string>
     <string name="home_last_session_tps">前回のセッション: ~%1$s トークン/秒</string>
     <string name="home_most_chatted">最もチャットした</string>
     <string name="home_chat_with_model">%1$s とチャット</string>
@@ -103,7 +103,7 @@
     <string name="device_insights_64bit">64 ビット</string>
 
     <!-- Thermal status labels -->
-    <string name="device_thermal_normal">正常</string>
+    <string name="device_thermal_normal">通常</string>
     <string name="device_thermal_light">軽度</string>
     <string name="device_thermal_moderate">中程度</string>
     <string name="device_thermal_severe">重大</string>

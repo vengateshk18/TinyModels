@@ -507,6 +507,16 @@ private class FakeModelRepository : ModelRepository {
 
     override suspend fun getModelDetails(modelId: String): AppResult<ModelDetails> = detailsResult
 
+    
+    
+    override suspend fun getBrowseCollections(): com.ai.tinymodels.core.common.AppResult<List<com.ai.tinymodels.domain.model.ModelCollection>> =
+        com.ai.tinymodels.core.common.AppResult.Success(emptyList())
+
+    override suspend fun getCollectionModels(
+        slug: String
+    ): com.ai.tinymodels.core.common.AppResult<com.ai.tinymodels.domain.model.ModelCollectionDetail> =
+        com.ai.tinymodels.core.common.AppResult.Error(com.ai.tinymodels.core.common.AppError.Unknown("not stubbed"))
+
     override fun observeDownloadedModels() = downloaded
     override suspend fun getDownloadedModel(modelId: String): DownloadedModel? = null
     override suspend fun deleteDownloadedModel(modelId: String) {

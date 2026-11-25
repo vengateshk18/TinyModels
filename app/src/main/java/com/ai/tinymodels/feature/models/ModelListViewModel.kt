@@ -11,6 +11,7 @@ import com.ai.tinymodels.core.common.AppResult
 import com.ai.tinymodels.core.network.NetworkErrorMapper
 import com.ai.tinymodels.core.network.NetworkMonitor
 import com.ai.tinymodels.domain.model.CATALOG_PAGE_SIZE
+import com.ai.tinymodels.domain.model.ModelCollection
 import com.ai.tinymodels.domain.model.ModelFeed
 import com.ai.tinymodels.domain.model.ModelFilter
 import com.ai.tinymodels.domain.model.ModelSummary
@@ -61,7 +62,9 @@ class ModelListViewModel @Inject constructor(
         /** True while "Load more" is fetching; the current list stays visible. */
         val isLoadingMore: Boolean = false,
         val isImporting: Boolean = false,
-        val importProgress: ModelImportProgress? = null
+        val importProgress: ModelImportProgress? = null,
+        val collections: List<ModelCollection> = emptyList(),
+        val isCollectionsLoading: Boolean = false
     ) {
         /** Friendly, user-presentable copy for [error], as a localized resource. */
         @get:StringRes
@@ -110,7 +113,20 @@ class ModelListViewModel @Inject constructor(
     init {
         refresh()
         loadTags()
+        loadCollections()
         observeConnectivity()
+    }
+
+    fun loadCollections() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isCollectionsLoading = true) }
+            when (val result = modelRepository.getBrowseCollections()) {
+                is AppResult.Success -> _uiState.update {
+                    it.copy(collections = result.data, isCollectionsLoading = false)
+                }
+                is AppResult.Error -> _uiState.update { it.copy(isCollectionsLoading = false) }
+            }
+        }
     }
 
     private fun loadTags() {

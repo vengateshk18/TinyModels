@@ -152,4 +152,17 @@
     <string name="models_clear_filters">Limpiar</string>
     <string name="models_apply_filters">Aplicar</string>
     <string name="models_load_more">Cargar más</string>
+
+    <string name="models_collections_title">Colecciones</string>
+    <string name="models_collections_subtitle">Selecciones recomendadas para uso en el dispositivo</string>
+    <string name="models_collection_empty_title">No hay modelos ejecutables</string>
+    <string name="models_collection_empty_message">Esta colección no tiene modelos que puedan ejecutarse en este dispositivo ahora mismo.</string>
+    <string name="models_all_models_title">Todos los modelos</string>
+    <string name="models_card_parameters_desc">%1$s parámetros</string>
+    <string name="models_card_context_chip">%1$s ctx</string>
+    <string name="models_card_context_desc">Ventana de contexto de %1$s tokens</string>
+    <string name="models_card_vision_chip">Visión</string>
+    <string name="models_card_vision_desc">Admite entrada de imagen (proyector de visión incluido)</string>
+    <string name="models_card_downloads_desc">%1$s descargas</string>
+    <string name="models_card_likes_desc">%1$s me gusta</string>
 </resources>
