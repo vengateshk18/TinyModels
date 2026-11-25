@@ -1119,6 +1119,7 @@ private fun ColorThemeBottomSheet(
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(modifier = Modifier.size(18.dp).background(scheme.primary, CircleShape))
                         Box(modifier = Modifier.size(18.dp).background(scheme.secondary, CircleShape))
+                        Box(modifier = Modifier.size(18.dp).background(scheme.tertiary, CircleShape))
                     }
                 }
             }
