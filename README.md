@@ -6,10 +6,13 @@
 
 <p align="center">
   <b>Run AI models entirely on your Android phone.</b><br>
-  No internet. No account. No data leaves your device.
+  Private, offline-first, and built for real on-device use.
 </p>
 
 <p align="center">
+  <a href="https://play.google.com/store/apps/details?id=com.ai.tinymodels">
+    <img src="https://img.shields.io/badge/Google_Play-Download-01875F?style=for-the-badge&logo=googleplay&logoColor=white" alt="Download on Google Play">
+  </a>
   <a href="https://www.phonepeappstore.com/apps/productivity/tinymodels/com.ai.tinymodels/?page=details&id=com.ai.tinymodels">
     <img src="https://img.shields.io/badge/PhonePe_App_Store-Download-5F259F?style=for-the-badge" alt="Download on the PhonePe App Store">
   </a>
@@ -23,115 +26,109 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Android_8.0%2B-arm64-3DDC84?logo=android&logoColor=white" alt="Android 8.0+ on arm64">
-  <img src="https://img.shields.io/badge/100%25_Offline-0F766E" alt="100% offline">
-  <img src="https://img.shields.io/badge/Open_Source-MIT-2563EB" alt="MIT license">
+  <img src="https://img.shields.io/badge/100%25_On--device-Private-7C3AED" alt="100% on-device">
+  <img src="https://img.shields.io/badge/LiteRT--LM_%2B_GGUF-Supported-0EA5E9" alt="LiteRT-LM and GGUF supported">
+  <img src="https://img.shields.io/badge/Languages-6_Supported-F59E0B" alt="6 languages supported">
+  <img src="https://img.shields.io/badge/License-MIT-blue" alt="MIT License">
 </p>
 
-TinyModels is a free, open-source Android app that brings small open language models
-onto your phone. Browse the catalog, download a model once, and chat — inference runs
-locally through Google's **LiteRT-LM** runtime. Your prompts, photos, and conversations
-stay on your device; the optional web-search tool is off by default.
+<p align="center">
+  <a href="https://vengateshk18.github.io/TinyModels/"><b>Website</b></a> ·
+  <a href="https://github.com/vengateshk18/TinyModels/issues">Issues</a> ·
+  <a href="CONTRIBUTING.md">Contributing</a>
+</p>
 
 ---
 
-## 📲 Download
+TinyModels is an open-source Android app for running language models directly on your phone. Browse models, download or import them, chat privately, ask about photos, use optional web search, and benchmark performance — all with a privacy-first, on-device experience.
 
-| Store | Get TinyModels |
-| :--- | :--- |
-| **PhonePe App Store** | [TinyModels — Productivity](https://www.phonepeappstore.com/apps/productivity/tinymodels/com.ai.tinymodels/?page=details&id=com.ai.tinymodels) |
-| **APKPure** | [TinyModels APK](https://apkpure.com/p/com.ai.tinymodels) |
-| **GitHub Releases** | [Latest release](https://github.com/vengateshk18/TinyModels/releases/latest) |
+## ✨ What’s in the app today
 
-> **Requirements:** Android 8.0 or newer · arm64 device · 4 GB RAM minimum
-> (8 GB+ recommended for 3B models).
+| | Feature | What it does |
+|---|---|---|
+| 🔎 | **Model catalog** | Browse Hugging Face models, inspect files, check device fit, and pick the right model for your phone. |
+| 📦 | **LiteRT-LM + GGUF support** | Run both `.litertlm` and `.gguf` models in one app. |
+| 💬 | **Private chat** | Stream responses token by token with Markdown rendering, chat history, regenerate/edit/stop controls, and draft safety. |
+| 📷 | **Camera + photo vision** | Capture a photo with the camera or attach one from gallery and ask vision-capable models about it on-device. |
+| 🌐 | **Web search on your terms** | Enable web search per chat or turn on global always-search in Settings. Search stays off by default. |
+| 📊 | **Benchmark** | Measure load time, time to first token, tokens/sec, and peak memory with a repeatable on-device benchmark. |
+| 🎨 | **Custom themes & personalization** | Choose themes, appearance options, fonts, and app language to make TinyModels feel yours. |
+| 🧩 | **Widget, storage & settings** | Add a home screen widget, view storage/model controls, and manage app behavior from a clean Settings experience. |
+| 🌍 | **6 languages supported** | English, Tamil, Hindi, Spanish, Japanese, and French are available in the current release. |
 
-## ✨ Why TinyModels?
+## 📱 Screenshots
 
-- **Private by default** — no account, no analytics SDKs, and no server-side inference.
-- **Works fully offline** — download a model once and keep using it in airplane mode.
-- **Made for real phones** — device capability checks recommend models that fit your RAM.
-- **Open source** — MIT licensed. Read the code, build it yourself, or contribute.
+<p align="center">
+  <img src="docs/images/screenshots/tinymodels_01.png" width="24%" alt="Home dashboard">
+  <img src="docs/images/screenshots/tinymodels_02.png" width="24%" alt="Model catalog">
+  <img src="docs/images/screenshots/tinymodels_05.png" width="24%" alt="Private chat with vision">
+  <img src="docs/images/screenshots/tinymodels_08.png" width="24%" alt="Web search in chat">
+</p>
 
-## 🚀 Features
+## 🚀 Getting started
 
-| | Feature | What you get |
-| :--: | :--- | :--- |
-| 🗂️ | **Model catalog** | Search and filter Hugging Face LiteRT-LM models, inspect per-file details (size, quantization, context window), and see what fits your device before downloading. |
-| ⬇️ | **Reliable downloads** | Resumable WorkManager downloads with progress notifications, cancel/retry, Wi-Fi-only mode, and storage checks before a model starts downloading. |
-| 🔄 | **Import & export** | Import `.litertlm` files from storage or export downloaded models to share between devices — all through the system file picker, with no storage permission required. |
-| 💬 | **On-device chat** | Token-by-token streaming with Markdown bubbles, persisted conversations, regenerate/edit, per-chat sampler settings, and a live context-usage gauge. Stop generation or queue your next prompt at any time. |
-| 🖼️ | **Vision** | Attach a photo on vision-capable models and ask about it. The image is processed on-device and never uploaded. |
-| 🌐 | **Web search (opt-in)** | Enable a per-chat tool when the model needs current information. It is disabled by default. |
-| 🧠 | **Context management** | True context-window detection, automatic compaction at 90% usage, and a manual Compact action for long conversations. |
-| ⚡ | **Benchmarks** | Measure load time, time-to-first-token, tokens per second, and peak memory for the model on your phone. |
-| 📊 | **Device insights** | A home dashboard with usage stats, AI-capability scoring, RAM guidance, and storage overview. |
-| 🎨 | **Personalisation** | Light/dark theme, font size, CPU/GPU/Auto backend, Wi-Fi-only downloads, and a Hugging Face token for gated models. |
+1. **Install TinyModels** from [Google Play](https://play.google.com/store/apps/details?id=com.ai.tinymodels), [PhonePe App Store](https://www.phonepeappstore.com/apps/productivity/tinymodels/com.ai.tinymodels/?page=details&id=com.ai.tinymodels), [APKPure](https://apkpure.com/p/com.ai.tinymodels), or [GitHub Releases](https://github.com/vengateshk18/TinyModels/releases/latest).
+2. **Browse or import a model** — choose a LiteRT-LM or GGUF model that fits your device.
+3. **Download and chat** — run inference fully on-device.
+4. **Customize it** — adjust themes, widget, storage, language, and web search settings the way you like.
 
-## 🧠 How it works
+> **Tip:** Start with a small model if you’re on a 4–6 GB RAM device. Larger models work best on higher-memory phones.
 
-1. **Pick a model** that suits your phone's RAM and the task.
-2. **Download it once** — downloads resume automatically if the connection drops.
-3. **Chat locally** — LiteRT-LM runs inference on the phone's CPU or GPU. No network is
-   needed after the model is downloaded.
+## 🧭 Roadmap
 
-## 🛠️ Tech stack
+What’s coming next:
 
-| Area | Technology |
-| :--- | :--- |
-| **UI** | Kotlin, Jetpack Compose, Material 3 |
-| **Architecture** | MVI with immutable `UiState` per screen |
-| **Dependency injection** | Hilt |
-| **Persistence** | Room, DataStore |
-| **Background work** | WorkManager, Coroutines/Flow |
-| **Inference** | LiteRT-LM (CPU / GPU / Auto) |
-| **Model catalog** | Hugging Face Hub API |
+- **RAG / Document chat** — upload documents and chat with your files using on-device retrieval.
+- **Human + model games** — playful duo experiences like XO, where you and the model take turns.
+- **More tools & skills** — richer tool/skill capabilities so users can do more through natural conversation.
+- **More languages** — German and Russian are planned next.
 
-## 🗂️ Project structure
+## 🏗️ How TinyModels is developed
 
-```text
-app/src/main/java/com/ai/tinymodels/
-├── core/      # inference, database, network, shared UI
-├── data/      # repositories and data sources
-├── domain/    # domain models and use cases
-├── feature/   # home, models, chat, benchmark, settings
-└── di/        # Hilt modules
-```
+TinyModels is built as a modern Android app with a local-first architecture:
 
-## 🏗️ Build from source
+- **Language/UI:** Kotlin, Jetpack Compose, Material 3
+- **Architecture:** feature-first structure with ViewModel + repository layers
+- **On-device inference:** LiteRT-LM runtime and GGUF runtime
+- **Local data:** Room for chats/history and DataStore for app settings
+- **Background work:** WorkManager for reliable downloads/import-related tasks
+- **Networking:** Retrofit/OkHttp for model catalog and optional web search
+- **Image & media:** camera capture via Android camera intents/FileProvider and on-device image processing
+- **Quality:** JVM unit tests for logic, feature behavior, and regressions
 
-**Prerequisites:** Android Studio (recent), JDK 17, Android SDK 37, and an arm64 device
-or emulator with at least 4 GB RAM.
+The product direction is simple: make powerful local AI useful, private, and approachable on everyday Android devices.
+
+## 🛠️ Build from source
+
+**Prerequisites:** Android Studio (recent), JDK 17, Android SDK 37, and an arm64 Android device or emulator with at least 4 GB RAM.
 
 ```bash
 git clone https://github.com/vengateshk18/TinyModels.git
 cd TinyModels
-./gradlew :app:assembleDebug      # build
-./gradlew :app:testDebugUnitTest  # unit tests
+./gradlew :app:assembleDebug      # build debug APK
+./gradlew :app:testDebugUnitTest  # run JVM unit tests
 ```
 
-Install `app/build/outputs/apk/debug/app-debug.apk`, open the app, download a
-Small-tier model from Home, and say hello. Large models (3B+) need 8 GB+ RAM devices.
+Install `app/build/outputs/apk/debug/app-debug.apk`, open the app, download a model that fits your device, and start chatting.
 
 ## 🔒 Privacy
 
-Chats, photos, and models stay on your device. TinyModels has no accounts and no
-analytics SDKs. Web search is the only feature that contacts the network, and only
-when you explicitly enable it for a chat.
+Chats, photos, and models stay on your device. TinyModels has no accounts and no analytics SDKs.
 
-Full details: [Privacy Policy](https://vengateshk18.github.io/TinyModels/privacy.html) ·
-[Security](https://vengateshk18.github.io/TinyModels/security.html).
+Web search is optional: it only contacts the network when you enable it (per chat or global always-search setting). When enabled, search queries and opened page content are fetched through the configured web search flow.
+
+Full details: [Privacy Policy](https://vengateshk18.github.io/TinyModels/privacy.html) · [Security](https://vengateshk18.github.io/TinyModels/security.html)
 
 ## 🤝 Contributing
 
-**Yes — this app is open for contributions!** Bug fixes, new features, docs, and tests
-are all welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) first (setup, branch
-naming, PR checklist), and note our [Code of Conduct](CODE_OF_CONDUCT.md).
+Contributions are welcome — bug fixes, features, docs, and tests.
 
-Quick links: [open issues](../../issues) · [bug report](../../issues/new?template=bug_report.md) ·
-[feature request](../../issues/new?template=feature_request.md)
+- Read [CONTRIBUTING.md](CONTRIBUTING.md)
+- Follow the [Code of Conduct](CODE_OF_CONDUCT.md)
+- Open an [issue](https://github.com/vengateshk18/TinyModels/issues) for bugs or feature requests
 
 ## 📄 License
 
 MIT — see [LICENSE](LICENSE).
 
-<p align="center"><sub>Built with ❤️ for private, local AI on Android. If TinyModels is useful, a ⭐ on GitHub is appreciated.</sub></p>
+<p align="center"><sub>Built for private, local AI on Android. If TinyModels is useful, a ⭐ on GitHub is appreciated.</sub></p>

@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TinyModels — Private, offline AI for Android</title>
-  <meta name="description" content="Run open language models entirely on your Android phone. Chat, understand photos, and benchmark models offline with TinyModels. No account, no cloud, no data leaving your device.">
+  <meta name="description" content="Run open language models entirely on your Android phone. Chat, understand photos, search the web, and benchmark LiteRT-LM and GGUF models offline with TinyModels. No account, no cloud, no data leaving your device.">
   <meta name="theme-color" content="#fbf8ff">
   <link rel="canonical" href="https://vengateshk18.github.io/TinyModels/">
 
   <meta property="og:type" content="website">
   <meta property="og:title" content="TinyModels — Private, offline AI for Android">
-  <meta property="og:description" content="Run open language models entirely on your phone. Chat, vision, benchmarks and more — all on-device.">
+  <meta property="og:description" content="Run open language models entirely on your phone. Chat, vision, web search, benchmarks, LiteRT-LM and GGUF support — all on your terms.">
   <meta property="og:url" content="https://vengateshk18.github.io/TinyModels/">
   <meta property="og:image" content="https://vengateshk18.github.io/TinyModels/images/tinymodels_feature_graphic.png">
   <meta name="twitter:card" content="summary_large_image">
@@ -112,6 +112,31 @@
       <path d="M14 2.8H6.5a2 2 0 0 0-2 2v14.4a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V8.3L14 2.8Z"/>
       <path d="M14 2.8v5.5h5.5"/>
     </symbol>
+    <symbol id="i-play" viewBox="0 0 24 24">
+      <path fill="currentColor" stroke="none" d="M3.7 2.6c-.3.3-.5.8-.5 1.5v15.8c0 .7.2 1.2.5 1.5l.1.1 8.8-8.8v-.2L3.8 2.5l-.1.1Z"/>
+      <path fill="currentColor" stroke="none" d="m15.6 15.6-2.9-3 2.9-2.9 3.4 2c1 .5 1 .7 0 1.2l-3.4 2.7Z" opacity=".9"/>
+      <path fill="currentColor" stroke="none" d="m15.6 8.4-3 2.9-8.8-8.7c.3-.3.9-.4 1.5 0l10.3 5.8Z" opacity=".7"/>
+      <path fill="currentColor" stroke="none" d="M15.6 15.6 5.3 21.4c-.6.4-1.2.3-1.5 0l8.8-8.8 3 3Z" opacity=".8"/>
+    </symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24">
+      <path d="M12 3a9 9 0 1 0 0 18h1.2a2.3 2.3 0 0 0 0-4.6h-.7a2.2 2.2 0 0 1 0-4.4H15A4 4 0 0 0 15 4h-3Z"/>
+      <circle cx="7.5" cy="10" r="1"/>
+      <circle cx="9.5" cy="6.8" r="1"/>
+      <circle cx="14.5" cy="6.8" r="1"/>
+    </symbol>
+    <symbol id="i-database" viewBox="0 0 24 24">
+      <ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/>
+      <path d="M4.5 5.5v13c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-13"/>
+      <path d="M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8"/>
+    </symbol>
+    <symbol id="i-puzzle" viewBox="0 0 24 24">
+      <path d="M8.5 3.5h3a2 2 0 1 1 4 0h3a1 1 0 0 1 1 1v3a2 2 0 1 1 0 4v3a1 1 0 0 1-1 1h-3a2 2 0 1 0-4 0h-3a1 1 0 0 1-1-1v-3a2 2 0 1 0 0-4v-3a1 1 0 0 1 1-1Z"/>
+    </symbol>
+    <symbol id="i-cpu" viewBox="0 0 24 24">
+      <rect x="5" y="5" width="14" height="14" rx="2.5"/>
+      <rect x="9" y="9" width="6" height="6" rx="1"/>
+      <path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/>
+    </symbol>
   </svg>
 
   <header class="site-header">
@@ -164,6 +189,8 @@
             </div>
             <p class="store-mini">
               Available on
+              <a href="https://play.google.com/store/apps/details?id=com.ai.tinymodels">Google Play</a>
+              <span aria-hidden="true">·</span>
               <a href="https://www.phonepeappstore.com/apps/productivity/tinymodels/com.ai.tinymodels/?page=details&amp;id=com.ai.tinymodels">PhonePe App Store</a>
               <span aria-hidden="true">·</span>
               <a href="https://apkpure.com/p/com.ai.tinymodels">APKPure</a>
@@ -208,8 +235,8 @@
         <div class="stat-strip reveal" aria-label="TinyModels at a glance">
           <div><strong>100%</strong><span>on-device inference</span></div>
           <div><strong>0</strong><span>accounts or trackers</span></div>
-          <div><strong>8</strong><span>screens to explore</span></div>
-          <div><strong>5</strong><span>more languages added</span></div>
+          <div><strong>2</strong><span>model formats supported</span></div>
+          <div><strong>6</strong><span>languages supported</span></div>
         </div>
       </div>
     </section>
@@ -226,10 +253,10 @@
           <article class="feature-card feature-card--span-7 feature-card--lavender reveal">
             <span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-grid"></use></svg></span>
             <h3>Find a model that fits</h3>
-            <p>Browse the Hugging Face LiteRT-LM catalog, filter by what matters, and inspect every file before you download. TinyModels shows file size, quantization, context window, and device-fit guidance in one place.</p>
+            <p>Browse the Hugging Face catalog, filter by what matters, and inspect every file before you download. TinyModels supports LiteRT-LM and GGUF models, showing file size, quantization, context window, and device-fit guidance in one place.</p>
             <div class="chip-row">
+              <span class="chip chip--lavender">LiteRT-LM + GGUF</span>
               <span class="chip chip--lavender">Search &amp; filters</span>
-              <span class="chip chip--lavender">Per-file details</span>
               <span class="chip chip--lavender">Device-fit check</span>
             </div>
           </article>
@@ -258,9 +285,9 @@
           <article class="feature-card reveal">
             <span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-image"></use></svg></span>
             <h3>Ask about a photo</h3>
-            <p>Attach an image on a vision-capable model and ask what is in it. The photo is processed on-device and never uploaded.</p>
+            <p>Capture a photo with your camera or attach one from your gallery on a vision-capable model. Images are processed on-device and never uploaded.</p>
             <div class="chip-row">
-              <span class="chip">On-device</span>
+              <span class="chip">Camera + gallery</span>
               <span class="chip">Private</span>
             </div>
           </article>
@@ -289,10 +316,32 @@
           <article class="feature-card feature-card--span-6 reveal">
             <span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-globe"></use></svg></span>
             <h3>Current answers, on your terms</h3>
-            <p>When a model needs fresher information, enable web search for that chat. It stays off by default, and you decide when a query leaves the device.</p>
+            <p>When a model needs fresher information, enable web search per chat or turn on always-search globally. It stays off by default, and you decide when a query leaves the device.</p>
             <div class="chip-row">
               <span class="chip">Opt-in</span>
-              <span class="chip">Per chat</span>
+              <span class="chip">Per chat or global</span>
+            </div>
+          </article>
+
+          <article class="feature-card feature-card--span-6 feature-card--lavender reveal">
+            <span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-palette"></use></svg></span>
+            <h3>Make it yours</h3>
+            <p>Shape TinyModels around your style and workflow. Pick custom themes, switch languages, tune chat behavior, and keep the interface feeling personal on every device.</p>
+            <div class="chip-row">
+              <span class="chip chip--lavender">Custom themes</span>
+              <span class="chip chip--lavender">Languages</span>
+              <span class="chip chip--lavender">Personal settings</span>
+            </div>
+          </article>
+
+          <article class="feature-card feature-card--span-6 feature-card--mint reveal">
+            <span class="feature-icon"><svg class="icon" aria-hidden="true"><use href="#i-database"></use></svg></span>
+            <h3>Storage, widget, and control</h3>
+            <p>Keep track of what’s on your device with storage insights, manage downloaded models, and jump back in faster with a home screen widget and handy settings.</p>
+            <div class="chip-row">
+              <span class="chip chip--mint">Storage section</span>
+              <span class="chip chip--mint">Home screen widget</span>
+              <span class="chip chip--mint">More controls</span>
             </div>
           </article>
         </div>
@@ -401,9 +450,9 @@
             </div>
             <div class="showcase-body">
               <h3>Your photos stay yours</h3>
-              <p>Attach a photo to a vision-capable model and ask about it. The image is processed entirely on the device — no upload, no image server, no copy left in the cloud.</p>
+              <p>Capture a photo with your camera or attach one from your gallery, then ask a vision-capable model about it. The image is processed entirely on the device — no upload, no image server, no copy left in the cloud.</p>
               <div class="chip-row">
-                <span class="chip chip--mint">On-device vision</span>
+                <span class="chip chip--mint">Camera + gallery</span>
                 <span class="chip chip--mint">Private by design</span>
               </div>
             </div>
@@ -417,10 +466,10 @@
             </div>
             <div class="showcase-body">
               <h3>Fresh answers, only when you ask</h3>
-              <p>Enable web search for a specific chat when the model needs current information. It is off by default, and search queries leave the device only after you turn it on.</p>
+              <p>Enable web search for a specific chat, or turn on always-search in Settings when you want fresher answers by default. It is off by default, and search queries leave the device only after you turn it on.</p>
               <div class="chip-row">
                 <span class="chip chip--sky">Opt-in</span>
-                <span class="chip chip--sky">Per-chat control</span>
+                <span class="chip chip--sky">Per chat or global</span>
               </div>
             </div>
           </article>
@@ -503,15 +552,15 @@
       <div class="shell">
         <div class="section-head reveal">
           <span class="eyebrow">Roadmap</span>
-          <h2>What is coming next.</h2>
-          <p>Five new languages are live today. Next up: a home screen widget and a GGUF runtime. No dates yet — just the direction we are building toward.</p>
+          <h2>Built now. Building next.</h2>
+          <p>GGUF support and six languages are live today. Next up: document chat, playful human + AI experiences, more tools, and two new languages.</p>
         </div>
 
         <div class="roadmap-grid">
           <article class="roadmap-card roadmap-card--lavender reveal">
             <span class="status-pill status-pill--live">Available now</span>
-            <h3>TinyModels in your language</h3>
-            <p>The whole interface is translated, not just the settings screen. Chat, model browsing, downloads, onboarding and error messages all follow your phone's language automatically.</p>
+            <h3>More models, more languages</h3>
+            <p>TinyModels now runs both LiteRT-LM and GGUF models, and the interface is available in six languages. Pick the format that fits your device and use the app in the language you prefer.</p>
             <ul class="language-list">
               <li><span class="native">தமிழ்</span><span class="name">Tamil</span></li>
               <li><span class="native">हिन्दी</span><span class="name">Hindi</span></li>
@@ -519,35 +568,44 @@
               <li><span class="native">日本語</span><span class="name">Japanese</span></li>
               <li><span class="native">Français</span><span class="name">French</span></li>
             </ul>
-            <p class="language-note">English plus the five languages above ship in the current release.</p>
+            <p class="language-note">LiteRT-LM <span class="code-pill">.litertlm</span> and GGUF <span class="code-pill">.gguf</span> are supported in the current release.</p>
+          </article>
+
+          <article class="roadmap-card roadmap-card--mint reveal">
+            <span class="status-pill status-pill--soon">Coming next</span>
+            <h3>Chat with your documents</h3>
+            <p>RAG is coming to TinyModels. Upload documents, let the app index them on-device, and ask questions grounded in your own files.</p>
+            <ul class="check-list">
+              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Upload documents and chat with them</span></li>
+              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Answers grounded in your selected files</span></li>
+              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Private, on-device retrieval flow</span></li>
+            </ul>
           </article>
 
           <article class="roadmap-card roadmap-card--peach reveal">
             <span class="status-pill status-pill--soon">Coming next</span>
-            <h3>TinyModels on your home screen</h3>
-            <p>The next update adds a home screen widget, so you can see what is ready and get straight back into a conversation without opening the app first.</p>
+            <h3>Play with your model</h3>
+            <p>We are building human + model assisted games, starting with simple duo experiences like XO where you make a move and the model makes the next one.</p>
             <ul class="check-list">
-              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>How many models are ready, at a glance</span></li>
-              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>One tap to start or continue a chat</span></li>
-              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>A shortcut to browse and download new models</span></li>
-              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Follows your light or dark theme</span></li>
+              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Human + model duo games like XO</span></li>
+              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Turn-based play with on-device models</span></li>
+              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Fun, lightweight ways to interact with AI</span></li>
             </ul>
           </article>
 
-          <article class="roadmap-card roadmap-card--mint reveal">
-            <span class="status-pill">In development</span>
-            <h3>Bring your own GGUF models</h3>
-            <p>A GGUF runtime will sit alongside LiteRT-LM, opening the door to more model families, sizes, and quantizations — with inference still running entirely on-device.</p>
+          <article class="roadmap-card roadmap-card--lavender reveal">
+            <span class="status-pill status-pill--soon">Coming next</span>
+            <h3>Tools, skills, and new languages</h3>
+            <p>We are expanding TinyModels with more tools and skills you can use through natural conversation, plus two new languages: German and Russian.</p>
             <ul class="check-list">
-              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>More model families and parameter sizes</span></li>
-              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Quantized <span class="code-pill">.gguf</span> files</span></li>
-              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>The same offline, private-by-default experience</span></li>
-              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Managed alongside your LiteRT-LM library</span></li>
+              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>More built-in tools and skills for models</span></li>
+              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>Natural chat-based tool use</span></li>
+              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span>German and Russian language support</span></li>
             </ul>
           </article>
         </div>
 
-        <p class="roadmap-note">Current release: LiteRT-LM <span class="code-pill">.litertlm</span> models in six languages. Home screen widgets and GGUF support are not available yet.</p>
+        <p class="roadmap-note">Current release: LiteRT-LM and GGUF models, 6 supported languages, custom themes, widget, storage controls, web search, and camera capture.</p>
       </div>
     </section>
 
@@ -559,6 +617,10 @@
             <h2>Take your AI offline.</h2>
             <p>Download TinyModels free on Android. No account, no subscription, and no cloud. Install it, pick a model, and start your first on-device conversation.</p>
             <div class="download-actions">
+              <a class="store-btn store-btn--play" href="https://play.google.com/store/apps/details?id=com.ai.tinymodels">
+                <svg class="icon" aria-hidden="true"><use href="#i-play"></use></svg>
+                <span><small>Get it on</small><strong>Google Play</strong></span>
+              </a>
               <a class="store-btn store-btn--phonepe" href="https://www.phonepeappstore.com/apps/productivity/tinymodels/com.ai.tinymodels/?page=details&amp;id=com.ai.tinymodels">
                 <svg class="icon" aria-hidden="true"><use href="#i-phone"></use></svg>
                 <span><small>Get it on</small><strong>PhonePe App Store</strong></span>
@@ -604,7 +666,7 @@
           </details>
           <details class="faq-item">
             <summary>Which models can I run today?</summary>
-            <p>TinyModels currently runs LiteRT-LM <code>.litertlm</code> models from the Hugging Face catalog. GGUF support is in development and is not available in the current release.</p>
+            <p>TinyModels supports LiteRT-LM <code>.litertlm</code> models and GGUF <code>.gguf</code> models from the Hugging Face catalog. You can browse, check device fit, download, import, and run them on-device.</p>
           </details>
           <details class="faq-item">
             <summary>Is my data really private?</summary>
