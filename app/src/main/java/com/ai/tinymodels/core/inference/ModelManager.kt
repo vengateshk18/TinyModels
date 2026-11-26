@@ -10,6 +10,7 @@ import com.ai.tinymodels.core.common.DispatcherProvider
 import com.ai.tinymodels.core.common.InferenceError
 import com.ai.tinymodels.core.common.MemoryUtils
 import com.ai.tinymodels.core.inference.runtime.ChatSession
+import com.ai.tinymodels.core.inference.runtime.CloudRuntime
 import com.ai.tinymodels.core.inference.runtime.ModelRuntime
 import com.ai.tinymodels.core.inference.runtime.RuntimeInitRequest
 import com.ai.tinymodels.core.inference.runtime.RuntimeRegistry
@@ -241,6 +242,56 @@ class ModelManager @Inject constructor(
         _engineState.value = EngineState.Error(modelId, finalError)
         onProgress?.invoke(0f, ModelLoadStage.INITIALIZING)
         AppResult.Error(finalError.asAppError())
+    }
+
+    /**
+     * "Load" a hosted model: no file, no memory guard, no backend fallback.
+     *
+     * The cloud runtime is swapped in like any other runtime so the rest of the
+     * app (model chip, chat creation, session rebuild) needs no special case.
+     * Any local model is released first — its RAM is no longer needed.
+     */
+    suspend fun loadCloudModel(modelId: String): AppResult<LoadedModel> = mutex.withLock {
+        val target = runtimeRegistry.runtimeFor(ModelFormat.CLOUD) as? CloudRuntime
+            ?: return@withLock AppResult.Error(
+                InferenceError.BackendUnavailable("Cloud runtime not available").asAppError()
+            )
+
+        _engineState.value = EngineState.Loading(modelId)
+        try {
+            target.setModel(modelId)
+            target.initialize(
+                RuntimeInitRequest(
+                    modelFile = File("cloud://$modelId"),
+                    backend = BackendPreference.AUTO,
+                    maxNumTokens = CloudRuntime.CLOUD_CONTEXT_TOKENS,
+                    cacheDir = context.cacheDir,
+                    enableVision = false
+                )
+            )
+            val previous = runtime
+            runtime = target
+            activeConfig = null
+            if (previous != null && previous !== target) {
+                withContext(dispatchers.io) { previous.close() }
+            }
+            val loaded = LoadedModel(
+                modelId = modelId,
+                backendUsed = BackendPreference.AUTO,
+                maxNumTokens = CloudRuntime.CLOUD_CONTEXT_TOKENS,
+                visionEnabled = false
+            )
+            _engineState.value = EngineState.Ready(loaded)
+            TinyLog.i(TAG, "Cloud model selected: $modelId")
+            AppResult.Success(loaded)
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (throwable: Throwable) {
+            val error = InferenceError.LoadFailed(throwable.message, throwable)
+            _engineState.value = EngineState.Error(modelId, error)
+            TinyLog.e(TAG, "Cloud model selection failed for $modelId", throwable)
+            AppResult.Error(error.asAppError())
+        }
     }
 
     /**

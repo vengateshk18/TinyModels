@@ -176,4 +176,11 @@
     <string name="chat_sources_sheet_title">Fuentes</string>
     <string name="chat_sources_searched_for">Búsqueda</string>
     <string name="chat_source_open_content_description">Abrir fuente</string>
+    <string name="chat_cloud_models_title">Modelos en la nube</string>
+    <string name="chat_cloud_models_subtitle">Se ejecutan en servidores de Hugging Face: tu mensaje sale de este dispositivo</string>
+    <string name="chat_cloud_models_loading">Cargando modelos en la nube…</string>
+    <string name="chat_cloud_models_retry">Reintentar</string>
+    <string name="chat_cloud_models_refresh">Actualizar</string>
+    <string name="chat_cloud_models_empty">No hay modelos en la nube disponibles</string>
+    <string name="chat_cloud_badge_content_description">Ejecutándose en la nube</string>
 </resources>

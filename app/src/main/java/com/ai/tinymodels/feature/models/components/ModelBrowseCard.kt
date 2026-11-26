@@ -224,6 +224,7 @@ private fun formatLabel(format: ModelFormat): String = when (format) {
     ModelFormat.GGUF -> stringResource(R.string.model_format_gguf)
     ModelFormat.TASK -> stringResource(R.string.model_format_mediapipe)
     ModelFormat.TFLITE -> stringResource(R.string.model_format_tflite)
+    ModelFormat.CLOUD -> stringResource(R.string.model_format_cloud)
 }
 
 /** Neutral metadata pill: size, quantisation, context window. */

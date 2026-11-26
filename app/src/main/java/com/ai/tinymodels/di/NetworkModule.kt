@@ -2,6 +2,8 @@ package com.ai.tinymodels.di
 
 import com.ai.tinymodels.core.network.ConnectivityMonitor
 import com.ai.tinymodels.core.network.NetworkMonitor
+import com.ai.tinymodels.core.network.cloud.CloudChatClient
+import com.ai.tinymodels.core.network.cloud.HuggingFaceCloudApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,4 +29,9 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideNetworkMonitor(impl: ConnectivityMonitor): NetworkMonitor = impl
+
+    /** The cloud chat surface is the HF router client. */
+    @Provides
+    @Singleton
+    fun provideCloudChatClient(impl: HuggingFaceCloudApi): CloudChatClient = impl
 }

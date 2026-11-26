@@ -19,6 +19,9 @@ object RuntimeModule {
     fun runtimeRegistry(
         litertLmRuntime: LitertLmRuntime,
         mediaPipeLlmRuntime: MediaPipeLlmRuntime,
-        ggufRuntime: GgufRuntime
-    ): RuntimeRegistry = RuntimeRegistry(listOf(litertLmRuntime, mediaPipeLlmRuntime, ggufRuntime))
+        ggufRuntime: GgufRuntime,
+        cloudRuntime: CloudRuntime
+    ): RuntimeRegistry = RuntimeRegistry(
+        listOf(litertLmRuntime, mediaPipeLlmRuntime, ggufRuntime, cloudRuntime)
+    )
 }

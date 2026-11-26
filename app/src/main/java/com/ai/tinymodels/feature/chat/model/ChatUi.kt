@@ -1,6 +1,7 @@
 package com.ai.tinymodels.feature.chat.model
 
 import androidx.compose.runtime.Immutable
+import com.ai.tinymodels.core.network.cloud.CloudModel
 import com.ai.tinymodels.domain.model.InferenceSettings
 import com.ai.tinymodels.domain.model.WebSearchResult
 
@@ -30,7 +31,9 @@ sealed interface ModelChipState {
         val modelId: String,
         val backendLabel: String,
         /** The specific model file loaded (e.g. "model.int4.litertlm"), if known. */
-        val fileName: String? = null
+        val fileName: String? = null,
+        /** True when the reply comes from a hosted model, not this device. */
+        val isCloud: Boolean = false
     ) : ModelChipState
     data class Error(val message: String) : ModelChipState
 }
@@ -121,6 +124,12 @@ data class ChatUiState(
     val webSearchAvailable: Boolean = true,
     /** True when the loaded model has a vision encoder (photo attach allowed). */
     val isVisionModel: Boolean = false,
+    /** Models the Hugging Face router can serve right now. */
+    val cloudModels: List<CloudModel> = emptyList(),
+    /** True while the cloud model list is being fetched. */
+    val cloudModelsLoading: Boolean = false,
+    /** Last cloud-list failure, shown inside the picker. */
+    val cloudModelsError: String? = null,
     /** Keep the screen awake while generating (from app settings). */
     val keepScreenOn: Boolean = true,
     /** Show per-message token counts in footers (from app settings). */
@@ -169,6 +178,10 @@ sealed interface ChatEvent {
     data object CompactConversation : ChatEvent
     /** Toggle the per-chat web_search tool (from the + menu in the input bar). */
     data class ToggleWebSearch(val enabled: Boolean) : ChatEvent
+    /** Fetch the router's current chat-model list. */
+    data object RefreshCloudModels : ChatEvent
+    /** Switch the live engine to a hosted model. */
+    data class SelectCloudModel(val modelId: String) : ChatEvent
     /** Toggle auto-speaking assistant replies. */
     /** Update microphone listening state (managed by UI speech recognizer). */
     data class SetListening(val listening: Boolean) : ChatEvent

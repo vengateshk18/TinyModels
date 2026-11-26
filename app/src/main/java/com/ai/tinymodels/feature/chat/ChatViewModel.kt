@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ai.tinymodels.core.common.DispatcherProvider
 import com.ai.tinymodels.core.common.TinyLog
+import com.ai.tinymodels.core.common.AppResult
 import com.ai.tinymodels.core.common.InferenceError
 import com.ai.tinymodels.core.play.InAppReviewManager
 import com.ai.tinymodels.R
@@ -18,9 +19,12 @@ import com.ai.tinymodels.core.inference.runtime.SessionRequest
 import com.ai.tinymodels.core.inference.tools.WebSearchToolSet
 import com.ai.tinymodels.core.network.WebSearchPrompt
 import com.ai.tinymodels.core.network.WebSearchQuery
+import com.ai.tinymodels.core.network.cloud.CloudApiException
+import com.ai.tinymodels.core.network.cloud.CloudChatClient
 import com.ai.tinymodels.domain.model.ChatMessage
 import com.ai.tinymodels.domain.model.WebSearchResult
 import com.ai.tinymodels.domain.model.InferenceSettings
+import com.ai.tinymodels.domain.model.ModelFormat
 import com.ai.tinymodels.domain.model.DownloadedModel
 import com.ai.tinymodels.domain.model.DownloadedModelFile
 import com.ai.tinymodels.domain.model.isVisionProjectorFile
@@ -79,6 +83,7 @@ class ChatViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val webSearchToolSet: WebSearchToolSet,
     private val webSearchRepository: WebSearchRepository,
+    private val cloudApi: CloudChatClient,
     private val inAppReviewManager: InAppReviewManager,
     @dagger.hilt.android.qualifiers.ApplicationContext private val appContext: android.content.Context,
     private val dispatchers: DispatcherProvider
@@ -229,6 +234,8 @@ class ChatViewModel @Inject constructor(
             ChatEvent.CloseInferenceSettings -> _uiState.update { it.copy(showInferenceSettings = false) }
             ChatEvent.CompactConversation -> compactNow()
             is ChatEvent.ToggleWebSearch -> toggleWebSearch(event.enabled)
+            ChatEvent.RefreshCloudModels -> refreshCloudModels()
+            is ChatEvent.SelectCloudModel -> selectCloudModel(event.modelId)
             is ChatEvent.SetListening -> _uiState.update { it.copy(isListening = event.listening) }
             is ChatEvent.SetSpeaking -> _uiState.update { it.copy(isSpeaking = event.speaking) }
         }
@@ -243,6 +250,58 @@ class ChatViewModel @Inject constructor(
             chatRepository.updateWebSearchEnabled(chatId, enabled)
             // Re-register (or unregister) the tool with the live session.
             rebuildSession(chatId)
+        }
+    }
+
+    // ---- Cloud models ----
+
+    /** Loads the router's live chat-model list. Safe to call when the sheet opens. */
+    fun refreshCloudModels() {
+        if (_uiState.value.cloudModelsLoading) return
+        viewModelScope.launch(Dispatchers.Default) {
+            _uiState.update { it.copy(cloudModelsLoading = true, cloudModelsError = null) }
+            try {
+                val models = cloudApi.listModels()
+                    .sortedBy { it.id.lowercase() }
+                _uiState.update {
+                    it.copy(cloudModels = models, cloudModelsLoading = false)
+                }
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (e: CloudApiException) {
+                _uiState.update {
+                    it.copy(cloudModelsLoading = false, cloudModelsError = e.message)
+                }
+            } catch (throwable: Throwable) {
+                _uiState.update {
+                    it.copy(
+                        cloudModelsLoading = false,
+                        cloudModelsError = throwable.message ?: "Could not load cloud models."
+                    )
+                }
+            }
+        }
+    }
+
+    /** Swaps the live engine for a hosted model and rebuilds the open chat. */
+    private fun selectCloudModel(modelId: String) {
+        viewModelScope.launch(Dispatchers.Default) {
+            TinyLog.i(TAG, "JOURNEY: selecting cloud model $modelId")
+            session?.close()
+            session = null
+            when (val result = modelManager.loadCloudModel(modelId)) {
+                is AppResult.Success -> {
+                    _uiState.update { it.copy(cloudModelsError = null) }
+                    _uiState.value.activeChatId?.let { rebuildSession(it) }
+                }
+                is AppResult.Error -> _uiState.update {
+                    it.copy(
+                        error = ChatError(
+                            result.error.message ?: "Could not start the cloud model."
+                        )
+                    )
+                }
+            }
         }
     }
 
@@ -299,7 +358,8 @@ class ChatViewModel @Inject constructor(
                     is ModelManager.EngineState.Ready -> ModelChipState.Ready(
                         modelId = engineState.model.modelId,
                         backendLabel = engineState.model.backendUsed.name,
-                        fileName = activeFileName
+                        fileName = activeFileName,
+                        isCloud = modelManager.activeRuntimeFormat == ModelFormat.CLOUD
                     )
                     is ModelManager.EngineState.Error ->
                         ModelChipState.Error(friendlyError(engineState.error))

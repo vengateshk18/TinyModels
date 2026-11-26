@@ -123,6 +123,7 @@
     <string name="model_format_gguf" translatable="false">GGUF</string>
     <string name="model_format_mediapipe" translatable="false">MediaPipe</string>
     <string name="model_format_tflite" translatable="false">TFLite</string>
+    <string name="model_format_cloud">கிளவுட்</string>
 
     <!-- Hub discovery / device-fit -->
     <string name="models_feed_popular">பிரபலமானவை</string>
