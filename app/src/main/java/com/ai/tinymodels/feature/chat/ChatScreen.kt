@@ -210,16 +210,7 @@ private fun ChatScreenContent(
                 onEvent(ChatEvent.SelectModel(it))
                 showModelPicker = false
             },
-            onDismiss = { showModelPicker = false },
-            cloudModels = uiState.cloudModels,
-            cloudModelsLoading = uiState.cloudModelsLoading,
-            cloudModelsError = uiState.cloudModelsError,
-            isCloudActive = (uiState.model as? ModelChipState.Ready)?.isCloud == true,
-            onRefreshCloudModels = { onEvent(ChatEvent.RefreshCloudModels) },
-            onSelectCloudModel = {
-                onEvent(ChatEvent.SelectCloudModel(it))
-                showModelPicker = false
-            }
+            onDismiss = { showModelPicker = false }
         )
     }
 

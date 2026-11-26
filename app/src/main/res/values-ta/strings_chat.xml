@@ -173,11 +173,4 @@
     <string name="chat_sources_sheet_title">மூலங்கள்</string>
     <string name="chat_sources_searched_for">தேடியது</string>
     <string name="chat_source_open_content_description">ஆதாரத்தைத் திற</string>
-    <string name="chat_cloud_models_title">கிளவுட் மாதிரிகள்</string>
-    <string name="chat_cloud_models_subtitle">Hugging Face சேவையகங்களில் இயங்கும் — உங்கள் செய்தி இந்த சாதனத்தை விட்டு வெளியேறும்</string>
-    <string name="chat_cloud_models_loading">கிளவுட் மாதிரிகள் ஏற்றப்படுகின்றன…</string>
-    <string name="chat_cloud_models_retry">மீண்டும் முயற்சி</string>
-    <string name="chat_cloud_models_refresh">புதுப்பி</string>
-    <string name="chat_cloud_models_empty">கிளவுட் மாதிரிகள் எதுவும் இல்லை</string>
-    <string name="chat_cloud_badge_content_description">கிளவுடில் இயங்குகிறது</string>
 </resources>

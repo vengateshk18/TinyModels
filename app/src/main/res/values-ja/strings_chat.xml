@@ -170,11 +170,4 @@
     <string name="chat_sources_sheet_title">ソース</string>
     <string name="chat_sources_searched_for">検索クエリ</string>
     <string name="chat_source_open_content_description">ソースを開く</string>
-    <string name="chat_cloud_models_title">クラウドモデル</string>
-    <string name="chat_cloud_models_subtitle">Hugging Face のサーバーで実行 — 入力はこの端末の外に送信されます</string>
-    <string name="chat_cloud_models_loading">クラウドモデルを読み込み中…</string>
-    <string name="chat_cloud_models_retry">再試行</string>
-    <string name="chat_cloud_models_refresh">更新</string>
-    <string name="chat_cloud_models_empty">利用できるクラウドモデルがありません</string>
-    <string name="chat_cloud_badge_content_description">クラウドで実行中</string>
 </resources>

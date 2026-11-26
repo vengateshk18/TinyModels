@@ -173,11 +173,4 @@
     <string name="chat_sources_sheet_title">स्रोत</string>
     <string name="chat_sources_searched_for">खोजा गया</string>
     <string name="chat_source_open_content_description">स्रोत खोलें</string>
-    <string name="chat_cloud_models_title">क्लाउड मॉडल</string>
-    <string name="chat_cloud_models_subtitle">Hugging Face सर्वर पर चलते हैं — आपका संदेश इस डिवाइस से बाहर जाता है</string>
-    <string name="chat_cloud_models_loading">क्लाउड मॉडल लोड हो रहे हैं…</string>
-    <string name="chat_cloud_models_retry">फिर से कोशिश करें</string>
-    <string name="chat_cloud_models_refresh">रीफ़्रेश करें</string>
-    <string name="chat_cloud_models_empty">कोई क्लाउड मॉडल उपलब्ध नहीं</string>
-    <string name="chat_cloud_badge_content_description">क्लाउड में चल रहा है</string>
 </resources>

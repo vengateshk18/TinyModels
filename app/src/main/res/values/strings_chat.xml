@@ -171,11 +171,4 @@
     <string name="chat_sources_sheet_title">Sources</string>
     <string name="chat_sources_searched_for">Searched for</string>
     <string name="chat_source_open_content_description">Open source</string>
-    <string name="chat_cloud_models_title">Cloud models</string>
-    <string name="chat_cloud_models_subtitle">Runs on Hugging Face servers — your message leaves this device</string>
-    <string name="chat_cloud_models_loading">Loading cloud models…</string>
-    <string name="chat_cloud_models_retry">Retry</string>
-    <string name="chat_cloud_models_refresh">Refresh</string>
-    <string name="chat_cloud_models_empty">No cloud models available</string>
-    <string name="chat_cloud_badge_content_description">Running in the cloud</string>
 </resources>

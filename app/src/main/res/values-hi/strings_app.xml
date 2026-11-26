@@ -39,9 +39,9 @@
 
     <string name="settings_section_hugging_face">Hugging Face</string>
     <string name="settings_access_token">एक्सेस टोकन</string>
-    <string name="settings_token_not_set">सेट नहीं है — गेट किए गए डाउनलोड और क्लाउड मॉडल के लिए ज़रूरी</string>
+    <string name="settings_token_not_set">सेट नहीं है — वैकल्पिक; केवल गेट किए गए मॉडलों के लिए ज़रूरी</string>
     <string name="settings_token_set">सेट है — %1$s••••••••%2$s</string>
-    <string name="settings_token_help">गेट किए गए मॉडल (जैसे Gemma) और क्लाउड मॉडल के लिए मुफ़्त एक्सेस टोकन चाहिए। huggingface.co/settings/tokens पर इसे बनाएँ, फिर मॉडल के पेज पर उसकी लाइसेंस स्वीकार करें।</string>
+    <string name="settings_token_help">गेट किए गए मॉडल (जैसे Gemma) को डाउनलोड करने के लिए मुफ़्त एक्सेस टोकन चाहिए। huggingface.co/settings/tokens पर इसे बनाएँ, फिर मॉडल के पेज पर उसकी लाइसेंस स्वीकार करें।</string>
     <string name="settings_token_dialog_title">Hugging Face एक्सेस टोकन</string>
     <string name="settings_token_dialog_body">रीड एक्सेस वाला टोकन पेस्ट करें। इसे huggingface.co/settings/tokens पर बनाएँ।</string>
     <string name="settings_token_save">सहेजें</string>

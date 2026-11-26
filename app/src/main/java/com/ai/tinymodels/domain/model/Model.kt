@@ -83,10 +83,7 @@ enum class ModelFormat(val extension: String) {
     LITERTLM(".litertlm"),
     TASK(".task"),
     TFLITE(".tflite"),
-    GGUF(".gguf"),
-
-    /** Hosted model — no local file, executed by a cloud provider. */
-    CLOUD("");
+    GGUF(".gguf");
 
     /** Short user-facing label for this format (shown on model/file rows). */
     val displayName: String
@@ -95,7 +92,6 @@ enum class ModelFormat(val extension: String) {
             TASK -> "MediaPipe"
             TFLITE -> "TFLite"
             GGUF -> "GGUF"
-            CLOUD -> "Cloud"
         }
 
     companion object {

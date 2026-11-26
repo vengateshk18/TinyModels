@@ -217,8 +217,6 @@ class ModelRepositoryImpl @Inject constructor(
             ModelFormat.LITERTLM -> listOf(CatalogBranch(search = "litertlm"), LITERT_COMMUNITY_BRANCH)
             ModelFormat.TASK -> listOf(CatalogBranch(search = "mediapipe"), LITERT_COMMUNITY_BRANCH)
             ModelFormat.TFLITE -> listOf(CatalogBranch(search = "tflite"), LITERT_COMMUNITY_BRANCH)
-            // Cloud models are not downloaded, so they never appear in the Hub catalog.
-            ModelFormat.CLOUD -> emptyList()
         }
     }
 

@@ -42,9 +42,9 @@
 
     <string name="settings_section_hugging_face">Hugging Face</string>
     <string name="settings_access_token">Jeton d\'accès</string>
-    <string name="settings_token_not_set">Non défini — nécessaire pour les téléchargements restreints et les modèles cloud</string>
+    <string name="settings_token_not_set">Non défini — optionnel ; seuls les modèles restreints en ont besoin</string>
     <string name="settings_token_set">Défini — %1$s••••••••%2$s</string>
-    <string name="settings_token_help">Les modèles restreints (ex. Gemma) et les modèles cloud ont besoin d\'un jeton d\'accès gratuit. Créez-en un sur huggingface.co/settings/tokens, puis acceptez la licence du modèle sur sa page.</string>
+    <string name="settings_token_help">Les modèles restreints (ex. Gemma) ont besoin d\'un jeton d\'accès gratuit pour être téléchargés. Créez-en un sur huggingface.co/settings/tokens, puis acceptez la licence du modèle sur sa page.</string>
     <string name="settings_token_dialog_title">Jeton d\'accès Hugging Face</string>
     <string name="settings_token_dialog_body">Collez un jeton avec accès en lecture. Créez-en un sur huggingface.co/settings/tokens.</string>
     <string name="settings_token_save">Enregistrer</string>
