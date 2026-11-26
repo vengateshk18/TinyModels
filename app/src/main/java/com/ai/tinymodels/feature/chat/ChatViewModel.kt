@@ -258,21 +258,25 @@ class ChatViewModel @Inject constructor(
     /** Loads the router's live chat-model list. Safe to call when the sheet opens. */
     fun refreshCloudModels() {
         if (_uiState.value.cloudModelsLoading) return
+        TinyLog.i(TAG, "CLOUD: refreshCloudModels requested")
         viewModelScope.launch(Dispatchers.Default) {
             _uiState.update { it.copy(cloudModelsLoading = true, cloudModelsError = null) }
             try {
                 val models = cloudApi.listModels()
                     .sortedBy { it.id.lowercase() }
+                TinyLog.i(TAG, "CLOUD: refreshCloudModels success count=${models.size}")
                 _uiState.update {
                     it.copy(cloudModels = models, cloudModelsLoading = false)
                 }
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (e: CloudApiException) {
+                TinyLog.w(TAG, "CLOUD: refreshCloudModels api error code=${e.statusCode} msg=${e.message}")
                 _uiState.update {
                     it.copy(cloudModelsLoading = false, cloudModelsError = e.message)
                 }
             } catch (throwable: Throwable) {
+                TinyLog.e(TAG, "CLOUD: refreshCloudModels failed: ${throwable.message}", throwable)
                 _uiState.update {
                     it.copy(
                         cloudModelsLoading = false,
@@ -286,20 +290,24 @@ class ChatViewModel @Inject constructor(
     /** Swaps the live engine for a hosted model and rebuilds the open chat. */
     private fun selectCloudModel(modelId: String) {
         viewModelScope.launch(Dispatchers.Default) {
-            TinyLog.i(TAG, "JOURNEY: selecting cloud model $modelId")
+            TinyLog.i(TAG, "CLOUD: selectCloudModel model=$modelId")
             session?.close()
             session = null
             when (val result = modelManager.loadCloudModel(modelId)) {
                 is AppResult.Success -> {
+                    TinyLog.i(TAG, "CLOUD: selectCloudModel ready model=$modelId")
                     _uiState.update { it.copy(cloudModelsError = null) }
                     _uiState.value.activeChatId?.let { rebuildSession(it) }
                 }
-                is AppResult.Error -> _uiState.update {
-                    it.copy(
-                        error = ChatError(
-                            result.error.message ?: "Could not start the cloud model."
+                is AppResult.Error -> {
+                    TinyLog.w(TAG, "CLOUD: selectCloudModel failed model=$modelId err=${result.error.message}")
+                    _uiState.update {
+                        it.copy(
+                            error = ChatError(
+                                result.error.message ?: "Could not start the cloud model."
+                            )
                         )
-                    )
+                    }
                 }
             }
         }

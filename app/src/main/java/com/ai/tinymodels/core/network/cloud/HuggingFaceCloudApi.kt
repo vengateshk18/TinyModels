@@ -1,5 +1,6 @@
 package com.ai.tinymodels.core.network.cloud
 
+import com.ai.tinymodels.core.common.TinyLog
 import com.ai.tinymodels.core.network.HuggingFaceAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +31,7 @@ class HuggingFaceCloudApi @Inject constructor(
 ) : CloudChatClient {
 
     companion object {
+        private const val TAG = "CloudApi"
         const val CHAT_URL = "https://router.huggingface.co/v1/chat/completions"
         const val MODELS_URL = "https://router.huggingface.co/v1/models"
         private const val JSON = "application/json"
@@ -85,10 +87,14 @@ class HuggingFaceCloudApi @Inject constructor(
         topP: Double,
         maxTokens: Int
     ): Flow<String> = flow {
-        val token = auth.current() ?: throw CloudApiException(
-            statusCode = 401,
-            message = "Add your Hugging Face token in Settings to use cloud models."
-        )
+        val token = auth.current() ?: run {
+            TinyLog.w(TAG, "CLOUD: streamChat missing token for model=$model")
+            throw CloudApiException(
+                statusCode = 401,
+                message = "Add your Hugging Face token in Settings to use cloud models."
+            )
+        }
+        TinyLog.i(TAG, "CLOUD: streamChat start model=$model messages=${messages.size} maxTokens=$maxTokens")
         val request = Request.Builder()
             .url(CHAT_URL)
             .header("Authorization", "Bearer $token")
@@ -99,34 +105,57 @@ class HuggingFaceCloudApi @Inject constructor(
             .build()
 
         client.newCall(request).execute().use { response ->
+            TinyLog.i(TAG, "CLOUD: streamChat response code=${response.code} model=$model")
             if (!response.isSuccessful) {
+                val body = response.body?.string()
+                TinyLog.w(TAG, "CLOUD: streamChat failed code=${response.code} model=$model body=${body?.take(300)}")
                 throw CloudApiException(
                     statusCode = response.code,
-                    message = readableError(response.code, response.body?.string())
+                    message = readableError(response.code, body)
                 )
             }
-            val source = response.body?.source() ?: return@use
+            val source = response.body?.source() ?: run {
+                TinyLog.w(TAG, "CLOUD: streamChat empty body model=$model")
+                return@use
+            }
+            var deltas = 0
             while (!source.exhausted()) {
                 val line = source.readUtf8Line() ?: break
                 when (val chunk = CloudStreamParser.parse(line)) {
-                    is CloudChunk.Delta -> emit(chunk.text)
-                    is CloudChunk.Failure -> throw CloudApiException(502, chunk.message)
-                    CloudChunk.Done -> return@use
+                    is CloudChunk.Delta -> {
+                        deltas++
+                        emit(chunk.text)
+                    }
+                    is CloudChunk.Failure -> {
+                        TinyLog.w(TAG, "CLOUD: streamChat provider failure model=$model msg=${chunk.message}")
+                        throw CloudApiException(502, chunk.message)
+                    }
+                    CloudChunk.Done -> {
+                        TinyLog.i(TAG, "CLOUD: streamChat done model=$model deltas=$deltas")
+                        return@use
+                    }
                     null -> Unit
                 }
             }
+            TinyLog.i(TAG, "CLOUD: streamChat ended model=$model deltas=$deltas")
         }
     }.flowOn(Dispatchers.IO)
 
     override suspend fun listModels(): List<CloudModel> = withContext(Dispatchers.IO) {
+        val hasToken = auth.current() != null
+        TinyLog.i(TAG, "CLOUD: listModels start hasToken=$hasToken url=$MODELS_URL")
         val builder = Request.Builder().url(MODELS_URL).get()
         auth.current()?.let { builder.header("Authorization", "Bearer $it") }
         client.newCall(builder.build()).execute().use { response ->
             val body = response.body?.string().orEmpty()
+            TinyLog.i(TAG, "CLOUD: listModels response code=${response.code} bodyBytes=${body.length}")
             if (!response.isSuccessful) {
+                TinyLog.w(TAG, "CLOUD: listModels failed code=${response.code} body=${body.take(300)}")
                 throw CloudApiException(response.code, readableError(response.code, body))
             }
-            parseModels(body).take(60)
+            val models = parseModels(body).take(60)
+            TinyLog.i(TAG, "CLOUD: listModels parsed=${models.size} first=${models.firstOrNull()?.id}")
+            models
         }
     }
 

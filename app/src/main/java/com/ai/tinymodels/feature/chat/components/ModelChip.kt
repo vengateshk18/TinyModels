@@ -37,6 +37,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -235,16 +239,18 @@ fun ModelPickerSheet(
         }
     }
 
-    // Fetch once when the sheet opens with an empty cache; retries are explicit.
-    LaunchedEffect(Unit) {
-        if (cloudModels.isEmpty() && !cloudModelsLoading && cloudModelsError == null) {
+    // Fetch once when the sheet opens; retries are explicit via the Refresh button.
+    var cloudRequested by remember { mutableStateOf(false) }
+    LaunchedEffect(cloudRequested, cloudModels.isEmpty(), cloudModelsLoading, cloudModelsError) {
+        if (!cloudRequested && cloudModels.isEmpty() && !cloudModelsLoading && cloudModelsError == null) {
+            cloudRequested = true
             onRefreshCloudModels()
         }
     }
 }
 
 @Composable
-private fun CloudPickerHeader(isCloudActive: Boolean, onRefresh: () -> Unit) {
+internal fun CloudPickerHeader(isCloudActive: Boolean, onRefresh: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -280,7 +286,7 @@ private fun CloudPickerHeader(isCloudActive: Boolean, onRefresh: () -> Unit) {
 }
 
 @Composable
-private fun CloudPickerRow(model: CloudModel, isActive: Boolean, onClick: () -> Unit) {
+internal fun CloudPickerRow(model: CloudModel, isActive: Boolean, onClick: () -> Unit) {
     ElevatedCard(
         onClick = onClick,
         modifier = Modifier

@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.launch
 import com.ai.tinymodels.R
+import com.ai.tinymodels.core.common.TinyLog
 import com.ai.tinymodels.core.ui.components.bottomSheetTopSafePadding
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -108,6 +109,17 @@ fun ChatRoomScreen(
     var editingMessage by remember { mutableStateOf<Pair<String, String>?>(null) }
     var showModelPicker by remember { mutableStateOf(false) }
     var showContextSheet by remember { mutableStateOf(false) }
+
+    // Diagnostics: proves which screen/build opened the picker and what it holds.
+    ComposeLaunchedEffect(showModelPicker) {
+        if (showModelPicker) {
+            TinyLog.i(
+                "ModelPicker",
+                "CLOUD: picker opened from ChatRoomScreen localFiles=${downloadedFiles.size} " +
+                    "cloudCached=${uiState.cloudModels.size} error=${uiState.cloudModelsError}"
+            )
+        }
+    }
 
     // Keep the screen awake while generating (Settings → Chat). Flag is
     // cleared on dispose so it never leaks into other screens.
@@ -536,13 +548,22 @@ fun ChatRoomScreen(
         ModelLoadingDialog(progress = progress)
     }
 
-    // File-level model picker sheet for selecting a model file mid-chat.
+    // File-level model picker sheet: local files first, then cloud models.
     if (showModelPicker) {
         val activeChip = uiState.model as? ModelChipState.Ready
         ModelFilePickerSheet(
             files = downloadedFiles,
             activeModelId = activeChip?.modelId,
             activeFileName = activeChip?.fileName,
+            isCloudActive = activeChip?.isCloud == true,
+            cloudModels = uiState.cloudModels,
+            cloudModelsLoading = uiState.cloudModelsLoading,
+            cloudModelsError = uiState.cloudModelsError,
+            onRefreshCloudModels = { viewModel.onEvent(ChatEvent.RefreshCloudModels) },
+            onSelectCloudModel = { modelId ->
+                viewModel.onEvent(ChatEvent.SelectCloudModel(modelId))
+                showModelPicker = false
+            },
             onSelect = { modelId, fileName ->
                 viewModel.onEvent(ChatEvent.SelectModel(modelId, fileName))
                 showModelPicker = false
