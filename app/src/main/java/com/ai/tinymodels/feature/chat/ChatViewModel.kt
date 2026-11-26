@@ -16,6 +16,8 @@ import com.ai.tinymodels.core.inference.runtime.ChatTurn
 import com.ai.tinymodels.core.inference.runtime.SessionBudget
 import com.ai.tinymodels.core.inference.runtime.SessionRequest
 import com.ai.tinymodels.core.inference.tools.WebSearchToolSet
+import com.ai.tinymodels.core.network.SearchBudget
+import com.ai.tinymodels.core.network.SearchProgress
 import com.ai.tinymodels.core.network.WebSearchPrompt
 import com.ai.tinymodels.core.network.WebSearchQuery
 import com.ai.tinymodels.domain.model.ChatMessage
@@ -108,6 +110,10 @@ class ChatViewModel @Inject constructor(
         modelRepository.observeDownloadedFiles()
             .map { files -> files.filterNot { it.fileName.isVisionProjectorFile() } }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    private val searchProgress = SearchProgress()
+    /** Non-null while an auto web search is running before generation. */
+    val webSearchProgress: StateFlow<String?> = searchProgress.query
 
     private var session: ChatSession? = null
     private var generationJob: Job? = null
@@ -282,6 +288,7 @@ class ChatViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         webSearchAvailable = settings.webSearchEnabled,
+                        webSearchAlways = settings.webSearchAlways,
                         keepScreenOn = settings.keepScreenOn,
                         showTokenCounts = settings.showTokenCounts
                     )
@@ -1130,24 +1137,11 @@ class ChatViewModel @Inject constructor(
                 val uri = android.net.Uri.parse(uriString)
                 val dir = java.io.File(appContext.filesDir, "chat_images").apply { mkdirs() }
                 val target = java.io.File(dir, "${chatId}_${java.util.UUID.randomUUID()}.jpg")
-                appContext.contentResolver.openInputStream(uri)?.use { input ->
-                    // Downscale to ≤1568px on the long edge before saving.
-                    val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                    val bytes = input.readBytes()
-                    android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
-                    var sample = 1
-                    val longest = maxOf(bounds.outWidth, bounds.outHeight)
-                    while (longest / sample > 1568) sample *= 2
-                    val opts = android.graphics.BitmapFactory.Options().apply { inSampleSize = sample }
-                    val bitmap = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
-                        ?: return@withContext null
-                    target.outputStream().use { out ->
-                        if (!bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out)) {
-                            return@withContext null
-                        }
-                    }
-                    if (!bitmap.isRecycled) bitmap.recycle()
-                } ?: return@withContext null
+                val bytes = appContext.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                    ?: return@withContext null
+                val processed = com.ai.tinymodels.feature.chat.util.ImageAttachmentProcessor.decodeAndProcess(bytes)
+                    ?: return@withContext null
+                target.writeBytes(processed)
                 TinyLog.i(TAG, "JOURNEY: photo saved for vision (${target.length()} bytes): ${target.absolutePath}")
                 target.absolutePath
             } catch (t: Throwable) {
@@ -1175,53 +1169,59 @@ class ChatViewModel @Inject constructor(
         if (!_uiState.value.webSearchAvailable || !_uiState.value.webSearchEnabled) {
             return PromptAugmentation(text)
         }
-        // Fresh search when the message wants live info.
-        if (WebSearchQuery.needsWebSearch(text)) {
-            return try {
-                val previous = chatRepository.getMessages(chatId)
-                    .filter { it.role == ChatMessage.Role.USER }
-                    .takeLast(3)
-                    .map { it.content }
-                val sent = WebSearchQuery.searchQueryFrom(text, previous)
-                if (sent.isBlank()) return PromptAugmentation(text)
-                val started = System.currentTimeMillis()
-                val results = webSearchRepository.search(sent)
-                val ms = System.currentTimeMillis() - started
-                if (results.isNotEmpty) {
-                    lastSearchSources[chatId] = results.results
-                    TinyLog.i(
-                        TAG,
-                        "JOURNEY: web_search auto (${results.results.size} results, lead=${results.leadText.length} chars) in ${ms}ms for \"$sent\""
-                    )
-                    PromptAugmentation(
-                        prompt = WebSearchPrompt.webSearchPrompt(results, text),
-                        sources = results.results
-                    )
-                } else {
-                    TinyLog.w(
-                        TAG,
-                        "JOURNEY: web_search auto empty (blocked=${results.blocked}) in ${ms}ms for \"$sent\""
-                    )
-                    if (results.blocked) {
-                        PromptAugmentation(
-                            "$text\n\n(Note: live web search was blocked just now; answer from your own knowledge and say so.)"
-                        )
-                    } else {
-                        // Fall back to prior sources rather than nothing.
-                        val prior = lastSearchSources[chatId].orEmpty()
-                        if (prior.isNotEmpty()) {
-                            PromptAugmentation(WebSearchPrompt.webRecallPrompt(prior, text), prior)
+        // Fresh search when the message wants live info, or when the user
+        // pinned "always search" for this chat.
+        val always = _uiState.value.webSearchAlways
+        if (always || WebSearchQuery.needsWebSearch(text)) {
+            val previous = chatRepository.getMessages(chatId)
+                .filter { it.role == ChatMessage.Role.USER }
+                .takeLast(3)
+                .map { it.content }
+            val sent = WebSearchQuery.searchQueryFrom(text, previous)
+            if (sent.isBlank()) {
+                if (!always) return PromptAugmentation(text)
+                // Always-on but no usable query: fall through to recall.
+            } else {
+                return try {
+                    searchProgress.track(sent) {
+                        val started = System.currentTimeMillis()
+                        val pageBudget = SearchBudget.pageChars(modelManager.activeMaxNumTokens)
+                        val results = webSearchRepository.search(sent, pageBudgetChars = pageBudget)
+                        val ms = System.currentTimeMillis() - started
+                        if (results.isNotEmpty) {
+                            lastSearchSources[chatId] = results.results
+                            TinyLog.i(
+                                TAG,
+                                "JOURNEY: web_search auto (${results.results.size} results, lead=${results.leadText.length} chars) in ${ms}ms for \"$sent\""
+                            )
+                            return@track PromptAugmentation(
+                                prompt = WebSearchPrompt.webSearchPrompt(results, text),
+                                sources = results.results
+                            )
                         } else {
-                            PromptAugmentation(text)
+                            TinyLog.w(
+                                TAG,
+                                "JOURNEY: web_search auto empty (blocked=${results.blocked}) in ${ms}ms for \"$sent\""
+                            )
+                            if (results.blocked) {
+                                return@track PromptAugmentation(
+                                    "$text\n\n(Note: live web search was blocked just now; answer from your own knowledge and say so.)"
+                                )
+                            }
+                            val prior = lastSearchSources[chatId].orEmpty()
+                            if (prior.isNotEmpty()) {
+                                return@track PromptAugmentation(WebSearchPrompt.webRecallPrompt(prior, text), prior)
+                            }
+                            return@track PromptAugmentation(text)
                         }
                     }
+                } catch (e: WebSearchException) {
+                    TinyLog.w(TAG, "JOURNEY: web_search auto failed: ${e.message}")
+                    PromptAugmentation(text)
+                } catch (e: Exception) {
+                    TinyLog.w(TAG, "JOURNEY: web_search auto failed unexpectedly: ${e.message}")
+                    PromptAugmentation(text)
                 }
-            } catch (e: WebSearchException) {
-                TinyLog.w(TAG, "JOURNEY: web_search auto failed: ${e.message}")
-                PromptAugmentation(text)
-            } catch (e: Exception) {
-                TinyLog.w(TAG, "JOURNEY: web_search auto failed unexpectedly: ${e.message}")
-                PromptAugmentation(text)
             }
         }
         // Follow-up with no fresh need: re-show prior sources so the model

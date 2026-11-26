@@ -50,6 +50,34 @@ object WebSearchFilter {
             .map { it.result }
     }
 
+    private val LISTICLE = Regex(
+        """^\s*(top\s+\d+|best\s+\d+|\d+\s+(best|top)|top\s+(picks|deals))\b""",
+        RegexOption.IGNORE_CASE
+    )
+    private val YEAR_LISTICLE = Regex("""\b(top|best)\b.{0,24}\b20\d{2}\b""", RegexOption.IGNORE_CASE)
+
+    /**
+     * Host-dedupe and demote SEO listicles. Runs after relevance filtering so
+     * the first per-host result is the most relevant one.
+     */
+    fun rank(results: List<WebSearchResult>, maxPerHost: Int = 1): List<WebSearchResult> {
+        if (results.isEmpty()) return results
+        val seenHosts = mutableMapOf<String, Int>()
+        val deduped = ArrayList<WebSearchResult>(results.size)
+        for (r in results) {
+            val host = r.displayHost.lowercase()
+            val count = seenHosts[host] ?: 0
+            if (count >= maxPerHost) continue
+            seenHosts[host] = count + 1
+            deduped.add(r)
+        }
+        val (plain, listicles) = deduped.partition { !isListicle(it.title) }
+        return plain + listicles
+    }
+
+    private fun isListicle(title: String): Boolean =
+        LISTICLE.containsMatchIn(title) || YEAR_LISTICLE.containsMatchIn(title)
+
     /**
      * Whether some result names every term of a 1-2 term [query].
      * With 3+ terms [keepRelevant] already demands half, so anything counts.

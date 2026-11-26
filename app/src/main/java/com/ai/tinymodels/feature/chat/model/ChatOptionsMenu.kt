@@ -10,6 +10,12 @@ import com.ai.tinymodels.R
  * state are pinned by unit tests; `ChatInputBar` only renders it.
  */
 sealed interface PlusMenuItem {
+    /** Camera capture entry. Disabled with reason text when model lacks vision. */
+    data class TakePhoto(
+        val enabled: Boolean,
+        @StringRes val disabledReasonRes: Int? = null
+    ) : PlusMenuItem
+
     /** Photo-attach entry. Disabled with reason text when model lacks vision. */
     data class AttachPhoto(
         val enabled: Boolean,
@@ -43,6 +49,11 @@ fun buildPlusMenuItems(
     canAttachPhoto: Boolean,
     supportsVision: Boolean
 ): List<PlusMenuItem> = listOf(
+    PlusMenuItem.TakePhoto(
+        enabled = supportsVision && canAttachPhoto,
+        disabledReasonRes = if (supportsVision) null
+        else R.string.chat_attach_photo_unavailable
+    ),
     PlusMenuItem.AttachPhoto(
         enabled = supportsVision && canAttachPhoto,
         disabledReasonRes = if (supportsVision) null

@@ -8,11 +8,14 @@ import androidx.work.Configuration as WorkConfiguration
 import com.ai.tinymodels.core.common.DownloadNotifier
 import com.ai.tinymodels.core.inference.ModelManager
 import com.ai.tinymodels.core.network.HuggingFaceAuth
+import com.ai.tinymodels.core.network.WebSearchConfig
+import com.ai.tinymodels.core.network.WebSearchConfigHolder
 import com.ai.tinymodels.domain.repository.SettingsRepository
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.Locale
 import javax.inject.Inject
 
 /**
@@ -36,6 +39,9 @@ class TinyModelsApp : Application(), WorkConfiguration.Provider {
 
     @Inject
     lateinit var settingsRepository: SettingsRepository
+
+    @Inject
+    lateinit var webSearchConfigHolder: WebSearchConfigHolder
 
     override val workManagerConfiguration: WorkConfiguration
         get() = WorkConfiguration.Builder()
@@ -66,6 +72,20 @@ class TinyModelsApp : Application(), WorkConfiguration.Provider {
         // gated-model downloads (Gemma etc.) carry the Bearer header.
         applicationScope.launch {
             settingsRepository.huggingFaceToken.collect { huggingFaceAuth.update(it) }
+        }
+
+        // Keep the blocking web_search/open_page path in sync with the
+        // persisted provider, key and reader-fallback choice.
+        applicationScope.launch {
+            settingsRepository.settings.collect { settings ->
+                webSearchConfigHolder.config = WebSearchConfig(
+                    provider = settings.searchProvider,
+                    apiKey = settings.searchApiKey,
+                    searxngUrl = settings.searxngUrl,
+                    readerFallbackEnabled = settings.webReaderFallback,
+                    languageTag = Locale.getDefault().toLanguageTag()
+                )
+            }
         }
     }
 

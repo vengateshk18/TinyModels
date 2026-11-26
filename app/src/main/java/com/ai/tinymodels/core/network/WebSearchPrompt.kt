@@ -110,7 +110,19 @@ object WebSearchPrompt {
             block.append(text)
             spent += text.length
         }
-        if (results.leadText.isNotEmpty() && results.results.isNotEmpty()) {
+        if (results.pages.isNotEmpty()) {
+            results.pages.forEachIndexed { index, page ->
+                if (spent > charBudget && index > 0) return@forEachIndexed
+                val label = "From [${index + 1}] ${neutralizeUntrusted(page.host)}:\n"
+                val remaining = (charBudget - spent).coerceAtLeast(0)
+                val text = if (page.text.length > remaining && index == 0) page.text.take(remaining) else page.text
+                if (text.isBlank()) return@forEachIndexed
+                block.append(label)
+                block.append(neutralizeUntrusted(text))
+                block.append("\n\n")
+                spent += label.length + text.length
+            }
+        } else if (results.leadText.isNotEmpty() && results.results.isNotEmpty()) {
             block.append("From [1] ${neutralizeUntrusted(results.results.first().displayHost)}:\n")
             block.append(neutralizeUntrusted(results.leadText))
         }

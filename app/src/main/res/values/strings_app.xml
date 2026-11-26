@@ -316,4 +316,23 @@
 
     <string name="model_import_projector_not_model">This is a vision projector (mmproj), not a language model. Import the main .gguf model — projectors are downloaded and paired with it automatically.</string>
     <string name="settings_importing_model_keep_open">Please keep this screen open while importing.</string>
+    <string name="settings_search_provider">Search provider</string>
+    <string name="settings_search_provider_dialog_title">Web search provider</string>
+    <string name="settings_search_provider_keyless">Keyless (DuckDuckGo + Bing)</string>
+    <string name="settings_search_provider_brave">Brave Search API</string>
+    <string name="settings_search_provider_tavily">Tavily Search API</string>
+    <string name="settings_search_provider_searxng">SearXNG (self-hosted)</string>
+    <string name="settings_search_api_key">API key</string>
+    <string name="settings_search_api_key_hint">Paste your provider API key</string>
+    <string name="settings_search_searxng_url">SearXNG URL</string>
+    <string name="settings_search_searxng_url_hint">https://search.example.com</string>
+    <string name="settings_search_reader_fallback">Read JS pages via Jina Reader</string>
+    <string name="settings_search_reader_fallback_subtitle">Sends the page URL to r.jina.ai when a page cannot be read directly. Off by default.</string>
+    <string name="settings_search_save">Save</string>
+    <string name="settings_search_not_configured">Not configured — using keyless</string>
+    <string name="settings_web_search_always">Always search before answering</string>
+    <string name="settings_web_search_always_subtitle">Search the web on every message in every chat. Uses more time and context space.</string>
+    <string name="settings_web_search_always_dialog_title">Enable always search?</string>
+    <string name="settings_web_search_always_dialog_body">This will search the web before every reply, even for simple questions.\n\nWeb results take up context space, so the model may have less room for long conversations or attached page text. It can also make replies slower and use more data.</string>
+    <string name="settings_web_search_always_enable">Enable</string>
 </resources>

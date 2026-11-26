@@ -176,4 +176,13 @@
     <string name="chat_sources_sheet_title">Fuentes</string>
     <string name="chat_sources_searched_for">Búsqueda</string>
     <string name="chat_source_open_content_description">Abrir fuente</string>
+    <string name="chat_searching_web">Buscando en la web “%1$s”…</string>
+    <string name="chat_options_always_search">Buscar siempre en este chat</string>
+    <string name="chat_options_take_photo">Tomar foto</string>
+    <string name="chat_options_sheet_title">Añadir al mensaje</string>
+    <string name="chat_options_sheet_subtitle">Adjunta una foto o activa herramientas para este chat.</string>
+    <string name="chat_options_take_photo_subtitle">Usa tu cámara para capturar una foto</string>
+    <string name="chat_options_attach_photo_subtitle">Elige una imagen de tu dispositivo</string>
+    <string name="chat_options_web_search_subtitle">Permite que el modelo busque en la web cuando sea necesario</string>
+    <string name="chat_options_web_search_unavailable">Activa la búsqueda web en Ajustes para usar esto</string>
 </resources>

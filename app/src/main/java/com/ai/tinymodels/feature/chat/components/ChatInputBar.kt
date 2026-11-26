@@ -20,14 +20,21 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -35,6 +42,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Mic
@@ -43,6 +51,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
@@ -50,10 +59,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -73,6 +84,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.ai.tinymodels.R
 import com.ai.tinymodels.core.common.TinyConstants
+import com.ai.tinymodels.core.ui.components.bottomSheetTopSafePadding
 import com.ai.tinymodels.feature.chat.model.GenerationState
 import com.ai.tinymodels.feature.chat.model.PlusMenuItem
 import com.ai.tinymodels.feature.chat.model.buildPlusMenuItems
@@ -92,6 +104,7 @@ import com.ai.tinymodels.feature.chat.model.buildPlusMenuItems
  *  - Keyboard "Send" action triggers [onSend].
  *  - IME insets are handled by the parent (ChatRoomScreen Scaffold).
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatInputBar(
     generation: GenerationState,
@@ -125,12 +138,22 @@ fun ChatInputBar(
     var text by rememberSaveable { mutableStateOf("") }
     var menuExpanded by remember { mutableStateOf(false) }
     var pickedImageUri by rememberSaveable { mutableStateOf<android.net.Uri?>(null) }
+    var pendingCameraUriString by rememberSaveable { mutableStateOf<String?>(null) }
+    val context = androidx.compose.ui.platform.LocalContext.current
     val isGenerating = generation == GenerationState.GENERATING
     val keyboard = LocalSoftwareKeyboardController.current
     val sendEnabled = canSend && (text.isNotBlank() || pickedImageUri != null) && !isGenerating
     val pickPhoto = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri -> pickedImageUri = uri }
+    val takePhoto = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            pendingCameraUriString?.let { pickedImageUri = android.net.Uri.parse(it) }
+        }
+        pendingCameraUriString = null
+    }
 
     fun doSend() {
         val trimmed = text.trim()
@@ -199,73 +222,81 @@ fun ChatInputBar(
                         .background(MaterialTheme.colorScheme.primary, CircleShape)
                 )
             }
-            DropdownMenu(
-                expanded = menuExpanded,
-                onDismissRequest = { menuExpanded = false },
-                shape = RoundedCornerShape(20.dp),
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                tonalElevation = 2.dp
-            ) {
-                menuItems.forEachIndexed { index, item ->
-                    when (item) {
-                        is PlusMenuItem.AttachPhoto -> {
-                            if (index > 0) HorizontalDivider()
-                            MenuSectionLabel(stringResource(R.string.chat_options_media_section))
-                            DropdownMenuItem(
-                                text = {
-                                    Column {
-                                        Text(stringResource(R.string.chat_options_attach_photo))
-                                        item.disabledReasonRes?.let { reasonRes ->
-                                            Text(
-                                                stringResource(reasonRes),
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                                maxLines = 2,
-                                                modifier = Modifier.padding(top = 2.dp, start = 8.dp)
-                                            )
-                                        }
-                                    }
-                                },
-                                onClick = {
-                                    if (item.enabled) {
-                                        pickPhoto.launch(TinyConstants.MIME_TYPE_IMAGE_ANY)
-                                        menuExpanded = false
-                                    }
-                                },
-                                enabled = item.enabled,
-                                leadingIcon = {
-                                    MenuIconContainer {
-                                        Icon(Icons.Filled.Image, contentDescription = null)
-                                    }
-                                }
+            if (menuExpanded) {
+                val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+                ModalBottomSheet(
+                    onDismissRequest = { menuExpanded = false },
+                    sheetState = sheetState,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    contentWindowInsets = { WindowInsets(0) },
+                    modifier = Modifier.bottomSheetTopSafePadding()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .windowInsetsPadding(
+                                WindowInsets.systemBars.union(WindowInsets.displayCutout)
+                                    .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
                             )
-                        }
-                        is PlusMenuItem.WebSearch -> {
-                            if (index > 0) HorizontalDivider()
-                            MenuSectionLabel(stringResource(R.string.chat_options_tools_section))
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.chat_options_web_search)) },
-                                onClick = {
-                                    onToggleWebSearch(!webSearchEnabled)
-                                    menuExpanded = false
-                                },
-                                enabled = item.enabled,
-                                leadingIcon = {
-                                    MenuIconContainer {
-                                        Icon(Icons.Filled.Search, contentDescription = null)
-                                    }
-                                },
-                                trailingIcon = {
-                                    Switch(
-                                        checked = item.checked,
-                                        onCheckedChange = {
-                                            onToggleWebSearch(it)
+                            .padding(horizontal = 20.dp)
+                            .padding(bottom = 16.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.chat_options_sheet_title),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = stringResource(R.string.chat_options_sheet_subtitle),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        menuItems.forEachIndexed { index, item ->
+                            when (item) {
+                                is PlusMenuItem.TakePhoto -> {
+                                    ChatOptionActionRow(
+                                        icon = Icons.Filled.CameraAlt,
+                                        title = stringResource(R.string.chat_options_take_photo),
+                                        subtitle = item.disabledReasonRes?.let { stringResource(it) }
+                                            ?: stringResource(R.string.chat_options_take_photo_subtitle),
+                                        enabled = item.enabled,
+                                        onClick = {
+                                            val uri = createCameraCaptureUri(context)
+                                            pendingCameraUriString = uri.toString()
+                                            takePhoto.launch(uri)
                                             menuExpanded = false
-                                        },
-                                        enabled = item.enabled
+                                        }
                                     )
                                 }
-                            )
+                                is PlusMenuItem.AttachPhoto -> {
+                                    ChatOptionActionRow(
+                                        icon = Icons.Filled.Image,
+                                        title = stringResource(R.string.chat_options_attach_photo),
+                                        subtitle = item.disabledReasonRes?.let { stringResource(it) }
+                                            ?: stringResource(R.string.chat_options_attach_photo_subtitle),
+                                        enabled = item.enabled,
+                                        onClick = {
+                                            pickPhoto.launch(TinyConstants.MIME_TYPE_IMAGE_ANY)
+                                            menuExpanded = false
+                                        }
+                                    )
+                                }
+                                is PlusMenuItem.WebSearch -> {
+                                    ChatOptionToggleRow(
+                                        icon = Icons.Filled.Search,
+                                        title = stringResource(R.string.chat_options_web_search),
+                                        subtitle = if (item.enabled) stringResource(R.string.chat_options_web_search_subtitle)
+                                            else stringResource(R.string.chat_options_web_search_unavailable),
+                                        checked = item.checked,
+                                        enabled = item.enabled,
+                                        onCheckedChange = { onToggleWebSearch(it) }
+                                    )
+                                }
+                            }
+                            if (index < menuItems.lastIndex) Spacer(modifier = Modifier.height(12.dp))
                         }
                     }
                 }
@@ -546,6 +577,131 @@ private fun VoiceListeningBars(
             )
         }
     }
+}
+
+@Composable
+private fun ChatOptionActionRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String,
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+    androidx.compose.material3.Surface(
+        onClick = onClick,
+        enabled = enabled,
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .background(
+                        color = if (enabled) MaterialTheme.colorScheme.primaryContainer
+                        else MaterialTheme.colorScheme.surfaceContainerHighest,
+                        shape = RoundedCornerShape(12.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = if (enabled) MaterialTheme.colorScheme.onPrimaryContainer
+                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+            }
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = if (enabled) MaterialTheme.colorScheme.onSurface
+                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                        alpha = if (enabled) 1f else 0.6f
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChatOptionToggleRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    enabled: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    androidx.compose.material3.Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .background(
+                        color = if (enabled && checked) MaterialTheme.colorScheme.primaryContainer
+                        else MaterialTheme.colorScheme.surfaceContainerHighest,
+                        shape = RoundedCornerShape(12.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = if (enabled && checked) MaterialTheme.colorScheme.onPrimaryContainer
+                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (enabled) 1f else 0.5f)
+                )
+            }
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = if (enabled) MaterialTheme.colorScheme.onSurface
+                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                        alpha = if (enabled) 1f else 0.6f
+                    )
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
+        }
+    }
+}
+
+private fun createCameraCaptureUri(context: android.content.Context): android.net.Uri {
+    val dir = java.io.File(context.cacheDir, "camera_images").apply { mkdirs() }
+    val file = java.io.File(dir, "camera_${java.util.UUID.randomUUID()}.jpg")
+    return androidx.core.content.FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        file
+    )
 }
 
 /**

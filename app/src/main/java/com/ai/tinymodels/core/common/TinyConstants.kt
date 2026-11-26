@@ -115,6 +115,11 @@ object TinyConstants {
     const val PREFS_ONBOARDING_COMPLETED = "onboarding_completed"
     const val PREFS_LAST_USED_MODEL_ID = "last_used_model_id"
     const val PREFS_HUGGING_FACE_TOKEN = "hugging_face_token"
+    const val PREFS_SEARCH_PROVIDER = "search_provider"
+    const val PREFS_SEARCH_API_KEY = "search_api_key"
+    const val PREFS_SEARXNG_URL = "searxng_url"
+    const val PREFS_WEB_READER_FALLBACK = "web_reader_fallback"
+    const val PREFS_WEB_SEARCH_ALWAYS = "web_search_always"
 
     // ------------------------------------------------------------------
     // Support links

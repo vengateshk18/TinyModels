@@ -292,4 +292,23 @@
 
     <string name="model_import_projector_not_model">यह एक विज़न प्रोजेक्टर (mmproj) है, भाषा मॉडल नहीं। मुख्य .gguf मॉडल आयात करें — प्रोजेक्टर स्वचालित रूप से डाउनलोड होकर उसके साथ जुड़ जाते हैं।</string>
     <string name="settings_importing_model_keep_open">आयात करते समय इस स्क्रीन को खुला रखें।</string>
+    <string name="settings_search_provider">खोज प्रदाता</string>
+    <string name="settings_search_provider_dialog_title">वेब खोज प्रदाता</string>
+    <string name="settings_search_provider_keyless">कीलेस (DuckDuckGo + Bing)</string>
+    <string name="settings_search_provider_brave">Brave Search API</string>
+    <string name="settings_search_provider_tavily">Tavily Search API</string>
+    <string name="settings_search_provider_searxng">SearXNG (स्व-होस्टेड)</string>
+    <string name="settings_search_api_key">API कुंजी</string>
+    <string name="settings_search_api_key_hint">प्रदाता की API कुंजी पेस्ट करें</string>
+    <string name="settings_search_searxng_url">SearXNG URL</string>
+    <string name="settings_search_searxng_url_hint">https://search.example.com</string>
+    <string name="settings_search_reader_fallback">Jina Reader से JS पेज पढ़ें</string>
+    <string name="settings_search_reader_fallback_subtitle">जब पेज सीधे नहीं पढ़ा जा सके तो URL r.jina.ai को भेजता है। डिफ़ॉल्ट रूप से बंद।</string>
+    <string name="settings_search_save">सहेजें</string>
+    <string name="settings_search_not_configured">कॉन्फ़िगर नहीं — कीलेस उपयोग हो रहा है</string>
+    <string name="settings_web_search_always">जवाब देने से पहले हमेशा खोजें</string>
+    <string name="settings_web_search_always_subtitle">हर चैट के हर संदेश पर वेब खोज करता है। अधिक समय और कॉन्टेक्स्ट स्पेस लेता है।</string>
+    <string name="settings_web_search_always_dialog_title">हमेशा खोज चालू करें?</string>
+    <string name="settings_web_search_always_dialog_body">यह हर जवाब से पहले वेब खोज करेगा, साधारण सवालों के लिए भी।\n\nवेब परिणाम कॉन्टेक्स्ट स्पेस लेते हैं, इसलिए मॉडल के पास लंबी बातचीत या अटैच किए गए पेज टेक्स्ट के लिए कम जगह हो सकती है। जवाब धीमे भी हो सकते हैं और अधिक डेटा उपयोग हो सकता है।</string>
+    <string name="settings_web_search_always_enable">चालू करें</string>
 </resources>

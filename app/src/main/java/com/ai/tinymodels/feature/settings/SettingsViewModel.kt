@@ -122,6 +122,11 @@ class SettingsViewModel @Inject constructor(
     fun setFontScale(scale: Float) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setFontScale(scale) }
     fun setDefaultBackend(backend: BackendPreference) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setDefaultBackend(backend) }
     fun setWebSearchEnabled(enabled: Boolean) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setWebSearchEnabled(enabled) }
+    fun setSearchProvider(provider: com.ai.tinymodels.domain.model.SearchProvider) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setSearchProvider(provider) }
+    fun setSearchApiKey(key: String) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setSearchApiKey(key) }
+    fun setSearxngUrl(url: String) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setSearxngUrl(url) }
+    fun setWebReaderFallback(enabled: Boolean) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setWebReaderFallback(enabled) }
+    fun setWebSearchAlways(enabled: Boolean) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setWebSearchAlways(enabled) }
     fun setWifiOnlyDownloads(enabled: Boolean) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setWifiOnlyDownloads(enabled) }
     fun setAutoLoadLastModel(enabled: Boolean) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setAutoLoadLastModel(enabled) }
     fun setKeepScreenOn(enabled: Boolean) = viewModelScope.launch(Dispatchers.Default) { settingsRepository.setKeepScreenOn(enabled) }

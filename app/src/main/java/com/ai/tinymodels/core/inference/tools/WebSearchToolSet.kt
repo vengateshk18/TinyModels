@@ -88,6 +88,37 @@ class WebSearchToolSet @Inject constructor(
         }
     }
 
+    @Tool(
+        "Open a specific web page by URL and return its readable text. " +
+            "Use this after web_search when a result needs detail, or when the user gives a URL."
+    )
+    fun openPage(url: String): String {
+        val startedAt = System.currentTimeMillis()
+        val safeUrl = url.trim()
+        TinyLog.i(TAG, "Model called open_page: url=\"$safeUrl\"")
+        if (safeUrl.isBlank()) return "Page URL was empty."
+        return try {
+            val page = kotlinx.coroutines.runBlocking {
+                webSearchRepository.openPage(safeUrl, maxChars = 2_500)
+            }
+            val elapsedMs = System.currentTimeMillis() - startedAt
+            if (page == null) {
+                TinyLog.w(TAG, "open_page unreadable for \"$safeUrl\" in ${elapsedMs}ms")
+                "Could not read that page. Answer from your own knowledge and say the page could not be read."
+            } else {
+                TinyLog.i(TAG, "open_page read ${page.text.length} chars from \"$safeUrl\" in ${elapsedMs}ms")
+                buildString {
+                    appendLine("Readable text from $safeUrl:")
+                    appendLine()
+                    appendLine(com.ai.tinymodels.core.network.WebSearchPrompt.fenceUntrusted("WEB_PAGE", page.text))
+                }
+            }
+        } catch (e: Exception) {
+            TinyLog.e(TAG, "open_page failed for \"$safeUrl\"", e)
+            "Could not read that page. Answer from your own knowledge and say the page could not be read."
+        }
+    }
+
     private companion object {
         // Same tag as ChatViewModel's JOURNEY logs so one logcat filter
         // (adb logcat -s TinyModelsJourney) shows the entire turn.

@@ -27,7 +27,7 @@ class WebSearchClientOrchestrationTest {
         val client = WebSearchClient()
         val good = listOf(r("Chennai weather today", "chennai weather forecast rain today"))
         client.endpoints = listOf(ep("https://a.test/", results = emptyList()), ep("https://b.test/", results = good))
-        client.fetcher = { _, _ -> 200 to "<html></html>" }
+        client.fetcher = { _, _, _ -> 200 to "<html></html>" }
         val out = client.search("weather today in chennai", readTopResult = false)
         assertTrue(out.isNotEmpty)
         assertEquals("weather today in chennai", out.query)
@@ -39,7 +39,7 @@ class WebSearchClientOrchestrationTest {
         val won = listOf(r("South Korean won - Wikipedia", "currency of South Korea"))
         val score = listOf(r("India vs Australia scorecard", "india australia match score yesterday"))
         client.endpoints = listOf(ep("https://a.test/", results = won), ep("https://b.test/", results = score))
-        client.fetcher = { _, _ -> 200 to "x" }
+        client.fetcher = { _, _, _ -> 200 to "x" }
         val out = client.search(
             "who won the last india vs australia match",
             readTopResult = false
@@ -51,7 +51,7 @@ class WebSearchClientOrchestrationTest {
     @Test fun `challenge on all engines yields blocked empty`() = runTest {
         val client = WebSearchClient()
         client.endpoints = listOf(ep("https://a.test/", results = emptyList()))
-        client.fetcher = { _, _ -> 202 to "anomaly challenge" }
+        client.fetcher = { _, _, _ -> 202 to "anomaly challenge" }
         val out = client.search("latest news", readTopResult = false)
         assertTrue(out.isEmpty)
         assertTrue(out.blocked)
@@ -65,7 +65,7 @@ class WebSearchClientOrchestrationTest {
         client.endpoints = listOf(ep("https://b.test/", keywords = true, results = generic))
         val calls = mutableListOf<String>()
         val realGeneric = generic
-        client.fetcher = { _, sent ->
+        client.fetcher = { _, sent, _ ->
             calls.add(sent)
             if (calls.size == 1) 200 to "first" else 200 to "second"
         }
@@ -87,9 +87,55 @@ class WebSearchClientOrchestrationTest {
     @Test fun `empty everywhere is not blocked`() = runTest {
         val client = WebSearchClient()
         client.endpoints = listOf(ep("https://a.test/", results = emptyList()))
-        client.fetcher = { _, _ -> 200 to "<html>no markers here</html>" }
+        client.fetcher = { _, _, _ -> 200 to "<html>no markers here</html>" }
         val out = client.search("some very obscure query xyz", readTopResult = false)
         assertTrue(out.isEmpty)
         assertFalse(out.blocked)
+    }
+
+    @Test fun `fast engine wins over a slow first engine`() = runTest {
+        val client = WebSearchClient()
+        val slow = ep("https://a.test/", results = listOf(r("slow answer", "slow")))
+        val fast = ep("https://b.test/", results = listOf(r("fast answer", "fast")))
+        client.endpoints = listOf(slow, fast)
+        var slowCancelled = false
+        client.fetcher = { endpoint, _, _ ->
+            if (endpoint.url.contains("a.test")) {
+                try {
+                    kotlinx.coroutines.delay(5_000)
+                } finally {
+                    slowCancelled = true
+                }
+                200 to "a"
+            } else {
+                kotlinx.coroutines.delay(10)
+                200 to "b"
+            }
+        }
+
+        val out = client.search("fast answer", readTopResult = false)
+
+        assertEquals("fast answer", out.results.first().title)
+        assertTrue("slow sibling should be cancelled", slowCancelled)
+    }
+
+    @Test fun `slow engine still wins when the fast one has nothing relevant`() = runTest {
+        val client = WebSearchClient()
+        val fastEmpty = ep("https://a.test/", results = emptyList())
+        val slowGood = ep("https://b.test/", results = listOf(r("Chennai weather", "chennai weather forecast")))
+        client.endpoints = listOf(fastEmpty, slowGood)
+        client.fetcher = { endpoint, _, _ ->
+            if (endpoint.url.contains("a.test")) {
+                200 to "a"
+            } else {
+                kotlinx.coroutines.delay(50)
+                200 to "b"
+            }
+        }
+
+        val out = client.search("chennai weather", readTopResult = false)
+
+        assertTrue(out.isNotEmpty)
+        assertEquals("Chennai weather", out.results.first().title)
     }
 }

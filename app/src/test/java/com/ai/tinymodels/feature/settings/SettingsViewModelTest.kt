@@ -17,6 +17,7 @@ import com.ai.tinymodels.domain.model.FileDownloadStatus
 import com.ai.tinymodels.domain.model.FontChoice
 import com.ai.tinymodels.domain.model.ModelDetails
 import com.ai.tinymodels.domain.model.ModelSummary
+import com.ai.tinymodels.domain.model.SearchProvider
 import com.ai.tinymodels.domain.model.ThemeMode
 import com.ai.tinymodels.domain.repository.ChatRepository
 import com.ai.tinymodels.domain.repository.ModelRepository
@@ -252,6 +253,21 @@ private class FakeSettingsRepository : SettingsRepository {
     }
     override suspend fun setWebSearchEnabled(enabled: Boolean) {
         settingsFlow.value = settingsFlow.value.copy(webSearchEnabled = enabled)
+    }
+    override suspend fun setSearchProvider(provider: SearchProvider) {
+        settingsFlow.value = settingsFlow.value.copy(searchProvider = provider)
+    }
+    override suspend fun setSearchApiKey(key: String) {
+        settingsFlow.value = settingsFlow.value.copy(searchApiKey = key)
+    }
+    override suspend fun setSearxngUrl(url: String) {
+        settingsFlow.value = settingsFlow.value.copy(searxngUrl = url)
+    }
+    override suspend fun setWebReaderFallback(enabled: Boolean) {
+        settingsFlow.value = settingsFlow.value.copy(webReaderFallback = enabled)
+    }
+    override suspend fun setWebSearchAlways(enabled: Boolean) {
+        settingsFlow.value = settingsFlow.value.copy(webSearchAlways = enabled)
     }
     override suspend fun setWifiOnlyDownloads(enabled: Boolean) {
         settingsFlow.value = settingsFlow.value.copy(wifiOnlyDownloads = enabled)

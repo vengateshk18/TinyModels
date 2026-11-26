@@ -419,6 +419,11 @@ private class FakeHomeSettingsRepository : com.ai.tinymodels.domain.repository.S
     override suspend fun setFontScale(scale: Float) {}
     override suspend fun setDefaultBackend(backend: com.ai.tinymodels.domain.model.BackendPreference) {}
     override suspend fun setWebSearchEnabled(enabled: Boolean) {}
+    override suspend fun setSearchProvider(provider: com.ai.tinymodels.domain.model.SearchProvider) {}
+    override suspend fun setSearchApiKey(key: String) {}
+    override suspend fun setSearxngUrl(url: String) {}
+    override suspend fun setWebReaderFallback(enabled: Boolean) {}
+    override suspend fun setWebSearchAlways(enabled: Boolean) {}
     override suspend fun setWifiOnlyDownloads(enabled: Boolean) {}
     override suspend fun setAutoLoadLastModel(enabled: Boolean) {}
     override suspend fun setKeepScreenOn(enabled: Boolean) {}

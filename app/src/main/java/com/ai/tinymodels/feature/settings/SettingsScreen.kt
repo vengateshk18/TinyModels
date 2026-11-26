@@ -60,6 +60,7 @@ import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.Tag
@@ -124,6 +125,7 @@ import com.ai.tinymodels.core.ui.theme.colorSchemeFor
 import com.ai.tinymodels.core.ui.theme.fontFamilyFor
 import com.ai.tinymodels.domain.model.AppLanguage
 import com.ai.tinymodels.domain.model.AppSettings
+import com.ai.tinymodels.domain.model.SearchProvider
 import com.ai.tinymodels.domain.model.AppTheme
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.FontChoice
@@ -492,6 +494,8 @@ private fun AppearanceSection(settings: AppSettings, viewModel: SettingsViewMode
 
 @Composable
 private fun ChatInferenceSection(settings: AppSettings, viewModel: SettingsViewModel) {
+    var showWebSearchDialog by remember { mutableStateOf(false) }
+    var showAlwaysSearchDialog by remember { mutableStateOf(false) }
     SettingsSection(
         title = stringResource(R.string.settings_section_chat),
         icon = Icons.Filled.AutoAwesome
@@ -528,6 +532,24 @@ private fun ChatInferenceSection(settings: AppSettings, viewModel: SettingsViewM
             onCheckedChange = { viewModel.setWebSearchEnabled(it) }
         )
         SettingsDivider()
+        SettingsSwitchItem(
+            icon = Icons.Filled.Search,
+            label = stringResource(R.string.settings_web_search_always),
+            subtitle = stringResource(R.string.settings_web_search_always_subtitle),
+            checked = settings.webSearchAlways,
+            enabled = settings.webSearchEnabled,
+            onCheckedChange = { enabled ->
+                if (enabled) showAlwaysSearchDialog = true else viewModel.setWebSearchAlways(false)
+            }
+        )
+        SettingsDivider()
+        SettingsNavigationItem(
+            icon = Icons.Filled.Search,
+            label = stringResource(R.string.settings_search_provider),
+            subtitle = searchProviderSubtitle(settings),
+            onClick = { showWebSearchDialog = true }
+        )
+        SettingsDivider()
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 LeadingIcon(Icons.Filled.Memory)
@@ -554,6 +576,37 @@ private fun ChatInferenceSection(settings: AppSettings, viewModel: SettingsViewM
                     }
                 }
             }
+        }
+        if (showWebSearchDialog) {
+            WebSearchSettingsDialog(
+                settings = settings,
+                onDismiss = { showWebSearchDialog = false },
+                onSave = { provider, key, url, fallback ->
+                    viewModel.setSearchProvider(provider)
+                    viewModel.setSearchApiKey(key)
+                    viewModel.setSearxngUrl(url)
+                    viewModel.setWebReaderFallback(fallback)
+                    showWebSearchDialog = false
+                }
+            )
+        }
+        if (showAlwaysSearchDialog) {
+            AlertDialog(
+                onDismissRequest = { showAlwaysSearchDialog = false },
+                title = { Text(stringResource(R.string.settings_web_search_always_dialog_title)) },
+                text = { Text(stringResource(R.string.settings_web_search_always_dialog_body)) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.setWebSearchAlways(true)
+                        showAlwaysSearchDialog = false
+                    }) { Text(stringResource(R.string.settings_web_search_always_enable)) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showAlwaysSearchDialog = false }) {
+                        Text(stringResource(R.string.common_cancel))
+                    }
+                }
+            )
         }
     }
 }
@@ -829,6 +882,7 @@ private fun SettingsSwitchItem(
     label: String,
     subtitle: String?,
     checked: Boolean,
+    enabled: Boolean = true,
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
@@ -840,7 +894,11 @@ private fun SettingsSwitchItem(
         LeadingIcon(icon)
         Spacer(Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(label, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                label,
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+            )
             subtitle?.let {
                 Text(
                     it,
@@ -850,7 +908,7 @@ private fun SettingsSwitchItem(
             }
         }
         Spacer(Modifier.width(8.dp))
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
     }
 }
 
@@ -1166,4 +1224,101 @@ private fun backendLabel(backend: BackendPreference): Int = when (backend) {
     BackendPreference.AUTO -> R.string.settings_backend_auto
     BackendPreference.GPU -> R.string.settings_backend_gpu
     BackendPreference.CPU -> R.string.settings_backend_cpu
+}
+
+
+@Composable
+private fun searchProviderSubtitle(settings: AppSettings): String {
+    return when (settings.searchProvider) {
+        SearchProvider.KEYLESS -> stringResource(R.string.settings_search_provider_keyless)
+        SearchProvider.BRAVE -> if (settings.searchApiKey.isNotBlank()) stringResource(R.string.settings_search_provider_brave) else stringResource(R.string.settings_search_not_configured)
+        SearchProvider.TAVILY -> if (settings.searchApiKey.isNotBlank()) stringResource(R.string.settings_search_provider_tavily) else stringResource(R.string.settings_search_not_configured)
+        SearchProvider.SEARXNG -> if (settings.searxngUrl.isNotBlank()) stringResource(R.string.settings_search_provider_searxng) else stringResource(R.string.settings_search_not_configured)
+    }
+}
+
+@Composable
+private fun WebSearchSettingsDialog(
+    settings: AppSettings,
+    onDismiss: () -> Unit,
+    onSave: (SearchProvider, String, String, Boolean) -> Unit
+) {
+    var provider by remember { mutableStateOf(settings.searchProvider) }
+    var apiKey by remember { mutableStateOf(settings.searchApiKey) }
+    var searxngUrl by remember { mutableStateOf(settings.searxngUrl) }
+    var readerFallback by remember { mutableStateOf(settings.webReaderFallback) }
+
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_search_provider_dialog_title)) },
+        text = {
+            Column {
+                ProviderRadioRow(stringResource(R.string.settings_search_provider_keyless), provider == SearchProvider.KEYLESS) { provider = SearchProvider.KEYLESS }
+                ProviderRadioRow(stringResource(R.string.settings_search_provider_brave), provider == SearchProvider.BRAVE) { provider = SearchProvider.BRAVE }
+                ProviderRadioRow(stringResource(R.string.settings_search_provider_tavily), provider == SearchProvider.TAVILY) { provider = SearchProvider.TAVILY }
+                ProviderRadioRow(stringResource(R.string.settings_search_provider_searxng), provider == SearchProvider.SEARXNG) { provider = SearchProvider.SEARXNG }
+
+                Spacer(Modifier.height(12.dp))
+
+                if (provider == SearchProvider.BRAVE || provider == SearchProvider.TAVILY) {
+                    androidx.compose.material3.OutlinedTextField(
+                        value = apiKey,
+                        onValueChange = { apiKey = it },
+                        label = { Text(stringResource(R.string.settings_search_api_key)) },
+                        placeholder = { Text(stringResource(R.string.settings_search_api_key_hint)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } else if (provider == SearchProvider.SEARXNG) {
+                    androidx.compose.material3.OutlinedTextField(
+                        value = searxngUrl,
+                        onValueChange = { searxngUrl = it },
+                        label = { Text(stringResource(R.string.settings_search_searxng_url)) },
+                        placeholder = { Text(stringResource(R.string.settings_search_searxng_url_hint)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(Modifier.height(12.dp))
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.settings_search_reader_fallback), style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            stringResource(R.string.settings_search_reader_fallback_subtitle),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    androidx.compose.material3.Switch(
+                        checked = readerFallback,
+                        onCheckedChange = { readerFallback = it }
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(provider, apiKey.trim(), searxngUrl.trim(), readerFallback) }) {
+                Text(stringResource(R.string.settings_search_save))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
+        }
+    )
+}
+
+@Composable
+private fun ProviderRadioRow(label: String, selected: Boolean, onSelect: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onSelect)
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        androidx.compose.material3.RadioButton(selected = selected, onClick = onSelect)
+        Spacer(Modifier.width(8.dp))
+        Text(label, style = MaterialTheme.typography.bodyMedium)
+    }
 }

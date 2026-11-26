@@ -292,4 +292,23 @@
 
     <string name="model_import_projector_not_model">Este es un proyector de visión (mmproj), no un modelo de lenguaje. Importa el modelo .gguf principal: los proyectores se descargan y se emparejan automáticamente.</string>
     <string name="settings_importing_model_keep_open">Mantén esta pantalla abierta mientras se importa.</string>
+    <string name="settings_search_provider">Proveedor de búsqueda</string>
+    <string name="settings_search_provider_dialog_title">Proveedor de búsqueda web</string>
+    <string name="settings_search_provider_keyless">Sin clave (DuckDuckGo + Bing)</string>
+    <string name="settings_search_provider_brave">Brave Search API</string>
+    <string name="settings_search_provider_tavily">Tavily Search API</string>
+    <string name="settings_search_provider_searxng">SearXNG (autoalojado)</string>
+    <string name="settings_search_api_key">Clave API</string>
+    <string name="settings_search_api_key_hint">Pega la clave API del proveedor</string>
+    <string name="settings_search_searxng_url">URL de SearXNG</string>
+    <string name="settings_search_searxng_url_hint">https://search.example.com</string>
+    <string name="settings_search_reader_fallback">Leer páginas JS con Jina Reader</string>
+    <string name="settings_search_reader_fallback_subtitle">Envía la URL de la página a r.jina.ai cuando no se puede leer directamente. Desactivado por defecto.</string>
+    <string name="settings_search_save">Guardar</string>
+    <string name="settings_search_not_configured">No configurado — usando sin clave</string>
+    <string name="settings_web_search_always">Buscar siempre antes de responder</string>
+    <string name="settings_web_search_always_subtitle">Busca en la web en cada mensaje de cada chat. Usa más tiempo y espacio de contexto.</string>
+    <string name="settings_web_search_always_dialog_title">¿Activar búsqueda siempre?</string>
+    <string name="settings_web_search_always_dialog_body">Esto buscará en la web antes de cada respuesta, incluso para preguntas simples.\n\nLos resultados web ocupan espacio de contexto, así que el modelo puede tener menos espacio para conversaciones largas o texto de páginas adjuntas. También puede hacer las respuestas más lentas y usar más datos.</string>
+    <string name="settings_web_search_always_enable">Activar</string>
 </resources>

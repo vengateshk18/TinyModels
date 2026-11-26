@@ -4,6 +4,7 @@ import com.ai.tinymodels.domain.model.AppSettings
 import com.ai.tinymodels.domain.model.AppTheme
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.FontChoice
+import com.ai.tinymodels.domain.model.SearchProvider
 import com.ai.tinymodels.domain.model.ThemeMode
 import kotlinx.coroutines.flow.Flow
 
@@ -27,6 +28,13 @@ interface SettingsRepository {
 
     /** Global availability gate for the model's web_search tool. */
     suspend fun setWebSearchEnabled(enabled: Boolean)
+
+    suspend fun setSearchProvider(provider: SearchProvider)
+    suspend fun setSearchApiKey(key: String)
+    suspend fun setSearxngUrl(url: String)
+    suspend fun setWebReaderFallback(enabled: Boolean)
+    /** Global "always search" — searches before every reply. */
+    suspend fun setWebSearchAlways(enabled: Boolean)
 
     /** When true, model downloads wait for an unmetered connection (Wi-Fi). */
     suspend fun setWifiOnlyDownloads(enabled: Boolean)

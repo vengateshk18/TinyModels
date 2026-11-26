@@ -211,6 +211,24 @@ object WebSearchQuery {
         return (kept + whenWords).joinToString(" ")
     }
 
+    /** Coarse freshness hint from the user's words. */
+    fun freshnessFor(message: String): SearchFreshness {
+        val q = message.lowercase()
+        if (Regex("""\b(today|tonight|now|live|breaking|just now|this morning|this evening|this afternoon)\b""").containsMatchIn(q)) {
+            return SearchFreshness.DAY
+        }
+        if (Regex("""\b(yesterday|this week|last week|weekly)\b""").containsMatchIn(q)) {
+            return SearchFreshness.WEEK
+        }
+        if (Regex("""\b(latest|newest|recent|this month|last month|monthly)\b""").containsMatchIn(q)) {
+            return SearchFreshness.MONTH
+        }
+        if (Regex("""\b(this year|last year|annual|yearly|20\d{2})\b""").containsMatchIn(q)) {
+            return SearchFreshness.YEAR
+        }
+        return SearchFreshness.NONE
+    }
+
     /**
      * A second phrasing of [keywords] when the first found nothing on point.
      * Null when there is no different phrasing to try.

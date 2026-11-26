@@ -138,6 +138,8 @@ android {
     }
     tasks.withType<Test> {
         jvmArgs("--add-opens=java.base/java.lang=ALL-UNNAMED", "-Dnet.bytebuddy.experimental=true")
+        // Opt-in live network eval: -PsearchEval=1
+        systemProperty("searchEval", providers.gradleProperty("searchEval").getOrElse(""))
     }
 }
 

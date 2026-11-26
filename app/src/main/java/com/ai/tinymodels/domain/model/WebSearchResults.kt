@@ -10,6 +10,8 @@ data class WebSearchResults(
     val fetchedAt: Long = System.currentTimeMillis(),
     /** Readable text pulled from the top result's page, when fetchable. */
     val leadText: String = "",
+    /** Pages read for this search, in result order. */
+    val pages: List<WebSearchPage> = emptyList(),
     /** Every engine that answered did so with a challenge page. */
     val blocked: Boolean = false
 ) {

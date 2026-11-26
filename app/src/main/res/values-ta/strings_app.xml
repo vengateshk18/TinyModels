@@ -278,7 +278,7 @@
     <string name="storage_no_chats">நீக்க அரட்டைகள் இல்லை</string>
     <string name="storage_chat_messages_count">%1$d செய்திகள்</string>
     <string name="storage_delete">நீக்கு</string>
-    <string name="storage_delete_confirm_title">உருப்படியை நீக்கவா?</string>
+    <string name="storage_delete_conf2222222222irm_title">உருப்படியை நீக்கவா?</string>
     <string name="storage_delete_model_file_body">"%1$s" ஐ நீக்கவா? இது பதிவிறக்கப்பட்ட மாதிரி கோப்பை உங்கள் சாதனத்திலிருந்து நீக்கி சேமிப்பக கண்காணிப்பை புதுப்பிக்கும்.</string>
     <string name="storage_delete_partial_body">பகுதி பதிவிறக்கம் "%1$s" ஐ நீக்கவா? இது மீதமுள்ள .part தரவை நீக்கி புதிதாக தொடங்க உதவும்.</string>
     <string name="storage_delete_orphan_body">தனித்த கோப்பு "%1$s" ஐ நீக்கவா? இந்த கோப்பு பதிவிறக்கப்பட்ட மாதிரியாக கண்காணிக்கப்படவில்லை.</string>
@@ -292,4 +292,23 @@
 
     <string name="model_import_projector_not_model">இது ஒரு விஷன் புரொஜெக்டர் (mmproj), மொழி மாதிரி அல்ல. முக்கிய .gguf மாதிரியை இறக்குமதி செய்யவும் — புரொஜெக்டர்கள் தானாகவே பதிவிறக்கப்பட்டு இணைக்கப்படும்.</string>
     <string name="settings_importing_model_keep_open">இறக்குமதி செய்யும் போது இந்தத் திரையைத் திறந்து வைத்திருங்கள்.</string>
+    <string name="settings_search_provider">தேடல் வழங்குநர்</string>
+    <string name="settings_search_provider_dialog_title">இணைய தேடல் வழங்குநர்</string>
+    <string name="settings_search_provider_keyless">கீ இல்லாமல் (DuckDuckGo + Bing)</string>
+    <string name="settings_search_provider_brave">Brave Search API</string>
+    <string name="settings_search_provider_tavily">Tavily Search API</string>
+    <string name="settings_search_provider_searxng">SearXNG (சுய-ஹோஸ்ட்)</string>
+    <string name="settings_search_api_key">API விசை</string>
+    <string name="settings_search_api_key_hint">வழங்குநரின் API விசையை ஒட்டவும்</string>
+    <string name="settings_search_searxng_url">SearXNG URL</string>
+    <string name="settings_search_searxng_url_hint">https://search.example.com</string>
+    <string name="settings_search_reader_fallback">Jina Reader மூலம் JS பக்கங்களை படி</string>
+    <string name="settings_search_reader_fallback_subtitle">பக்கத்தை நேரடியாக படிக்க முடியாதபோது URL ஐ r.jina.ai க்கு அனுப்பும். இயல்பாக அணைக்கப்பட்டுள்ளது.</string>
+    <string name="settings_search_save">சேமி</string>
+    <string name="settings_search_not_configured">அமைக்கப்படவில்லை — கீ இல்லாமல் பயன்படுத்துகிறது</string>
+    <string name="settings_web_search_always">பதிலளிக்கும் முன் எப்போதும் தேடு</string>
+    <string name="settings_web_search_always_subtitle">ஒவ்வொரு அரட்டையிலும் ஒவ்வொரு செய்திக்கும் இணையத்தில் தேடும். அதிக நேரமும் context இடமும் பயன்படுத்தும்.</string>
+    <string name="settings_web_search_always_dialog_title">எப்போதும் தேடலை இயக்கவா?</string>
+    <string name="settings_web_search_always_dialog_body">எளிய கேள்விகளுக்கும் கூட, ஒவ்வொரு பதிலுக்கு முன்பும் இணையத்தில் தேடும்.\n\nஇணைய முடிவுகள் context இடத்தை எடுத்துக்கொள்ளும், அதனால் நீண்ட உரையாடல்கள் அல்லது இணைத்த பக்க உரைக்கு மாதிரிக்கு குறைவான இடம் இருக்கும். பதில்கள் மெதுவாகவும் அதிக தரவு பயன்படுத்தவும் செய்யலாம்.</string>
+    <string name="settings_web_search_always_enable">இயக்கு</string>
 </resources>

@@ -173,4 +173,13 @@
     <string name="chat_sources_sheet_title">மூலங்கள்</string>
     <string name="chat_sources_searched_for">தேடியது</string>
     <string name="chat_source_open_content_description">ஆதாரத்தைத் திற</string>
+    <string name="chat_searching_web">“%1$s” என்பதற்காக இணையத்தில் தேடுகிறது…</string>
+    <string name="chat_options_always_search">இந்த அரட்டையில் எப்போதும் தேடு</string>
+    <string name="chat_options_take_photo">புகைப்படம் எடு</string>
+    <string name="chat_options_sheet_title">செய்தியில் சேர்க்கவும்</string>
+    <string name="chat_options_sheet_subtitle">இந்த அரட்டைக்கு ஒரு புகைப்படத்தை இணைக்கவும் அல்லது கருவிகளை இயக்கவும்.</string>
+    <string name="chat_options_take_photo_subtitle">புகைப்படம் எடுக்க உங்கள் கேமராவைப் பயன்படுத்தவும்</string>
+    <string name="chat_options_attach_photo_subtitle">உங்கள் சாதனத்திலிருந்து ஒரு படத்தைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="chat_options_web_search_subtitle">தேவைப்படும்போது மாதிரி இணையத்தில் தேட அனுமதிக்கவும்</string>
+    <string name="chat_options_web_search_unavailable">இதைப் பயன்படுத்த அமைப்புகளில் இணைய தேடலை இயக்கவும்</string>
 </resources>

@@ -170,4 +170,13 @@
     <string name="chat_sources_sheet_title">ソース</string>
     <string name="chat_sources_searched_for">検索クエリ</string>
     <string name="chat_source_open_content_description">ソースを開く</string>
+    <string name="chat_searching_web">「%1$s」をウェブで検索中…</string>
+    <string name="chat_options_always_search">このチャットで常に検索</string>
+    <string name="chat_options_take_photo">写真を撮る</string>
+    <string name="chat_options_sheet_title">メッセージに追加</string>
+    <string name="chat_options_sheet_subtitle">写真を添付するか、このチャットのツールをオンにします。</string>
+    <string name="chat_options_take_photo_subtitle">カメラで写真を撮影</string>
+    <string name="chat_options_attach_photo_subtitle">端末から画像を選択</string>
+    <string name="chat_options_web_search_subtitle">必要なときにモデルがウェブ検索できるようにする</string>
+    <string name="chat_options_web_search_unavailable">これを使うには設定でウェブ検索をオンにしてください</string>
 </resources>

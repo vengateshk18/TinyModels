@@ -171,4 +171,13 @@
     <string name="chat_sources_sheet_title">Sources</string>
     <string name="chat_sources_searched_for">Searched for</string>
     <string name="chat_source_open_content_description">Open source</string>
+    <string name="chat_searching_web">Searching the web for “%1$s”…</string>
+    <string name="chat_options_always_search">Always search this chat</string>
+    <string name="chat_options_take_photo">Take photo</string>
+    <string name="chat_options_sheet_title">Add to message</string>
+    <string name="chat_options_sheet_subtitle">Attach a photo or turn on tools for this chat.</string>
+    <string name="chat_options_take_photo_subtitle">Use your camera to capture a photo</string>
+    <string name="chat_options_attach_photo_subtitle">Choose an image from your device</string>
+    <string name="chat_options_web_search_subtitle">Let the model search the web when needed</string>
+    <string name="chat_options_web_search_unavailable">Turn on Web search in Settings to use this</string>
 </resources>

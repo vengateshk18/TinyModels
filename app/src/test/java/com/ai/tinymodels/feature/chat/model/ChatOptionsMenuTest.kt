@@ -11,7 +11,7 @@ import org.junit.Test
  */
 class ChatOptionsMenuTest {
 
-    @Test fun `menu holds attach-photo then web-search when all usable`() {
+    @Test fun `menu holds take-photo, attach-photo then web-search when all usable`() {
         val items = buildPlusMenuItems(
             webSearchAvailable = true,
             webSearchEnabled = false,
@@ -20,6 +20,7 @@ class ChatOptionsMenuTest {
         )
         assertEquals(
             listOf(
+                PlusMenuItem.TakePhoto(enabled = true, disabledReasonRes = null),
                 PlusMenuItem.AttachPhoto(enabled = true, disabledReasonRes = null),
                 PlusMenuItem.WebSearch(checked = false, enabled = true)
             ),
@@ -34,7 +35,7 @@ class ChatOptionsMenuTest {
             canAttachPhoto = true,
             supportsVision = true
         )
-        assertEquals(PlusMenuItem.WebSearch(checked = true, enabled = true), items[1])
+        assertEquals(PlusMenuItem.WebSearch(checked = true, enabled = true), items[2])
     }
 
     @Test fun `web-search switch is off and disabled when globally unavailable`() {
@@ -46,31 +47,34 @@ class ChatOptionsMenuTest {
         )
         // The tool cannot run while the global gate is off, so the switch
         // must not claim it is on.
-        assertEquals(PlusMenuItem.WebSearch(checked = false, enabled = false), items[1])
+        assertEquals(PlusMenuItem.WebSearch(checked = false, enabled = false), items[2])
     }
 
-    @Test fun `attach-photo is disabled while it cannot be used`() {
+    @Test fun `photo actions are disabled while they cannot be used`() {
         val items = buildPlusMenuItems(
             webSearchAvailable = true,
             webSearchEnabled = false,
             canAttachPhoto = false,
             supportsVision = true
         )
-        assertEquals(PlusMenuItem.AttachPhoto(enabled = false, disabledReasonRes = null), items[0])
+        assertEquals(PlusMenuItem.TakePhoto(enabled = false, disabledReasonRes = null), items[0])
+        assertEquals(PlusMenuItem.AttachPhoto(enabled = false, disabledReasonRes = null), items[1])
     }
 
-    @Test fun `text-only model disables attach-photo entry with a reason`() {
+    @Test fun `text-only model disables photo entries with a reason`() {
         val items = buildPlusMenuItems(
             webSearchAvailable = true,
             webSearchEnabled = false,
             canAttachPhoto = true,
             supportsVision = false
         )
-        val photoItem = items[0] as PlusMenuItem.AttachPhoto
-        assertEquals(false, photoItem.enabled)
-        assertEquals(R.string.chat_attach_photo_unavailable, photoItem.disabledReasonRes)
-        // Web search still present
-        assertEquals(PlusMenuItem.WebSearch(checked = false, enabled = true), items[1])
+        val take = items[0] as PlusMenuItem.TakePhoto
+        val pick = items[1] as PlusMenuItem.AttachPhoto
+        assertEquals(false, take.enabled)
+        assertEquals(R.string.chat_attach_photo_unavailable, take.disabledReasonRes)
+        assertEquals(false, pick.enabled)
+        assertEquals(R.string.chat_attach_photo_unavailable, pick.disabledReasonRes)
+        assertEquals(PlusMenuItem.WebSearch(checked = false, enabled = true), items[2])
     }
 
     @Test fun `text-only menu keeps the web-search switch state`() {
@@ -80,9 +84,10 @@ class ChatOptionsMenuTest {
             canAttachPhoto = true,
             supportsVision = false
         )
-        val photoItem = items[0] as PlusMenuItem.AttachPhoto
-        assertEquals(false, photoItem.enabled)
-        assertEquals(R.string.chat_attach_photo_unavailable, photoItem.disabledReasonRes)
-        assertEquals(PlusMenuItem.WebSearch(checked = true, enabled = true), items[1])
+        val take = items[0] as PlusMenuItem.TakePhoto
+        val pick = items[1] as PlusMenuItem.AttachPhoto
+        assertEquals(false, take.enabled)
+        assertEquals(false, pick.enabled)
+        assertEquals(PlusMenuItem.WebSearch(checked = true, enabled = true), items[2])
     }
 }

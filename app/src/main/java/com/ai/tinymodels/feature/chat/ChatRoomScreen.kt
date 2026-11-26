@@ -501,6 +501,11 @@ fun ChatRoomScreen(
                 }
             }
 
+            val webSearchQuery by viewModel.webSearchProgress.collectAsStateWithLifecycle()
+            if (webSearchQuery != null) {
+                SearchingWebRow(query = webSearchQuery!!)
+            }
+
             ChatInputBar(
                 generation = uiState.generation,
                 canSend = uiState.canSend,
@@ -928,6 +933,30 @@ private fun ContextMetricRow(label: String, value: String) {
     }
 }
 
+
+@Composable
+private fun SearchingWebRow(query: String) {
+    androidx.compose.foundation.layout.Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+    ) {
+        androidx.compose.material3.CircularProgressIndicator(
+            modifier = Modifier.size(14.dp),
+            strokeWidth = 2.dp,
+            color = MaterialTheme.colorScheme.primary
+        )
+        androidx.compose.foundation.layout.Spacer(Modifier.width(8.dp))
+        Text(
+            text = stringResource(R.string.chat_searching_web, query.take(80)),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+        )
+    }
+}
 
 /** Subtle system chip indicating older messages were compacted into a summary. */
 @Composable

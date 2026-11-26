@@ -12,6 +12,7 @@ import com.ai.tinymodels.domain.model.AppSettings
 import com.ai.tinymodels.domain.model.AppTheme
 import com.ai.tinymodels.domain.model.BackendPreference
 import com.ai.tinymodels.domain.model.FontChoice
+import com.ai.tinymodels.domain.model.SearchProvider
 import com.ai.tinymodels.domain.model.ThemeMode
 import com.ai.tinymodels.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -51,6 +52,11 @@ class SettingsRepositoryImpl @Inject constructor(
         val ONBOARDING_COMPLETED = booleanPreferencesKey(TinyConstants.PREFS_ONBOARDING_COMPLETED)
         val LAST_USED_MODEL_ID = stringPreferencesKey(TinyConstants.PREFS_LAST_USED_MODEL_ID)
         val HUGGINGFACE_TOKEN = stringPreferencesKey(TinyConstants.PREFS_HUGGING_FACE_TOKEN)
+        val SEARCH_PROVIDER = stringPreferencesKey(TinyConstants.PREFS_SEARCH_PROVIDER)
+        val SEARCH_API_KEY = stringPreferencesKey(TinyConstants.PREFS_SEARCH_API_KEY)
+        val SEARXNG_URL = stringPreferencesKey(TinyConstants.PREFS_SEARXNG_URL)
+        val WEB_READER_FALLBACK = booleanPreferencesKey(TinyConstants.PREFS_WEB_READER_FALLBACK)
+        val WEB_SEARCH_ALWAYS = booleanPreferencesKey(TinyConstants.PREFS_WEB_SEARCH_ALWAYS)
     }
 
     private fun Preferences.toAppSettings() = AppSettings(
@@ -65,6 +71,13 @@ class SettingsRepositoryImpl @Inject constructor(
         defaultBackend = this[Keys.DEFAULT_BACKEND]?.let { runCatching { BackendPreference.valueOf(it) }.getOrNull() }
             ?: BackendPreference.AUTO,
         webSearchEnabled = this[Keys.WEB_SEARCH_ENABLED] ?: true,
+        searchProvider = this[Keys.SEARCH_PROVIDER]
+            ?.let { runCatching { SearchProvider.valueOf(it) }.getOrNull() }
+            ?: SearchProvider.KEYLESS,
+        searchApiKey = this[Keys.SEARCH_API_KEY] ?: "",
+        searxngUrl = this[Keys.SEARXNG_URL] ?: "",
+        webReaderFallback = this[Keys.WEB_READER_FALLBACK] ?: false,
+        webSearchAlways = this[Keys.WEB_SEARCH_ALWAYS] ?: false,
         wifiOnlyDownloads = this[Keys.WIFI_ONLY_DOWNLOADS] ?: false,
         autoLoadLastModel = this[Keys.AUTO_LOAD_LAST_MODEL] ?: true,
         keepScreenOn = this[Keys.KEEP_SCREEN_ON] ?: true,
@@ -107,6 +120,26 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun setWebSearchEnabled(enabled: Boolean) {
         context.dataStore.edit { it[Keys.WEB_SEARCH_ENABLED] = enabled }
+    }
+
+    override suspend fun setSearchProvider(provider: SearchProvider) {
+        context.dataStore.edit { it[Keys.SEARCH_PROVIDER] = provider.name }
+    }
+
+    override suspend fun setSearchApiKey(key: String) {
+        context.dataStore.edit { it[Keys.SEARCH_API_KEY] = key.trim() }
+    }
+
+    override suspend fun setSearxngUrl(url: String) {
+        context.dataStore.edit { it[Keys.SEARXNG_URL] = url.trim() }
+    }
+
+    override suspend fun setWebReaderFallback(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.WEB_READER_FALLBACK] = enabled }
+    }
+
+    override suspend fun setWebSearchAlways(enabled: Boolean) {
+        context.dataStore.edit { it[Keys.WEB_SEARCH_ALWAYS] = enabled }
     }
 
     override suspend fun setWifiOnlyDownloads(enabled: Boolean) {

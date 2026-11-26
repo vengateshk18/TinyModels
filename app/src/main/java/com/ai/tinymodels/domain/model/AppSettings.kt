@@ -48,6 +48,16 @@ data class AppSettings(
      * can then opt in/out individually (per-chat column in Room).
      */
     val webSearchEnabled: Boolean = true,
+    /** Where web results come from; keyless is the zero-config default. */
+    val searchProvider: SearchProvider = SearchProvider.KEYLESS,
+    /** API key for Brave/Tavily. Stored like the Hugging Face token. */
+    val searchApiKey: String = "",
+    /** Base URL of the user's own SearXNG instance. */
+    val searxngUrl: String = "",
+    /** Send unreadable pages to r.jina.ai (shares the URL; opt-in). */
+    val webReaderFallback: Boolean = false,
+    /** When true, search the web before every reply (uses extra context). */
+    val webSearchAlways: Boolean = false,
     /**
      * When true, model downloads require an unmetered connection (Wi-Fi).
      * A 4 GB model on mobile data is how users burn a month's quota in an hour.
