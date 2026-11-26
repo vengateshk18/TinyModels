@@ -39,9 +39,9 @@
 
     <string name="settings_section_hugging_face">Hugging Face</string>
     <string name="settings_access_token">அணுகல் டோக்கன்</string>
-    <string name="settings_token_not_set">அமைக்கப்படவில்லை — விருப்பம்; உரிமம் கட்டுப்பட்ட மாதிரிகளுக்கு மட்டுமே தேவை</string>
+    <string name="settings_token_not_set">அமைக்கப்படவில்லை — உரிமம் கட்டுப்பட்ட பதிவிறக்கங்கள் மற்றும் கிளவுட் மாதிரிகளுக்குத் தேவை</string>
     <string name="settings_token_set">அமைக்கப்பட்டது — %1$s••••••••%2$s</string>
-    <string name="settings_token_help">உரிமம் கட்டுப்பட்ட மாதிரிகளுக்கு (எ.கா. Gemma) பதிவிறக்கத்திற்கு இலவச டோக்கன் தேவை. huggingface.co/settings/tokens இல் ஒன்றை உருவாக்கி, பின்னர் மாதிரியின் உரிமத்தை அதன் பக்கத்தில் ஏற்றுக்கொள்ளவும்.</string>
+    <string name="settings_token_help">உரிமம் கட்டுப்பட்ட மாதிரிகள் (எ.கா. Gemma) மற்றும் கிளவுட் மாதிரிகளுக்கு இலவச அணுகல் டோக்கன் தேவை. huggingface.co/settings/tokens இல் ஒன்றை உருவாக்கி, பின்னர் மாதிரியின் உரிமத்தை அதன் பக்கத்தில் ஏற்றுக்கொள்ளவும்.</string>
     <string name="settings_token_dialog_title">Hugging Face அணுகல் டோக்கன்</string>
     <string name="settings_token_dialog_body">படிக்கும் அனுமதியுடைய டோக்கனை ஒட்டவும். huggingface.co/settings/tokens இல் ஒன்றை உருவாக்கவும்.</string>
     <string name="settings_token_save">சேமி</string>

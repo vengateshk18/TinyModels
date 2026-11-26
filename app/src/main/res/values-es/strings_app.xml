@@ -39,9 +39,9 @@
 
     <string name="settings_section_hugging_face">Hugging Face</string>
     <string name="settings_access_token">Token de acceso</string>
-    <string name="settings_token_not_set">Sin definir: es opcional y solo lo necesitan los modelos con licencia</string>
+    <string name="settings_token_not_set">Sin definir: se necesita para descargas con licencia y modelos en la nube</string>
     <string name="settings_token_set">Definido: %1$s••••••••%2$s</string>
-    <string name="settings_token_help">Los modelos con licencia (como Gemma) necesitan un token de acceso gratuito para descargarse. Créalo en huggingface.co/settings/tokens y luego acepta la licencia del modelo en su página.</string>
+    <string name="settings_token_help">Los modelos con licencia (como Gemma) y los modelos en la nube necesitan un token de acceso gratuito. Créalo en huggingface.co/settings/tokens y luego acepta la licencia del modelo en su página.</string>
     <string name="settings_token_dialog_title">Token de acceso de Hugging Face</string>
     <string name="settings_token_dialog_body">Pega un token con permisos de lectura. Créalo en huggingface.co/settings/tokens.</string>
     <string name="settings_token_save">Guardar</string>

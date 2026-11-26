@@ -119,21 +119,14 @@ class HuggingFaceCloudApi @Inject constructor(
     }.flowOn(Dispatchers.IO)
 
     override suspend fun listModels(): List<CloudModel> = withContext(Dispatchers.IO) {
-        val token = auth.current() ?: throw CloudApiException(
-            statusCode = 401,
-            message = "Add your Hugging Face token in Settings to use cloud models."
-        )
-        val request = Request.Builder()
-            .url(MODELS_URL)
-            .header("Authorization", "Bearer $token")
-            .get()
-            .build()
-        client.newCall(request).execute().use { response ->
+        val builder = Request.Builder().url(MODELS_URL).get()
+        auth.current()?.let { builder.header("Authorization", "Bearer $it") }
+        client.newCall(builder.build()).execute().use { response ->
             val body = response.body?.string().orEmpty()
             if (!response.isSuccessful) {
                 throw CloudApiException(response.code, readableError(response.code, body))
             }
-            parseModels(body)
+            parseModels(body).take(60)
         }
     }
 

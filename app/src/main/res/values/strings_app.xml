@@ -53,9 +53,9 @@
 
     <string name="settings_section_hugging_face">Hugging Face</string>
     <string name="settings_access_token">Access token</string>
-    <string name="settings_token_not_set">Not set — optional; only gated models need one</string>
+    <string name="settings_token_not_set">Not set — needed for gated downloads and cloud models</string>
     <string name="settings_token_set">Set — %1$s••••••••%2$s</string>
-    <string name="settings_token_help">Gated models (e.g. Gemma) need a free access token to download. Create one at huggingface.co/settings/tokens, then accept the model’s license on its page.</string>
+    <string name="settings_token_help">Gated models (e.g. Gemma) and cloud models need a free access token. Create one at huggingface.co/settings/tokens, then accept the model’s license on its page.</string>
     <string name="settings_token_dialog_title">Hugging Face access token</string>
     <string name="settings_token_dialog_body">Paste a token with read access. Create one at huggingface.co/settings/tokens.</string>
     <string name="settings_token_placeholder" translatable="false">hf_xxxxxxxxxxxxxxxx</string>

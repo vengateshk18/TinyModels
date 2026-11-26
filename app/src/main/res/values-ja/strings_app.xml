@@ -42,9 +42,9 @@
 
     <string name="settings_section_hugging_face">Hugging Face</string>
     <string name="settings_access_token">アクセストークン</string>
-    <string name="settings_token_not_set">未設定 — 任意。ゲート付きモデルのみ必要</string>
+    <string name="settings_token_not_set">未設定 — ゲート付きダウンロードとクラウドモデルに必要</string>
     <string name="settings_token_set">設定済み — %1$s••••••••%2$s</string>
-    <string name="settings_token_help">ゲート付きモデル（例: Gemma）のダウンロードには無料のアクセストークンが必要です。huggingface.co/settings/tokens で作成し、モデルのページでライセンスに同意してください。</string>
+    <string name="settings_token_help">ゲート付きモデル（例: Gemma）とクラウドモデルには無料のアクセストークンが必要です。huggingface.co/settings/tokens で作成し、モデルのページでライセンスに同意してください。</string>
     <string name="settings_token_dialog_title">Hugging Face アクセストークン</string>
     <string name="settings_token_dialog_body">読み取りアクセス権のあるトークンを貼り付け。huggingface.co/settings/tokens で作成できます。</string>
     <string name="settings_token_save">保存</string>
