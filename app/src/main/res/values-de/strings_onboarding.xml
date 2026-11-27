@@ -1,0 +1,23 @@
+<resources>
+    <!-- First-run intro (onboarding) -->
+    <string name="onboarding_privacy_title">Privat von Grund auf</string>
+    <string name="onboarding_privacy_body">Jedes Modell läuft auf deinem Telefon. Deine Chats verlassen niemals das Gerät – kein Konto, keine Cloud, kein Tracking.</string>
+
+    <string name="onboarding_download_title">Einmal herunterladen, offline chatten</string>
+    <string name="onboarding_download_body">Durchsuche Text-, Vision- und Code-Modelle, lade sie im Hintergrund über WLAN herunter und chatte im Flugzeug oder im Funkloch.</string>
+
+    <string name="onboarding_chat_title">Ein Chat, der sich nativ anfühlt</string>
+    <string name="onboarding_chat_body">Streaming-Antworten, Chat-Einstellungen, Fotoeingabe für Vision-Modelle und Websuche als Werkzeug, das du ausschalten kannst.</string>
+
+    <string name="onboarding_personalize_title">Mach es zu deinem</string>
+    <string name="onboarding_personalize_body">Wähle deine Sprache, wechsle zwischen Farbthemen oder dynamischen Farben und passe Schriftarten und Textgröße für ein angenehmes Erlebnis an.</string>
+
+    <string name="onboarding_ready_title">Bereit auf deinem Startbildschirm</string>
+    <string name="onboarding_ready_body">Füge das TinyModels-Widget für schnellen Zugriff hinzu, prüfe Gerätepassung und Speicher und verwalte oder benchmarke deine heruntergeladenen Modelle jederzeit.</string>
+
+    <!-- Intro UI chrome -->
+    <string name="onboarding_skip">Überspringen</string>
+    <string name="onboarding_done">Fertig</string>
+    <string name="onboarding_get_started">Los geht’s</string>
+    <string name="onboarding_next">Weiter</string>
+</resources>

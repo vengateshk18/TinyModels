@@ -3,6 +3,7 @@ package com.ai.tinymodels
 import com.ai.tinymodels.feature.chat.model.ModelLoadProgress
 import com.ai.tinymodels.feature.chat.model.ModelLoadVisual
 import com.ai.tinymodels.feature.chat.model.modelLoadVisual
+import com.ai.tinymodels.feature.chat.model.modelLoadingDisplayName
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -35,6 +36,17 @@ class ModelLoadVisualTest {
     @Test
     fun `after the blocking call returns, the short finalize phase stays indeterminate`() {
         assertEquals(ModelLoadVisual.WORKING, visual(0.5f, ModelLoadProgress.LoadStage.LOADING_WEIGHTS))
+    }
+
+    @Test
+    fun `imported model name uses real file name instead of synthetic model id`() {
+        assertEquals(
+            "my_model",
+            modelLoadingDisplayName(
+                modelId = "my/model",
+                fileName = "my_model.litertlm"
+            )
+        )
     }
 
     @Test

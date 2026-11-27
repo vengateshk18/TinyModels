@@ -1,0 +1,175 @@
+<resources>
+    <!-- ================= Model catalog (browse) ================= -->
+    <string name="models_title">Модели</string>
+    <string name="models_browse_tab">Обзор</string>
+    <string name="models_downloaded_tab">Загруженные (%1$d)</string>
+    <string name="models_search_content_description">Поиск</string>
+    <string name="models_search_placeholder">Поиск моделей…</string>
+    <string name="models_error_failed_to_load">Не удалось загрузить модели</string>
+    <string name="models_empty_title">Модели не найдены</string>
+    <string name="models_empty_message">Попробуйте другой запрос или фильтр.</string>
+    <string name="models_by_author">от %1$s</string>
+    <string name="models_downloads_count">⬇ %1$s</string>
+    <string name="models_likes_count">♥ %1$s</string>
+    <string name="models_pipeline_default" translatable="false">text-generation</string>
+
+    <!-- Browse card: spec pills and stat descriptions (icons are decorative) -->
+    <string name="models_card_parameters_desc">Параметров: %1$s</string>
+    <string name="models_card_context_chip">%1$s контекст</string>
+    <string name="models_card_context_desc">Окно контекста: %1$s токенов</string>
+    <string name="models_card_vision_chip">Зрение</string>
+    <string name="models_card_vision_desc">Поддерживает ввод изображений (vision-проектор включён)</string>
+    <string name="models_card_downloads_desc">Загрузок: %1$s</string>
+    <string name="models_card_likes_desc">Лайков: %1$s</string>
+
+    <!-- ================= Downloaded models ================= -->
+    <string name="downloaded_models_title">Загруженные модели</string>
+    <string name="downloaded_models_empty_title">Нет загруженных моделей</string>
+    <string name="downloaded_models_empty_message">Модели, которые вы загрузите, появятся здесь для офлайн-использования.</string>
+    <string name="downloaded_models_storage_used">Использовано хранилища: %1$s</string>
+    <string name="downloaded_models_imported_badge">Импортировано</string>
+
+    <!-- ================= Model details ================= -->
+    <string name="model_details_title">Сведения о модели</string>
+    <string name="model_details_file_too_large_title">Файл слишком большой для этого устройства</string>
+    <string name="model_details_file_too_large_body">Этому файлу (%1$s) нужно больше ОЗУ, чем есть на вашем устройстве (%2$s). Вы можете его скачать, но на этом устройстве он не подойдёт для чата или бенчмарка.</string>
+    <string name="model_details_file_too_large_body_unknown_size">Этому файлу нужно больше ОЗУ, чем есть на вашем устройстве (%1$s). Вы можете его скачать, но на этом устройстве он не подойдёт для чата или бенчмарка.</string>
+    <string name="model_details_download_anyway">Всё равно скачать</string>
+    <string name="model_details_error_failed_to_load">Не удалось загрузить сведения</string>
+    <string name="model_details_add_hf_token">Добавить токен Hugging Face</string>
+    <string name="model_details_gated" translatable="false">gated</string>
+    <string name="model_details_stat_downloads">Загрузки</string>
+    <string name="model_details_stat_likes">Лайки</string>
+    <string name="model_details_stat_repo_size">Размер репозитория</string>
+    <string name="model_details_stat_downloaded">Загружено</string>
+    <string name="model_details_try_it">Попробовать</string>
+    <string name="model_details_sample_prompts">Примеры промптов для этой модели</string>
+    <string name="model_details_about">О модели</string>
+    <string name="model_details_base_model">Базовая модель</string>
+    <string name="model_details_revision">Ревизия</string>
+    <string name="model_details_tags">Теги</string>
+    <string name="model_details_files">Файлы</string>
+    <string name="model_details_files_hint">Загружайте файлы по отдельности — несколько могут выполняться одновременно.</string>
+    <string name="model_details_fits_device">✓ Подходит для вашего устройства</string>
+    <string name="model_details_too_large_short">⚠ Слишком большая для этого устройства</string>
+    <string name="model_details_status_downloaded">Загружено</string>
+    <string name="model_details_updated">Обновлено</string>
+    <string name="model_details_created">Создано</string>
+    <string name="model_details_error_not_enough_storage_file">Недостаточно свободного места для этого файла.</string>
+    <string name="model_details_error_not_enough_storage_model">Недостаточно свободного места для этой модели.</string>
+
+    <!-- ================= Downloaded file detail ================= -->
+    <string name="downloaded_file_title">Загруженный файл</string>
+    <string name="downloaded_file_not_found_title">Файл не найден</string>
+    <string name="downloaded_file_go_back">Назад</string>
+    <string name="downloaded_file_delete_title">Удалить файл?</string>
+    <string name="downloaded_file_delete_body">Файл будет навсегда удалён с вашего устройства. Это действие нельзя отменить.</string>
+    <string name="downloaded_file_model_id">ID модели</string>
+    <string name="downloaded_file_size">Размер</string>
+    <string name="downloaded_file_location">Расположение</string>
+    <string name="downloaded_file_error_failed_to_load">Не удалось загрузить модель</string>
+    <string name="downloaded_file_loading_model">Загрузка модели…</string>
+    <string name="downloaded_file_start_chat">Начать чат</string>
+    <string name="downloaded_file_export">Экспортировать файл</string>
+    <string name="downloaded_file_exporting">Экспорт…</string>
+    <string name="downloaded_file_delete">Удалить файл</string>
+    <string name="downloaded_file_deleting">Удаление…</string>
+    <string name="downloaded_file_error_not_found">Файл не найден</string>
+    <string name="downloaded_file_error_not_on_disk">Файл не найден на диске. Пожалуйста, загрузите снова.</string>
+    <string name="downloaded_file_error_delete_failed">Не удалось удалить файл</string>
+    <string name="downloaded_file_exported">Экспортировано: %1$s</string>
+    <string name="downloaded_file_export_failed">Ошибка экспорта: %1$s</string>
+
+    <!-- ================= Active downloads ================= -->
+    <string name="downloads_active_title">Активные загрузки (%1$d)</string>
+    <string name="downloads_paused_title">Приостановленные загрузки (%1$d)</string>
+    <string name="downloads_cancel_content_description">Отменить загрузку</string>
+    <string name="downloads_waiting_for_network">Ожидание сети…</string>
+    <string name="downloads_progress_bytes">%1$s / %2$s</string>
+    <string name="downloads_progress_percent">(%1$d%%)</string>
+    <string name="downloads_progress_speed"> • %1$s/с</string>
+    <string name="downloads_speed_only">%1$s/с</string>
+    <string name="downloads_button_with_size">Скачать · %1$s</string>
+    <string name="downloads_button">Скачать</string>
+
+    <!-- ================= Filters ================= -->
+    <string name="model_filter_all">Все</string>
+    <string name="model_filter_text_generation">Генерация текста</string>
+    <string name="model_filter_image_generation">Генерация изображений</string>
+
+    <!-- ================= Shared state views ================= -->
+    <string name="state_error_title">Что-то пошло не так</string>
+    <string name="state_error_retry">Повторить</string>
+    <string name="state_offline_title">Нет подключения к интернету</string>
+    <string name="state_offline_message">Проверьте подключение и попробуйте снова.</string>
+    <plurals name="models_file_count">
+        <item quantity="one">%1$d файл</item>
+        <item quantity="few">%1$d файла</item>
+        <item quantity="many">%1$d файлов</item>
+        <item quantity="other">%1$d файлов</item>
+    </plurals>
+
+    <!-- Model details: discard-download dialog and file-row actions -->
+    <string name="model_details_discard_title">Отменить загрузку?</string>
+    <string name="model_details_discard_body_notification">Загрузка будет остановлена, а частичные данные удалены. Это действие нельзя отменить.</string>
+    <string name="model_details_discard_bytes_deleted">Уже загруженные %1$s будут удалены.</string>
+    <string name="model_details_discard_partial_deleted">Частичные данные для этого файла будут удалены.</string>
+    <string name="model_details_discard_body_end">Загрузку придётся начать заново, и это действие нельзя отменить.</string>
+    <string name="model_details_discard">Отменить</string>
+    <string name="model_details_keep">Оставить</string>
+    <string name="model_details_size_loading">Определение размера…</string>
+    <string name="model_details_size_unknown">Не удалось определить размер</string>
+    <string name="model_details_downloaded_bytes">Загружено %1$s</string>
+    <string name="model_details_paused_resumable">Приостановлено · можно продолжить</string>
+    <string name="model_details_download_desc">Скачать</string>
+    <string name="model_details_cancel_queued_desc">Отменить загрузку в очереди</string>
+    <string name="model_details_discard_desc">Отменить загрузку</string>
+    <string name="model_details_resume_desc">Продолжить загрузку</string>
+    <string name="model_details_retry_desc">Повторить загрузку</string>
+    <string name="model_details_pause_desc">Приостановить загрузку</string>
+    <string name="downloaded_file_projector_error">Это проектор зрения (mmproj), а не языковая модель. Откройте основной файл .gguf — он использует этот проектор для зрения.</string>
+    <string name="downloaded_file_projector_title">Проектор зрения</string>
+    <string name="model_details_vision_banner">Включает vision-проектор (mmproj) — он автоматически загружается вместе с любой выбранной GGUF-моделью.</string>
+    <string name="model_details_vision_supported">Зрение: поддерживается (проектор включён)</string>
+    <string name="model_details_vision_text_only">Зрение: только текст</string>
+    <string name="model_details_context_after_download">Окно контекста: определяется после загрузки</string>
+    <string name="models_updated_on">Обновлено %1$s</string>
+    <string name="model_format_litertlm" translatable="false">LiteRT-LM</string>
+    <string name="model_format_gguf" translatable="false">GGUF</string>
+    <string name="model_format_mediapipe" translatable="false">MediaPipe</string>
+    <string name="model_format_tflite" translatable="false">TFLite</string>
+
+    <!-- Hub discovery / device-fit -->
+    <string name="models_feed_popular">Популярные</string>
+    <string name="models_feed_trending">В тренде</string>
+    <string name="models_feed_new">Новые</string>
+    <string name="models_feed_updated">Недавно обновлённые</string>
+    <string name="models_tag_filter_label">Тег</string>
+    <string name="models_tag_filter_any">Любой тег</string>
+    <string name="model_details_license">Лицензия</string>
+    <string name="model_details_parameters">Параметры</string>
+    <string name="model_details_context_length">Длина контекста</string>
+    <string name="model_details_architecture">Архитектура</string>
+    <string name="model_details_device_fit">Совместимость с устройством</string>
+    <string name="model_details_recommended_variant">Рекомендовано для этого устройства</string>
+    <string name="model_details_not_recommended_tag">Не рекомендовано</string>
+    <string name="model_details_may_be_slow">На этом устройстве может работать медленно или потребовать уменьшенного контекста.</string>
+    <string name="model_details_fit_borderline">△ Может работать медленно на этом устройстве</string>
+    <string name="model_details_fit_unknown">Совместимость неизвестна</string>
+    <string name="model_details_not_recommended">Не рекомендуется для этого устройства (%1$s ОЗУ). Попробуйте файл меньшего размера или с более сильной квантизацией.</string>
+
+    <!-- Browse filters UI -->
+    <string name="models_filters">Фильтры</string>
+    <string name="models_filters_title">Фильтры обзора</string>
+    <string name="models_filter_format">Формат</string>
+    <string name="models_filter_feed">Сортировка</string>
+    <string name="models_clear_filters">Сбросить</string>
+    <string name="models_apply_filters">Применить</string>
+    <string name="models_load_more">Загрузить ещё</string>
+
+    <string name="models_collections_title">Коллекции</string>
+    <string name="models_collections_subtitle">Подборки для использования на устройстве</string>
+    <string name="models_collection_empty_title">Нет подходящих моделей</string>
+    <string name="models_collection_empty_message">В этой коллекции сейчас нет моделей, которые можно запустить на этом устройстве.</string>
+    <string name="models_all_models_title">Все модели</string>
+</resources>

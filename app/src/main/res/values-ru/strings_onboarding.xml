@@ -1,0 +1,23 @@
+<resources>
+    <!-- First-run intro (onboarding) -->
+    <string name="onboarding_privacy_title">Приватность по умолчанию</string>
+    <string name="onboarding_privacy_body">Каждая модель работает на вашем телефоне. Ваши чаты никогда не покидают устройство — без аккаунта, без облака, без отслеживания.</string>
+
+    <string name="onboarding_download_title">Скачайте один раз, общайтесь офлайн</string>
+    <string name="onboarding_download_body">Просматривайте текстовые, vision- и кодовые модели, загружайте их в фоне по Wi-Fi и общайтесь в самолёте или там, где нет связи.</string>
+
+    <string name="onboarding_chat_title">Чат, который ощущается родным</string>
+    <string name="onboarding_chat_body">Потоковые ответы, настройки для каждого чата, ввод фото для vision-моделей и веб-поиск как инструмент, который можно выключить.</string>
+
+    <string name="onboarding_personalize_title">Сделайте его своим</string>
+    <string name="onboarding_personalize_body">Выберите язык, переключайтесь между цветовыми темами или динамическими цветами, настраивайте шрифты и размер текста для комфортного использования.</string>
+
+    <string name="onboarding_ready_title">Готово на главном экране</string>
+    <string name="onboarding_ready_body">Добавьте виджет TinyModels для быстрого доступа, проверяйте совместимость устройства и хранилище, управляйте и тестируйте загруженные модели в любое время.</string>
+
+    <!-- Intro UI chrome -->
+    <string name="onboarding_skip">Пропустить</string>
+    <string name="onboarding_done">Готово</string>
+    <string name="onboarding_get_started">Начать</string>
+    <string name="onboarding_next">Далее</string>
+</resources>

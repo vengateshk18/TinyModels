@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import com.ai.tinymodels.feature.chat.model.ModelLoadProgress
 import com.ai.tinymodels.feature.chat.model.ModelLoadVisual
 import com.ai.tinymodels.feature.chat.model.modelLoadVisual
+import com.ai.tinymodels.feature.chat.model.modelLoadingDisplayName
 
 /**
  * Non-dismissible dialog shown while a model is initialising.
@@ -110,7 +111,7 @@ fun ModelLoadingDialog(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = progress.modelId.substringAfterLast("/"),
+                    text = modelLoadingDisplayName(progress.modelId, progress.fileName),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2

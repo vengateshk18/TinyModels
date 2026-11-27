@@ -1,0 +1,189 @@
+<resources>
+    <!-- ================= Chat list / history ================= -->
+    <string name="chat_tab_title">Чаты</string>
+    <string name="chat_new_chat">Новый чат</string>
+    <string name="chat_no_conversations">Пока нет разговоров</string>
+    <string name="chat_tap_plus_to_start">Нажмите +, чтобы начать новый чат</string>
+    <string name="chat_untitled">Без названия</string>
+    <string name="chat_delete_title">Удалить чат?</string>
+    <string name="chat_delete_body">«%1$s» будет удалён безвозвратно. Это действие нельзя отменить.</string>
+    <plurals name="chat_message_count">
+        <item quantity="one">%1$d сообщение</item>
+        <item quantity="few">%1$d сообщения</item>
+        <item quantity="many">%1$d сообщений</item>
+        <item quantity="other">%1$d сообщений</item>
+    </plurals>
+    <string name="chat_delete_content_description">Удалить чат</string>
+
+    <!-- ================= Chat room ================= -->
+    <string name="chat_room_back_content_description">Назад</string>
+    <string name="chat_room_session_settings_content_description">Настройки сессии</string>
+    <string name="chat_room_no_models_title">Моделей пока нет</string>
+    <string name="chat_room_no_models_body">Загрузите модель, чтобы начать общение.</string>
+    <string name="chat_room_pick_model_title">Выберите модель</string>
+    <string name="chat_pick_model_title">Выберите модель</string>
+    <string name="chat_room_pick_model_body">Выберите загруженную модель, чтобы начать.</string>
+    <string name="chat_room_choose">Выбрать</string>
+    <string name="chat_room_say_hello_title">Скажите привет</string>
+    <string name="chat_room_say_hello_body">Ваш разговор остаётся на этом устройстве.</string>
+    <string name="chat_room_copied_to_clipboard">Скопировано в буфер обмена</string>
+    <string name="chat_room_summarized_conversation">Суммаризированный разговор</string>
+    <string name="chat_room_context_usage_title">Использование контекста</string>
+    <string name="chat_room_tokens_in_context">Токенов в контексте</string>
+    <string name="chat_room_context_budget">Бюджет контекста</string>
+    <string name="chat_room_compactions_run">Выполнено уплотнений</string>
+    <plurals name="chat_room_compactions_count">
+        <item quantity="one">%1$d раз</item>
+        <item quantity="few">%1$d раза</item>
+        <item quantity="many">%1$d раз</item>
+        <item quantity="other">%1$d раз</item>
+    </plurals>
+    <string name="chat_room_compacted_summary">Сжатая сводка</string>
+    <string name="chat_room_summary_present">Есть (%1$d симв.)</string>
+    <string name="chat_room_summary_none">Пока нет</string>
+    <string name="chat_room_tokens_used_of_total">%1$d / %2$d токенов</string>
+    <string name="chat_room_context_explainer">Старые сообщения автоматически суммируются, когда использование достигает %1$d%% бюджета.</string>
+    <string name="chat_room_tokens_label">%1$d токенов</string>
+    <string name="chat_room_compact_hint">Суммирует старые сообщения в дайджест, чтобы освободить место в контексте.</string>
+    <string name="chat_room_compacting">Уплотнение…</string>
+    <string name="chat_room_compact_conversation">Уплотнить разговор</string>
+
+    <!-- ================= Chat screen (empty states) ================= -->
+    <string name="chat_open_chats_content_description">Открыть чаты</string>
+    <string name="chat_settings_content_description">Настройки</string>
+    <string name="chat_no_models_title">Моделей пока нет</string>
+    <string name="chat_no_models_body">Загрузите модель LiteRT-LM, чтобы общаться офлайн.</string>
+    <string name="chat_browse_models">Просмотреть модели</string>
+    <string name="chat_choose_downloaded_model_body">Выберите загруженную модель выше, чтобы начать.</string>
+
+    <!-- ================= Chat input bar ================= -->
+    <string name="chat_options_content_description">Параметры чата</string>
+    <string name="chat_options_media_section">Медиа</string>
+    <string name="chat_options_attach_photo">Прикрепить фото</string>
+    <string name="chat_options_tools_section">Инструменты</string>
+    <string name="chat_options_web_search">Веб-поиск</string>
+    <string name="chat_input_hint_ready">Сообщение…</string>
+    <string name="chat_input_hint_load_model">Загрузите модель для общения</string>
+    <string name="chat_stop_generating_content_description">Остановить генерацию</string>
+    <string name="chat_send_content_description">Отправить</string>
+    <string name="chat_photo_to_send_content_description">Фото для отправки</string>
+    <string name="chat_photo_attached">Фото прикреплено</string>
+    <string name="chat_remove_photo_content_description">Удалить фото</string>
+
+    <!-- ================= Edit message dialog ================= -->
+    <string name="chat_edit_title">Редактировать сообщение</string>
+    <string name="chat_edit_body">Редактирование заменит это сообщение и заново сгенерирует ответ.</string>
+    <string name="chat_edit_placeholder">Сообщение</string>
+    <string name="chat_edit_save_send">Сохранить и отправить</string>
+
+    <!-- ================= Inference settings sheet ================= -->
+    <string name="chat_settings_title">Настройки сессии</string>
+    <string name="chat_settings_subtitle">Изменения применяются только к этому чату.</string>
+    <string name="chat_settings_temperature">Температура</string>
+    <string name="chat_settings_top_p">Top-P</string>
+    <string name="chat_settings_top_k">Top-K</string>
+    <string name="chat_settings_system_instruction">Системная инструкция</string>
+    <string name="chat_settings_default_system_instruction">Ты полезный помощник.</string>
+    <string name="chat_settings_discard">Сбросить</string>
+    <string name="chat_settings_save">Сохранить</string>
+    <string name="chat_settings_context_window_note">Окно контекста управляется автоматически — старые сообщения суммируются, когда разговор выходит за его пределы.</string>
+    <string name="chat_settings_backend">Бэкенд</string>
+
+    <!-- ================= Message bubble ================= -->
+    <string name="chat_message_token_count">• %1$d ток.</string>
+    <string name="chat_duration_seconds">%1$.1f с</string>
+    <string name="chat_duration_minutes_seconds">%1$d мин %2$02d с</string>
+    <string name="chat_message_copy_content_description">Копировать</string>
+    <string name="chat_message_regenerate_content_description">Сгенерировать заново</string>
+
+    <!-- ================= Model chip / pickers ================= -->
+    <string name="chat_model_loading">Загрузка…</string>
+    <string name="chat_model_error">Ошибка модели</string>
+    <string name="chat_model_select">Выбрать модель</string>
+    <string name="chat_model_choose_content_description">Выбрать модель</string>
+    <string name="chat_model_choose_title">Выберите модель</string>
+    <string name="chat_model_active_content_description">Активна</string>
+    <string name="chat_model_files_title">Выберите модель</string>
+    <string name="chat_model_files_subtitle">Все загруженные файлы моделей на этом устройстве.</string>
+    <string name="chat_model_files_empty">Загруженных файлов моделей пока нет.</string>
+
+    <!-- ================= Model loading dialog ================= -->
+    <string name="chat_loading_title">Загрузка модели</string>
+    <string name="chat_loading_stage_initializing">Инициализация движка…</string>
+    <string name="chat_loading_stage_weights">Загрузка весов…</string>
+    <string name="chat_loading_stage_ready">Готово!</string>
+
+    <!-- ================= Chat options menu ================= -->
+    <string name="chat_attach_photo_unavailable">Эта модель не может читать фото. Загрузите модель с поддержкой зрения (например, Gemma 3), чтобы анализировать изображения.</string>
+
+    <!-- ================= Vision support ================= -->
+    <string name="chat_vision_unsupported">Эта модель не включает vision-энкодер, поэтому не может читать фото. Загрузите модель с поддержкой зрения (например, Gemma 3), чтобы анализировать изображения — ваш текст сохранён, а вложения фото пропущены.</string>
+
+    <!-- ================= Chat errors ================= -->
+    <string name="chat_error_model_not_downloaded">Модель %1$s не загружена</string>
+    <string name="chat_error_model_file_missing">Файл модели отсутствует на устройстве</string>
+    <string name="chat_error_re_download">Скачать снова</string>
+    <string name="chat_error_failed_to_load">Не удалось загрузить модель</string>
+    <string name="chat_error_model_still_loading">Модель ещё загружается</string>
+    <string name="chat_error_download_model_first">Сначала загрузите модель, чтобы начать общение.</string>
+    <string name="chat_error_nothing_to_compact">Нечего уплотнять — разговор уже помещается в окно контекста</string>
+    <string name="chat_error_summarization_failed">Не удалось суммировать — история была обрезана, чтобы поместиться в окно контекста</string>
+    <plurals name="chat_error_compacted_messages">
+        <item quantity="one">%1$d старое сообщение сжато в сводку</item>
+        <item quantity="few">%1$d старых сообщения сжаты в сводку</item>
+        <item quantity="many">%1$d старых сообщений сжаты в сводку</item>
+        <item quantity="other">%1$d старых сообщений сжаты в сводку</item>
+    </plurals>
+    <string name="chat_error_photo_unreadable">Не удалось прочитать это фото — попробуйте другое изображение</string>
+    <string name="chat_error_no_active_conversation">Нет активного разговора</string>
+    <string name="chat_error_model_not_ready">Модель не готова</string>
+    <string name="chat_error_generation_failed">Ошибка генерации</string>
+    <string name="chat_error_vision_photos">Эта модель не может читать фото. Загрузите модель с поддержкой зрения (например, Gemma 3), чтобы анализировать изображения.</string>
+    <string name="chat_error_context_too_long">Промпт или история чата слишком длинные для окна контекста этой модели. Начните новый чат или уменьшите максимальное число токенов контекста в настройках сессии.</string>
+    <string name="chat_error_couldnt_start_conversation">Не удалось начать разговор</string>
+    <string name="chat_error_couldnt_start_conversation_retry">Не удалось начать разговор. Попробуйте снова открыть чат или перезагрузить модель.</string>
+    <string name="chat_error_history_too_long">История чата слишком длинная для окна контекста этой модели. Начните новый чат или уплотните разговор.</string>
+    <string name="chat_error_out_of_memory">Недостаточно свободной памяти. Закройте другие приложения и повторите попытку.</string>
+    <string name="chat_error_model_file_missing_short">Файл модели отсутствует. Загрузите модель снова.</string>
+    <string name="chat_error_no_backend">На этом устройстве нет поддерживаемого бэкенда.</string>
+    <string name="chat_error_no_model_loaded">Модель не загружена</string>
+    <string name="chat_section_pinned">Закреплённые</string>
+    <string name="chat_section_recent">Недавние</string>
+    <string name="chat_rename_title">Переименовать чат</string>
+    <string name="chat_rename_label">Название чата</string>
+    <string name="chat_rename">Переименовать</string>
+    <string name="chat_pin">Закрепить</string>
+    <string name="chat_unpin">Открепить</string>
+    <string name="chat_pinned_content_description">Закреплено</string>
+    <string name="chat_default_photo_prompt">Что ты видишь на этом изображении?</string>
+    <string name="chat_room_compacted_notice">Старые сообщения были суммированы, чтобы поместиться в окно контекста</string>
+    <string name="chat_error_unsupported_format">Файлы %1$s пока не поддерживаются рантаймом на устройстве.</string>
+    <string name="chat_compaction_no_active_chat">Нет активного чата для уплотнения</string>
+
+    <!-- Voice chat -->
+    <string name="chat_voice_input_start">Начать голосовой ввод</string>
+    <string name="chat_voice_input_stop">Остановить прослушивание</string>
+    <string name="chat_voice_input_listening">Слушаю…</string>
+    <string name="chat_voice_input_permission_denied">Для голосового ввода нужно разрешение на микрофон</string>
+    <string name="chat_voice_input_unavailable">Голосовой ввод недоступен на этом устройстве</string>
+    <string name="chat_voice_input_error">Не удалось распознать речь. Попробуйте снова.</string>
+    <string name="chat_speak_message">Озвучить это сообщение</string>
+    <string name="chat_voice_input_processing">Обработка голоса…</string>
+    <string name="chat_stop_speaking">Остановить озвучивание</string>
+
+    <!-- Web search sources -->
+    <string name="chat_sources_count_one">1 источник</string>
+    <string name="chat_sources_count_other">%1$d источников</string>
+    <string name="chat_sources_sheet_title">Источники</string>
+    <string name="chat_sources_searched_for">Поисковый запрос</string>
+    <string name="chat_source_open_content_description">Открыть источник</string>
+    <string name="chat_searching_web">Поиск в интернете: «%1$s»…</string>
+    <string name="chat_options_always_search">Всегда искать в этом чате</string>
+    <string name="chat_options_take_photo">Сделать фото</string>
+    <string name="chat_options_sheet_title">Добавить к сообщению</string>
+    <string name="chat_options_sheet_subtitle">Прикрепите фото или включите инструменты для этого чата.</string>
+    <string name="chat_options_take_photo_subtitle">Используйте камеру, чтобы сделать фото</string>
+    <string name="chat_options_attach_photo_subtitle">Выберите изображение с устройства</string>
+    <string name="chat_options_web_search_subtitle">Разрешить модели искать в интернете при необходимости</string>
+    <string name="chat_options_web_search_unavailable">Включите веб-поиск в настройках, чтобы использовать это</string>
+</resources>

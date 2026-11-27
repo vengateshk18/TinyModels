@@ -1,0 +1,14 @@
+<resources>
+    <string name="widget_description">Schnellzugriff auf TinyModels – Modelle durchsuchen oder Chat fortsetzen.</string>
+    <string name="widget_get_started_title">KI auf deinem Gerät ausführen</string>
+    <string name="widget_get_started_subtitle">Lade ein Modell herunter, um privat zu chatten – auch offline.</string>
+    <string name="widget_ready_title">Deine Modelle sind bereit</string>
+    <string name="widget_continue_title">Chat fortsetzen</string>
+    <string name="widget_cta_browse_models">Modelle durchsuchen</string>
+    <string name="widget_cta_start_chat">Chat starten</string>
+    <string name="widget_cta_continue_chat">Chat öffnen</string>
+    <plurals name="widget_models_ready">
+        <item quantity="one">%1$d Modell einsatzbereit</item>
+        <item quantity="other">%1$d Modelle einsatzbereit</item>
+    </plurals>
+</resources>

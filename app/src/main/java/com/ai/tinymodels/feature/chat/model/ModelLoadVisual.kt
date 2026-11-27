@@ -1,5 +1,7 @@
 package com.ai.tinymodels.feature.chat.model
 
+import com.ai.tinymodels.domain.model.modelFileDisplayName
+
 /**
  * What the loading dialog should render for a [ModelLoadProgress].
  *
@@ -37,3 +39,19 @@ fun modelLoadVisual(progress: Float, stage: ModelLoadProgress.LoadStage): ModelL
 
 /** The milestone at which honest measurement ends — just before the blocking call. */
 const val MODEL_LOAD_DETERMINATE_CEILING: Float = 0.3f
+
+
+/**
+ * User-facing model name for the loading dialog.
+ *
+ * Imported models synthesize [modelId] from the file name, but `_` can become
+ * `/`; the actual [fileName] is authoritative when present. This matches the
+ * Home last-used card, which renders `fileName.modelFileDisplayName()`.
+ */
+fun modelLoadingDisplayName(modelId: String, fileName: String?): String {
+    fileName?.substringAfterLast('/')
+        ?.modelFileDisplayName()
+        ?.takeIf { it.isNotBlank() }
+        ?.let { return it }
+    return modelId.substringAfterLast('/').modelFileDisplayName()
+}

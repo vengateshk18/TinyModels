@@ -23,12 +23,16 @@
     <string name="language_native_japanese" translatable="false">\u65e5\u672c\u8a9e</string>
     <string name="language_native_tamil" translatable="false">\u0ba4\u0bae\u0bbf\u0bb4\u0bcd</string>
     <string name="language_native_hindi" translatable="false">\u0939\u093f\u0928\u094d\u0926\u0940</string>
+    <string name="language_native_german" translatable="false">Deutsch</string>
+    <string name="language_native_russian" translatable="false">\u0420\u0443\u0441\u0441\u043a\u0438\u0439</string>
     <!-- English names: the readable hint shown in parentheses. -->
     <string name="language_name_spanish" translatable="false">Spanish</string>
     <string name="language_name_french" translatable="false">French</string>
     <string name="language_name_japanese" translatable="false">Japanese</string>
     <string name="language_name_tamil" translatable="false">Tamil</string>
     <string name="language_name_hindi" translatable="false">Hindi</string>
+    <string name="language_name_german" translatable="false">German</string>
+    <string name="language_name_russian" translatable="false">Russian</string>
     <!-- Renders as "<native name> (<English name>)". -->
     <string name="language_option_format">%1$s (%2$s)</string>
 

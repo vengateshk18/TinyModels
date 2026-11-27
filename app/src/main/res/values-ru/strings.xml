@@ -1,0 +1,39 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- App -->
+    <string name="app_name" translatable="false">TinyModels</string>
+
+    <!-- Shared UI actions and labels (usable from any feature) -->
+    <string name="common_cancel">Отмена</string>
+    <string name="common_retry">Повторить</string>
+    <string name="common_resume">Продолжить</string>
+    <string name="common_back">Назад</string>
+    <string name="common_dismiss">Закрыть</string>
+    <string name="common_delete">Удалить</string>
+    <string name="common_save">Сохранить</string>
+    <string name="common_close">Закрыть</string>
+    <string name="common_open">Открыть</string>
+    <string name="common_yes">Да</string>
+    <string name="common_no">Нет</string>
+    <string name="common_unknown">Неизвестно</string>
+    <string name="common_percent">%1$d%%</string>
+
+    <!-- Shared relative-time wording (Formatters) -->
+    <string name="common_time_just_now">только что</string>
+    <string name="common_time_minutes_ago">%1$d мин назад</string>
+    <string name="common_time_hours_ago">%1$d ч назад</string>
+    <string name="common_time_days_ago">%1$d дн. назад</string>
+
+    <!-- Network / load errors shown by any screen -->
+    <string name="error_no_connection">Нет подключения к интернету. Проверьте соединение и попробуйте снова.</string>
+    <string name="error_timeout">Время ожидания подключения истекло. Попробуйте снова.</string>
+    <string name="error_gated">Доступ к этой модели ограничен. Добавьте токен доступа Hugging Face в настройках или сначала примите лицензию модели на huggingface.co.</string>
+    <string name="error_no_access">У вас нет доступа к этой модели. Возможно, она ограничена — проверьте лицензию на huggingface.co.</string>
+    <string name="error_too_many_requests">Слишком много запросов. Подождите немного и попробуйте снова.</string>
+    <string name="error_server">Сейчас у Hugging Face проблемы. Попробуйте позже.</string>
+    <string name="error_not_found">Модель не найдена. Возможно, она была удалена с Hugging Face.</string>
+    <string name="error_network">Ошибка сети. Проверьте подключение и попробуйте снова.</string>
+    <string name="error_storage">Недостаточно свободного места.</string>
+    <string name="error_unknown">Что-то пошло не так. Попробуйте снова.</string>
+<string name="notification_pause">Пауза</string>
+<string name="notification_cancel">Отмена</string>
+</resources>

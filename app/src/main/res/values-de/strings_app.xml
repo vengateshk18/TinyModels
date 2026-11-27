@@ -1,0 +1,342 @@
+<resources>
+    <!-- ================= Settings ================= -->
+    <string name="settings_title">Einstellungen</string>
+    <string name="settings_section_appearance">Darstellung</string>
+    <string name="settings_language">Sprache</string>
+    <string name="settings_language_sheet_title">Sprache auswählen</string>
+    <string name="settings_theme">Design</string>
+    <string name="settings_dynamic_color">Dynamische Farben</string>
+    <string name="settings_dynamic_color_subtitle">Hintergrundbasierte Farben verwenden (Android 12+)</string>
+    <string name="settings_font_size">Schriftgröße</string>
+    <string name="settings_font">Schriftart</string>
+    <string name="settings_change_font_content_description">Schriftart ändern</string>
+    <string name="settings_font_sheet_title">Schriftart auswählen</string>
+    <string name="settings_font_default">Standard</string>
+    <string name="settings_font_google">Google-Schriftart</string>
+
+    <!-- Language picker -->
+    <string name="language_system">Systemstandard</string>
+    <string name="language_english" translatable="false">English</string>
+    <!-- Native names: always shown in the language's own script, never translated. -->
+    <string name="language_native_spanish" translatable="false">Espa\u00f1ol</string>
+    <string name="language_native_french" translatable="false">Fran\u00e7ais</string>
+    <string name="language_native_japanese" translatable="false">\u65e5\u672c\u8a9e</string>
+    <string name="language_native_tamil" translatable="false">\u0ba4\u0bae\u0bbf\u0bb4\u0bcd</string>
+    <string name="language_native_hindi" translatable="false">\u0939\u093f\u0928\u094d\u0926\u0940</string>
+    <string name="language_native_german" translatable="false">Deutsch</string>
+    <string name="language_native_russian" translatable="false">\u0420\u0443\u0441\u0441\u043a\u0438\u0439</string>
+    <!-- English names: the readable hint shown in parentheses. -->
+    <string name="language_name_spanish" translatable="false">Spanish</string>
+    <string name="language_name_french" translatable="false">French</string>
+    <string name="language_name_japanese" translatable="false">Japanese</string>
+    <string name="language_name_tamil" translatable="false">Tamil</string>
+    <string name="language_name_hindi" translatable="false">Hindi</string>
+    <string name="language_name_german" translatable="false">German</string>
+    <string name="language_name_russian" translatable="false">Russian</string>
+    <!-- Renders as "<native name> (<English name>)". -->
+    <string name="language_option_format">%1$s (%2$s)</string>
+
+    <string name="settings_section_inference">Inference</string>
+    <string name="settings_default_backend">Standard-Backend</string>
+    <string name="settings_web_search">Websuche</string>
+    <string name="settings_web_search_subtitle">Erlaube Chats, das Websuch-Tool des Modells zu nutzen. Suchanfragen verlassen das Gerät.</string>
+    <string name="settings_web_search_note">Wenn es für einen Chat aktiviert ist (über das +-Menü im Chat), kann das Modell bei Bedarf im Web suchen.</string>
+
+    <string name="settings_section_downloads">Downloads</string>
+    <string name="settings_wifi_only_downloads">Downloads nur über WLAN</string>
+    <string name="settings_wifi_only_downloads_subtitle">Vor dem Herunterladen von Modellen auf eine nicht getaktete Verbindung warten</string>
+    <string name="settings_downloads_note">Modelldateien sind mehrere Gigabyte groß – das schützt dein mobiles Datenvolumen.</string>
+
+    <string name="settings_section_chat">Chat</string>
+    <string name="settings_auto_load_last_model">Letztes Modell automatisch laden</string>
+    <string name="settings_auto_load_last_model_subtitle">Beim Öffnen des Chats das zuletzt verwendete Modell laden</string>
+    <string name="settings_keep_screen_on">Bildschirm eingeschaltet lassen</string>
+    <string name="settings_keep_screen_on_subtitle">Ruhezustand verhindern, während das Modell generiert</string>
+    <string name="settings_show_token_counts">Token-Anzahl anzeigen</string>
+    <string name="settings_show_token_counts_subtitle">Token-Anzahl pro Nachricht unter jeder Blase anzeigen</string>
+
+    <string name="settings_section_hugging_face">Hugging Face</string>
+    <string name="settings_access_token">Zugriffstoken</string>
+    <string name="settings_token_not_set">Nicht gesetzt – optional; nur eingeschränkte Modelle benötigen eines</string>
+    <string name="settings_token_set">Gesetzt – %1$s••••••••%2$s</string>
+    <string name="settings_token_help">Eingeschränkte Modelle (z. B. Gemma) benötigen zum Herunterladen ein kostenloses Zugriffstoken. Erstelle eines unter huggingface.co/settings/tokens und akzeptiere dann die Lizenz des Modells auf seiner Seite.</string>
+    <string name="settings_token_dialog_title">Hugging-Face-Zugriffstoken</string>
+    <string name="settings_token_dialog_body">Füge ein Token mit Lesezugriff ein. Erstelle eines unter huggingface.co/settings/tokens.</string>
+    <string name="settings_token_placeholder" translatable="false">hf_xxxxxxxxxxxxxxxx</string>
+    <string name="settings_token_save">Speichern</string>
+    <string name="settings_token_remove">Entfernen</string>
+
+    <string name="settings_section_support">Support</string>
+    <string name="settings_star_on_github">Auf GitHub mit Stern markieren</string>
+    <string name="settings_star_on_github_subtitle">Unterstütze kostenlose KI auf dem Gerät für alle</string>
+    <string name="settings_report_bug">Fehler melden</string>
+    <string name="settings_report_bug_subtitle">Etwas funktioniert nicht? Sag uns Bescheid</string>
+
+        <string name="settings_update_available_title">App-Update</string>
+    <string name="settings_update_available_message">Eine neuere Version von TinyModels ist im Play Store verfügbar.</string>
+    <string name="settings_update_action">Aktualisieren</string>
+
+<string name="settings_section_about">Über</string>
+    <string name="settings_benchmark">Benchmark</string>
+    <string name="settings_benchmark_subtitle">Geschwindigkeit, Speicher und thermisches Verhalten messen</string>
+    <string name="settings_device_information">Geräteinformationen</string>
+    <string name="settings_device_information_subtitle">KI-Fähigkeit deines Geräts ansehen</string>
+    <string name="settings_clear_chat_history">Chatverlauf löschen</string>
+    <string name="settings_clear_chat_history_subtitle">Alle Unterhaltungen löschen</string>
+    <string name="settings_clear_chat_history_title">Chatverlauf löschen</string>
+    <string name="settings_clear_chat_history_body">Alle Chat-Unterhaltungen löschen? Dies kann nicht rückgängig gemacht werden.</string>
+
+    <string name="settings_section_model_management">Modellverwaltung</string>
+    <string name="settings_token_removed">Zugriffstoken entfernt</string>
+    <string name="settings_token_saved">Zugriffstoken gespeichert</string>
+    <string name="settings_chat_history_cleared">Chatverlauf gelöscht</string>
+    <string name="settings_model_imported">Modell importiert: %1$s</string>
+    <string name="settings_import_failed">Import fehlgeschlagen: %1$s</string>
+    <string name="model_import_invalid_file_type">Ungültiger Dateityp. Unterstützte Formate: .litertlm, .gguf, .task, .tflite.</string>
+    <string name="model_import_file_not_found">Datei nicht auf dem Gerät gefunden: %1$s</string>
+    <string name="model_import_create_failed">Zieldatei konnte nicht erstellt werden: %1$s</string>
+    <string name="model_import_write_failed">In Zieldatei kann nicht geschrieben werden: %1$s</string>
+    <string name="model_import_no_file_name">Dateiname konnte nicht ermittelt werden</string>
+    <string name="model_import_already_exists">Diese Modelldatei ist bereits in deiner Bibliothek vorhanden</string>
+    <string name="model_import_open_failed">Quelldatei kann nicht geöffnet werden</string>
+    <string name="benchmark_error_model_file_missing">Modelldatei fehlt auf dem Gerät</string>
+    <string name="benchmark_error_not_enough_ram">Nicht genügend freier RAM zum Laden dieses Modells (benötigt ~%1$d MB, verfügbar %2$d MB). Schließe andere Apps und versuche es erneut.</string>
+    <string name="benchmark_error_failed_to_load">Modell konnte nicht geladen werden</string>
+    <string name="settings_import_model">Modell importieren</string>
+    <string name="settings_import_model_subtitle">Eine Modelldatei (.litertlm, .gguf, .task, .tflite) aus dem externen Speicher hinzufügen</string>
+    <string name="settings_import_model_note">Importierte Modelle erscheinen in deiner Bibliothek mit dem Tag „Importiert“. Um eine heruntergeladene Datei zu teilen, öffne sie und verwende Exportieren.</string>
+
+    <!-- ================= Theme / backend choices ================= -->
+
+    <!-- ================= Fonts ================= -->    <string name="font_system">System</string>
+    <string name="font_abel" translatable="false">Abel</string>
+    <string name="font_inter" translatable="false">Inter</string>
+    <string name="font_roboto" translatable="false">Roboto</string>
+    <string name="font_pacifico" translatable="false">Pacifico</string>
+    <string name="font_abril_fatface" translatable="false">Abril Fatface</string>
+
+    <!-- ================= Bottom navigation ================= -->
+    <string name="nav_home">Start</string>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_models">Modelle</string>
+    <string name="nav_settings">Einstellungen</string>
+
+    <!-- ================= Benchmark ================= -->
+    <string name="benchmark_title">Benchmark</string>
+    <string name="benchmark_loading_title">Modell wird geladen…</string>
+    <string name="benchmark_loading_subtitle">Kaltstart – diese Zeit fließt in die Bewertung ein.</string>
+    <string name="benchmark_failed_title">Benchmark fehlgeschlagen</string>
+    <string name="benchmark_back_to_models">Zurück zu Modellen</string>
+    <string name="benchmark_stop_title">Benchmark stoppen?</string>
+    <string name="benchmark_stop_body">Der Durchlauf wird abgebrochen und die Ergebnisse werden verworfen.</string>
+    <string name="benchmark_stop">Stoppen</string>
+    <string name="benchmark_continue">Fortfahren</string>
+    <string name="benchmark_choose_model">Modell auswählen</string>
+    <string name="benchmark_run">Benchmark starten</string>
+    <string name="benchmark_progress_prompt">%1$s Prompt</string>
+    <string name="benchmark_progress_warmup">" · Aufwärmen (verworfen)"</string>
+    <string name="benchmark_stat_prompt">Prompt</string>
+    <string name="benchmark_stat_tokens">Token</string>
+    <string name="benchmark_section_model">Modell</string>
+    <string name="benchmark_stat_peak_memory">Spitzenspeicher</string>
+    <string name="benchmark_stat_backend">Backend</string>
+    <string name="benchmark_stat_device">Gerät</string>
+    <string name="benchmark_token_note">Token werden aus Stream-Ereignissen gezählt. Prefill entspricht Prompt-Token / Zeit bis zum ersten Token und umfasst den ersten Decode-Schritt. Bewertungen sind relativ zu einem Referenztelefon, keine absolute Qualität.</string>
+    <string name="benchmark_rerun">Erneut ausführen</string>
+    <string name="benchmark_summary_header">TinyModels-Benchmark — %1$s (%2$s, %3$s)</string>
+    <string name="benchmark_summary_device">Gerät: %1$s</string>
+
+    <!-- ================= Download notifications ================= -->
+    <string name="notification_channel_downloads">Modell-Downloads</string>
+    <!-- Splash -->
+    <string name="splash_tagline">Kleine Modelle. Große Möglichkeiten.</string>
+    <string name="splash_pillars">Privat · Offline · Deins</string>
+    <string name="notification_progress_bytes">%1$s / %2$s · %3$d%%</string>
+    <string name="notification_progress_downloading">%1$s · wird heruntergeladen</string>
+    <string name="notification_speed">%1$s/s</string>
+    <string name="notification_downloading_title">Modell wird heruntergeladen</string>
+    <string name="notification_download_complete">Download abgeschlossen</string>
+    <string name="notification_download_failed">Download fehlgeschlagen</string>
+    <string name="notification_failed_with_reason">%1$s — %2$s</string>
+    <string name="download_error_gated">HTTP 401 – dieses Modell ist eingeschränkt. Füge dein Hugging-Face-Zugriffstoken in den Einstellungen hinzu oder akzeptiere zuerst die Lizenz des Modells auf huggingface.co.</string>
+
+    <!-- New strings surfaced by the settings redesign -->
+    <string name="settings_view_intro">Einführung ansehen</string>
+    <string name="settings_view_intro_subtitle">Die TinyModels-Tour erneut ansehen</string>
+    <string name="settings_importing_model">Modell wird importiert…</string>
+    <string name="settings_font_reset">Auf Standard zurücksetzen</string>
+    <string name="settings_font_preview_body">So werden deine Chats aussehen.</string>
+    <string name="settings_font_preview_small">Kleiner Text bleibt lesbar.</string>
+    <string name="settings_bug_report_subject">TinyModels-Fehlerbericht</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Hell</string>
+    <string name="settings_theme_dark">Dunkel</string>
+    <string name="settings_backend_auto">Auto</string>
+    <string name="settings_backend_gpu" translatable="false">GPU</string>
+    <string name="settings_backend_cpu" translatable="false">CPU</string>
+
+    <!-- Benchmark redesign -->
+    <string name="benchmark_ttft_line">TTFT %1$.0f ms · p95 %2$.0f ms</string>
+    <string name="benchmark_state_result">Ergebnis</string>
+    <string name="benchmark_state_measuring">Messung</string>
+    <string name="benchmark_state_loading">Modell wird geladen</string>
+    <string name="benchmark_state_subtitle">Inferenzgeschwindigkeit auf diesem Gerät</string>
+    <string name="benchmark_no_models_title">Noch keine Modelle</string>
+    <string name="benchmark_no_models_body">Lade ein Modell im Tab „Modelle“ herunter und komme dann zurück, um es zu messen.</string>
+    <string name="benchmark_files_available">%1$d verfügbar</string>
+    <string name="benchmark_what_gets_measured">Was gemessen wird</string>
+    <string name="benchmark_metric_decode">Decode</string>
+    <string name="benchmark_metric_decode_sub">Token / Sekunde</string>
+    <string name="benchmark_metric_ttft">Zeit bis zum ersten Token</string>
+    <string name="benchmark_metric_ttft_sub">Reaktionsfähigkeit</string>
+    <string name="benchmark_metric_prefill">Prefill</string>
+    <string name="benchmark_metric_prefill_sub">Prompt-Verarbeitung</string>
+    <string name="benchmark_metric_memory">Spitzenspeicher</string>
+    <string name="benchmark_metric_memory_sub">Speicherbedarf</string>
+    <string name="benchmark_run_measuring">%1$s wird gemessen</string>
+    <string name="benchmark_run_duration">Normalerweise 3–10 Min., je nach Modell</string>
+    <string name="benchmark_hero_title">Wie schnell ist dieses Telefon wirklich?</string>
+    <string name="benchmark_hero_body">Führt dieselben drei Prompts mit Greedy-Decoding aus, verwirft einen Aufwärmdurchlauf und misst dann Geschwindigkeit im Dauerbetrieb, Speicher und thermischen Abfall.</string>
+    <string name="benchmark_hero_chip_prompts">%1$d Prompts</string>
+    <string name="benchmark_hero_chip_runs">je %1$d Durchläufe</string>
+    <string name="benchmark_hero_chip_temp">Temp. 0</string>
+    <string name="benchmark_selected_content_description">Ausgewählt</string>
+    <string name="benchmark_methodology">Methodik</string>
+    <string name="benchmark_method_prompts">%1$d Prompts (kurz → lang), um Zeit bis zum ersten Token von Prefill-Durchsatz zu trennen</string>
+    <string name="benchmark_method_runs">1 Aufwärm- + %1$d Messdurchläufe pro Prompt, Aufwärmdurchlauf verworfen</string>
+    <string name="benchmark_method_greedy">Greedy-Decoding (Temperatur 0, Top-k 1) für wiederholbare Ergebnisse</string>
+    <string name="benchmark_method_sustained">%1$d s Dauerlast, um thermisches Drosseln zu erkennen</string>
+    <string name="benchmark_method_memory">Spitzenspeicher alle 250 ms erfasst; Ausgabe auf %1$d Token begrenzt</string>
+    <string name="benchmark_progress_seconds_left">noch %1$d s</string>
+    <string name="benchmark_progress_measuring">Messung</string>
+    <string name="benchmark_thermal_check">Thermische Prüfung</string>
+    <string name="benchmark_progress_run_of">Durchlauf %1$d von %2$d</string>
+    <string name="benchmark_sustained_watching">Dauerlast – Beobachtung auf Drosselung</string>
+    <string name="benchmark_section_thermal">Thermik</string>
+    <string name="benchmark_phase_prompt_suite">Prompt-Suite</string>
+    <string name="benchmark_phase_thermal">Thermik</string>
+    <string name="benchmark_result_score">Punktzahl</string>
+    <string name="benchmark_result_grade">Note %1$s</string>
+    <string name="benchmark_result_median_decode">%1$.1f Tok/s Median-Decode</string>
+    <string name="benchmark_stat_decode_p50">Decode p50</string>
+    <string name="benchmark_stat_ttft_p50">TTFT p50</string>
+    <string name="benchmark_stat_prefill_p50">Prefill p50</string>
+    <string name="benchmark_section_by_prompt">Nach Prompt</string>
+    <string name="benchmark_section_by_prompt_hint">p50 · p95</string>
+    <string name="benchmark_section_thermal_hint">Dauerlast</string>
+    <string name="benchmark_stat_sustained_speed">Dauerleistung</string>
+    <string name="benchmark_stat_change_over_run">Änderung im Verlauf</string>
+    <string name="benchmark_stat_spread">Streuung zwischen Durchläufen</string>
+    <string name="benchmark_stability_value">%1$s (%2$.1f%%)</string>
+    <string name="benchmark_info_cold_load">Kaltstart</string>
+    <string name="benchmark_info_model_size">Modellgröße</string>
+    <string name="benchmark_info_memory_ratio">Speicher / Modell</string>
+    <string name="benchmark_copy">Kopieren</string>
+    <string name="benchmark_prompt_short">Kurz</string>
+    <string name="benchmark_prompt_medium">Mittel</string>
+    <string name="benchmark_prompt_long">Lang</string>
+    <string name="benchmark_thermal_holds">Volle Geschwindigkeit gehalten</string>
+    <string name="benchmark_thermal_slight">Leichter thermischer Abfall</string>
+    <string name="benchmark_thermal_noticeable">Spürbare Drosselung</string>
+    <string name="benchmark_thermal_heavy">Starke Drosselung</string>
+    <string name="benchmark_stability_stable">Stabil</string>
+    <string name="benchmark_stability_fair">Mittel</string>
+    <string name="benchmark_stability_unstable">Instabil</string>
+    <string name="benchmark_throttle_drop">%1$.1f%% Abfall</string>
+    <string name="benchmark_throttle_faster">%1$.1f%% schneller</string>
+    <string name="benchmark_throttle_none">Keine Änderung</string>
+    <string name="benchmark_summary_score">Punktzahl: %1$d (%2$s) · %3$.1f Tok/s Median-Decode</string>
+    <string name="benchmark_summary_prompt_line">  %1$s: TTFT %2$.0f ms (p95 %3$.0f), Decode %4$.1f Tok/s (p95 %5$.1f, sd %6$.1f), Prefill %7$.0f Tok/s</string>
+    <string name="benchmark_summary_sustained">Dauerlast: %1$.1f Tok/s, %2$s (%3$s)</string>
+    <string name="benchmark_summary_load">Laden %1$.1f s · Spitzen-PSS %2$s · Modell %3$s</string>
+
+    <string name="settings_section_home_screen">Startbildschirm</string>
+
+    <!-- Home screen widget -->
+    <string name="settings_add_widget">Widget zum Startbildschirm hinzufügen</string>
+    <string name="settings_add_widget_subtitle">TinyModels für schnellen Zugriff auf den Startbildschirm legen</string>
+    <string name="settings_add_widget_not_supported">Das Startbildschirm-Widget kann auf diesem Gerät nicht von hier aus hinzugefügt werden. Drücke lange auf den Startbildschirm und füge TinyModels über Widgets hinzu.</string>
+    <string name="settings_add_widget_added">Widget zum Startbildschirm hinzugefügt</string>
+
+    <!-- Color themes -->
+    <string name="settings_color_theme">Farbthema</string>
+    <string name="settings_color_theme_subtitle">Farbpalette der App auswählen</string>
+    <string name="settings_color_theme_sheet_title">Farbthema auswählen</string>
+    <string name="theme_default">Standard</string>
+    <string name="theme_github">GitHub</string>
+    <string name="theme_vercel">Vercel</string>
+    <string name="theme_night_owl">Night Owl</string>
+    <string name="theme_dracula">Dracula</string>
+    <string name="theme_nord">Nord</string>
+    <string name="theme_catppuccin">Catppuccin</string>
+
+    <!-- Storage screen -->
+    <string name="settings_storage">Speicher</string>
+    <string name="settings_storage_subtitle">Nutzung von Modellen, Chats, Datenbank und verwaisten Dateien anzeigen</string>
+    <string name="storage_title">Speicher</string>
+    <string name="storage_total_tracked">Erfasste App-Daten</string>
+    <string name="storage_total_tracked_subtitle">Modelle, Chats, Datenbank, teilweise Downloads und verwaiste Dateien</string>
+    <string name="storage_models_section">Heruntergeladene Modelle</string>
+    <string name="storage_models_count">%1$d heruntergeladene Datei(en)</string>
+    <string name="storage_no_downloaded_models">Keine heruntergeladenen Modelldateien gefunden</string>
+    <string name="storage_chats_db_section">Chats &amp; Datenbank</string>
+    <string name="storage_chats_summary">%1$d Chat(s) · %2$d Nachricht(en)</string>
+    <string name="storage_database">Datenbank (tiny_models.db)</string>
+    <string name="storage_database_wal">Datenbank-WAL/SHM</string>
+    <string name="storage_chat_images">Chat-Bilder</string>
+    <string name="storage_total_tokens">Insgesamt generierte Token</string>
+    <string name="storage_partial_downloads">Teilweise / pausierte Downloads</string>
+    <string name="storage_partial_downloads_subtitle">%1$d pausierte oder laufende Download-Einträge. Teilweise .part-Dateien werden unten angezeigt.</string>
+    <string name="storage_no_partial_downloads">Keine teilweisen Download-Dateien gefunden</string>
+    <string name="storage_orphan_files">Verwaiste Dateien</string>
+    <string name="storage_orphan_files_subtitle">Dateien im App-Modellspeicher, die nicht als heruntergeladene Modelle erfasst sind</string>
+    <string name="storage_no_orphan_files">Keine verwaisten Dateien gefunden</string>
+
+    <!-- Privacy & security -->
+    <string name="settings_section_privacy_security">Datenschutz &amp; Sicherheit</string>
+    <string name="settings_privacy">Datenschutzerklärung</string>
+    <string name="settings_privacy_subtitle">Erfahre, wie TinyModels deine Daten behandelt</string>
+    <string name="settings_security">Sicherheit</string>
+    <string name="settings_security_subtitle">Erfahre mehr über die Sicherheitspraktiken von TinyModels</string>
+
+
+    <string name="storage_refresh">Aktualisieren</string>
+    <string name="storage_chats_section">Chats &amp; Speicher</string>
+    <string name="storage_images_count">%1$d Bild(er)</string>
+    <string name="storage_no_chats">Keine Chats zum Löschen</string>
+    <string name="storage_chat_messages_count">%1$d Nachricht(en)</string>
+    <string name="storage_delete">Löschen</string>
+    <string name="storage_delete_confirm_title">Element löschen?</string>
+    <string name="storage_delete_model_file_body">„%1$s“ löschen? Dadurch wird die heruntergeladene Modelldatei von deinem Gerät entfernt und die Speichererfassung aktualisiert.</string>
+    <string name="storage_delete_partial_body">Teilweisen Download „%1$s“ löschen? Dadurch werden übrig gebliebene .part-Daten entfernt, damit du sauber neu starten kannst.</string>
+    <string name="storage_delete_orphan_body">Verwaiste Datei „%1$s“ löschen? Diese Datei ist nicht als heruntergeladenes Modell erfasst.</string>
+    <string name="storage_delete_chat_title">Chat löschen?</string>
+    <string name="storage_delete_chat_body">„%1$s“ und seine Nachrichten löschen? Dies kann nicht rückgängig gemacht werden.</string>
+    <string name="storage_reset_app">App-Daten zurücksetzen</string>
+    <string name="storage_reset_app_subtitle">Alle Chats, heruntergeladenen Modelle, teilweisen/verwaisten Dateien, Chat-Bilder löschen und App-Einstellungen zurücksetzen. Dies kann nicht rückgängig gemacht werden.</string>
+    <string name="storage_reset_confirm_title">Alle App-Daten zurücksetzen?</string>
+    <string name="storage_reset_confirm_body">Dadurch werden Chats, heruntergeladene Modelle und Dateien, teilweise Downloads, verwaiste Dateien, Chat-Bilder entfernt und Einstellungen/Onboarding zurückgesetzt. Du startest neu.</string>
+    <string name="storage_reset_confirm_action">App-Daten zurücksetzen</string>
+
+    <string name="model_import_projector_not_model">Dies ist ein Vision-Projektor (mmproj), kein Sprachmodell. Importiere das Haupt-.gguf-Modell – Projektoren werden automatisch heruntergeladen und damit gekoppelt.</string>
+    <string name="settings_importing_model_keep_open">Bitte lass diesen Bildschirm während des Imports geöffnet.</string>
+    <string name="settings_search_provider">Suchanbieter</string>
+    <string name="settings_search_provider_dialog_title">Websuchanbieter</string>
+    <string name="settings_search_provider_keyless">Ohne Schlüssel (DuckDuckGo + Bing)</string>
+    <string name="settings_search_provider_brave">Brave Search API</string>
+    <string name="settings_search_provider_tavily">Tavily Search API</string>
+    <string name="settings_search_provider_searxng">SearXNG (selbst gehostet)</string>
+    <string name="settings_search_api_key">API-Schlüssel</string>
+    <string name="settings_search_api_key_hint">Füge deinen Anbieter-API-Schlüssel ein</string>
+    <string name="settings_search_searxng_url">SearXNG-URL</string>
+    <string name="settings_search_searxng_url_hint">https://search.example.com</string>
+    <string name="settings_search_reader_fallback">JS-Seiten über Jina Reader lesen</string>
+    <string name="settings_search_reader_fallback_subtitle">Sendet die Seiten-URL an r.jina.ai, wenn eine Seite nicht direkt gelesen werden kann. Standardmäßig aus.</string>
+    <string name="settings_search_save">Speichern</string>
+    <string name="settings_search_not_configured">Nicht konfiguriert – verwendet schlüssellos</string>
+    <string name="settings_web_search_always">Vor jeder Antwort suchen</string>
+    <string name="settings_web_search_always_subtitle">Bei jeder Nachricht in jedem Chat im Web suchen. Verbraucht mehr Zeit und Kontextplatz.</string>
+    <string name="settings_web_search_always_dialog_title">Immer suchen aktivieren?</string>
+    <string name="settings_web_search_always_dialog_body">Dadurch wird vor jeder Antwort im Web gesucht, auch bei einfachen Fragen.\n\nWeb-Ergebnisse belegen Kontextplatz, sodass dem Modell möglicherweise weniger Raum für lange Unterhaltungen oder angehängten Seitentext bleibt. Antworten können außerdem langsamer werden und mehr Daten verbrauchen.</string>
+    <string name="settings_web_search_always_enable">Aktivieren</string>
+</resources>

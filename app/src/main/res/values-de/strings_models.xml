@@ -1,0 +1,173 @@
+<resources>
+    <!-- ================= Model catalog (browse) ================= -->
+    <string name="models_title">Modelle</string>
+    <string name="models_browse_tab">Durchsuchen</string>
+    <string name="models_downloaded_tab">Heruntergeladen (%1$d)</string>
+    <string name="models_search_content_description">Suchen</string>
+    <string name="models_search_placeholder">Modelle suchen…</string>
+    <string name="models_error_failed_to_load">Modelle konnten nicht geladen werden</string>
+    <string name="models_empty_title">Keine Modelle gefunden</string>
+    <string name="models_empty_message">Versuche eine andere Suche oder einen anderen Filter.</string>
+    <string name="models_by_author">von %1$s</string>
+    <string name="models_downloads_count">⬇ %1$s</string>
+    <string name="models_likes_count">♥ %1$s</string>
+    <string name="models_pipeline_default" translatable="false">text-generation</string>
+
+    <!-- Browse card: spec pills and stat descriptions (icons are decorative) -->
+    <string name="models_card_parameters_desc">%1$s Parameter</string>
+    <string name="models_card_context_chip">%1$s Kontext</string>
+    <string name="models_card_context_desc">Kontextfenster mit %1$s Token</string>
+    <string name="models_card_vision_chip">Vision</string>
+    <string name="models_card_vision_desc">Unterstützt Bildeingabe (Vision-Projektor enthalten)</string>
+    <string name="models_card_downloads_desc">%1$s Downloads</string>
+    <string name="models_card_likes_desc">%1$s Likes</string>
+
+    <!-- ================= Downloaded models ================= -->
+    <string name="downloaded_models_title">Heruntergeladene Modelle</string>
+    <string name="downloaded_models_empty_title">Keine Modelle heruntergeladen</string>
+    <string name="downloaded_models_empty_message">Modelle, die du herunterlädst, erscheinen hier zur Offline-Nutzung.</string>
+    <string name="downloaded_models_storage_used">Belegter Speicher: %1$s</string>
+    <string name="downloaded_models_imported_badge">Importiert</string>
+
+    <!-- ================= Model details ================= -->
+    <string name="model_details_title">Modelldetails</string>
+    <string name="model_details_file_too_large_title">Datei zu groß für dieses Gerät</string>
+    <string name="model_details_file_too_large_body">Diese Datei (%1$s) benötigt mehr RAM, als dein Gerät hat (%2$s). Du kannst sie herunterladen, aber auf diesem Gerät nicht für Chat oder Benchmark verwenden.</string>
+    <string name="model_details_file_too_large_body_unknown_size">Diese Datei benötigt mehr RAM, als dein Gerät hat (%1$s). Du kannst sie herunterladen, aber auf diesem Gerät nicht für Chat oder Benchmark verwenden.</string>
+    <string name="model_details_download_anyway">Trotzdem herunterladen</string>
+    <string name="model_details_error_failed_to_load">Details konnten nicht geladen werden</string>
+    <string name="model_details_add_hf_token">Hugging-Face-Token hinzufügen</string>
+    <string name="model_details_gated" translatable="false">gated</string>
+    <string name="model_details_stat_downloads">Downloads</string>
+    <string name="model_details_stat_likes">Likes</string>
+    <string name="model_details_stat_repo_size">Repo-Größe</string>
+    <string name="model_details_stat_downloaded">Heruntergeladen</string>
+    <string name="model_details_try_it">Ausprobieren</string>
+    <string name="model_details_sample_prompts">Beispiel-Prompts für dieses Modell</string>
+    <string name="model_details_about">Über</string>
+    <string name="model_details_base_model">Basismodell</string>
+    <string name="model_details_revision">Revision</string>
+    <string name="model_details_tags">Tags</string>
+    <string name="model_details_files">Dateien</string>
+    <string name="model_details_files_hint">Dateien einzeln herunterladen – mehrere können gleichzeitig laufen.</string>
+    <string name="model_details_fits_device">✓ Passt auf dein Gerät</string>
+    <string name="model_details_too_large_short">⚠ Zu groß für dieses Gerät</string>
+    <string name="model_details_status_downloaded">Heruntergeladen</string>
+    <string name="model_details_updated">Aktualisiert</string>
+    <string name="model_details_created">Erstellt</string>
+    <string name="model_details_error_not_enough_storage_file">Nicht genügend freier Speicher für diese Datei.</string>
+    <string name="model_details_error_not_enough_storage_model">Nicht genügend freier Speicher für dieses Modell.</string>
+
+    <!-- ================= Downloaded file detail ================= -->
+    <string name="downloaded_file_title">Heruntergeladene Datei</string>
+    <string name="downloaded_file_not_found_title">Datei nicht gefunden</string>
+    <string name="downloaded_file_go_back">Zurück</string>
+    <string name="downloaded_file_delete_title">Datei löschen?</string>
+    <string name="downloaded_file_delete_body">Dadurch wird die Datei dauerhaft von deinem Gerät gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.</string>
+    <string name="downloaded_file_model_id">Modell-ID</string>
+    <string name="downloaded_file_size">Größe</string>
+    <string name="downloaded_file_location">Speicherort</string>
+    <string name="downloaded_file_error_failed_to_load">Modell konnte nicht geladen werden</string>
+    <string name="downloaded_file_loading_model">Modell wird geladen…</string>
+    <string name="downloaded_file_start_chat">Chat starten</string>
+    <string name="downloaded_file_export">Datei exportieren</string>
+    <string name="downloaded_file_exporting">Wird exportiert…</string>
+    <string name="downloaded_file_delete">Datei löschen</string>
+    <string name="downloaded_file_deleting">Wird gelöscht…</string>
+    <string name="downloaded_file_error_not_found">Datei nicht gefunden</string>
+    <string name="downloaded_file_error_not_on_disk">Datei nicht auf dem Datenträger gefunden. Bitte erneut herunterladen.</string>
+    <string name="downloaded_file_error_delete_failed">Datei konnte nicht gelöscht werden</string>
+    <string name="downloaded_file_exported">%1$s exportiert</string>
+    <string name="downloaded_file_export_failed">Export fehlgeschlagen: %1$s</string>
+
+    <!-- ================= Active downloads ================= -->
+    <string name="downloads_active_title">Aktive Downloads (%1$d)</string>
+    <string name="downloads_paused_title">Pausierte Downloads (%1$d)</string>
+    <string name="downloads_cancel_content_description">Download abbrechen</string>
+    <string name="downloads_waiting_for_network">Warte auf Netzwerk…</string>
+    <string name="downloads_progress_bytes">%1$s / %2$s</string>
+    <string name="downloads_progress_percent">(%1$d%%)</string>
+    <string name="downloads_progress_speed"> • %1$s/s</string>
+    <string name="downloads_speed_only">%1$s/s</string>
+    <string name="downloads_button_with_size">Download · %1$s</string>
+    <string name="downloads_button">Download</string>
+
+    <!-- ================= Filters ================= -->
+    <string name="model_filter_all">Alle</string>
+    <string name="model_filter_text_generation">Textgenerierung</string>
+    <string name="model_filter_image_generation">Bildgenerierung</string>
+
+    <!-- ================= Shared state views ================= -->
+    <string name="state_error_title">Etwas ist schiefgelaufen</string>
+    <string name="state_error_retry">Erneut versuchen</string>
+    <string name="state_offline_title">Du bist offline</string>
+    <string name="state_offline_message">Prüfe deine Internetverbindung und versuche es erneut.</string>
+    <plurals name="models_file_count">
+        <item quantity="one">%1$d Datei</item>
+        <item quantity="other">%1$d Dateien</item>
+    </plurals>
+
+    <!-- Model details: discard-download dialog and file-row actions -->
+    <string name="model_details_discard_title">Download verwerfen?</string>
+    <string name="model_details_discard_body_notification">Der Download wird gestoppt und die Teildaten werden gelöscht. Dies kann nicht rückgängig gemacht werden.</string>
+    <string name="model_details_discard_bytes_deleted">Bisher heruntergeladene %1$s werden gelöscht.</string>
+    <string name="model_details_discard_partial_deleted">Die Teildaten für diese Datei werden gelöscht.</string>
+    <string name="model_details_discard_body_end">Der Download muss neu gestartet werden, und dies kann nicht rückgängig gemacht werden.</string>
+    <string name="model_details_discard">Verwerfen</string>
+    <string name="model_details_keep">Behalten</string>
+    <string name="model_details_size_loading">Größe wird geladen…</string>
+    <string name="model_details_size_unknown">Größe kann nicht ermittelt werden</string>
+    <string name="model_details_downloaded_bytes">%1$s heruntergeladen</string>
+    <string name="model_details_paused_resumable">Pausiert · fortsetzbar</string>
+    <string name="model_details_download_desc">Herunterladen</string>
+    <string name="model_details_cancel_queued_desc">Wartenden Download abbrechen</string>
+    <string name="model_details_discard_desc">Download verwerfen</string>
+    <string name="model_details_resume_desc">Download fortsetzen</string>
+    <string name="model_details_retry_desc">Download erneut versuchen</string>
+    <string name="model_details_pause_desc">Download pausieren</string>
+    <string name="downloaded_file_projector_error">Dies ist ein Vision-Projektor (mmproj), kein Sprachmodell. Öffne stattdessen das Haupt-.gguf-Modell – es verwendet diesen Projektor für Vision.</string>
+    <string name="downloaded_file_projector_title">Vision-Projektor</string>
+    <string name="model_details_vision_banner">Enthält einen Vision-Projektor (mmproj) – er wird automatisch mit jedem von dir gewählten GGUF-Modell heruntergeladen.</string>
+    <string name="model_details_vision_supported">Vision: unterstützt (Projektor enthalten)</string>
+    <string name="model_details_vision_text_only">Vision: nur Text</string>
+    <string name="model_details_context_after_download">Kontextfenster: wird nach dem Download erkannt</string>
+    <string name="models_updated_on">Aktualisiert %1$s</string>
+    <string name="model_format_litertlm" translatable="false">LiteRT-LM</string>
+    <string name="model_format_gguf" translatable="false">GGUF</string>
+    <string name="model_format_mediapipe" translatable="false">MediaPipe</string>
+    <string name="model_format_tflite" translatable="false">TFLite</string>
+
+    <!-- Hub discovery / device-fit -->
+    <string name="models_feed_popular">Beliebt</string>
+    <string name="models_feed_trending">Im Trend</string>
+    <string name="models_feed_new">Neu</string>
+    <string name="models_feed_updated">Kürzlich aktualisiert</string>
+    <string name="models_tag_filter_label">Tag</string>
+    <string name="models_tag_filter_any">Beliebiger Tag</string>
+    <string name="model_details_license">Lizenz</string>
+    <string name="model_details_parameters">Parameter</string>
+    <string name="model_details_context_length">Kontextlänge</string>
+    <string name="model_details_architecture">Architektur</string>
+    <string name="model_details_device_fit">Gerätepassung</string>
+    <string name="model_details_recommended_variant">Für dieses Gerät empfohlen</string>
+    <string name="model_details_not_recommended_tag">Nicht empfohlen</string>
+    <string name="model_details_may_be_slow">Kann auf diesem Gerät langsam laufen oder einen reduzierten Kontext benötigen.</string>
+    <string name="model_details_fit_borderline">△ Kann auf diesem Gerät langsam sein</string>
+    <string name="model_details_fit_unknown">Passung unbekannt</string>
+    <string name="model_details_not_recommended">Für dieses Gerät nicht empfohlen (%1$s RAM). Versuche eine kleinere oder stärker quantisierte Datei.</string>
+
+    <!-- Browse filters UI -->
+    <string name="models_filters">Filter</string>
+    <string name="models_filters_title">Filter durchsuchen</string>
+    <string name="models_filter_format">Format</string>
+    <string name="models_filter_feed">Sortieren nach</string>
+    <string name="models_clear_filters">Zurücksetzen</string>
+    <string name="models_apply_filters">Anwenden</string>
+    <string name="models_load_more">Mehr laden</string>
+
+    <string name="models_collections_title">Sammlungen</string>
+    <string name="models_collections_subtitle">Kuratierte Auswahl für die Nutzung auf dem Gerät</string>
+    <string name="models_collection_empty_title">Keine ausführbaren Modelle</string>
+    <string name="models_collection_empty_message">Diese Sammlung enthält derzeit keine Modelle, die auf diesem Gerät ausgeführt werden können.</string>
+    <string name="models_all_models_title">Alle Modelle</string>
+</resources>

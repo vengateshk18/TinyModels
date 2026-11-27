@@ -88,11 +88,11 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // Ship only the languages we actually translate (English default +
-        // Spanish, Tamil, Hindi, French and Japanese). Keeps the APK small
-        // and stops Android from offering a language the app has no strings
-        // for. Must stay in sync with res/xml/locales_config.xml and the
-        // AppLanguage enum.
-        resourceConfigurations += listOf("en", "es", "ta", "hi", "fr", "ja")
+        // Spanish, Tamil, Hindi, French, Japanese, German and Russian). Keeps
+        // the APK small and stops Android from offering a language the app has
+        // no strings for. Must stay in sync with res/xml/locales_config.xml
+        // and the AppLanguage enum.
+        resourceConfigurations += listOf("en", "es", "ta", "hi", "fr", "ja", "de", "ru")
 
         // Real phones are arm64; shipping x86/x86_64/armeabi-v7a doubles the
         // native-lib size (LiteRT-LM's .so is ~22MB per ABI). Emulators can

@@ -1,0 +1,16 @@
+<resources>
+    <string name="widget_description">Быстрый доступ к TinyModels — просматривайте модели или продолжайте чат.</string>
+    <string name="widget_get_started_title">Запускайте ИИ на своём устройстве</string>
+    <string name="widget_get_started_subtitle">Загрузите модель, чтобы общаться приватно, даже офлайн.</string>
+    <string name="widget_ready_title">Ваши модели готовы</string>
+    <string name="widget_continue_title">Продолжить чат</string>
+    <string name="widget_cta_browse_models">Просмотреть модели</string>
+    <string name="widget_cta_start_chat">Начать чат</string>
+    <string name="widget_cta_continue_chat">Открыть чат</string>
+    <plurals name="widget_models_ready">
+        <item quantity="one">%1$d модель готова к использованию</item>
+        <item quantity="few">%1$d модели готовы к использованию</item>
+        <item quantity="many">%1$d моделей готовы к использованию</item>
+        <item quantity="other">%1$d моделей готовы к использованию</item>
+    </plurals>
+</resources>

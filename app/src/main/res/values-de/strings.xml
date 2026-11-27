@@ -1,0 +1,39 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- App -->
+    <string name="app_name" translatable="false">TinyModels</string>
+
+    <!-- Shared UI actions and labels (usable from any feature) -->
+    <string name="common_cancel">Abbrechen</string>
+    <string name="common_retry">Erneut versuchen</string>
+    <string name="common_resume">Fortsetzen</string>
+    <string name="common_back">Zurück</string>
+    <string name="common_dismiss">Schließen</string>
+    <string name="common_delete">Löschen</string>
+    <string name="common_save">Speichern</string>
+    <string name="common_close">Schließen</string>
+    <string name="common_open">Öffnen</string>
+    <string name="common_yes">Ja</string>
+    <string name="common_no">Nein</string>
+    <string name="common_unknown">Unbekannt</string>
+    <string name="common_percent">%1$d%%</string>
+
+    <!-- Shared relative-time wording (Formatters) -->
+    <string name="common_time_just_now">gerade eben</string>
+    <string name="common_time_minutes_ago">vor %1$d Min.</string>
+    <string name="common_time_hours_ago">vor %1$d Std.</string>
+    <string name="common_time_days_ago">vor %1$d T.</string>
+
+    <!-- Network / load errors shown by any screen -->
+    <string name="error_no_connection">Du bist offline. Prüfe deine Internetverbindung und versuche es erneut.</string>
+    <string name="error_timeout">Zeitüberschreitung bei der Verbindung. Versuche es erneut.</string>
+    <string name="error_gated">Dieses Modell ist eingeschränkt. Füge in den Einstellungen ein Hugging-Face-Zugriffstoken hinzu oder akzeptiere zuerst die Lizenz auf huggingface.co.</string>
+    <string name="error_no_access">Du hast keinen Zugriff auf dieses Modell. Möglicherweise ist es eingeschränkt – prüfe die Lizenz auf huggingface.co.</string>
+    <string name="error_too_many_requests">Zu viele Anfragen. Warte einen Moment und versuche es erneut.</string>
+    <string name="error_server">Hugging Face hat derzeit Probleme. Versuche es später erneut.</string>
+    <string name="error_not_found">Modell nicht gefunden. Möglicherweise wurde es von Hugging Face entfernt.</string>
+    <string name="error_network">Netzwerkfehler. Prüfe deine Verbindung und versuche es erneut.</string>
+    <string name="error_storage">Nicht genügend freier Speicherplatz.</string>
+    <string name="error_unknown">Etwas ist schiefgelaufen. Versuche es erneut.</string>
+<string name="notification_pause">Pausieren</string>
+<string name="notification_cancel">Abbrechen</string>
+</resources>

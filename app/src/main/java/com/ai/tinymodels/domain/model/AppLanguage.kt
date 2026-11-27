@@ -32,7 +32,9 @@ enum class AppLanguage(
     FRENCH("fr", R.string.language_native_french, R.string.language_name_french),
     JAPANESE("ja", R.string.language_native_japanese, R.string.language_name_japanese),
     TAMIL("ta", R.string.language_native_tamil, R.string.language_name_tamil),
-    HINDI("hi", R.string.language_native_hindi, R.string.language_name_hindi);
+    HINDI("hi", R.string.language_native_hindi, R.string.language_name_hindi),
+    GERMAN("de", R.string.language_native_german, R.string.language_name_german),
+    RUSSIAN("ru", R.string.language_native_russian, R.string.language_name_russian);
 
     companion object {
         /** Resolves a stored tag back to a language; unknown/blank -> [SYSTEM]. */

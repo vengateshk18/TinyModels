@@ -1,0 +1,154 @@
+<resources>
+    <!-- ================= Home: onboarding (first-time) ================= -->
+    <string name="home_hero_title">Führe KI-Modelle vollständig auf deinem Telefon aus.</string>
+    <string name="home_hero_subtitle">Kein Internet. Keine Cloud. Keine Daten verlassen dein Gerät.</string>
+    <string name="home_storage_note">Modelle sind 600 MB bis 2 GB groß. Du hast %1$s frei.</string>
+    <string name="home_browse_all_models">Alle Modelle durchsuchen</string>
+
+    <!-- ================= Home: device capability card ================= -->
+    <string name="home_device_card_title">Dein Gerät</string>
+    <string name="home_device_capability_value">%1$s —</string>
+    <string name="home_device_can_run_models">kann problemlos Modelle bis zu %1$s ausführen</string>
+    <string name="home_device_model_tier">%1$s: %2$s (%3$s)</string>
+
+    <!-- ================= Home: three-step strip ================= -->
+    <string name="home_step_download_title">Herunterladen</string>
+    <string name="home_step_download_caption">Dauert ein paar Minuten</string>
+    <string name="home_step_load_title">Laden</string>
+    <string name="home_step_load_caption">Das erste Laden kann langsam sein</string>
+    <string name="home_step_chat_title">Offline chatten</string>
+    <string name="home_step_chat_caption">Bleibt auf deinem Gerät</string>
+
+    <!-- ================= Home: recommended model card ================= -->
+    <string name="home_recommended_title">Für dein Gerät empfohlen</string>
+    <string name="home_recommended_meta">%1$s-Stufe • %2$s • %3$s</string>
+    <string name="home_download_button">Herunterladen (%1$s)</string>
+    <string name="home_downloaded_opening">Heruntergeladen! Dein Dashboard wird geöffnet…</string>
+    <string name="home_download_failed">Download fehlgeschlagen. Prüfe deine Verbindung und versuche es erneut.</string>
+    <string name="home_add_token">Token hinzufügen</string>
+    <string name="home_model_page">Modellseite</string>
+    <string name="home_waiting_for_connection">Warte auf Verbindung… Download startet automatisch.</string>
+    <string name="home_download_progress">%1$d%%</string>
+    <string name="home_download_progress_with_speed">%1$d%% • %2$s/s</string>
+
+    <!-- ================= Home: dashboard ================= -->
+    <string name="home_thermal_advisory">Große Modelle können dein Gerät erwärmen und mehr Akku verbrauchen.</string>
+    <string name="home_section_your_models">Deine Modelle</string>
+    <string name="home_manage_models">Modelle verwalten</string>
+    <string name="home_section_your_usage">Deine Nutzung</string>
+    <string name="home_stat_chats">Chats</string>
+    <string name="home_stat_tokens">Token</string>
+    <string name="home_stat_models_tried">getestete Modelle</string>
+    <string name="home_stat_messages">Nachrichten</string>
+    <string name="home_stat_chats_this_week">Chats diese Woche</string>
+    <string name="home_stat_compactions">Kompaktierungen</string>
+    <string name="home_last_session_tps">Letzte Sitzung: ~%1$s Tok/s</string>
+    <string name="home_most_chatted">Meist genutzt</string>
+    <string name="home_chat_with_model">Mit %1$s chatten</string>
+
+    <!-- ================= Home: last-used model card ================= -->
+    <string name="home_ready_to_chat">Bereit zum Chatten</string>
+    <string name="home_your_model">Dein Modell</string>
+    <string name="home_this_model">dieses Modell</string>
+    <string name="home_model_context">%1$s • %2$d Kontext</string>
+    <string name="home_resume_chat">Chat fortsetzen</string>
+    <string name="home_new_chat">Neuer Chat</string>
+    <string name="home_new_chat_with_model">Neuer Chat mit %1$s</string>
+
+    <!-- ================= Model tiers ================= -->
+    <string name="model_tier_small">Klein</string>
+    <string name="model_tier_medium">Mittel</string>
+    <string name="model_tier_high">Hoch</string>
+
+    <!-- Recommended catalog model names (product names — not translated) -->
+    <string name="model_name_qwen3_0_6b" translatable="false">Qwen3 0.6B</string>
+    <string name="model_name_deepseek_r1_1_5b" translatable="false">DeepSeek R1 1.5B</string>
+    <string name="model_name_qwen3_5_2b" translatable="false">Qwen3.5 2B</string>
+
+    <!-- ================= Device information screen ================= -->
+    <string name="device_info_title">Geräteinformationen</string>
+    <string name="device_info_ready_title">Bereit für KI auf dem Gerät</string>
+    <string name="device_info_ai_capability">KI-Fähigkeit</string>
+    <string name="device_info_recommended_up_to">Empfohlen bis zu %1$s-Modellen</string>
+    <string name="device_info_memory_section">Speicher</string>
+    <string name="device_info_ram" translatable="false">RAM</string>
+    <string name="device_info_available">Verfügbar</string>
+    <string name="device_info_recommended_for_ai">Für KI empfohlen</string>
+    <string name="device_info_live_ram_usage">Live-RAM-Nutzung</string>
+    <string name="device_info_browse_models">Modelle durchsuchen</string>
+
+    <!-- ================= RAM usage chart ================= -->
+    <string name="device_ram_usage_live_title">Live-RAM-Nutzung</string>
+    <string name="device_ram_usage_percent_used">%1$.2f%% belegt</string>
+    <string name="device_ram_usage_collecting">Samples werden gesammelt…</string>
+    <string name="device_ram_usage_used">Belegt %1$s</string>
+    <string name="device_ram_usage_free_of">Frei %1$s von %2$s</string>
+
+    <!-- ================= AI capability levels ================= -->
+    <string name="device_capability_excellent">Ausgezeichnet</string>
+    <string name="device_capability_good">Gut</string>
+    <string name="device_capability_limited">Begrenzt</string>
+    <string name="device_capability_low">Niedrig</string>
+    <string name="device_capability_unknown">Unbekannt</string>
+
+    <!-- ================= Device insights card ================= -->
+    <string name="device_insights_title">Geräte-Insights</string>
+    <string name="device_insights_thermal">Thermik</string>
+    <string name="device_insights_thermal_state">Zustand %1$d</string>
+    <string name="device_insights_battery">Akku</string>
+    <string name="device_insights_battery_percent">%1$d%%</string>
+    <string name="device_insights_gpu_renderer">GPU-Renderer</string>
+    <string name="device_insights_storage">Speicher</string>
+    <string name="device_insights_storage_used">Belegt %1$s</string>
+    <string name="device_insights_storage_free">Frei %1$s</string>
+    <string name="device_insights_processor">Prozessor</string>
+    <string name="device_insights_cores">Kerne</string>
+    <string name="device_insights_architecture">Architektur</string>
+    <string name="device_insights_64bit">64-Bit</string>
+
+    <!-- Thermal status labels -->
+    <string name="device_thermal_normal">Normal</string>
+    <string name="device_thermal_light">Leicht</string>
+    <string name="device_thermal_moderate">Mäßig</string>
+    <string name="device_thermal_severe">Stark</string>
+    <string name="device_thermal_critical">Kritisch</string>
+    <string name="device_thermal_emergency">Notfall</string>
+    <string name="device_thermal_shutdown">Abschaltung</string>
+    <string name="device_thermal_unknown">Unbekannt</string>
+
+    <!-- Battery status labels -->
+    <string name="device_battery_unknown">Unbekannt</string>
+    <string name="device_battery_charging">Wird geladen</string>
+    <string name="device_battery_discharging">Wird entladen</string>
+    <string name="device_battery_not_charging">Lädt nicht</string>
+    <string name="device_battery_full">Voll</string>
+
+    <!-- ================= RAM recommendations ================= -->
+    <string name="ram_recommendations_title">Empfehlungen</string>
+    <string name="ram_rec_plenty_capacity">Du kannst 3B–7B-Modelle problemlos laden</string>
+    <string name="ram_rec_plenty_context">Ideal für lange Unterhaltungen mit großen Kontextfenstern</string>
+    <string name="ram_rec_moderate_capacity">Moderater Platz – bevorzuge 1B–3B-Modelle</string>
+    <string name="ram_rec_moderate_compaction">Lange Chats benötigen möglicherweise früher eine Kompaktierung</string>
+    <string name="ram_rec_limited_capacity">Begrenzt – nur sehr kleine Modelle (&lt;1B) passen</string>
+    <string name="ram_rec_limited_close_apps">Schließe andere Apps, um mehr RAM freizugeben</string>
+    <string name="ram_rec_critical_close_apps">Kritisch – schließe andere Apps, bevor du ein Modell lädst</string>
+    <string name="ram_rec_critical_no_models">Derzeit können keine Modelle geladen werden</string>
+    <string name="ram_rec_thermal_throttling">Gerät drosselt thermisch – Leistung wird reduziert</string>
+    <string name="ram_rec_battery_low">Akku niedrig – halte das Ladegerät für große Modelle bereit</string>
+    <plurals name="home_model_files_last_used">
+        <item quantity="one">%1$s • %2$d Datei • zuletzt verwendet</item>
+        <item quantity="other">%1$s • %2$d Dateien • zuletzt verwendet</item>
+    </plurals>
+    <plurals name="home_model_files_relative">
+        <item quantity="one">%1$s • %2$d Datei • %3$s</item>
+        <item quantity="other">%1$s • %2$d Dateien • %3$s</item>
+    </plurals>
+    <plurals name="home_show_more_models">
+        <item quantity="one">%1$d weiteres Modell anzeigen</item>
+        <item quantity="other">%1$d weitere Modelle anzeigen</item>
+    </plurals>
+    <plurals name="home_web_search_chats">
+        <item quantity="one">Websuche in %1$d Chat aktiviert</item>
+        <item quantity="other">Websuche in %1$d Chats aktiviert</item>
+    </plurals>
+</resources>

@@ -394,7 +394,8 @@ class ChatViewModel @Inject constructor(
                     modelLoadProgress = ModelLoadProgress(
                         modelId = modelId,
                         progress = 0f,
-                        stage = ModelLoadProgress.LoadStage.INITIALIZING
+                        stage = ModelLoadProgress.LoadStage.INITIALIZING,
+                        fileName = fileRecord.fileName
                     )
                 )
             }
@@ -425,7 +426,8 @@ class ChatViewModel @Inject constructor(
                     modelLoadProgress = ModelLoadProgress(
                         modelId = modelId,
                         progress = 0f,
-                        stage = ModelLoadProgress.LoadStage.INITIALIZING
+                        stage = ModelLoadProgress.LoadStage.INITIALIZING,
+                        fileName = fileRecord.fileName
                     )
                 )
             }
@@ -442,7 +444,8 @@ class ChatViewModel @Inject constructor(
                     modelLoadProgress = ModelLoadProgress(
                         modelId = modelId,
                         progress = 0f,
-                        stage = ModelLoadProgress.LoadStage.INITIALIZING
+                        stage = ModelLoadProgress.LoadStage.INITIALIZING,
+                        fileName = fileRecord.fileName
                     )
                 )
             }

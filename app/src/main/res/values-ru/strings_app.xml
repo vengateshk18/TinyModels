@@ -1,0 +1,342 @@
+<resources>
+    <!-- ================= Settings ================= -->
+    <string name="settings_title">Настройки</string>
+    <string name="settings_section_appearance">Оформление</string>
+    <string name="settings_language">Язык</string>
+    <string name="settings_language_sheet_title">Выберите язык</string>
+    <string name="settings_theme">Тема</string>
+    <string name="settings_dynamic_color">Динамические цвета</string>
+    <string name="settings_dynamic_color_subtitle">Использовать цвета на основе обоев (Android 12+)</string>
+    <string name="settings_font_size">Размер шрифта</string>
+    <string name="settings_font">Шрифт</string>
+    <string name="settings_change_font_content_description">Изменить шрифт</string>
+    <string name="settings_font_sheet_title">Выберите шрифт</string>
+    <string name="settings_font_default">По умолчанию</string>
+    <string name="settings_font_google">Шрифт Google</string>
+
+    <!-- Language picker -->
+    <string name="language_system">Как в системе</string>
+    <string name="language_english" translatable="false">English</string>
+    <!-- Native names: always shown in the language's own script, never translated. -->
+    <string name="language_native_spanish" translatable="false">Espa\u00f1ol</string>
+    <string name="language_native_french" translatable="false">Fran\u00e7ais</string>
+    <string name="language_native_japanese" translatable="false">\u65e5\u672c\u8a9e</string>
+    <string name="language_native_tamil" translatable="false">\u0ba4\u0bae\u0bbf\u0bb4\u0bcd</string>
+    <string name="language_native_hindi" translatable="false">\u0939\u093f\u0928\u094d\u0926\u0940</string>
+    <string name="language_native_german" translatable="false">Deutsch</string>
+    <string name="language_native_russian" translatable="false">\u0420\u0443\u0441\u0441\u043a\u0438\u0439</string>
+    <!-- English names: the readable hint shown in parentheses. -->
+    <string name="language_name_spanish" translatable="false">Spanish</string>
+    <string name="language_name_french" translatable="false">French</string>
+    <string name="language_name_japanese" translatable="false">Japanese</string>
+    <string name="language_name_tamil" translatable="false">Tamil</string>
+    <string name="language_name_hindi" translatable="false">Hindi</string>
+    <string name="language_name_german" translatable="false">German</string>
+    <string name="language_name_russian" translatable="false">Russian</string>
+    <!-- Renders as "<native name> (<English name>)". -->
+    <string name="language_option_format">%1$s (%2$s)</string>
+
+    <string name="settings_section_inference">Инференс</string>
+    <string name="settings_default_backend">Бэкенд по умолчанию</string>
+    <string name="settings_web_search">Веб-поиск</string>
+    <string name="settings_web_search_subtitle">Разрешить чатам использовать инструмент веб-поиска модели. Поисковые запросы покидают устройство.</string>
+    <string name="settings_web_search_note">Когда включено для чата (через меню + в чате), модель может искать в интернете, если ей нужна актуальная информация.</string>
+
+    <string name="settings_section_downloads">Загрузки</string>
+    <string name="settings_wifi_only_downloads">Загружать только по Wi-Fi</string>
+    <string name="settings_wifi_only_downloads_subtitle">Ждать нелимитного подключения перед загрузкой моделей</string>
+    <string name="settings_downloads_note">Файлы моделей занимают гигабайты — это защищает ваш мобильный трафик.</string>
+
+    <string name="settings_section_chat">Чат</string>
+    <string name="settings_auto_load_last_model">Автоматически загружать последнюю модель</string>
+    <string name="settings_auto_load_last_model_subtitle">Загружать ранее использованную модель при открытии чата</string>
+    <string name="settings_keep_screen_on">Не выключать экран</string>
+    <string name="settings_keep_screen_on_subtitle">Предотвращать переход в спящий режим во время генерации</string>
+    <string name="settings_show_token_counts">Показывать количество токенов</string>
+    <string name="settings_show_token_counts_subtitle">Показывать количество токенов под каждым сообщением</string>
+
+    <string name="settings_section_hugging_face">Hugging Face</string>
+    <string name="settings_access_token">Токен доступа</string>
+    <string name="settings_token_not_set">Не задан — необязательно; нужен только для ограниченных моделей</string>
+    <string name="settings_token_set">Задан — %1$s••••••••%2$s</string>
+    <string name="settings_token_help">Ограниченным моделям (например, Gemma) для загрузки нужен бесплатный токен доступа. Создайте его на huggingface.co/settings/tokens, затем примите лицензию модели на её странице.</string>
+    <string name="settings_token_dialog_title">Токен доступа Hugging Face</string>
+    <string name="settings_token_dialog_body">Вставьте токен с правами на чтение. Создайте его на huggingface.co/settings/tokens.</string>
+    <string name="settings_token_placeholder" translatable="false">hf_xxxxxxxxxxxxxxxx</string>
+    <string name="settings_token_save">Сохранить</string>
+    <string name="settings_token_remove">Удалить</string>
+
+    <string name="settings_section_support">Поддержка</string>
+    <string name="settings_star_on_github">Поставить звезду на GitHub</string>
+    <string name="settings_star_on_github_subtitle">Поддержите бесплатный ИИ на устройстве для всех</string>
+    <string name="settings_report_bug">Сообщить об ошибке</string>
+    <string name="settings_report_bug_subtitle">Нашли проблему? Дайте нам знать</string>
+
+        <string name="settings_update_available_title">Обновление приложения</string>
+    <string name="settings_update_available_message">В Play Store доступна новая версия TinyModels.</string>
+    <string name="settings_update_action">Обновить</string>
+
+<string name="settings_section_about">О приложении</string>
+    <string name="settings_benchmark">Бенчмарк</string>
+    <string name="settings_benchmark_subtitle">Оценить скорость, память и тепловое поведение</string>
+    <string name="settings_device_information">Информация об устройстве</string>
+    <string name="settings_device_information_subtitle">Узнайте возможности вашего устройства для ИИ</string>
+    <string name="settings_clear_chat_history">Очистить историю чатов</string>
+    <string name="settings_clear_chat_history_subtitle">Удалить все разговоры</string>
+    <string name="settings_clear_chat_history_title">Очистить историю чатов</string>
+    <string name="settings_clear_chat_history_body">Удалить все чаты? Это действие нельзя отменить.</string>
+
+    <string name="settings_section_model_management">Управление моделями</string>
+    <string name="settings_token_removed">Токен доступа удалён</string>
+    <string name="settings_token_saved">Токен доступа сохранён</string>
+    <string name="settings_chat_history_cleared">История чатов очищена</string>
+    <string name="settings_model_imported">Модель импортирована: %1$s</string>
+    <string name="settings_import_failed">Ошибка импорта: %1$s</string>
+    <string name="model_import_invalid_file_type">Неверный тип файла. Поддерживаемые форматы: .litertlm, .gguf, .task, .tflite.</string>
+    <string name="model_import_file_not_found">Файл не найден на устройстве: %1$s</string>
+    <string name="model_import_create_failed">Не удалось создать файл назначения: %1$s</string>
+    <string name="model_import_write_failed">Не удалось записать в файл назначения: %1$s</string>
+    <string name="model_import_no_file_name">Не удалось определить имя файла</string>
+    <string name="model_import_already_exists">Этот файл модели уже есть в вашей библиотеке</string>
+    <string name="model_import_open_failed">Не удалось открыть исходный файл</string>
+    <string name="benchmark_error_model_file_missing">Файл модели отсутствует на устройстве</string>
+    <string name="benchmark_error_not_enough_ram">Недостаточно свободной ОЗУ для загрузки этой модели (нужно ~%1$d МБ, доступно %2$d МБ). Закройте другие приложения и попробуйте снова.</string>
+    <string name="benchmark_error_failed_to_load">Не удалось загрузить модель</string>
+    <string name="settings_import_model">Импортировать модель</string>
+    <string name="settings_import_model_subtitle">Добавить файл модели (.litertlm, .gguf, .task, .tflite) из внешнего хранилища</string>
+    <string name="settings_import_model_note">Импортированные модели появятся в вашей библиотеке с меткой «Импортировано». Чтобы поделиться загруженным файлом, откройте его и используйте Экспорт.</string>
+
+    <!-- ================= Theme / backend choices ================= -->
+
+    <!-- ================= Fonts ================= -->    <string name="font_system">Системный</string>
+    <string name="font_abel" translatable="false">Abel</string>
+    <string name="font_inter" translatable="false">Inter</string>
+    <string name="font_roboto" translatable="false">Roboto</string>
+    <string name="font_pacifico" translatable="false">Pacifico</string>
+    <string name="font_abril_fatface" translatable="false">Abril Fatface</string>
+
+    <!-- ================= Bottom navigation ================= -->
+    <string name="nav_home">Главная</string>
+    <string name="nav_chat">Чат</string>
+    <string name="nav_models">Модели</string>
+    <string name="nav_settings">Настройки</string>
+
+    <!-- ================= Benchmark ================= -->
+    <string name="benchmark_title">Бенчмарк</string>
+    <string name="benchmark_loading_title">Загрузка модели…</string>
+    <string name="benchmark_loading_subtitle">Холодная загрузка — это время входит в оценку.</string>
+    <string name="benchmark_failed_title">Бенчмарк не выполнен</string>
+    <string name="benchmark_back_to_models">Назад к моделям</string>
+    <string name="benchmark_stop_title">Остановить бенчмарк?</string>
+    <string name="benchmark_stop_body">Запуск будет отменён, а результаты удалены.</string>
+    <string name="benchmark_stop">Остановить</string>
+    <string name="benchmark_continue">Продолжить</string>
+    <string name="benchmark_choose_model">Выберите модель</string>
+    <string name="benchmark_run">Запустить бенчмарк</string>
+    <string name="benchmark_progress_prompt">Промпт %1$s</string>
+    <string name="benchmark_progress_warmup">" · прогрев (не учитывается)"</string>
+    <string name="benchmark_stat_prompt">Промпт</string>
+    <string name="benchmark_stat_tokens">Токены</string>
+    <string name="benchmark_section_model">Модель</string>
+    <string name="benchmark_stat_peak_memory">Пиковая память</string>
+    <string name="benchmark_stat_backend">Бэкенд</string>
+    <string name="benchmark_stat_device">Устройство</string>
+    <string name="benchmark_token_note">Токены считаются по событиям стрима. Prefill — это токены промпта / время до первого токена и включает первый шаг декодирования. Оценки относительны к эталонному телефону, а не являются абсолютным качеством.</string>
+    <string name="benchmark_rerun">Запустить снова</string>
+    <string name="benchmark_summary_header">Бенчмарк TinyModels — %1$s (%2$s, %3$s)</string>
+    <string name="benchmark_summary_device">Устройство: %1$s</string>
+
+    <!-- ================= Download notifications ================= -->
+    <string name="notification_channel_downloads">Загрузки моделей</string>
+    <!-- Splash -->
+    <string name="splash_tagline">Маленькие модели. Большие возможности.</string>
+    <string name="splash_pillars">Приватно · Офлайн · Ваше</string>
+    <string name="notification_progress_bytes">%1$s / %2$s · %3$d%%</string>
+    <string name="notification_progress_downloading">%1$s · загрузка</string>
+    <string name="notification_speed">%1$s/с</string>
+    <string name="notification_downloading_title">Загрузка модели</string>
+    <string name="notification_download_complete">Загрузка завершена</string>
+    <string name="notification_download_failed">Ошибка загрузки</string>
+    <string name="notification_failed_with_reason">%1$s — %2$s</string>
+    <string name="download_error_gated">HTTP 401 — доступ к этой модели ограничен. Добавьте токен доступа Hugging Face в настройках или сначала примите лицензию модели на huggingface.co.</string>
+
+    <!-- New strings surfaced by the settings redesign -->
+    <string name="settings_view_intro">Посмотреть введение</string>
+    <string name="settings_view_intro_subtitle">Пройти знакомство с TinyModels ещё раз</string>
+    <string name="settings_importing_model">Импорт модели…</string>
+    <string name="settings_font_reset">Сбросить по умолчанию</string>
+    <string name="settings_font_preview_body">Так будут выглядеть ваши чаты.</string>
+    <string name="settings_font_preview_small">Мелкий текст остаётся читаемым.</string>
+    <string name="settings_bug_report_subject">Отчёт об ошибке TinyModels</string>
+    <string name="settings_theme_system">Системная</string>
+    <string name="settings_theme_light">Светлая</string>
+    <string name="settings_theme_dark">Тёмная</string>
+    <string name="settings_backend_auto">Авто</string>
+    <string name="settings_backend_gpu" translatable="false">GPU</string>
+    <string name="settings_backend_cpu" translatable="false">CPU</string>
+
+    <!-- Benchmark redesign -->
+    <string name="benchmark_ttft_line">TTFT %1$.0f мс · p95 %2$.0f мс</string>
+    <string name="benchmark_state_result">Результат</string>
+    <string name="benchmark_state_measuring">Измерение</string>
+    <string name="benchmark_state_loading">Загрузка модели</string>
+    <string name="benchmark_state_subtitle">Скорость инференса на этом устройстве</string>
+    <string name="benchmark_no_models_title">Моделей пока нет</string>
+    <string name="benchmark_no_models_body">Загрузите модель на вкладке «Модели», затем вернитесь, чтобы измерить её.</string>
+    <string name="benchmark_files_available">Доступно: %1$d</string>
+    <string name="benchmark_what_gets_measured">Что измеряется</string>
+    <string name="benchmark_metric_decode">Декодирование</string>
+    <string name="benchmark_metric_decode_sub">токенов / секунда</string>
+    <string name="benchmark_metric_ttft">Время до первого токена</string>
+    <string name="benchmark_metric_ttft_sub">отзывчивость</string>
+    <string name="benchmark_metric_prefill">Prefill</string>
+    <string name="benchmark_metric_prefill_sub">обработка промпта</string>
+    <string name="benchmark_metric_memory">Пиковая память</string>
+    <string name="benchmark_metric_memory_sub">потребление</string>
+    <string name="benchmark_run_measuring">Измерение %1$s</string>
+    <string name="benchmark_run_duration">Обычно 3–10 мин, в зависимости от модели</string>
+    <string name="benchmark_hero_title">Насколько быстр этот телефон на самом деле?</string>
+    <string name="benchmark_hero_body">Запускает одни и те же три промпта с жадным декодированием, отбрасывает прогревочный проход, затем измеряет стабильную скорость, память и тепловое падение.</string>
+    <string name="benchmark_hero_chip_prompts">%1$d промпта</string>
+    <string name="benchmark_hero_chip_runs">по %1$d запуска</string>
+    <string name="benchmark_hero_chip_temp">темп. 0</string>
+    <string name="benchmark_selected_content_description">Выбрано</string>
+    <string name="benchmark_methodology">Методика</string>
+    <string name="benchmark_method_prompts">%1$d промпта (короткий → длинный), чтобы отделить время до первого токена от пропускной способности prefill</string>
+    <string name="benchmark_method_runs">1 прогрев + %1$d измеренных запуска на каждый, прогрев не учитывается</string>
+    <string name="benchmark_method_greedy">Жадное декодирование (температура 0, top-k 1) для воспроизводимости</string>
+    <string name="benchmark_method_sustained">%1$d с постоянной нагрузки для выявления троттлинга</string>
+    <string name="benchmark_method_memory">Пиковая память измеряется каждые 250 мс; вывод ограничен %1$d токенами</string>
+    <string name="benchmark_progress_seconds_left">осталось %1$d с</string>
+    <string name="benchmark_progress_measuring">измерение</string>
+    <string name="benchmark_thermal_check">Тепловая проверка</string>
+    <string name="benchmark_progress_run_of">Запуск %1$d из %2$d</string>
+    <string name="benchmark_sustained_watching">Постоянная нагрузка — отслеживание троттлинга</string>
+    <string name="benchmark_section_thermal">Нагрев</string>
+    <string name="benchmark_phase_prompt_suite">Набор промптов</string>
+    <string name="benchmark_phase_thermal">Нагрев</string>
+    <string name="benchmark_result_score">оценка</string>
+    <string name="benchmark_result_grade">Класс %1$s</string>
+    <string name="benchmark_result_median_decode">Медиана декодирования %1$.1f ток/с</string>
+    <string name="benchmark_stat_decode_p50">Декодирование p50</string>
+    <string name="benchmark_stat_ttft_p50">TTFT p50</string>
+    <string name="benchmark_stat_prefill_p50">Prefill p50</string>
+    <string name="benchmark_section_by_prompt">По промптам</string>
+    <string name="benchmark_section_by_prompt_hint">p50 · p95</string>
+    <string name="benchmark_section_thermal_hint">постоянная нагрузка</string>
+    <string name="benchmark_stat_sustained_speed">Стабильная скорость</string>
+    <string name="benchmark_stat_change_over_run">Изменение за прогон</string>
+    <string name="benchmark_stat_spread">Разброс между запусками</string>
+    <string name="benchmark_stability_value">%1$s (%2$.1f%%)</string>
+    <string name="benchmark_info_cold_load">Холодная загрузка</string>
+    <string name="benchmark_info_model_size">Размер модели</string>
+    <string name="benchmark_info_memory_ratio">Память / модель</string>
+    <string name="benchmark_copy">Копировать</string>
+    <string name="benchmark_prompt_short">Короткий</string>
+    <string name="benchmark_prompt_medium">Средний</string>
+    <string name="benchmark_prompt_long">Длинный</string>
+    <string name="benchmark_thermal_holds">Полная скорость сохранена</string>
+    <string name="benchmark_thermal_slight">Небольшое тепловое падение</string>
+    <string name="benchmark_thermal_noticeable">Заметный троттлинг</string>
+    <string name="benchmark_thermal_heavy">Сильный троттлинг</string>
+    <string name="benchmark_stability_stable">Стабильно</string>
+    <string name="benchmark_stability_fair">Средне</string>
+    <string name="benchmark_stability_unstable">Нестабильно</string>
+    <string name="benchmark_throttle_drop">падение %1$.1f%%</string>
+    <string name="benchmark_throttle_faster">быстрее на %1$.1f%%</string>
+    <string name="benchmark_throttle_none">Без изменений</string>
+    <string name="benchmark_summary_score">Оценка: %1$d (%2$s) · медиана декодирования %3$.1f ток/с</string>
+    <string name="benchmark_summary_prompt_line">  %1$s: TTFT %2$.0f мс (p95 %3$.0f), декодирование %4$.1f ток/с (p95 %5$.1f, sd %6$.1f), prefill %7$.0f ток/с</string>
+    <string name="benchmark_summary_sustained">Стабильно: %1$.1f ток/с, %2$s (%3$s)</string>
+    <string name="benchmark_summary_load">Загрузка %1$.1f с · пик PSS %2$s · модель %3$s</string>
+
+    <string name="settings_section_home_screen">Главный экран</string>
+
+    <!-- Home screen widget -->
+    <string name="settings_add_widget">Добавить виджет на главный экран</string>
+    <string name="settings_add_widget_subtitle">Разместите TinyModels на главном экране для быстрого доступа</string>
+    <string name="settings_add_widget_not_supported">Виджет главного экрана нельзя добавить отсюда на этом устройстве. Нажмите и удерживайте главный экран и добавьте TinyModels из раздела «Виджеты».</string>
+    <string name="settings_add_widget_added">Виджет добавлен на главный экран</string>
+
+    <!-- Color themes -->
+    <string name="settings_color_theme">Цветовая тема</string>
+    <string name="settings_color_theme_subtitle">Выберите цветовую палитру приложения</string>
+    <string name="settings_color_theme_sheet_title">Выберите цветовую тему</string>
+    <string name="theme_default">По умолчанию</string>
+    <string name="theme_github">GitHub</string>
+    <string name="theme_vercel">Vercel</string>
+    <string name="theme_night_owl">Night Owl</string>
+    <string name="theme_dracula">Dracula</string>
+    <string name="theme_nord">Nord</string>
+    <string name="theme_catppuccin">Catppuccin</string>
+
+    <!-- Storage screen -->
+    <string name="settings_storage">Хранилище</string>
+    <string name="settings_storage_subtitle">Просмотр использования места моделями, чатами, базой данных и потерянными файлами</string>
+    <string name="storage_title">Хранилище</string>
+    <string name="storage_total_tracked">Учтённые данные приложения</string>
+    <string name="storage_total_tracked_subtitle">Модели, чаты, база данных, частичные загрузки и потерянные файлы</string>
+    <string name="storage_models_section">Загруженные модели</string>
+    <string name="storage_models_count">Загруженных файлов: %1$d</string>
+    <string name="storage_no_downloaded_models">Загруженные файлы моделей не найдены</string>
+    <string name="storage_chats_db_section">Чаты и база данных</string>
+    <string name="storage_chats_summary">%1$d чат(ов) · %2$d сообщений</string>
+    <string name="storage_database">База данных (tiny_models.db)</string>
+    <string name="storage_database_wal">WAL/SHM базы данных</string>
+    <string name="storage_chat_images">Изображения чатов</string>
+    <string name="storage_total_tokens">Всего сгенерировано токенов</string>
+    <string name="storage_partial_downloads">Частичные / приостановленные загрузки</string>
+    <string name="storage_partial_downloads_subtitle">%1$d приостановленных или выполняющихся загрузок. Частичные файлы .part показаны ниже.</string>
+    <string name="storage_no_partial_downloads">Частичные файлы загрузок не найдены</string>
+    <string name="storage_orphan_files">Потерянные файлы</string>
+    <string name="storage_orphan_files_subtitle">Файлы в хранилище моделей приложения, не отмеченные как загруженные модели</string>
+    <string name="storage_no_orphan_files">Потерянные файлы не найдены</string>
+
+    <!-- Privacy & security -->
+    <string name="settings_section_privacy_security">Конфиденциальность и безопасность</string>
+    <string name="settings_privacy">Политика конфиденциальности</string>
+    <string name="settings_privacy_subtitle">Узнайте, как TinyModels обрабатывает ваши данные</string>
+    <string name="settings_security">Безопасность</string>
+    <string name="settings_security_subtitle">Узнайте о практиках безопасности TinyModels</string>
+
+
+    <string name="storage_refresh">Обновить</string>
+    <string name="storage_chats_section">Чаты и хранилище</string>
+    <string name="storage_images_count">Изображений: %1$d</string>
+    <string name="storage_no_chats">Нет чатов для удаления</string>
+    <string name="storage_chat_messages_count">Сообщений: %1$d</string>
+    <string name="storage_delete">Удалить</string>
+    <string name="storage_delete_confirm_title">Удалить элемент?</string>
+    <string name="storage_delete_model_file_body">Удалить «%1$s»? Загруженный файл модели будет удалён с устройства, а учёт хранилища обновится.</string>
+    <string name="storage_delete_partial_body">Удалить частичную загрузку «%1$s»? Оставшиеся данные .part будут удалены, чтобы можно было начать заново.</string>
+    <string name="storage_delete_orphan_body">Удалить потерянный файл «%1$s»? Этот файл не отмечен как загруженная модель.</string>
+    <string name="storage_delete_chat_title">Удалить чат?</string>
+    <string name="storage_delete_chat_body">Удалить «%1$s» и его сообщения? Это действие нельзя отменить.</string>
+    <string name="storage_reset_app">Сбросить данные приложения</string>
+    <string name="storage_reset_app_subtitle">Удалить все чаты, загруженные модели, частичные/потерянные файлы, изображения чатов и сбросить настройки приложения. Это действие нельзя отменить.</string>
+    <string name="storage_reset_confirm_title">Сбросить все данные приложения?</string>
+    <string name="storage_reset_confirm_body">Будут удалены чаты, загруженные модели и файлы, частичные загрузки, потерянные файлы, изображения чатов, а также сброшены настройки и онбординг. Вы начнёте заново.</string>
+    <string name="storage_reset_confirm_action">Сбросить данные приложения</string>
+
+    <string name="model_import_projector_not_model">Это проектор зрения (mmproj), а не языковая модель. Импортируйте основной файл .gguf — проекторы загружаются и связываются с ним автоматически.</string>
+    <string name="settings_importing_model_keep_open">Пожалуйста, не закрывайте этот экран во время импорта.</string>
+    <string name="settings_search_provider">Провайдер поиска</string>
+    <string name="settings_search_provider_dialog_title">Провайдер веб-поиска</string>
+    <string name="settings_search_provider_keyless">Без ключа (DuckDuckGo + Bing)</string>
+    <string name="settings_search_provider_brave">Brave Search API</string>
+    <string name="settings_search_provider_tavily">Tavily Search API</string>
+    <string name="settings_search_provider_searxng">SearXNG (свой сервер)</string>
+    <string name="settings_search_api_key">API-ключ</string>
+    <string name="settings_search_api_key_hint">Вставьте API-ключ провайдера</string>
+    <string name="settings_search_searxng_url">URL SearXNG</string>
+    <string name="settings_search_searxng_url_hint">https://search.example.com</string>
+    <string name="settings_search_reader_fallback">Читать JS-страницы через Jina Reader</string>
+    <string name="settings_search_reader_fallback_subtitle">Отправляет URL страницы на r.jina.ai, если страницу нельзя прочитать напрямую. По умолчанию выключено.</string>
+    <string name="settings_search_save">Сохранить</string>
+    <string name="settings_search_not_configured">Не настроено — используется режим без ключа</string>
+    <string name="settings_web_search_always">Всегда искать перед ответом</string>
+    <string name="settings_web_search_always_subtitle">Искать в интернете при каждом сообщении в каждом чате. Использует больше времени и места в контексте.</string>
+    <string name="settings_web_search_always_dialog_title">Включить постоянный поиск?</string>
+    <string name="settings_web_search_always_dialog_body">Это будет искать в интернете перед каждым ответом, даже на простые вопросы.\n\nРезультаты веб-поиска занимают место в контексте, поэтому у модели может остаться меньше места для длинных разговоров или текста прикреплённых страниц. Ответы также могут стать медленнее и потреблять больше данных.</string>
+    <string name="settings_web_search_always_enable">Включить</string>
+</resources>

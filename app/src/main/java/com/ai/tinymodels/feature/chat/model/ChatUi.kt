@@ -70,7 +70,9 @@ data class ChatError(val message: String, val actionLabel: String? = null)
 data class ModelLoadProgress(
     val modelId: String,
     val progress: Float = 0f,
-    val stage: LoadStage = LoadStage.INITIALIZING
+    val stage: LoadStage = LoadStage.INITIALIZING,
+    /** Actual model file name when known; authoritative for display names. */
+    val fileName: String? = null
 ) {
     enum class LoadStage {
         INITIALIZING,

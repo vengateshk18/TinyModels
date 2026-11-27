@@ -1,0 +1,162 @@
+<resources>
+    <!-- ================= Home: onboarding (first-time) ================= -->
+    <string name="home_hero_title">Запускайте ИИ-модели полностью на своём телефоне.</string>
+    <string name="home_hero_subtitle">Без интернета. Без облака. Данные не покидают устройство.</string>
+    <string name="home_storage_note">Размер моделей — от 600 МБ до 2 ГБ. У вас свободно %1$s.</string>
+    <string name="home_browse_all_models">Просмотреть все модели</string>
+
+    <!-- ================= Home: device capability card ================= -->
+    <string name="home_device_card_title">Ваше устройство</string>
+    <string name="home_device_capability_value">%1$s —</string>
+    <string name="home_device_can_run_models">комфортно запускает модели до %1$s</string>
+    <string name="home_device_model_tier">%1$s: %2$s (%3$s)</string>
+
+    <!-- ================= Home: three-step strip ================= -->
+    <string name="home_step_download_title">Загрузите</string>
+    <string name="home_step_download_caption">Занимает несколько минут</string>
+    <string name="home_step_load_title">Запустите</string>
+    <string name="home_step_load_caption">Первая загрузка может быть медленной</string>
+    <string name="home_step_chat_title">Общайтесь офлайн</string>
+    <string name="home_step_chat_caption">Всё остаётся на устройстве</string>
+
+    <!-- ================= Home: recommended model card ================= -->
+    <string name="home_recommended_title">Рекомендовано для вашего устройства</string>
+    <string name="home_recommended_meta">Уровень %1$s • %2$s • %3$s</string>
+    <string name="home_download_button">Скачать (%1$s)</string>
+    <string name="home_downloaded_opening">Загружено! Открываем панель…</string>
+    <string name="home_download_failed">Ошибка загрузки. Проверьте соединение и попробуйте снова.</string>
+    <string name="home_add_token">Добавить токен</string>
+    <string name="home_model_page">Страница модели</string>
+    <string name="home_waiting_for_connection">Ожидание подключения… загрузка начнётся автоматически.</string>
+    <string name="home_download_progress">%1$d%%</string>
+    <string name="home_download_progress_with_speed">%1$d%% • %2$s/с</string>
+
+    <!-- ================= Home: dashboard ================= -->
+    <string name="home_thermal_advisory">Большие модели могут нагревать устройство и сильнее расходовать батарею.</string>
+    <string name="home_section_your_models">Ваши модели</string>
+    <string name="home_manage_models">Управление моделями</string>
+    <string name="home_section_your_usage">Ваше использование</string>
+    <string name="home_stat_chats">чаты</string>
+    <string name="home_stat_tokens">токены</string>
+    <string name="home_stat_models_tried">моделей опробовано</string>
+    <string name="home_stat_messages">сообщения</string>
+    <string name="home_stat_chats_this_week">чатов за неделю</string>
+    <string name="home_stat_compactions">уплотнений</string>
+    <string name="home_last_session_tps">Последняя сессия: ~%1$s ток/с</string>
+    <string name="home_most_chatted">Чаще всего</string>
+    <string name="home_chat_with_model">Чат с %1$s</string>
+
+    <!-- ================= Home: last-used model card ================= -->
+    <string name="home_ready_to_chat">Готово к общению</string>
+    <string name="home_your_model">Ваша модель</string>
+    <string name="home_this_model">эта модель</string>
+    <string name="home_model_context">%1$s • контекст %2$d</string>
+    <string name="home_resume_chat">Продолжить чат</string>
+    <string name="home_new_chat">Новый чат</string>
+    <string name="home_new_chat_with_model">Новый чат с %1$s</string>
+
+    <!-- ================= Model tiers ================= -->
+    <string name="model_tier_small">Малый</string>
+    <string name="model_tier_medium">Средний</string>
+    <string name="model_tier_high">Высокий</string>
+
+    <!-- Recommended catalog model names (product names — not translated) -->
+    <string name="model_name_qwen3_0_6b" translatable="false">Qwen3 0.6B</string>
+    <string name="model_name_deepseek_r1_1_5b" translatable="false">DeepSeek R1 1.5B</string>
+    <string name="model_name_qwen3_5_2b" translatable="false">Qwen3.5 2B</string>
+
+    <!-- ================= Device information screen ================= -->
+    <string name="device_info_title">Информация об устройстве</string>
+    <string name="device_info_ready_title">Готово к ИИ на устройстве</string>
+    <string name="device_info_ai_capability">Возможности ИИ</string>
+    <string name="device_info_recommended_up_to">Рекомендованы модели до %1$s</string>
+    <string name="device_info_memory_section">Память</string>
+    <string name="device_info_ram" translatable="false">RAM</string>
+    <string name="device_info_available">Доступно</string>
+    <string name="device_info_recommended_for_ai">Рекомендовано для ИИ</string>
+    <string name="device_info_live_ram_usage">Использование ОЗУ в реальном времени</string>
+    <string name="device_info_browse_models">Просмотреть модели</string>
+
+    <!-- ================= RAM usage chart ================= -->
+    <string name="device_ram_usage_live_title">Использование ОЗУ в реальном времени</string>
+    <string name="device_ram_usage_percent_used">Использовано %1$.2f%%</string>
+    <string name="device_ram_usage_collecting">Сбор данных…</string>
+    <string name="device_ram_usage_used">Использовано %1$s</string>
+    <string name="device_ram_usage_free_of">Свободно %1$s из %2$s</string>
+
+    <!-- ================= AI capability levels ================= -->
+    <string name="device_capability_excellent">Отлично</string>
+    <string name="device_capability_good">Хорошо</string>
+    <string name="device_capability_limited">Ограничено</string>
+    <string name="device_capability_low">Низко</string>
+    <string name="device_capability_unknown">Неизвестно</string>
+
+    <!-- ================= Device insights card ================= -->
+    <string name="device_insights_title">Сведения об устройстве</string>
+    <string name="device_insights_thermal">Нагрев</string>
+    <string name="device_insights_thermal_state">Состояние %1$d</string>
+    <string name="device_insights_battery">Батарея</string>
+    <string name="device_insights_battery_percent">%1$d%%</string>
+    <string name="device_insights_gpu_renderer">GPU-рендерер</string>
+    <string name="device_insights_storage">Хранилище</string>
+    <string name="device_insights_storage_used">Использовано %1$s</string>
+    <string name="device_insights_storage_free">Свободно %1$s</string>
+    <string name="device_insights_processor">Процессор</string>
+    <string name="device_insights_cores">Ядра</string>
+    <string name="device_insights_architecture">Архитектура</string>
+    <string name="device_insights_64bit">64-бит</string>
+
+    <!-- Thermal status labels -->
+    <string name="device_thermal_normal">Нормально</string>
+    <string name="device_thermal_light">Лёгкий нагрев</string>
+    <string name="device_thermal_moderate">Умеренный нагрев</string>
+    <string name="device_thermal_severe">Сильный нагрев</string>
+    <string name="device_thermal_critical">Критический</string>
+    <string name="device_thermal_emergency">Аварийный</string>
+    <string name="device_thermal_shutdown">Отключение</string>
+    <string name="device_thermal_unknown">Неизвестно</string>
+
+    <!-- Battery status labels -->
+    <string name="device_battery_unknown">Неизвестно</string>
+    <string name="device_battery_charging">Заряжается</string>
+    <string name="device_battery_discharging">Разряжается</string>
+    <string name="device_battery_not_charging">Не заряжается</string>
+    <string name="device_battery_full">Полностью заряжена</string>
+
+    <!-- ================= RAM recommendations ================= -->
+    <string name="ram_recommendations_title">Рекомендации</string>
+    <string name="ram_rec_plenty_capacity">Можно комфортно загружать модели 3B–7B</string>
+    <string name="ram_rec_plenty_context">Отлично подходит для длинных разговоров с большим контекстом</string>
+    <string name="ram_rec_moderate_capacity">Средний запас — предпочтительны модели 1B–3B</string>
+    <string name="ram_rec_moderate_compaction">Длинные чаты могут раньше потребовать уплотнения</string>
+    <string name="ram_rec_limited_capacity">Ограничено — поместятся только очень маленькие модели (&lt;1B)</string>
+    <string name="ram_rec_limited_close_apps">Закройте другие приложения, чтобы освободить ОЗУ</string>
+    <string name="ram_rec_critical_close_apps">Критически мало — закройте другие приложения перед загрузкой модели</string>
+    <string name="ram_rec_critical_no_models">Сейчас модели загрузить невозможно</string>
+    <string name="ram_rec_thermal_throttling">Устройство троттлит из-за нагрева — производительность будет снижена</string>
+    <string name="ram_rec_battery_low">Низкий заряд — держите зарядное устройство рядом при загрузке больших моделей</string>
+    <plurals name="home_model_files_last_used">
+        <item quantity="one">%1$s • %2$d файл • использовался последним</item>
+        <item quantity="few">%1$s • %2$d файла • использовался последним</item>
+        <item quantity="many">%1$s • %2$d файлов • использовался последним</item>
+        <item quantity="other">%1$s • %2$d файлов • использовался последним</item>
+    </plurals>
+    <plurals name="home_model_files_relative">
+        <item quantity="one">%1$s • %2$d файл • %3$s</item>
+        <item quantity="few">%1$s • %2$d файла • %3$s</item>
+        <item quantity="many">%1$s • %2$d файлов • %3$s</item>
+        <item quantity="other">%1$s • %2$d файлов • %3$s</item>
+    </plurals>
+    <plurals name="home_show_more_models">
+        <item quantity="one">Показать ещё %1$d модель</item>
+        <item quantity="few">Показать ещё %1$d модели</item>
+        <item quantity="many">Показать ещё %1$d моделей</item>
+        <item quantity="other">Показать ещё %1$d моделей</item>
+    </plurals>
+    <plurals name="home_web_search_chats">
+        <item quantity="one">Веб-поиск включён в %1$d чате</item>
+        <item quantity="few">Веб-поиск включён в %1$d чатах</item>
+        <item quantity="many">Веб-поиск включён в %1$d чатах</item>
+        <item quantity="other">Веб-поиск включён в %1$d чатах</item>
+    </plurals>
+</resources>
